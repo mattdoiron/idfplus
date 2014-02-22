@@ -6,9 +6,9 @@ Created on Tue Mar  8 20:17:03 2011
 """
 
 import re
-from pysqlite2 import dbapi2 as sqlite
+#from pysqlite2 import dbapi2 as sqlite
 
-import idd_schema as idd
+#import idd_schema as idd
 
 # Define some global variables
 idf_file = "RefBldgLargeOfficeNew2004_Chicago.idf"
@@ -35,73 +35,131 @@ Proceedure:
 
 """
 
+comment_delimiter_general = "!"
+comment_delimiter_special = "!-"
+object_delimiter = ";"
+object_category_delimiter = ":"
+field_delimiter = ","
+
 def parse_IDF(file, objects):
     comment_count = 0
-    object_count = 0
-    object_count_2 = 0
+    comment_count_special = 0
+    comment_count_field_special = 0
+    comment_count_field_general = 0
+    object_start_count = 0
+    object_end_count = 0
     line_count = 0
     empty_line_count = 0
+    field_count = 0
     parse_mode = "object"
     object_dict = []
 
     # Cycle through each line in the file, one at a time
     for line_in in file:
-        
-        # get rid of tabs, then leading/trailing spaces
-        line = line_in.expandtabs().strip()
-        
-        # If line starts with ! then it's a comment
-        if line.startswith('!'):
-            comment_count += 1
-        
+
+        # get rid of tabs, then leading spaces
+        line = line_in.expandtabs().lstrip()
+
         # Check for empty lines
-        elif not line:
+        if not line:
             empty_line_count += 1
-            
-        # Otherwise, it's useful so do some stuff
+
+        # If line starts with !- then it's a special/field comment
+        elif line.startswith('!-'):
+            comment_count_special += 1
+
+        # If line starts with ! then it's a general comment
+        elif line.startswith('!'):
+            comment_count += 1
+
+        # Otherwise, the line is useful so do some stuff
         else:
 
-            # Split the line at the commas
-            obj = line.split(',')
-            
-            # Check for start of an object. The first list item that is all
-            # alphas or contains a : denotes the start of a new object
-            if parse_mode == "object" and (obj[0].isalpha() or obj[0].find(':') != -1):
-                object_count_2 += 1
-#                print "START_OBJECT -----------------------------------------"
-                parse_mode = "field"
-                object_dict.append(obj[0])
-                if not objects.has_key(obj[0]):
-                    print "Object not found! ("+obj[0]+")"
-                    return {}
-                
-            # If the last item has a ; then this signals the end of an object
-            # so split it further to extract any comment for the last field.
-            if obj[-1].find(';') != -1:
-                new_obj = obj[-1].split(';')
-                obj[-1] = new_obj[0]
-                obj.append(new_obj[1].strip())
-                object_count += 1
-                parse_mode = "object"
-                
+            # Split the line at the !- if it exists
+            line_split_comment_special = line.split('!-')
+            if len(line_split_comment_special) > 1:
+                comment_count_field_special += 1
+
+            # Split the line at the ! if it exists
+            line_split_comment = line.split('!')
+            if len(line_split_comment) > 1:
+                line_split_comment += 1
+
+            # Split the remaining part of the line at the commas, if any
+            obj = obj1[0].split(',')
+
+            if parse_mode == "field":
+                # Partition the line before and after the ;
+                part = line.partition(';')
+
+                # part[0] won't match if there was a ; (signals end of an obj)
+                if part[0] != line:
+                    fields = part[0].strip().strip(',').split(',')
+                    field_count += len(fields)
+                    comment = part[-1].lstrip()
+                    if comment.startswith('!-'):
+                        # count a special field comment
+                        comment_count_field_special +=1
+                    elif comment.startswith('!'):
+                        # count a field comment
+                        comment_count_field += 1
+                    else:
+                        #no comment on this field
+                        pot_obj = comment.strip()
+                        if pot_obj.isalpha() or pot_obj.find(':') != -1:
+                            #this is actually the start of a new obj!
+                            object_dict.append(pot_obj)
+                            if not objects.has_key(pot_obj):
+                                print "Object not found! ("+pot_obj+")"
+                                return {}
+                            object_start_count += 1
+                            continue
+                    parse_mode = 'object'
+                else:
+                    part2 = line.partition('!-')
+                    if part2[0] != line:
+                        fields = part2[0].strip().strip(',').split(',')
+                        comment = part2[-1].lstrip()
+                        comment_count_field_special +=1
+                    else:
+                        part3 = line.partition('!')
+                        fields = part3[0].strip().strip(',').split(',')
+                        comment = part3[-1].lstrip()
+                        comment_count_field += 1
+                    field_count += len(fields)
+
+            elif parse_mode == "object":
+                # Check for start of an object. The first list item that is all
+                # alphas or contains a : denotes the start of a new object
+                part = line.partition(',')
+                pot_obj = part[0].strip().strip()
+                if pot_obj.isalpha() or pot_obj.find(':') != -1:
+                    object_start_count += 1
+                    parse_mode = "field"
+                    object_dict.append(pot_obj)
+                    if not objects.has_key(pot_obj):
+                        print "Object not found! ("+pot_obj+")"
+                        return {}
+                    continue
+
             # Strip white spaces from all array items
-            for i, item in enumerate(obj):
-                obj[i] = item.strip()
-            
+#            for i, item in enumerate(obj):
+#                obj[i] = item.strip()
+
             # Print the line
 #            print obj
 #            if obj[0].isdigit():
 #                print float(obj[0])
-        
+
         # Count the line
         line_count += 1
-    
+
     print "number of comment lines: " + str(comment_count)
     print "number of objects: " + str(object_count)
     print "number of objects 2: " + str(object_count_2)
     print "number of lines: " + str(line_count)
     print "number of empty lines: " + str(empty_line_count)
-    
+
     return object_dict
 
 # Parse the IDD file specified by the file handle 'file'
@@ -119,52 +177,52 @@ def parse_IDD(file):
     field_comments = ['field', 'note', 'required-field', 'units', 'ip-units',
                        'unitsBasedOnField', 'minimum', 'minimum>', 'maximum',
                        'maximum<', 'default', 'deprecated', 'autosizable',
-                       'autocalculatable', 'type', 'retaincase', 'key', 
+                       'autocalculatable', 'type', 'retaincase', 'key',
                        'object-list', 'reference', 'begin-extensible',
                        'Note', 'Units']
-    object_comments = ['memo', 'unique-object', 'required-object', 'min-fields', 
+    object_comments = ['memo', 'unique-object', 'required-object', 'min-fields',
                        'obsolete', 'extensible', 'format']
     other_comments = ['group', 'Group']
-    
+
     # Find the version number of this idd file
     version_line = file.readline(150)
     if not version_line.startswith('!IDD_Version'):
         print "This file does not appear to be a valid IDD file."
         return {}
     version = version_line.split(' ')[1]
-    
+
     # Cycle through each line in the file, one at a time
     for line in file:
-            
+
         # get rid of tabs, then leading/trailing spaces
         line = line.expandtabs().strip()
-        
+
         # If line starts with ! then it's a comment
         if line.startswith('!'):
             comment_count += 1
-        
+
         # Check for empty lines
         elif not line:
             empty_line_count += 1
-                
+
         # Otherwise, it's useful so do some stuff
         else:
-            
+
             # If the line starts with a \ then this is an object or field
             # comment and should be parsed accordingly
             if line.startswith('\\'):
                 part = line.partition(' ')
                 comment = part[0].strip().strip('\\')
                 value = part[-1].strip()
-                
+
                 # Verify that the comment is valid
-                if ( comment not in object_comments and 
+                if ( comment not in object_comments and
                      comment not in field_comments and
-                     comment not in other_comments and 
+                     comment not in other_comments and
                      comment.find('extensible:') == -1):
                     if DEBUG: print 'Unknown object or field comment found on line '+str(line_count)+'! ('+comment+')'
                     return {}
-                
+
                 # Add the comment depending on which parse mode is active
                 if parse_mode == "object_comment":
                     if object_dict[current_object]['comments'].has_key(comment):
@@ -175,21 +233,21 @@ def parse_IDD(file):
                 elif parse_mode == "field_comment":
                     if object_dict[current_object]['fields'][current_field].has_key(comment):
                         object_dict[current_object]['fields'][current_field][comment].append(value)
-                    else:                            
+                    else:
                         object_dict[current_object]['fields'][current_field][comment] = [value]
                     if DEBUG: print '  field comment ('+comment+') for field '+current_field
                 continue
-                
+
             # Split the line at the commas
             obj = line.split(',')
 
-            # Regex for field name                
+            # Regex for field name
             field_name = re.match(r'^[A|N][0-9]+', obj[0])
-                            
+
             # Check for start of an object. The first list item that is all
             # alphas or contains a : or ; denotes the start (and possibly
             # the end) of a new object
-            
+
             # use a regex for this!
             if (obj[0].isalpha() or obj[0].find(':') != -1 or obj[0].find(';') != -1) and not field_name:
                 object_count_2 += 1
@@ -199,7 +257,7 @@ def parse_IDD(file):
                 obj_cleaned = obj[0].strip(';')
                 current_object = obj_cleaned
                 object_dict[obj_cleaned] = {'comments': {}, 'fields': {}}
-                                
+
             # Check for a valid field name
             if field_name:
                 if DEBUG: print obj
@@ -216,7 +274,7 @@ def parse_IDD(file):
                         object_dict[current_object]['fields'][current_field][end_field] = value
                     if DEBUG: print '  field comment ('+end_field+') for field '+current_field + ' (next to field name)'
                 parse_mode = "field_comment"
-            
+
             # If the last item has a ; then this signals the end of an object
             # so split it further to extract any comment for the last field.
             if obj[-1].find(';') != -1:
@@ -245,17 +303,17 @@ def parse_IDD(file):
             # Strip white spaces from all array items
             for i, item in enumerate(obj):
                 obj[i] = item.strip()
-                
+
         # Count the line
         line_count += 1
-    
+
     print "number of comment lines: " + str(comment_count)
     print "number of objects: " + str(object_count)
     print "number of objects 2: " + str(object_count_2)
     print "number of lines: " + str(line_count)
     print "number of empty lines: " + str(empty_line_count)
     print 'Version found: ' + version
-    
+
     return object_dict
 
 # Open the specified file (safely) and parse it
