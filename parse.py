@@ -41,6 +41,49 @@ object_delimiter = ";"
 object_category_delimiter = ":"
 field_delimiter = ","
 
+def hasGeneralComment(str_in):
+    global comment_delimiter_general
+    test = str_in.partition(comment_delimiter_general)
+    if test[0] == test:
+        return True
+    else:
+        return False
+
+def hasSpecialComment(str_in):
+    global comment_delimiter_special
+    test = str_in.partition(comment_delimiter_special)
+    if test[0] == test:
+        return True
+    else:
+        return False
+
+def stripGeneralComment(str_in):
+    global comment_delimiter_general
+    test = str_in.partition(comment_delimiter_general)
+    return test[0]
+
+def stripSpecialComment(str_in):
+    global comment_delimiter_special
+    test = str_in.partition(comment_delimiter_special)
+    return test[0]
+
+def getGeneralComment(str_in):
+    global comment_delimiter_general
+    global comment_delimiter_special
+    partA = str_in.partition(comment_delimiter_special)
+    print partA
+    partB = partA[-1].partition(comment_delimiter_special)
+    print partB
+    if partB[0] != partA[-1]:
+        return partB[0].expandtabs().strip()
+    else:
+        return partB[-1].expandtabs().strip()
+
+def getSpecialComment(str_in):
+    global comment_delimiter_special
+    test = str_in.partition(comment_delimiter_special)
+    return test[-1]
+
 def parse_IDF(file, objects):
     comment_count = 0
     comment_count_special = 0
@@ -51,7 +94,7 @@ def parse_IDF(file, objects):
     line_count = 0
     empty_line_count = 0
     field_count = 0
-    parse_mode = "OBJECT"
+    parse_mode = "INITIAL"
     object_dict = []
     version = ''
 
@@ -60,6 +103,7 @@ def parse_IDF(file, objects):
 
         # general prep
         obj_comments = []
+        file_comments = []
         line_count += 1
 
         # get rid of tabs, then leading spaces
@@ -69,15 +113,19 @@ def parse_IDF(file, objects):
         if not line_clean:
             empty_line_count += 1
 
-        # If line starts with !- then it's a special/field comment
-        elif line_clean.startswith('!-'):
-            #ignore these lines
-            comment_count_special += 1
+        # If we're currently looking for fields...
+        if parse_mode == "INITIAL":
 
-        # If line starts with ! then it's a general comment
-        elif line_clean.startswith('!'):
-            # save this line as a global comment for the top of the file
-            comment_count += 1
+            # If line starts with !- then it's a special/field comment
+            if line_clean.startswith('!-'):
+                #ignore these lines
+                comment_count_special += 1
+
+            # If line starts with ! then it's a general comment
+            elif line_clean.startswith('!'):
+                # save this line as a global comment for the top of the file
+                comment_count += 1
+                file_comments.append(line_clean)
 
         # Otherwise, the line is useful so do some stuff
         else:
@@ -108,7 +156,7 @@ def parse_IDF(file, objects):
             line_split = line_part2[0].split(',')
 
             # Strip away any spaces or commas from each list item
-            line_list = map(lambda i: i.strip().strip(','), line_split)
+            line_items = map(lambda i: i.strip().strip(','), line_split)
 
             # If we're currently looking for fields...
             if parse_mode == "FIELD":
@@ -117,52 +165,15 @@ def parse_IDF(file, objects):
                 fields = line_list
 
                 # Check for the end of an object
-                if fields[-1].endswith(';'):
+                if line_items[-1].endswith(';'):
                     # found a ;, remove it and count it
-                    fields[-1] = fields[-1].strip(';')
+                    line_items[-1] = line_items[-1].strip(';')
 
-                    field_count += len(fields)
+                    field_count += len(line_items)
                     object_end_count += 1
 
                     # Start looking for objects again
                     parse_mode = "OBJECT"
-
-
-                # part[0] won't match if there was a ; (signals end of an obj)
-                if part[0] != line:
-                    fields = part[0].strip().strip(',').split(',')
-                    field_count += len(fields)
-                    comment = part[-1].lstrip()
-                    if comment.startswith('!-'):
-                        # count a special field comment
-                        comment_count_field_special +=1
-                    elif comment.startswith('!'):
-                        # count a field comment
-                        comment_count_field += 1
-                    else:
-                        #no comment on this field
-                        pot_obj = comment.strip()
-                        if pot_obj.isalpha() or pot_obj.find(':') != -1:
-                            #this is actually the start of a new obj!
-                            object_dict.append(pot_obj)
-                            if not objects.has_key(pot_obj):
-                                print "Object not found! ("+pot_obj+")"
-                                return {}
-                            object_start_count += 1
-                            continue
-                    parse_mode = 'OBJECT'
-                else:
-                    part2 = line.partition('!-')
-                    if part2[0] != line:
-                        fields = part2[0].strip().strip(',').split(',')
-                        comment = part2[-1].lstrip()
-                        comment_count_field_special +=1
-                    else:
-                        part3 = line.partition('!')
-                        fields = part3[0].strip().strip(',').split(',')
-                        comment = part3[-1].lstrip()
-                        comment_count_field += 1
-                    field_count += len(fields)
 
             # If we're currently looking for the start of an object...
             elif parse_mode == "OBJECT":
