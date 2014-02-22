@@ -255,7 +255,7 @@ def parseIDF(filename):
     # Open the specified file in a safe way
     with open(filename, 'r') as file:
         # Prepare some variables to store the results
-        object_list = []
+        objects = []
         field_list = []
         comment_list = []
         comment_list_special = []
@@ -304,11 +304,11 @@ def parseIDF(filename):
                 # Perform check for object here (against IDD file)
 
                 # Save the object
-                object_list.append(dict(name=object_name,
-                                        fields=field_list,
-                                        comments=comment_list,
-                                        comments_special=comment_list_special,
-                                        order=object_index))
+                objects.append(dict(name=object_name,
+                                    fields=field_list,
+                                    comments=comment_list,
+                                    comments_special=comment_list_special,
+                                    order=object_index))
 
                 # Reset lists for next object
                 field_list = []
@@ -317,7 +317,7 @@ def parseIDF(filename):
                 object_index += 1
 
     print 'Parsing IDF complete!'
-    return (i + 1, len(object_list), options, object_list)
+    return (i + 1, len(objects), options, objects)
 
 
 # Parse these idf files
@@ -467,7 +467,7 @@ def parseIDD(filename):
     # Open the specified file in a safe way
     with open(filename, 'r') as file:
         # Prepare some variables to store the results
-        object_list = []
+        objects = {}
         field_list = []
         comment_list = []
         comment_list_special = []
@@ -481,7 +481,7 @@ def parseIDD(filename):
         # Cycle through each line in the file
         while True:
 
-            # Parse this line
+            # Parse this line using readline (so last one is a blank)
             line = file.readline()
             line_parsed = parseLineIDD(line)
 
@@ -540,12 +540,17 @@ def parseIDD(filename):
                 # file here (mandatory fields, unique objects, etc)
 
                 # Save the object
-                object_list.append(dict(name=object_name,
-                                        fields=field_list,
-                                        comments=comment_list,
-                                        comments_special=comment_list_special,
-                                        field_tags=field_tag_list,
-                                        group=group))
+                obj = dict(fields=field_list,
+                           comments=comment_list,
+                           comments_special=comment_list_special,
+                           field_tags=field_tag_list,
+                           group=group)
+
+                # Assign or append results
+                if object_name in objects:
+                    objects[object_name].append(obj)
+                else:
+                    objects[object_name] = [obj]
 
                 # Reset lists for next object
                 field_list = []
@@ -560,11 +565,12 @@ def parseIDD(filename):
                 break
 
     print 'Parsing IDD complete!'
-    return (len(object_list), eol_char, options, object_list)
+    return (len(objects), eol_char, options, objects)
 
 # Parse this idd file
 idd_file = 'Energy+.idd'
 idf_file = 'RefBldgLargeOfficeNew2004_Chicago.idf'
 idf_file2 = '5ZoneBoilerOutsideAirReset.idf'
-object_count, eol_char, options, objects = parseIDD(idf_file)
-writeIDF('testoutput.idf', options, objects)
+idf_file3 = 'ChicagoSM.idf'
+object_count, eol_char, options, objects = parseIDD(idd_file)
+#writeIDF('testoutput.idf', options, objects)
