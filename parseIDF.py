@@ -71,30 +71,30 @@ field_tag_delimiter = '\\'
 comment_delimiter_general = '!'
 comment_delimiter_special = '!-'
 
-test_line1 = '0.0,15.2,3.0;  !- X,Y,Z ==> Vertex 4 {m} '
-test_line2 = '0.0,15.2,3.0 ;  !test '
-test_line3 = '0.0,15.2,3.0;  !test  !- X,Y,Z ==> Vertex 4 {m}  '
-test_line4 = '0.0,15.2,3.0;  !- X,Y,Z ==> Vertex 4 {m}!test  '
-test_line5 = '0.0,15.2  ,3.0;  '
-test_line6 = ' ! comment 123'
-test_line7 = '  !- comment 456'
-test_line8 = '  BuildingSurface:Detailed,'
-test_line9 = '    ,            !- Outside Boundary Condition Object'
-test_line10 = '    SunExposed,              !- Sun Exposure'
-test_line11 = '    SunExposed,,,;              !- Sun Exposure'
-test_line12 = '  !  '
-test_line13 = '  !- one !-two  '
-test_line14 = '     \memo Note that the following 3 fields'
-test_line15 = ' N1; \memothis is a test'
-test_line16 = '  '
-test_line17 = '!'
-
-tag_line1 = 'SimulationControl,'
-tag_line2 = '      \unique-object'
-tag_line3 = '     \memo Note that the following 3 fields are related to the Sizing:Zone, Sizing:System,'
-tag_line4 = '      \key Yes'
-tag_line5 = 'SimulationControl, \memo this is a test'
-tag_line6 = ' SimulationControl, \memothis is a test'
+#test_line1 = '0.0,15.2,3.0;  !- X,Y,Z ==> Vertex 4 {m} '
+#test_line2 = '0.0,15.2,3.0 ;  !test '
+#test_line3 = '0.0,15.2,3.0;  !test  !- X,Y,Z ==> Vertex 4 {m}  '
+#test_line4 = '0.0,15.2,3.0;  !- X,Y,Z ==> Vertex 4 {m}!test  '
+#test_line5 = '0.0,15.2  ,3.0;  '
+#test_line6 = ' ! comment 123'
+#test_line7 = '  !- comment 456'
+#test_line8 = '  BuildingSurface:Detailed,'
+#test_line9 = '    ,            !- Outside Boundary Condition Object'
+#test_line10 = '    SunExposed,              !- Sun Exposure'
+#test_line11 = '    SunExposed,,,;              !- Sun Exposure'
+#test_line12 = '  !  '
+#test_line13 = '  !- one !-two  '
+#test_line14 = '     \memo Note that the following 3 fields'
+#test_line15 = ' N1; \memothis is a test'
+#test_line16 = '  '
+#test_line17 = '!'
+#
+#tag_line1 = 'SimulationControl,'
+#tag_line2 = '      \unique-object'
+#tag_line3 = '     \memo Note that the following 3 fields are related to the Sizing:Zone, Sizing:System,'
+#tag_line4 = '      \key Yes'
+#tag_line5 = 'SimulationControl, \memo this is a test'
+#tag_line6 = ' SimulationControl, \memothis is a test'
 
 
 def getGeneralComment(str_in):
@@ -321,8 +321,8 @@ def parseIDF(filename):
 
 
 # Parse these idf files
-idf_file = 'RefBldgLargeOfficeNew2004_Chicago.idf'
-idf_file2 = '5ZoneBoilerOutsideAirReset.idf'
+#idf_file = 'RefBldgLargeOfficeNew2004_Chicago.idf'
+#idf_file2 = '5ZoneBoilerOutsideAirReset.idf'
 #lines, object_count, options, objects = parseIDF(idf_file2)
 
 
@@ -460,6 +460,12 @@ def parseLineIDD(line_in):
 def parseIDD(filename):
     '''Parse the provided idd file'''
 
+    import shelve
+    myIDD = shelve.open('myIDD.dat')
+    idd = myIDD['idd']
+
+    from collections import OrderedDict
+
     print 'Parsing IDD file: ' + filename
     global comment_delimiter_special
     global options_list
@@ -467,7 +473,7 @@ def parseIDD(filename):
     # Open the specified file in a safe way
     with open(filename, 'r') as file:
         # Prepare some variables to store the results
-        objects = {}
+        objects = OrderedDict()
         field_list = []
         comment_list = []
         comment_list_special = []
@@ -475,6 +481,7 @@ def parseIDD(filename):
         field_tag_sublist = []
         options = []
         group = None
+        group_list = []
         end_object = False
         eol_char = None  # Detect this and save it
 
@@ -539,6 +546,14 @@ def parseIDD(filename):
                 # If this is an IDF file, perform checks against IDD
                 # file here (mandatory fields, unique objects, etc)
 
+                # Search idd file for object name
+                if object_name in idd:
+                    group = idd[object_name][0]['group']
+
+                # Add the group to the list if it isn't already there
+                if group not in group_list:
+                    group_list.append(group)
+
                 # Save the object
                 obj = dict(fields=field_list,
                            comments=comment_list,
@@ -564,13 +579,32 @@ def parseIDD(filename):
             if not line:
                 break
 
+    myIDD.close()
     print 'Parsing IDD complete!'
-    return (len(objects), eol_char, options, objects)
+    return (len(objects), eol_char, options, group_list, objects)
 
-# Parse this idd file
+
+
+## Parse this idd file
 idd_file = 'Energy+.idd'
-idf_file = 'RefBldgLargeOfficeNew2004_Chicago.idf'
-idf_file2 = '5ZoneBoilerOutsideAirReset.idf'
-idf_file3 = 'ChicagoSM.idf'
-object_count, eol_char, options, objects = parseIDD(idd_file)
-#writeIDF('testoutput.idf', options, objects)
+#idf_file = 'RefBldgLargeOfficeNew2004_Chicago.idf'
+#idf_file2 = '5ZoneBoilerOutsideAirReset.idf'
+#idf_file3 = 'ChicagoSM.idf'
+#object_count, eol_char, options, groups, objects = parseIDD(idd_file)
+##writeIDF('testoutput.idf', options, objects)
+#import json
+#encoded = json.dumps(objects)
+#obj = json.loads(encoded)
+
+
+#import shelve
+#database = shelve.open('myIDD.dat')
+#database['idd'] = objects
+#database['groups'] = groups[1:]
+#tree_model = None
+#database['tree_model'] = tree_model
+#database.close()
+
+
+
+
