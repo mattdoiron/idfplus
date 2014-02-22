@@ -58,9 +58,12 @@ def parse_IDF(file, objects):
     # Cycle through each line in the file, one at a time
     for line_in in file:
 
+        # general prep
+        obj_comments = []
+        line_count += 1
+
         # get rid of tabs, then leading spaces
         line_clean = line_in.expandtabs().lstrip()
-        line_count += 1
 
         # Check for empty lines
         if not line_clean:
@@ -85,22 +88,27 @@ def parse_IDF(file, objects):
                 # there is no '!-'
                 pass
             else:
-                # there is a '!-', count or save it
+                # there is a '!-', count it
                 comment_count_field_special += 1
 
+            # Discard any !-comments or blank array items
+            line_part1 = line_part1[0]
+
             # Partition line resulting from prev step at the ! if it exists
-            line_part2 = line_part1[0].partition('!')
-            if line_part2[0] == line_part1[0]:
+            line_part2 = line_part1.partition('!')
+            if line_part2[0] == line_part1:
                 # there is no '!'
                 pass
             else:
-                # there is a '!', count or save it
+                # there is a '!', count it and save it
+                obj_comments.append(line_part2[0])
                 comment_count_field_general += 1
 
-            # Split the remaining part of the line at the commas, if any
-            # Also strip away any spaces or commas from each list item
-            line_list = map(lambda item: item.strip().strip(','),
-                            line_part2[0].split(','))
+            # Split the remaining part of the line at the commas, if any.
+            line_split = line_part2[0].split(',')
+
+            # Strip away any spaces or commas from each list item
+            line_list = map(lambda i: i.strip().strip(','), line_split)
 
             # If we're currently looking for fields...
             if parse_mode == "FIELD":
