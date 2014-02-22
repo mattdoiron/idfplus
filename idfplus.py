@@ -2,14 +2,7 @@
 # -*- coding: utf-8 -*-
 
 """
-ZetCode PySide tutorial
-
-This example shows
-how to use QtGui.QSplitter widget.
-
-author: Jan Bodnar
-website: zetcode.com
-last edited: August 2011
+IDF Plus
 """
 
 import sys
