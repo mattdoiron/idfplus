@@ -51,46 +51,74 @@ def parse_IDF(file, objects):
     line_count = 0
     empty_line_count = 0
     field_count = 0
-    parse_mode = "object"
+    parse_mode = "OBJECT"
     object_dict = []
+    version = ''
 
     # Cycle through each line in the file, one at a time
     for line_in in file:
 
         # get rid of tabs, then leading spaces
-        line = line_in.expandtabs().lstrip()
+        line_clean = line_in.expandtabs().lstrip()
+        line_count += 1
 
         # Check for empty lines
-        if not line:
+        if not line_clean:
             empty_line_count += 1
 
         # If line starts with !- then it's a special/field comment
-        elif line.startswith('!-'):
+        elif line_clean.startswith('!-'):
+            #ignore these lines
             comment_count_special += 1
 
         # If line starts with ! then it's a general comment
-        elif line.startswith('!'):
+        elif line_clean.startswith('!'):
+            # save this line as a global comment for the top of the file
             comment_count += 1
 
         # Otherwise, the line is useful so do some stuff
         else:
 
-            # Split the line at the !- if it exists
-            line_split_comment_special = line.split('!-')
-            if len(line_split_comment_special) > 1:
+            # Partition line at the !- if it exists
+            line_part1 = line_clean.partition('!-')
+            if line_part1[0] == line_clean:
+                # there is no '!-'
+                pass
+            else:
+                # there is a '!-', count or save it
                 comment_count_field_special += 1
 
-            # Split the line at the ! if it exists
-            line_split_comment = line.split('!')
-            if len(line_split_comment) > 1:
-                line_split_comment += 1
+            # Partition line resulting from prev step at the ! if it exists
+            line_part2 = line_part1[0].partition('!')
+            if line_part2[0] == line_part1[0]:
+                # there is no '!'
+                pass
+            else:
+                # there is a '!', count or save it
+                comment_count_field_general += 1
 
             # Split the remaining part of the line at the commas, if any
-            obj = obj1[0].split(',')
+            # Also strip away any spaces or commas from each list item
+            line_list = map(lambda item: item.strip().strip(','),
+                            line_part2[0].split(','))
 
-            if parse_mode == "field":
-                # Partition the line before and after the ;
-                part = line.partition(';')
+            # If we're currently looking for fields...
+            if parse_mode == "FIELD":
+
+                # Store the list of potential fields
+                fields = line_list
+
+                # Check for the end of an object
+                if fields[-1].endswith(';'):
+                    # found a ;, remove it and count it
+                    fields[-1] = fields[-1].strip(';')
+
+                    field_count += len(fields)
+                    object_end_count += 1
+
+                    # Start looking for objects again
+                    parse_mode = "OBJECT"
+
 
                 # part[0] won't match if there was a ; (signals end of an obj)
                 if part[0] != line:
@@ -114,7 +142,7 @@ def parse_IDF(file, objects):
                                 return {}
                             object_start_count += 1
                             continue
-                    parse_mode = 'object'
+                    parse_mode = 'OBJECT'
                 else:
                     part2 = line.partition('!-')
                     if part2[0] != line:
@@ -128,31 +156,32 @@ def parse_IDF(file, objects):
                         comment_count_field += 1
                     field_count += len(fields)
 
-            elif parse_mode == "object":
-                # Check for start of an object. The first list item that is all
-                # alphas or contains a : denotes the start of a new object
-                part = line.partition(',')
-                pot_obj = part[0].strip().strip()
+            # If we're currently looking for the start of an object...
+            elif parse_mode == "OBJECT":
+
+                # Store the potential object name
+                pot_obj = line_list[0]
+
+                # Check for special object
+                if pot_obj == 'Version':
+                    # store the vesion number and stop here
+                    version = line_list[1]
+                    continue
+
+                # Check for start of an object.
                 if pot_obj.isalpha() or pot_obj.find(':') != -1:
-                    object_start_count += 1
-                    parse_mode = "field"
-                    object_dict.append(pot_obj)
+
+                    # Check if the object name is valid
                     if not objects.has_key(pot_obj):
                         print "Object not found! ("+pot_obj+")"
                         return {}
-                    continue
 
-            # Strip white spaces from all array items
-#            for i, item in enumerate(obj):
-#                obj[i] = item.strip()
+                    # Found the start of an object, count it and save it
+                    object_start_count += 1
+                    object_dict.append(pot_obj)
 
-            # Print the line
-#            print obj
-#            if obj[0].isdigit():
-#                print float(obj[0])
-
-        # Count the line
-        line_count += 1
+                    # Start looking for fields
+                    parse_mode = "FIELD"
 
     print "number of comment lines: " + str(comment_count)
     print "number of objects: " + str(object_count)
