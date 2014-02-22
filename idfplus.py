@@ -83,97 +83,40 @@ class IDFPlus(QtGui.QMainWindow):
     def openFile(self):
 
         fname, _ = QtGui.QFileDialog.getOpenFileName(self,
-                                                     'Open file',
-                                                     '/home',
-                                                     "EnergyPlus Files (*.idf *.imf)")
+                   'Open file', '/home', "EnergyPlus Files (*.idf *.imf)")
 
         from parseIDF import parseIDD
-
         object_count, eol_char, options, groups, objects = parseIDD(fname)
-#        with open(fname, 'r') as f:
-#            data = f.read()
-#            self.mainView.topright.setText(data)
-
-#        left = QtGui.QTreeView()
-#        model = SimpleTreeModel(objects, self.idd)
-#        left.setModel(list_model)
-#        self.mainView.left = left
-#        self.mainView.left.setModel(model)
-
         self.loadTreeView(objects, groups)
-
-
-
-#        model = IDFListModel(self)
-#        model.setObjects(self.idd)
-#        self.mainView.left.setModel(model)
-
         self.mainView.topright.setText(str(object_count))
 
-#        group = groups[1]
-#        obj_list = []
-#        for obj in self.idd:
-#            if group != obj['group']:
-#                obj_list.append()
+    def loadTableView(self, objects, groups):
+        pass
 
-#        item1= QtGui.QAbstractListItem()
-#        self.mainView.left.addItems([['1','test'],['2','test2'],['3','test3']])
-
-
-#        table_model = MyTableModel(self, objects['Building'], [1,2,3])
-#        self.mainView.bottomright.setModel(table_model)
-
-#        root = self.mainView.left
-
-#        groupItems = {}
-#        groups = ['Buildings', 'SimulationParameters', 'Surfaces']
-#        for group in groups:
-#            groupItems[group] = QtGui.QTreeWidgetItem(root)
-
-
-#        for obj_name, obj in objects.items():
-##            print str(obj[0]['group'])
-#            group_name = obj[0]['group']
-#            group =  QtGui.QTreeWidgetItem(root)
-#            group.setText(0, obj_name)
-#
-##            group_obj =  QtGui.QTreeWidgetItem(group)
-##            group_obj.setText(0, name)
-#
-#            if not group_name in groupItems:
-#                groupItems[group_name] = QtGui.QTreeWidgetItem(root)
-#
-#            groupItems[group_name].addChild(group)
-
-
-
-#        group1 =  QtGui.QTreeWidgetItem(root)
-#        group1.setText(1, "Group1")
-#        group1.setText(0, "[31]")
-#
-#        osloItem =  QtGui.QTreeWidgetItem(group1)
-#        osloItem.setText(1, "Oslo")
-#        osloItem.setText(0, "[3]")
-#
-#        planets =  QtGui.QTreeWidgetItem(root, group1)
-##        planets.setText(0, "Planets")
-#        planets.setData(0, QtCore.Qt.DisplayRole, '[1]')
-#        planets.setData(1, QtCore.Qt.DisplayRole, 'Saturn')
     def loadTreeView(self, objects, groups):
 
-#        for obj in objects:
         left = self.mainView.left
         group = ''
-#        group_root = QtGui.QTreeWidgetItem([group,''])
 
         for name, obj in objects.iteritems():
             if group != obj[0]['group']:
+
                 group = obj[0]['group']
-                group_root = QtGui.QTreeWidgetItem([group,''])
+                group_root = QtGui.QTreeWidgetItem([group])
                 group_root.setFirstColumnSpanned(True)
+                colour = QtGui.QColor(205, 192, 176)
+                brush = QtGui.QBrush(colour)
+                group_root.setBackground(0, brush)
+
+                blank = QtGui.QTreeWidgetItem([''])
+                blank.setDisabled(True)
+
                 left.addTopLevelItem(group_root)
+                left.addTopLevelItem(blank)
                 left.setItemExpanded(group_root, True)
                 left.setFirstItemColumnSpanned(group_root, True)
+                left.setRootIsDecorated(False)
+
             child = QtGui.QTreeWidgetItem([name, str(len(obj))])
             child.setTextAlignment(1, QtCore.Qt.AlignRight)
             group_root.addChild(child)
