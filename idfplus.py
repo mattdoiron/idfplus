@@ -26,7 +26,7 @@ class IDFPlus(QtGui.QMainWindow):
     def __init__(self):
         super(IDFPlus, self).__init__()
 
-        self.setGeometry(200, 200, 600, 480)
+        self.setGeometry(100, 100, 800, 680)
         self.setWindowTitle('idfPlus Testing')
         self.mainView = IDFPanes(self)
 
@@ -46,7 +46,7 @@ class IDFPlus(QtGui.QMainWindow):
         openFile = QtGui.QAction('Open', self)
         openFile.setShortcut('Ctrl+O')
         openFile.setStatusTip('Open new File')
-        openFile.triggered.connect(self.showFileDialog)
+        openFile.triggered.connect(self.openFile)
 
         # Toolbar Itself
         toolbar = self.addToolBar('Exit')
@@ -57,6 +57,10 @@ class IDFPlus(QtGui.QMainWindow):
         fileMenu = menubar.addMenu('&File')
         fileMenu.addAction(exitAction)
         fileMenu.addAction(openFile)
+
+        import shelve
+        self.idd = shelve.open('myIDD.dat')
+#        self.idd = db['idd']
 
     def center(self):
 
@@ -76,47 +80,70 @@ class IDFPlus(QtGui.QMainWindow):
         else:
             event.ignore()
 
-    def showFileDialog(self):
+    def openFile(self):
 
         fname, _ = QtGui.QFileDialog.getOpenFileName(self,
                                                      'Open file',
                                                      '/home',
                                                      "EnergyPlus Files (*.idf *.imf)")
+
         from parseIDF import parseIDD
 
-        object_count, eol_char, options, objects = parseIDD(fname)
+        object_count, eol_char, options, groups, objects = parseIDD(fname)
 #        with open(fname, 'r') as f:
 #            data = f.read()
 #            self.mainView.topright.setText(data)
 
-        list_model = SimpleTreeModel(objects)
+#        left = QtGui.QTreeView()
+#        model = SimpleTreeModel(objects, self.idd)
+#        left.setModel(list_model)
+#        self.mainView.left = left
+#        self.mainView.left.setModel(model)
+
+        self.loadTreeView(objects, groups)
+
+
+
+#        model = IDFListModel(self)
+#        model.setObjects(self.idd)
+#        self.mainView.left.setModel(model)
 
         self.mainView.topright.setText(str(object_count))
-#        self.mainView.left.setModel(list_model)
+
+#        group = groups[1]
+#        obj_list = []
+#        for obj in self.idd:
+#            if group != obj['group']:
+#                obj_list.append()
+
+#        item1= QtGui.QAbstractListItem()
+#        self.mainView.left.addItems([['1','test'],['2','test2'],['3','test3']])
+
+
 #        table_model = MyTableModel(self, objects['Building'], [1,2,3])
 #        self.mainView.bottomright.setModel(table_model)
 
-        root = self.mainView.left
+#        root = self.mainView.left
 
-        groupItems = {}
+#        groupItems = {}
 #        groups = ['Buildings', 'SimulationParameters', 'Surfaces']
 #        for group in groups:
 #            groupItems[group] = QtGui.QTreeWidgetItem(root)
 
 
-        for obj_name, obj in objects.items():
-#            print str(obj[0]['group'])
-            group_name = obj[0]['group']
-            group =  QtGui.QTreeWidgetItem(root)
-            group.setText(0, obj_name)
-
-#            group_obj =  QtGui.QTreeWidgetItem(group)
-#            group_obj.setText(0, name)
-
-            if not group_name in groupItems:
-                groupItems[group_name] = QtGui.QTreeWidgetItem(root)
-
-            groupItems[group_name].addChild(group)
+#        for obj_name, obj in objects.items():
+##            print str(obj[0]['group'])
+#            group_name = obj[0]['group']
+#            group =  QtGui.QTreeWidgetItem(root)
+#            group.setText(0, obj_name)
+#
+##            group_obj =  QtGui.QTreeWidgetItem(group)
+##            group_obj.setText(0, name)
+#
+#            if not group_name in groupItems:
+#                groupItems[group_name] = QtGui.QTreeWidgetItem(root)
+#
+#            groupItems[group_name].addChild(group)
 
 
 
@@ -132,7 +159,80 @@ class IDFPlus(QtGui.QMainWindow):
 ##        planets.setText(0, "Planets")
 #        planets.setData(0, QtCore.Qt.DisplayRole, '[1]')
 #        planets.setData(1, QtCore.Qt.DisplayRole, 'Saturn')
+    def loadTreeView(self, objects, groups):
 
+#        for obj in objects:
+        left = self.mainView.left
+        group = ''
+#        group_root = QtGui.QTreeWidgetItem([group,''])
+
+        for name, obj in objects.iteritems():
+            if group != obj[0]['group']:
+                group = obj[0]['group']
+                group_root = QtGui.QTreeWidgetItem([group,''])
+                group_root.setFirstColumnSpanned(True)
+                left.addTopLevelItem(group_root)
+                left.setItemExpanded(group_root, True)
+                left.setFirstItemColumnSpanned(group_root, True)
+            child = QtGui.QTreeWidgetItem([name, str(len(obj))])
+            child.setTextAlignment(1, QtCore.Qt.AlignRight)
+            group_root.addChild(child)
+
+
+class IDFListModel(QtCore.QAbstractListModel):
+    numberPopulated = QtCore.Signal(int)
+
+    def __init__(self, parent=None):
+        super(IDFListModel, self).__init__(parent)
+
+        self.objCount = 0
+        self.objList = []
+
+    def rowCount(self, parent=QtCore.QModelIndex()):
+        return self.objCount
+
+    def data(self, index, role=QtCore.Qt.DisplayRole):
+        if not index.isValid():
+            return None
+
+        if index.row() >= len(self.objList) or index.row() < 0:
+            return None
+
+        if role == QtCore.Qt.DisplayRole:
+            return self.objList[index.row()]
+
+        if role == QtCore.Qt.BackgroundRole:
+            batch = (index.row() // 100) % 2
+            if batch == 0:
+                return QtGui.qApp.palette().base()
+
+            return QtGui.qApp.palette().alternateBase()
+
+        return None
+
+    def canFetchMore(self, index):
+        return self.objCount < len(self.objList)
+
+    def fetchMore(self, index):
+        remainder = len(self.objList) - self.objCount
+        itemsToFetch = min(100, remainder)
+
+        self.beginInsertRows(QtCore.QModelIndex(), self.objCount,
+                             self.objCount + itemsToFetch)
+
+        self.objCount += itemsToFetch
+
+        self.endInsertRows()
+
+        self.numberPopulated.emit(itemsToFetch)
+
+    def setObjects(self, objects):
+#        dir = QtCore.QDir(path)
+
+#        self.objList = list(dir.entryList())
+        self.objList = objects.keys
+        self.objCount = 0
+        self.reset()
 
 class IDFPanes(QtGui.QWidget):
 
@@ -148,13 +248,28 @@ class IDFPanes(QtGui.QWidget):
         bottomright = QtGui.QTableView(self)
         bottomright.setFrameShape(QtGui.QFrame.StyledPanel)
 
-
         topright = QtGui.QTextEdit(self)
         topright.setFrameShape(QtGui.QFrame.StyledPanel)
 
+#        left = QtGui.QTreeView()
         left = QtGui.QTreeWidget()
         left.setColumnCount(2)
-        left.setHeaderLabels(['Object Groups', 'Count'])
+#        left.setHeaderLabels(['Count', 'Object Class'])
+        header = QtGui.QTreeWidgetItem(['Object Class', 'Count'])
+#        header.setSizeHint(1, QtCore.QSize(20, 20))
+        header.setFirstColumnSpanned(True)
+
+
+
+        left.setHeaderItem(header)
+        left.header().resizeSection(0, 250)
+        left.header().resizeSection(1, 10)
+#        header.setTextAlignment(QtCore.Qt.AlignRight)
+#        left.setItemHidden(header, True)
+
+
+#        left = QtGui.QListWidget()
+#        left.setModel(model)
 
 
 #        left = cities#QtGui.QTreeView()
@@ -168,7 +283,7 @@ class IDFPanes(QtGui.QWidget):
         splitter2 = QtGui.QSplitter(QtCore.Qt.Horizontal)
         splitter2.addWidget(left)
         splitter2.addWidget(splitter1)
-        splitter2.setSizes([50, 100])
+        splitter2.setSizes([70, 100])
 
         hbox.addWidget(splitter2)
         self.setLayout(hbox)
@@ -217,11 +332,13 @@ class MyTableModel(QtCore.QAbstractTableModel):
 # For more information on list models, take a look at:
 # http://doc.trolltech.com/4.6/qabstractitemmodel.html
 class SimpleTreeModel(QtCore.QAbstractItemModel):
-    def __init__(self, data, parent=None):
+    def __init__(self, objects, idd, parent=None):
         super(SimpleTreeModel, self).__init__(parent)
 
-        self.rootItem = TreeItem(("Title", "Count"))
-        self.setupModelData(data.keys(), self.rootItem)
+        self.rootItem = TreeItem(("Count", "Object Class"))
+#        self.setupModelData(objects, self.rootItem)
+        self.setupModelData(objects, idd, self.rootItem)
+#        self.idd = idd
 
     def columnCount(self, parent):
         if parent.isValid():
@@ -290,42 +407,26 @@ class SimpleTreeModel(QtCore.QAbstractItemModel):
 
         return parentItem.childCount()
 
-    def setupModelData(self, lines, parent):
-        parents = [parent]
-        indentations = [0]
+    def setupModelData(self, objects, idd, root):
 
-        number = 0
+#        idd = self.idd
+#        parents = [parent]
+#        indentations = [0]
 
-        while number < len(lines):
-            position = 0
-            while position < len(lines[number]):
-                if lines[number][position] != ' ':
-                    break
-                position += 1
+#        number = 0
+        group = idd['groups'][0]
+        group_root = TreeItem([group, ''], root)
 
-            lineData = lines[number][position:].strip()
+#        group.appendChild(TreeItem(data, parent))
+        root.appendChild(group_root)
 
-            if lineData:
-                # Read the column data from the rest of the line.
-                columnData = [s for s in lineData.split('\t') if s]
-
-                if position > indentations[-1]:
-                    # The last child of the current parent is now the new
-                    # parent unless the current parent has no children.
-
-                    if parents[-1].childCount() > 0:
-                        parents.append(parents[-1].child(parents[-1].childCount() - 1))
-                        indentations.append(position)
-
-                else:
-                    while position < indentations[-1] and len(parents) > 0:
-                        parents.pop()
-                        indentations.pop()
-
-                # Append a new item to the current parent's list of children.
-                parents[-1].appendChild(TreeItem(columnData, parents[-1]))
-
-            number += 1
+        for name, obj in objects.iteritems():
+            if group != obj[0]['group']:
+                group = obj[0]['group']
+                group_root = TreeItem([group, ''])
+                root.appendChild(group_root)
+            data = [str(len(obj)), name]
+            group_root.appendChild(TreeItem(data, group_root))
 
 
 class TreeItem(object):
