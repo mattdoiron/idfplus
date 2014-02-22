@@ -34,7 +34,7 @@ class IDFPlus(QtGui.QMainWindow):
 
         self.statusBar().showMessage('Status: Ready')
 
-        QtGui.QApplication.setStyle(QtGui.QStyleFactory.create('Cleanlooks'))
+#        QtGui.QApplication.setStyle(QtGui.QStyleFactory.create('Cleanlooks'))
 
         self.center()
 
@@ -60,6 +60,8 @@ class IDFPlus(QtGui.QMainWindow):
 
         import shelve
         self.idd = shelve.open('myIDD.dat')
+        self.idf = None
+        self.groups = None
 #        self.idd = db['idd']
 
     def center(self):
@@ -87,24 +89,70 @@ class IDFPlus(QtGui.QMainWindow):
 
         from parseIDF import parseIDD
         object_count, eol_char, options, groups, objects = parseIDD(fname)
-        self.loadTreeView(objects, groups)
+
+        self.idf = objects
+        self.groups = groups
+        self.loadTreeView()
+#        self.loadTableView('SizingPeriod:DesignDay', objects)
         self.mainView.topright.setText(str(object_count))
 
-    def loadTableView(self, objects, groups):
-        pass
+    def loadTableView(self, name):
 
-    def loadTreeView(self, objects, groups):
+        objs = self.idf[name]
+        idd = self.idd['idd']
+        cols = len(objs)
+        print cols
+        rows = len(objs[0]['fields'])
+        print rows
+        table = self.mainView.bottomright
+        table.setColumnCount(cols)
+        table.setRowCount(rows)
+
+        vlabels = []
+        for tag_item in idd[name][0]['field_tags']:
+            for tag in tag_item:
+                if tag['tag'] == '\\field':
+                    vlabels.append(tag['value'])
+        hlabels = ['Obj' + str(i) for i in range(cols)]
+
+        vheader = QtGui.QHeaderView(QtCore.Qt.Orientation.Vertical)
+#        vheader.setResizeMode(QtGui.QHeaderView.ResizeToContents)
+        table.setVerticalHeader(vheader)
+        table.setVerticalHeaderLabels(vlabels)
+        table.verticalHeader().setVisible(True)
+
+        hheader = QtGui.QHeaderView(QtCore.Qt.Orientation.Horizontal)
+#        hheader.setResizeMode(QtGui.QHeaderView.ResizeToContents)
+        table.setHorizontalHeader(hheader)
+        table.setHorizontalHeaderLabels(hlabels)
+        table.horizontalHeader().setVisible(True)
+
+        for i in range(cols):
+            for j in range(rows):
+                item = QtGui.QTableWidgetItem(objs[i]['fields'][j])
+                table.setItem(j, i, item)
+
+
+    def loadTreeView(self, full=True):
 
         left = self.mainView.left
+#        groups = self.groups
+        objects = self.idf
         group = ''
 
-        for name, obj in objects.iteritems():
+        # If we want a full list use the idd, otherwise use the idf only
+        if full is True:
+            obj_list = self.idd['idd']
+        else:
+            obj_list = objects
+
+        for name, obj in obj_list.iteritems():
             if group != obj[0]['group']:
 
                 group = obj[0]['group']
                 group_root = QtGui.QTreeWidgetItem([group])
                 group_root.setFirstColumnSpanned(True)
-                colour = QtGui.QColor(205, 192, 176)
+                colour = QtGui.QColor(205, 192, 176)  # light grey
                 brush = QtGui.QBrush(colour)
                 group_root.setBackground(0, brush)
 
@@ -117,65 +165,21 @@ class IDFPlus(QtGui.QMainWindow):
                 left.setFirstItemColumnSpanned(group_root, True)
                 left.setRootIsDecorated(False)
 
-            child = QtGui.QTreeWidgetItem([name, str(len(obj))])
+            # Populate the object count field
+            obj_count = ''
+            if name in objects:
+                if objects[name]:
+                    obj_count = len(objects[name])
+
+            child = QtGui.QTreeWidgetItem([name, str(obj_count)])
             child.setTextAlignment(1, QtCore.Qt.AlignRight)
             group_root.addChild(child)
 
+        left.itemClicked.connect(self.iWasClicked)
 
-class IDFListModel(QtCore.QAbstractListModel):
-    numberPopulated = QtCore.Signal(int)
+    def iWasClicked(self, item, column):
 
-    def __init__(self, parent=None):
-        super(IDFListModel, self).__init__(parent)
-
-        self.objCount = 0
-        self.objList = []
-
-    def rowCount(self, parent=QtCore.QModelIndex()):
-        return self.objCount
-
-    def data(self, index, role=QtCore.Qt.DisplayRole):
-        if not index.isValid():
-            return None
-
-        if index.row() >= len(self.objList) or index.row() < 0:
-            return None
-
-        if role == QtCore.Qt.DisplayRole:
-            return self.objList[index.row()]
-
-        if role == QtCore.Qt.BackgroundRole:
-            batch = (index.row() // 100) % 2
-            if batch == 0:
-                return QtGui.qApp.palette().base()
-
-            return QtGui.qApp.palette().alternateBase()
-
-        return None
-
-    def canFetchMore(self, index):
-        return self.objCount < len(self.objList)
-
-    def fetchMore(self, index):
-        remainder = len(self.objList) - self.objCount
-        itemsToFetch = min(100, remainder)
-
-        self.beginInsertRows(QtCore.QModelIndex(), self.objCount,
-                             self.objCount + itemsToFetch)
-
-        self.objCount += itemsToFetch
-
-        self.endInsertRows()
-
-        self.numberPopulated.emit(itemsToFetch)
-
-    def setObjects(self, objects):
-#        dir = QtCore.QDir(path)
-
-#        self.objList = list(dir.entryList())
-        self.objList = objects.keys
-        self.objCount = 0
-        self.reset()
+        self.loadTableView(item.text(0))
 
 class IDFPanes(QtGui.QWidget):
 
@@ -188,35 +192,21 @@ class IDFPanes(QtGui.QWidget):
 
         hbox = QtGui.QVBoxLayout(self)
 
-        bottomright = QtGui.QTableView(self)
+        bottomright = QtGui.QTableWidget(self)
         bottomright.setFrameShape(QtGui.QFrame.StyledPanel)
 
         topright = QtGui.QTextEdit(self)
         topright.setFrameShape(QtGui.QFrame.StyledPanel)
 
-#        left = QtGui.QTreeView()
-        left = QtGui.QTreeWidget()
-        left.setColumnCount(2)
-#        left.setHeaderLabels(['Count', 'Object Class'])
+        left = QtGui.QTreeWidget(self)
+#        left.setColumnCount(2)
         header = QtGui.QTreeWidgetItem(['Object Class', 'Count'])
-#        header.setSizeHint(1, QtCore.QSize(20, 20))
         header.setFirstColumnSpanned(True)
-
-
 
         left.setHeaderItem(header)
         left.header().resizeSection(0, 250)
         left.header().resizeSection(1, 10)
-#        header.setTextAlignment(QtCore.Qt.AlignRight)
-#        left.setItemHidden(header, True)
-
-
-#        left = QtGui.QListWidget()
-#        left.setModel(model)
-
-
-#        left = cities#QtGui.QTreeView()
-#        left.setFrameShape(QtGui.QFrame.StyledPanel)
+        left.header().setResizeMode(QtGui.QHeaderView.ResizeToContents)
 
         splitter1 = QtGui.QSplitter(QtCore.Qt.Vertical)
         splitter1.addWidget(topright)
@@ -231,213 +221,17 @@ class IDFPanes(QtGui.QWidget):
         hbox.addWidget(splitter2)
         self.setLayout(hbox)
 
+        self.bottomright = bottomright
         self.topright = topright
         self.left = left
 
         self.c = Communicate()
 
 
-class MyTableModel(QtCore.QAbstractTableModel):
-    def __init__(self, parent, mylist, header, *args):
-        QAbstractTableModel.__init__(self, parent, *args)
-        self.mylist = mylist
-        self.header = header
-
-    def rowCount(self, parent):
-        return len(self.mylist)
-
-    def columnCount(self, parent):
-        return len(self.mylist[0])
-
-    def data(self, index, role):
-        if not index.isValid():
-            return None
-        elif role != QtCore.DisplayRole:
-            return None
-        return self.mylist[index.row()][index.column()]
-
-    def headerData(self, col, orientation, role):
-        if orientation == QtCore.Horizontal and role == QtCore.DisplayRole:
-            return self.header[col]
-        return None
-
-    def sort(self, col, order):
-        """sort table by given column number col"""
-        self.emit(SIGNAL("layoutAboutToBeChanged()"))
-        self.mylist = sorted(self.mylist,
-                             key=operator.itemgetter(col))
-        if order == QtCore.DescendingOrder:
-            self.mylist.reverse()
-        self.emit(SIGNAL("layoutChanged()"))
-
-
-# This is our model. It will maintain, modify, and present data to our view(s).
-# For more information on list models, take a look at:
-# http://doc.trolltech.com/4.6/qabstractitemmodel.html
-class SimpleTreeModel(QtCore.QAbstractItemModel):
-    def __init__(self, objects, idd, parent=None):
-        super(SimpleTreeModel, self).__init__(parent)
-
-        self.rootItem = TreeItem(("Count", "Object Class"))
-#        self.setupModelData(objects, self.rootItem)
-        self.setupModelData(objects, idd, self.rootItem)
-#        self.idd = idd
-
-    def columnCount(self, parent):
-        if parent.isValid():
-            return parent.internalPointer().columnCount()
-        else:
-            return self.rootItem.columnCount()
-
-    def data(self, index, role):
-        if not index.isValid():
-            return None
-
-        if role != QtCore.Qt.DisplayRole:
-            return None
-
-        item = index.internalPointer()
-
-        return item.data(index.column())
-
-    def flags(self, index):
-        if not index.isValid():
-            return QtCore.Qt.NoItemFlags
-
-        return QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable
-
-    def headerData(self, section, orientation, role):
-        if orientation == QtCore.Qt.Horizontal and role == QtCore.Qt.DisplayRole:
-            return self.rootItem.data(section)
-
-        return None
-
-    def index(self, row, column, parent):
-        if not self.hasIndex(row, column, parent):
-            return QtCore.QModelIndex()
-
-        if not parent.isValid():
-            parentItem = self.rootItem
-        else:
-            parentItem = parent.internalPointer()
-
-        childItem = parentItem.child(row)
-        if childItem:
-            return self.createIndex(row, column, childItem)
-        else:
-            return QtCore.QModelIndex()
-
-    def parent(self, index):
-        if not index.isValid():
-            return QtCore.QModelIndex()
-
-        childItem = index.internalPointer()
-        parentItem = childItem.parent()
-
-        if parentItem == self.rootItem:
-            return QtCore.QModelIndex()
-
-        return self.createIndex(parentItem.row(), 0, parentItem)
-
-    def rowCount(self, parent):
-        if parent.column() > 0:
-            return 0
-
-        if not parent.isValid():
-            parentItem = self.rootItem
-        else:
-            parentItem = parent.internalPointer()
-
-        return parentItem.childCount()
-
-    def setupModelData(self, objects, idd, root):
-
-#        idd = self.idd
-#        parents = [parent]
-#        indentations = [0]
-
-#        number = 0
-        group = idd['groups'][0]
-        group_root = TreeItem([group, ''], root)
-
-#        group.appendChild(TreeItem(data, parent))
-        root.appendChild(group_root)
-
-        for name, obj in objects.iteritems():
-            if group != obj[0]['group']:
-                group = obj[0]['group']
-                group_root = TreeItem([group, ''])
-                root.appendChild(group_root)
-            data = [str(len(obj)), name]
-            group_root.appendChild(TreeItem(data, group_root))
-
-
-class TreeItem(object):
-    def __init__(self, data, parent=None):
-        self.parentItem = parent
-        self.itemData = data
-        self.childItems = []
-
-    def appendChild(self, item):
-        self.childItems.append(item)
-
-    def child(self, row):
-        return self.childItems[row]
-
-    def childCount(self):
-        return len(self.childItems)
-
-    def columnCount(self):
-        return len(self.itemData)
-
-    def data(self, column):
-        try:
-            return self.itemData[column]
-        except IndexError:
-            return None
-
-    def parent(self):
-        return self.parentItem
-
-    def row(self):
-        if self.parentItem:
-            return self.parentItem.childItems.index(self)
-
-        return 0
-
-
-# This widget is our view of the readonly list.
-# For more information, see:
-# http://doc.trolltech.com/4.6/qlistview.html
-class SimpleListView(QtGui.QListView):
-    def __init__(self, parent = None):
-        QtGui.QListView.__init__(self, parent)
-
-        # unlike the previous tutorial, we'll do background colours 'properly'. ;)
-        self.setAlternatingRowColors(True)
-
-        # we want our listview to have a context menu taken from the actions on this widget
-        # those actions will be to delete an item :)
-        self.setContextMenuPolicy(QtCore.Qt.ActionsContextMenu)
-
-        # create a menu item for our context menu that will delete the selected item.
-        a = QtGui.QAction("Delete Selected", self)
-
-        # hook up the triggered() signal on the menu item to the slot below.
-#        QtCore.QObject.connect(a, QtCore.Signal("triggered()"), self, QtCore.Slot("onTriggered()"))
-        self.addAction(a)
-
-        # this is a slot! we covered signals and slots in tutorial #2,
-        # but this is the first time we've created one ourselves.
-#        @pyqtSlot()
-#        def onTriggered(self):
-            # tell our model to remove the selected row.
-#            self.model().removeRows(self.currentIndex().row(), 1)
-
-
 def main():
 
     app = QtGui.QApplication(sys.argv)
+    app.setStyle(QtGui.QStyleFactory.create('Cleanlooks'))
     t = IDFPlus()
     t.show()
     sys.exit(app.exec_())
