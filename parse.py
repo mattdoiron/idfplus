@@ -87,6 +87,7 @@ test_line13 = '  !- one !-two  '
 test_line14 = '     \memo Note that the following 3 fields'
 test_line15 = ' N1; \memothis is a test'
 test_line16 = '  '
+test_line17 = '!'
 
 tag_line1 = 'SimulationControl,'
 tag_line2 = '      \unique-object'
@@ -127,7 +128,7 @@ def getGeneralComment(str_in):
             # General comment is in the last item (part of special comment)
             return None
 
-        return partB[-1].expandtabs().rstrip()
+        return partB[-1].expandtabs()
 
 #print 'Comments:'
 #print '- line 1: "' + str(getGeneralComment(test_line1)) + '"'
@@ -146,6 +147,7 @@ def getGeneralComment(str_in):
 #print '- line 14: "' + str(getGeneralComment(test_line14)) + '"'
 #print '- line 15: "' + str(getGeneralComment(test_line15)) + '"'
 #print '- line 16: "' + str(getGeneralComment(test_line16)) + '"'
+#print '- line 17: "' + str(getGeneralComment(test_line17)) + '"'
 
 
 def getFields(str_in):
@@ -356,12 +358,13 @@ def writeIDF(filename, options, idfObject):
             file.write("  {},\n".format(obj['name']))
 
             # Write the fields
-            field_count = len(obj['fields'])
-            for i, field in enumerate(obj['fields']):
-                if i == field_count - 1:
-                    file.write("    {};\n".format(field))
-                else:
-                    file.write("    {},\n".format(field))
+            if obj['fields']:
+                field_count = len(obj['fields'])
+                for i, field in enumerate(obj['fields']):
+                    if i == field_count - 1:
+                        file.write("    {};\n".format(field))
+                    else:
+                        file.write("    {},\n".format(field))
 
             # Add newline at the end of the object
             file.write("\n")
@@ -411,28 +414,16 @@ def getTags(line_in):
 def parseLineIDD(line_in):
     '''Parses a line from the IDD file and returns results'''
 
-    # Clean and strip the line
-#    line_clean = line_in.expandtabs().strip()
-    line_clean = line_in
+    # Get results
+    fields = getFields(line_in) or None
+    comment = getGeneralComment(line_in)  # Preserve blanks!
+    tags = getTags(line_in) or None
     end_object = False
     empty_line = False
 
-    # Get results
-    fields = getFields(line_clean) or None
-    comment = getGeneralComment(line_clean) or None
-    tags = getTags(line_clean) or None
-
+    # Check for an empty line
     if not fields and not comment and not tags:
-#        print 'empty line'
         empty_line = True
-
-#    if not line_clean or line_clean is None:
-#        empty_line = True
-#        return dict(fields=None,
-#                    comment=None,
-#                    field_tags=None,
-#                    end_object=False,
-#                    empty_line=True)
 
     # Check for and remove the semicolon, indicating the end of an object
     if fields:
@@ -487,14 +478,11 @@ def parseIDD(filename):
         end_object = False
         eol_char = None  # Detect this and save it
 
-
-
         # Cycle through each line in the file
-#        for line in file:
         while True:
-            line = file.readline()
 
             # Parse this line
+            line = file.readline()
             line_parsed = parseLineIDD(line)
 
             # If the previous line was not the end of an object check this one
@@ -516,7 +504,7 @@ def parseIDD(filename):
                 options.extend(match)
 
             # If there are any comments save them
-            if line_parsed['comment']:
+            if line_parsed['comment'] is not None:
                 comment_list.append(line_parsed['comment'])
 
             # If there are any fields save them
@@ -566,37 +554,17 @@ def parseIDD(filename):
                 field_tag_list = []
                 field_tag_sublist = []
                 end_object = False
+
+            # Detect end of file and break
             if not line:
                 break
-
-#        # All this stuff is repeated to take care of the last line! D'oh!
-#        if field_tag_sublist:
-#            field_tag_list.append(field_tag_sublist)
-#
-#        # The first field is the object name
-#        object_name = field_list[0]
-#        field_list.pop(0)
-#
-#        # Make sure there are values or return None
-#        field_list = field_list or None
-#        field_tag_list = field_tag_list or None
-#        comment_list = comment_list or None
-#        comment_list_special = comment_list_special or None
-#
-#        # If this is an IDF file, perform checks against IDD
-#        # file here (mandatory fields, unique objects, etc)
-#
-#        # Save the object
-#        object_list.append(dict(name=object_name,
-#                                fields=field_list,
-#                                comments=comment_list,
-#                                comments_special=comment_list_special,
-#                                field_tags=field_tag_list,
-#                                group=group))
 
     print 'Parsing IDD complete!'
     return (len(object_list), eol_char, options, object_list)
 
 # Parse this idd file
 idd_file = 'Energy+.idd'
-object_count, eol_char, options, objects = parseIDD(idd_file)
+idf_file = 'RefBldgLargeOfficeNew2004_Chicago.idf'
+idf_file2 = '5ZoneBoilerOutsideAirReset.idf'
+object_count, eol_char, options, objects = parseIDD(idf_file)
+writeIDF('testoutput.idf', options, objects)
