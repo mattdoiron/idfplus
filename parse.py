@@ -411,20 +411,28 @@ def getTags(line_in):
 def parseLineIDD(line_in):
     '''Parses a line from the IDD file and returns results'''
 
-    line_clean = line_in.expandtabs().strip()
+    # Clean and strip the line
+#    line_clean = line_in.expandtabs().strip()
+    line_clean = line_in
     end_object = False
+    empty_line = False
 
     # Get results
-    fields = getFields(line_clean)
-    comment = getGeneralComment(line_clean)
-    tags = getTags(line_clean)
+    fields = getFields(line_clean) or None
+    comment = getGeneralComment(line_clean) or None
+    tags = getTags(line_clean) or None
 
-    if not line_clean or line_clean is None:
-        return dict(fields=None,
-                    comment=None,
-                    field_tags=None,
-                    end_object=False,
-                    empty_line=True)
+    if not fields and not comment and not tags:
+#        print 'empty line'
+        empty_line = True
+
+#    if not line_clean or line_clean is None:
+#        empty_line = True
+#        return dict(fields=None,
+#                    comment=None,
+#                    field_tags=None,
+#                    end_object=False,
+#                    empty_line=True)
 
     # Check for and remove the semicolon, indicating the end of an object
     if fields:
@@ -437,7 +445,7 @@ def parseLineIDD(line_in):
                 comment=comment,
                 field_tags=tags,
                 end_object=end_object,
-                empty_line=False)
+                empty_line=empty_line)
 
 #print 'Whole Line:'
 #print parseLineIDD(test_line1)
@@ -475,14 +483,21 @@ def parseIDD(filename):
         field_tag_list = []
         field_tag_sublist = []
         options = []
+        group = None
         end_object = False
         eol_char = None  # Detect this and save it
 
-        # Cycle through each line in the file
-        for line in file:
 
+
+        # Cycle through each line in the file
+#        for line in file:
+        while True:
+            line = file.readline()
+
+            # Parse this line
             line_parsed = parseLineIDD(line)
 
+            # If the previous line was not the end of an object check this one
             if end_object is False:
                 end_object = line_parsed['end_object']
             empty_line = line_parsed['empty_line']
@@ -517,6 +532,8 @@ def parseIDD(filename):
             # If there are any field tags for this object save them
             if line_parsed['field_tags']:
                 field_tag_sublist.append(line_parsed['field_tags'])
+                if line_parsed['field_tags']['tag'] == '\\group':
+                    group = line_parsed['field_tags']['value']
 
             # If this is the end of an object save it
             if end_object and empty_line:
@@ -526,10 +543,10 @@ def parseIDD(filename):
                 field_list.pop(0)
 
                 # Make sure there are values or return None
-                if not field_list: field_list = None
-                if not field_tag_list: field_tag_list = None
-                if not comment_list: comment_list = None
-                if not comment_list_special: comment_list_special = None
+                field_list = field_list or None
+                field_tag_list = field_tag_list or None
+                comment_list = comment_list or None
+                comment_list_special = comment_list_special or None
 
                 # If this is an IDF file, perform checks against IDD
                 # file here (mandatory fields, unique objects, etc)
@@ -539,7 +556,8 @@ def parseIDD(filename):
                                         fields=field_list,
                                         comments=comment_list,
                                         comments_special=comment_list_special,
-                                        field_tags=field_tag_list))
+                                        field_tags=field_tag_list,
+                                        group=group))
 
                 # Reset lists for next object
                 field_list = []
@@ -548,10 +566,37 @@ def parseIDD(filename):
                 field_tag_list = []
                 field_tag_sublist = []
                 end_object = False
+            if not line:
+                break
+
+#        # All this stuff is repeated to take care of the last line! D'oh!
+#        if field_tag_sublist:
+#            field_tag_list.append(field_tag_sublist)
+#
+#        # The first field is the object name
+#        object_name = field_list[0]
+#        field_list.pop(0)
+#
+#        # Make sure there are values or return None
+#        field_list = field_list or None
+#        field_tag_list = field_tag_list or None
+#        comment_list = comment_list or None
+#        comment_list_special = comment_list_special or None
+#
+#        # If this is an IDF file, perform checks against IDD
+#        # file here (mandatory fields, unique objects, etc)
+#
+#        # Save the object
+#        object_list.append(dict(name=object_name,
+#                                fields=field_list,
+#                                comments=comment_list,
+#                                comments_special=comment_list_special,
+#                                field_tags=field_tag_list,
+#                                group=group))
 
     print 'Parsing IDD complete!'
     return (len(object_list), eol_char, options, object_list)
 
 # Parse this idd file
-idd_file = 'Energy+2.idd'
+idd_file = 'Energy+.idd'
 object_count, eol_char, options, objects = parseIDD(idd_file)
