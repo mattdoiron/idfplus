@@ -1,381 +1,248 @@
 # -*- coding: utf-8 -*-
 """
-Created on Tue Mar  8 20:17:03 2011
+Created on Sat Jan 18 11:34:45 2014
 
-@author: matt
-"""
-
-import re
-#from pysqlite2 import dbapi2 as sqlite
-
-#import idd_schema as idd
-
-# Define some global variables
-idf_file = "RefBldgLargeOfficeNew2004_Chicago.idf"
-#idd_file = "Energy+2.idd"
-idd_file = "Energy+.idd"
-
-DEBUG = False
-
-"""
-Proceedure:
-    - Open idf file
-    - start parsing until the Version number is found
-    - Load the idd file for the appropriate version
-    - continue parsing
-    - uppon finding the start of an object, find the corresponding object in
-        the idd file
-    - continue parsing comparing each field that follows to each field in
-        the idd file for that object
-    - verify that the value and type of the input from the idf file matches
-        the required type and raneg of values for that field from the idd file
-    - If the field matches, save it in the database and continue.
-    - If any mandatory fields or objects are missing, or if any data types
-        are incorrect, raise an error and quit
-
+@author: Matt Doiron <mattdoiron@gmail.com>
 """
 
 comment_delimiter_general = "!"
 comment_delimiter_special = "!-"
-object_delimiter = ";"
-object_category_delimiter = ":"
-field_delimiter = ","
 
-def hasGeneralComment(str_in):
-    global comment_delimiter_general
-    test = str_in.partition(comment_delimiter_general)
-    if test[0] == test:
-        return True
-    else:
-        return False
+test_line1 = '0.0,15.2,3.0;  !- X,Y,Z ==> Vertex 4 {m} '
+test_line2 = '0.0,15.2,3.0 ;  !test '
+test_line3 = '0.0,15.2,3.0;  !test  !- X,Y,Z ==> Vertex 4 {m}  '
+test_line4 = '0.0,15.2,3.0;  !- X,Y,Z ==> Vertex 4 {m}!test  '
+test_line5 = '0.0,15.2  ,3.0;  '
+test_line6 = ' ! comment 123'
+test_line7 = '  !- comment 456'
+test_line8 = '  BuildingSurface:Detailed,'
+test_line9 = '    ,            !- Outside Boundary Condition Object'
+test_line10 = '    SunExposed,              !- Sun Exposure'
+test_line11 = '    SunExposed,,,;              !- Sun Exposure'
+test_line12 = '  !  '
+test_line13 = '  !- one !-two  '
 
-def hasSpecialComment(str_in):
-    global comment_delimiter_special
-    test = str_in.partition(comment_delimiter_special)
-    if test[0] == test:
-        return True
-    else:
-        return False
-
-def stripGeneralComment(str_in):
-    global comment_delimiter_general
-    test = str_in.partition(comment_delimiter_general)
-    return test[0]
-
-def stripSpecialComment(str_in):
-    global comment_delimiter_special
-    test = str_in.partition(comment_delimiter_special)
-    return test[0]
 
 def getGeneralComment(str_in):
+    '''Parses a string and returns the general comment if it exists'''
     global comment_delimiter_general
     global comment_delimiter_special
-    partA = str_in.partition(comment_delimiter_special)
-    print partA
-    partB = partA[-1].partition(comment_delimiter_special)
-    print partB
-    if partB[0] != partA[-1]:
-        return partB[0].expandtabs().strip()
+
+    if str_in.find(comment_delimiter_general) == -1:
+        # No comments found at all
+        return None
+
+    elif str_in.find(comment_delimiter_special) == -1:
+        # No special comment found so parse simply
+        part = str_in.partition(comment_delimiter_general)
+        return part[-1].expandtabs().strip()
+
+    elif str_in.find(comment_delimiter_special) != -1 and \
+            str_in.count(comment_delimiter_general) == 1:
+        # Special comment found, but no general comment
+        return None
+
+    elif str_in.count()
+
     else:
+        # Both types of comments found so parse in more detail
+        partA = str_in.partition(comment_delimiter_special)
+
+        if partA[0].find(comment_delimiter_general) != -1:
+            # General comment is in the first item
+            partB = partA[0].partition(comment_delimiter_general)
+
+        elif partA[-1].find(comment_delimiter_general) != -1:
+            # General comment is in the last item
+            partB = partA[-1].partition(comment_delimiter_general)
+
         return partB[-1].expandtabs().strip()
 
-def getSpecialComment(str_in):
+print 'Comments:'
+print '- line 1: "' + str(getGeneralComment(test_line1)) + '"'
+print '- line 2: "' + str(getGeneralComment(test_line2)) + '"'
+print '- line 3: "' + str(getGeneralComment(test_line3)) + '"'
+print '- line 4: "' + str(getGeneralComment(test_line4)) + '"'
+print '- line 5: "' + str(getGeneralComment(test_line5)) + '"'
+print '- line 6: "' + str(getGeneralComment(test_line6)) + '"'
+print '- line 7: "' + str(getGeneralComment(test_line7)) + '"'
+print '- line 8: "' + str(getGeneralComment(test_line8)) + '"'
+print '- line 9: "' + str(getGeneralComment(test_line9)) + '"'
+print '- line 10: "' + str(getGeneralComment(test_line10)) + '"'
+print '- line 11: "' + str(getGeneralComment(test_line11)) + '"'
+print '- line 12: "' + str(getGeneralComment(test_line12)) + '"'
+print '- line 13: "' + str(getGeneralComment(test_line13)) + '"'
+
+
+def getFields(str_in):
+    '''Strips all comments, etc and returns what's left'''
+    global comment_delimiter_general
     global comment_delimiter_special
-    test = str_in.partition(comment_delimiter_special)
-    return test[-1]
 
-def parse_IDF(file, objects):
-    comment_count = 0
-    comment_count_special = 0
-    comment_count_field_special = 0
-    comment_count_field_general = 0
-    object_start_count = 0
-    object_end_count = 0
+    # Partition the line twice
+    partA = str_in.partition(comment_delimiter_special)
+    partB = partA[0].partition(comment_delimiter_general)
+
+    if partB[0].split():
+        # Split the list into fields at the commas
+        fields = partB[0].expandtabs().strip().split(',')
+
+        # Check for and remove items created by a trailing comma
+        if not fields[-1] and len(fields) > 1:
+            fields.pop(-1)
+
+        # Strip away any spaces from each field
+        fields = map(lambda i: i.expandtabs().strip(), fields)
+
+        # Check for and remove semicolon in last field
+        if fields:
+            if fields[-1].find(';') != -1:
+                fields[-1] = fields[-1].strip(';').strip()
+                fields.extend([';'])
+
+        # Return list of fields
+        return fields
+    else:
+        return None
+
+#print 'Fields:'
+#print '- line 1: "' + str(getFields(test_line1)) + '"'
+#print '- line 2: "' + str(getFields(test_line2)) + '"'
+#print '- line 3: "' + str(getFields(test_line3)) + '"'
+#print '- line 4: "' + str(getFields(test_line4)) + '"'
+#print '- line 5: "' + str(getFields(test_line5)) + '"'
+#print '- line 6: "' + str(getFields(test_line6)) + '"'
+#print '- line 7: "' + str(getFields(test_line7)) + '"'
+#print '- line 8: "' + str(getFields(test_line8)) + '"'
+#print '- line 9: "' + str(getFields(test_line9)) + '"'
+#print '- line 10: "' + str(getFields(test_line10)) + '"'
+#print '- line 11: "' + str(getFields(test_line11)) + '"'
+#print '- line 12: "' + str(getFields(test_line12)) + '"'
+#print '- line 13: "' + str(getFields(test_line13)) + '"'
+
+
+def parseLine(line_in):
+    '''Parses a line from the IDF file and returns results'''
+
+    # Get results
+    fields = getFields(line_in)
+    comment = getGeneralComment(line_in)
+    end_object = False
+
+    # Check for and remove the semicolon, indicating the end of an object
+    if fields:
+        if fields[-1] == ';':
+            fields.pop(-1)
+            end_object = True
+
+    # Return a dictionary of results
+    return dict(fields=fields,
+                comment=comment,
+                end_object=end_object)
+
+
+#print 'Whole Line:'
+#print parseLine(test_line1)
+#print parseLine(test_line2)
+#print parseLine(test_line3)
+#print parseLine(test_line4)
+#print parseLine(test_line5)
+#print parseLine(test_line6)
+#print parseLine(test_line7)
+#print parseLine(test_line8)
+#print parseLine(test_line9)
+#print parseLine(test_line10)
+#print parseLine(test_line11)
+#print parseLine(test_line12)
+#print parseLine(test_line13)
+
+
+def parseIDF(filename):
+    '''Parse the provided file name'''
+
+    print 'Parsing IDF file: ' + filename
     line_count = 0
-    empty_line_count = 0
-    field_count = 0
-    parse_mode = "INITIAL"
-    object_dict = []
-    version = ''
-
-    # Cycle through each line in the file, one at a time
-    for line_in in file:
-
-        # general prep
-        obj_comments = []
-        file_comments = []
-        line_count += 1
-
-        # get rid of tabs, then leading spaces
-        line_clean = line_in.expandtabs().lstrip()
-
-        # Check for empty lines
-        if not line_clean:
-            empty_line_count += 1
-
-        # If we're currently looking for fields...
-        if parse_mode == "INITIAL":
-
-            # If line starts with !- then it's a special/field comment
-            if line_clean.startswith('!-'):
-                #ignore these lines
-                comment_count_special += 1
-
-            # If line starts with ! then it's a general comment
-            elif line_clean.startswith('!'):
-                # save this line as a global comment for the top of the file
-                comment_count += 1
-                file_comments.append(line_clean)
-
-        # Otherwise, the line is useful so do some stuff
-        else:
-
-            # Partition line at the !- if it exists
-            line_part1 = line_clean.partition('!-')
-            if line_part1[0] == line_clean:
-                # there is no '!-'
-                pass
-            else:
-                # there is a '!-', count it
-                comment_count_field_special += 1
-
-            # Discard any !-comments or blank array items
-            line_part1 = line_part1[0]
-
-            # Partition line resulting from prev step at the ! if it exists
-            line_part2 = line_part1.partition('!')
-            if line_part2[0] == line_part1:
-                # there is no '!'
-                pass
-            else:
-                # there is a '!', count it and save it
-                obj_comments.append(line_part2[0])
-                comment_count_field_general += 1
-
-            # Split the remaining part of the line at the commas, if any.
-            line_split = line_part2[0].split(',')
-
-            # Strip away any spaces or commas from each list item
-            line_items = map(lambda i: i.strip().strip(','), line_split)
-
-            # If we're currently looking for fields...
-            if parse_mode == "FIELD":
-
-                # Store the list of potential fields
-                fields = line_list
-
-                # Check for the end of an object
-                if line_items[-1].endswith(';'):
-                    # found a ;, remove it and count it
-                    line_items[-1] = line_items[-1].strip(';')
-
-                    field_count += len(line_items)
-                    object_end_count += 1
-
-                    # Start looking for objects again
-                    parse_mode = "OBJECT"
-
-            # If we're currently looking for the start of an object...
-            elif parse_mode == "OBJECT":
-
-                # Store the potential object name
-                pot_obj = line_list[0]
-
-                # Check for special object
-                if pot_obj == 'Version':
-                    # store the vesion number and stop here
-                    version = line_list[1]
-                    continue
-
-                # Check for start of an object.
-                if pot_obj.isalpha() or pot_obj.find(':') != -1:
-
-                    # Check if the object name is valid
-                    if not objects.has_key(pot_obj):
-                        print "Object not found! ("+pot_obj+")"
-                        return {}
-
-                    # Found the start of an object, count it and save it
-                    object_start_count += 1
-                    object_dict.append(pot_obj)
-
-                    # Start looking for fields
-                    parse_mode = "FIELD"
-
-    print "number of comment lines: " + str(comment_count)
-    print "number of objects: " + str(object_count)
-    print "number of objects 2: " + str(object_count_2)
-    print "number of lines: " + str(line_count)
-    print "number of empty lines: " + str(empty_line_count)
-
-    return object_dict
-
-# Parse the IDD file specified by the file handle 'file'
-def parse_IDD(file):
-    comment_count = 0
     object_count = 0
-    object_count_2 = 0
-    line_count = 0
-    empty_line_count = 0
-    parse_mode = "object"
-    object_dict = {}
-    version = ''
-    current_object = ''
-    current_field = ''
-    field_comments = ['field', 'note', 'required-field', 'units', 'ip-units',
-                       'unitsBasedOnField', 'minimum', 'minimum>', 'maximum',
-                       'maximum<', 'default', 'deprecated', 'autosizable',
-                       'autocalculatable', 'type', 'retaincase', 'key',
-                       'object-list', 'reference', 'begin-extensible',
-                       'Note', 'Units']
-    object_comments = ['memo', 'unique-object', 'required-object', 'min-fields',
-                       'obsolete', 'extensible', 'format']
-    other_comments = ['group', 'Group']
 
-    # Find the version number of this idd file
-    version_line = file.readline(150)
-    if not version_line.startswith('!IDD_Version'):
-        print "This file does not appear to be a valid IDD file."
-        return {}
-    version = version_line.split(' ')[1]
+    # Open the specified file in a safe way
+    with open(filename, 'r') as file:
+        # Prepare some variables to store the results
+        object_list = []
+        field_list = []
+        comment_list = []
 
-    # Cycle through each line in the file, one at a time
-    for line in file:
+        # Cycle through each line in the file
+        for line in file:
+            line_parsed = parseLine(line)
+            line_count += 1
 
-        # get rid of tabs, then leading/trailing spaces
-        line = line.expandtabs().strip()
+            # If there are any fields save them
+            if line_parsed['fields']:
+                field_list.extend(line_parsed['fields'])
 
-        # If line starts with ! then it's a comment
-        if line.startswith('!'):
-            comment_count += 1
+            # If there are any comments save them
+            if line_parsed['comment'] is not None:
+                comment_list.append(line_parsed['comment'])
 
-        # Check for empty lines
-        elif not line:
-            empty_line_count += 1
+            # If this is the end of an object save it
+            if line_parsed['end_object'] is True:
+                if not comment_list:
+                    comment_list = None
 
-        # Otherwise, it's useful so do some stuff
-        else:
+                # The first field is the object name
+                object_name = field_list[0]
+                field_list.pop(0)
 
-            # If the line starts with a \ then this is an object or field
-            # comment and should be parsed accordingly
-            if line.startswith('\\'):
-                part = line.partition(' ')
-                comment = part[0].strip().strip('\\')
-                value = part[-1].strip()
+                # Perform check for object here (against IDD file)
 
-                # Verify that the comment is valid
-                if ( comment not in object_comments and
-                     comment not in field_comments and
-                     comment not in other_comments and
-                     comment.find('extensible:') == -1):
-                    if DEBUG: print 'Unknown object or field comment found on line '+str(line_count)+'! ('+comment+')'
-                    return {}
+                # Save the object
+                object_list.append(dict(name=object_name,
+                                        fields=field_list,
+                                        comments=comment_list))
 
-                # Add the comment depending on which parse mode is active
-                if parse_mode == "object_comment":
-                    if object_dict[current_object]['comments'].has_key(comment):
-                        object_dict[current_object]['comments'][comment].append(value)
-                    else:
-                        object_dict[current_object]['comments'][comment] = [value]
-                    if DEBUG: print '  object comment ('+comment+') for object '+current_object
-                elif parse_mode == "field_comment":
-                    if object_dict[current_object]['fields'][current_field].has_key(comment):
-                        object_dict[current_object]['fields'][current_field][comment].append(value)
-                    else:
-                        object_dict[current_object]['fields'][current_field][comment] = [value]
-                    if DEBUG: print '  field comment ('+comment+') for field '+current_field
-                continue
-
-            # Split the line at the commas
-            obj = line.split(',')
-
-            # Regex for field name
-            field_name = re.match(r'^[A|N][0-9]+', obj[0])
-
-            # Check for start of an object. The first list item that is all
-            # alphas or contains a : or ; denotes the start (and possibly
-            # the end) of a new object
-
-            # use a regex for this!
-            if (obj[0].isalpha() or obj[0].find(':') != -1 or obj[0].find(';') != -1) and not field_name:
-                object_count_2 += 1
-                if DEBUG: print "START_OBJECT -----------------------------------------"
-                if DEBUG: print obj
-                parse_mode = "object_comment"
-                obj_cleaned = obj[0].strip(';')
-                current_object = obj_cleaned
-                object_dict[obj_cleaned] = {'comments': {}, 'fields': {}}
-
-            # Check for a valid field name
-            if field_name:
-                if DEBUG: print obj
-                current_field = field_name.group(0)
-                object_dict[current_object]['fields'][current_field] = {}
-                end_comment = obj[-1].strip()
-                if end_comment.startswith('\\'):
-                    part = end_comment.partition(' ')
-                    end_field = part[0].strip().strip('\\')
-                    value = part[-1].strip()
-                    if object_dict[current_object]['fields'][current_field].has_key(end_field):
-                        object_dict[current_object]['fields'][current_field][end_field].append(value)
-                    else:
-                        object_dict[current_object]['fields'][current_field][end_field] = value
-                    if DEBUG: print '  field comment ('+end_field+') for field '+current_field + ' (next to field name)'
-                parse_mode = "field_comment"
-
-            # If the last item has a ; then this signals the end of an object
-            # so split it further to extract any comment for the last field.
-            if obj[-1].find(';') != -1:
-                new_obj = obj[-1].split(';')
-                obj[-1] = new_obj[0]
-                end_comment = new_obj[1].strip()
-                obj.append(end_comment)
-                if end_comment.startswith('\\'):
-                    part = end_comment.partition(' ')
-                    end_field = part[0].strip().strip('\\')
-                    value = part[-1].strip()
-                    if parse_mode == "field_comment":
-                        if object_dict[current_object]['fields'][current_field].has_key(end_field):
-                            object_dict[current_object]['fields'][current_field][end_field].append(value)
-                        else:
-                            object_dict[current_object]['fields'][current_field][end_field] = value
-                        if DEBUG: print '  field comment ('+end_field+') for field '+current_field + ' (next to end of object)'
-                    elif parse_mode == "object_comment":
-                        if object_dict[current_object]['comments'].has_key(end_field):
-                            object_dict[current_object]['comments'][end_field].append(value)
-                        else:
-                            object_dict[current_object]['comments'][end_field] = value
-                        if DEBUG: print '  object comment ('+end_field+') for object '+current_object + ' (next to end of object comment)'
+                # Reset lists for next object
+                field_list = []
+                comment_list = []
                 object_count += 1
 
-            # Strip white spaces from all array items
-            for i, item in enumerate(obj):
-                obj[i] = item.strip()
-
-        # Count the line
-        line_count += 1
-
-    print "number of comment lines: " + str(comment_count)
-    print "number of objects: " + str(object_count)
-    print "number of objects 2: " + str(object_count_2)
-    print "number of lines: " + str(line_count)
-    print "number of empty lines: " + str(empty_line_count)
-    print 'Version found: ' + version
-
-    return object_dict
-
-# Open the specified file (safely) and parse it
-with open(idd_file, 'r') as file:
-    objects = parse_IDD(file)
-
-with open(idf_file, 'r') as file:
-    model = parse_IDF(file, objects)
+    print 'Parsing complete!'
+    return (line_count, object_count, object_list)
 
 
-#with sqlite.connect('../CaliperTest.sqlite') as db:
-#    cur = db.cursor()
-#    query = 'SELECT "name" FROM "idd"'
-#    cur.execute(query)
-#    print cur.fetchall()
+# Parse these idf files
+idf_file = 'RefBldgLargeOfficeNew2004_Chicago.idf'
+idf_file2 = '5ZoneBoilerOutsideAirReset.idf'
+#lines, object_count, objects = parseIDF(idf_file2)
 
 
+def writeIDF(filename, idfObject):
+    '''Write an IDF from the specified idfObject'''
+
+    with open(filename, 'w') as file:
+        for obj in idfObject:
+
+            # Write comments if there are any
+            if obj['comments'] is not None:
+                for comment in obj['comments']:
+                    file.write("! {}\n".format(comment))
+
+            # Check IDD file here for special formatting instructions
+
+            # Write the object name
+            file.write("  {},\n".format(obj['name']))
+
+            # Write the fields
+            field_count = len(obj['fields'])
+            for i, field in enumerate(obj['fields']):
+                if i == field_count - 1:
+                    file.write("    {};\n".format(field))
+                else:
+                    file.write("    {},\n".format(field))
+
+            # Add newline at the end of the object
+            file.write("\n")
+
+    print 'File written!'
+
+# Write the idf file
+#writeIDF('testoutput.idf', objects)
