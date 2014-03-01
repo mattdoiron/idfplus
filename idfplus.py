@@ -7,7 +7,12 @@ IDF Plus
 
 import sys
 from PySide import QtGui, QtCore
-import simpletreemodel_rc
+from parseIDF import parseIDD
+import shelve
+import genericdelegates as gd
+import idfobject
+#import simpletreemodel_rc
+
 
 class Communicate(QtCore.QObject):
 
@@ -51,7 +56,6 @@ class IDFPlus(QtGui.QMainWindow):
         fileMenu.addAction(exitAction)
         fileMenu.addAction(openFile)
 
-        import shelve
         self.idd = shelve.open('myIDD.dat')
         self.idf = None
         self.groups = None
@@ -80,51 +84,37 @@ class IDFPlus(QtGui.QMainWindow):
         fname, _ = QtGui.QFileDialog.getOpenFileName(self,
                    'Open file', '/home', "EnergyPlus Files (*.idf *.imf)")
 
-        from parseIDF import parseIDD
         object_count, eol_char, options, groups, objects = parseIDD(fname)
 
         self.idf = objects
         self.groups = groups
         self.loadTreeView()
-#        self.loadTableView('SizingPeriod:DesignDay', objects)
         self.mainView.topright.setText(str(object_count))
 
     def loadTableView(self, name):
 
-        objs = self.idf[name]
-        idd = self.idd['idd']
-        cols = len(objs)
-        print cols
-        rows = len(objs[0]['fields'])
-        print rows
         table = self.mainView.bottomright
-        table.setColumnCount(cols)
-        table.setRowCount(rows)
 
-        vlabels = []
-        for tag_item in idd[name][0]['field_tags']:
-            for tag in tag_item:
-                if tag['tag'] == '\\field':
-                    vlabels.append(tag['value'])
-        hlabels = ['Obj' + str(i) for i in range(cols)]
+        iddPart = self.idd['idd'][name][0]
+        if name in self.idf:
+            idfObjects = self.idf[name]
+        else:
+            idfObjects = [{'fields':[None for i in iddPart['fields']]}]
 
-        vheader = QtGui.QHeaderView(QtCore.Qt.Orientation.Vertical)
-#        vheader.setResizeMode(QtGui.QHeaderView.ResizeToContents)
-        table.setVerticalHeader(vheader)
-        table.setVerticalHeaderLabels(vlabels)
-        table.verticalHeader().setVisible(True)
+        myModel = idfobject.IDFObjectTableModel(idfObjects, iddPart)
+        myModel.load()
+        table.setModel(myModel)
+        font = QtGui.QFont("Arial", 10)
+        table.setFont(font)
+        table.setSortingEnabled(True)
+        table.setWordWrap(True)
+        table.resizeColumnsToContents()
 
-        hheader = QtGui.QHeaderView(QtCore.Qt.Orientation.Horizontal)
-#        hheader.setResizeMode(QtGui.QHeaderView.ResizeToContents)
-        table.setHorizontalHeader(hheader)
-        table.setHorizontalHeaderLabels(hlabels)
-        table.horizontalHeader().setVisible(True)
 
-        for i in range(cols):
-            for j in range(rows):
-                item = QtGui.QTableWidgetItem(objs[i]['fields'][j])
-                table.setItem(j, i, item)
-
+#            delegate = gd.GenericDelegate(self)
+#            delegate.insertColumnDelegate(1, gd.PlainTextColumnDelegate())
+#            delegate.insertColumnDelegate(2, gd.PlainTextColumnDelegate())
+#            table.setItemDelegate(delegate)
 
     def loadTreeView(self, full=True):
 
@@ -185,8 +175,8 @@ class IDFPanes(QtGui.QWidget):
 
         hbox = QtGui.QVBoxLayout(self)
 
-        bottomright = QtGui.QTableWidget(self)
-        bottomright.setFrameShape(QtGui.QFrame.StyledPanel)
+        bottomright = QtGui.QTableView(self)
+#        bottomright.setFrameShape(QtGui.QFrame.StyledPanel)
 
         topright = QtGui.QTextEdit(self)
         topright.setFrameShape(QtGui.QFrame.StyledPanel)

@@ -586,11 +586,11 @@ def parseIDD(filename):
 
 
 ## Parse this idd file
-idd_file = 'Energy+.idd'
+#idd_file = 'Energy+.idd'
 #idf_file = 'RefBldgLargeOfficeNew2004_Chicago.idf'
-#idf_file2 = '5ZoneBoilerOutsideAirReset.idf'
+idf_file2 = '5ZoneBoilerOutsideAirReset.idf'
 #idf_file3 = 'ChicagoSM.idf'
-#object_count, eol_char, options, groups, objects = parseIDD(idd_file)
+#object_count, eol_char, options, groups, objects = parseIDD(idf_file2)
 ##writeIDF('testoutput.idf', options, objects)
 #import json
 #encoded = json.dumps(objects)
