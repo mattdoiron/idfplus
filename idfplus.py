@@ -59,7 +59,28 @@ class IDFPlus(QtGui.QMainWindow):
         self.idd = shelve.open('myIDD.dat')
         self.idf = None
         self.groups = None
+        self.mainView.left.currentItemChanged.connect(self.iWasChanged)
+
+        QtGui.QShortcut(QtGui.QKeySequence('Ctrl+v'),self).activated.connect(self._handlePaste)
+        QtGui.QShortcut(QtGui.QKeySequence('Ctrl+d'),self).activated.connect(self.copytest)
 #        self.idd = db['idd']
+
+    def copytest(self):
+
+        index = self.mainView.bottomright.currentIndex()
+        selected = self.mainView.bottomright.selectionModel()
+#        self.mainView.topright.setText(str(index.row()))
+#        self.mainView.topright.setText(str(selected.selectedRows()))
+        print str(selected.selectedIndexes())
+#        print str(selected.selectedColumns())
+
+    def _handlePaste(self):
+        clipboard_text = QtGui.QApplication.instance().clipboard().text()
+#        item = QtGui.QTableWidgetItem()
+#        item.setText(clipboard_text)
+#        self.tv.setItem(0, 0, item)
+        print clipboard_text
+        self.mainView.topright.setText(clipboard_text)
 
     def center(self):
 
@@ -70,9 +91,12 @@ class IDFPlus(QtGui.QMainWindow):
 
     def closeEvent(self, event):
 
-        reply = QtGui.QMessageBox.question(self, 'Message',
-            "Are you sure to quit?", QtGui.QMessageBox.Yes |
-            QtGui.QMessageBox.No, QtGui.QMessageBox.No)
+        reply = QtGui.QMessageBox.question(self,
+                                           'Message',
+                                           "Are you sure to quit?",
+                                           (QtGui.QMessageBox.Yes |
+                                               QtGui.QMessageBox.No),
+                                           QtGui.QMessageBox.No)
 
         if reply == QtGui.QMessageBox.Yes:
             event.accept()
@@ -81,15 +105,15 @@ class IDFPlus(QtGui.QMainWindow):
 
     def openFile(self):
 
-        fname, _ = QtGui.QFileDialog.getOpenFileName(self,
-                   'Open file', '/home', "EnergyPlus Files (*.idf *.imf)")
+        filename, _ = QtGui.QFileDialog.getOpenFileName(self,
+                   'Open file', '/home', "EnergyPlus Files (*.idf)")
 
-        object_count, eol_char, options, groups, objects = parseIDD(fname)
+        object_count, eol_char, options, groups, objects = parseIDD(filename)
 
         self.idf = objects
         self.groups = groups
         self.loadTreeView()
-        self.mainView.topright.setText(str(object_count))
+        self.mainView.topright.setText(str(object_count))  # test only
 
     def loadTableView(self, name):
 
@@ -109,7 +133,6 @@ class IDFPlus(QtGui.QMainWindow):
         table.setSortingEnabled(True)
         table.setWordWrap(True)
         table.resizeColumnsToContents()
-
 
 #            delegate = gd.GenericDelegate(self)
 #            delegate.insertColumnDelegate(1, gd.PlainTextColumnDelegate())
@@ -158,11 +181,17 @@ class IDFPlus(QtGui.QMainWindow):
             child.setTextAlignment(1, QtCore.Qt.AlignRight)
             group_root.addChild(child)
 
-        left.itemClicked.connect(self.iWasClicked)
+#            left.setCurrentItem(left.topLevelItem(0))
+#        left.itemClicked.connect(self.iWasClicked)
+#        left.itemActivated.connect(self.iWasClicked)
+#        left.currentItemChanged.connect(self.iWasChanged)
+#        left.itemPressed.connect(self.iWasClicked)
 
-    def iWasClicked(self, item, column):
+    def iWasChanged(self, current, previous):
+        if current.parent() is None:
+            return
+        self.loadTableView(current.text(0))
 
-        self.loadTableView(item.text(0))
 
 class IDFPanes(QtGui.QWidget):
 
@@ -176,6 +205,7 @@ class IDFPanes(QtGui.QWidget):
         hbox = QtGui.QVBoxLayout(self)
 
         bottomright = QtGui.QTableView(self)
+        bottomright.setAlternatingRowColors(True)
 #        bottomright.setFrameShape(QtGui.QFrame.StyledPanel)
 
         topright = QtGui.QTextEdit(self)
@@ -190,6 +220,7 @@ class IDFPanes(QtGui.QWidget):
         left.header().resizeSection(0, 250)
         left.header().resizeSection(1, 10)
         left.header().setResizeMode(QtGui.QHeaderView.ResizeToContents)
+        left.setAlternatingRowColors(True)
 
         splitter1 = QtGui.QSplitter(QtCore.Qt.Vertical)
         splitter1.addWidget(topright)

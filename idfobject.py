@@ -137,6 +137,7 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
         super(IDFObjectTableModel, self).__init__()
         self.idfObjects = idfObjects
         self.iddPart = iddPart
+#        self.filename = filename
         self.dirty = False
 
 #    def sortByName(self):
@@ -162,18 +163,26 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
     def flags(self, index):
         if not index.isValid():
             return QtCore.Qt.ItemIsEnabled
-        return QtCore.Qt.ItemFlags(QtCore.QAbstractTableModel.flags(self, index) |
-                                            QtCore.Qt.ItemIsEditable)
+        current_flags = QtCore.QAbstractTableModel.flags(self, index)
+        return QtCore.Qt.ItemFlags(current_flags | QtCore.Qt.ItemIsEditable)
 
-    def data(self, index, role=QtCore.Qt.DisplayRole):
+    def data(self, index, role):
         if not index.isValid() or \
                 not (0 <= index.row() < len(self.idfObjects)):
+#            print "data() called with invalid index"
             return None
 
-        idfObject = self.idfObjects[index.row()]
+        row = index.row()
         column = index.column()
+        idfObject = self.idfObjects[row]
+
+#        print 'data called with role: {}'.format(role)
+
+        if column >= len(idfObject['fields']):
+            return None
 
         if role == QtCore.Qt.DisplayRole:
+#            print 'data called with index ({},{})'.format(row, column)
             return idfObject['fields'][column]
         elif role == QtCore.Qt.EditRole:
             return idfObject['fields'][column]
@@ -212,62 +221,67 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
             return QtCore.Qt.AlignRight | QtCore.Qt.AlignVCenter
         if role == QtCore.Qt.DisplayRole:
             if orientation == QtCore.Qt.Horizontal:
-                return self.vlabels[section]
-            if orientation == QtCore.Qt.Vertical:
                 return self.hlabels[section]
+            if orientation == QtCore.Qt.Vertical:
+                return self.vlabels[section]
         return None
 
-    def rowCount(self, index=QtCore.QModelIndex()):
+    def rowCount(self, index):
         return len(self.idfObjects)
 
-    def columnCount(self, index=QtCore.QModelIndex()):
-        return len(self.idfObjects[0]['fields'])
+    def columnCount(self, index):
+        return len(self.hlabels)
 
-    def setData(self, index, value, role=QtCore.Qt.EditRole):
-        if index.isValid() and 0 <= index.row() < len(self.idfObjects):
-            idfObject = self.idfObjects[index.row()]
+    def setData(self, index, value, role):
+        if not index.isValid() or \
+                not (0 <= index.row() < len(self.idfObjects)):
+#            print "data() called with invalid index"
+            return False
+
+        if role == QtCore.Qt.EditRole:
+            row = index.row()
             column = index.column()
+            idfObject = self.idfObjects[row]
+
             idfObject['fields'][column] = value
             self.dirty = True
             self.dataChanged.emit(index, index)
             return True
         return False
 
-    def insertRows(self, position, rows=1, index=QtCore.QModelIndex()):
-        self.beginInsertRows(QtCore.QModelIndex(), position,
-                             position + rows - 1)
-        for row in range(rows):
-            self.idfObjects.insert(position + row, [])
-#                                   IDFObject(" Unknown",
-#                                             " Unknown",
-#                                             " Unknown"))
-        self.endInsertRows()
-        self.dirty = True
-        return True
-
-    def removeRows(self, position, rows=1, index=QtCore.QModelIndex()):
-        self.beginRemoveRows(QtCore.QModelIndex(), position,
-                             position + rows - 1)
-        self.idfObjects = self.idfObjects[:position] + \
-                     self.idfObjects[position + rows:]
-        self.endRemoveRows()
-        self.dirty = True
-        return True
+#    def insertRows(self, position, rows=1, index=QtCore.QModelIndex()):
+#        self.beginInsertRows(QtCore.QModelIndex(), position,
+#                             position + rows - 1)
+#        for row in range(rows):
+#            self.idfObjects.insert(position + row, [])
+##                                   IDFObject(" Unknown",
+##                                             " Unknown",
+##                                             " Unknown"))
+#        self.endInsertRows()
+#        self.dirty = True
+#        return True
+#
+#    def removeRows(self, position, rows=1, index=QtCore.QModelIndex()):
+#        self.beginRemoveRows(QtCore.QModelIndex(), position,
+#                             position + rows - 1)
+#        self.idfObjects = self.idfObjects[:position] + \
+#                     self.idfObjects[position + rows:]
+#        self.endRemoveRows()
+#        self.dirty = True
+#        return True
 
     def load(self):
 #        self.idfObjects = []
-        vlabels = []
+        hlabels = []
         for tag_item in self.iddPart['field_tags']:
             for tag in tag_item:
                 if tag['tag'] == '\\field':
-                    vlabels.append(tag['value'])
+                    hlabels.append(tag['value'])
 
-        hlabels = ['Obj' + str(i) for i in range(len(self.idfObjects))]
+        vlabels = ['Obj' + str(i) for i in range(len(self.idfObjects))]
 
         self.vlabels = vlabels
         self.hlabels = hlabels
-#        print vlabels
-#        print hlabels
 
         # exception = None
         # fh = None
