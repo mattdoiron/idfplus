@@ -170,11 +170,12 @@ class IDFPlus(QtGui.QMainWindow):
         table.setWordWrap(True)
         table.resizeColumnsToContents()
 
-        delegate = gd.GenericDelegateGroup(self)
-        delegate.insertColumnDelegate(0, gd.ComboBoxColumnDelegate())
-        delegate.insertColumnDelegate(1, gd.PlainTextColumnDelegate())
-        delegate.insertColumnDelegate(2, gd.PlainTextColumnDelegate())
-        table.setItemDelegate(delegate)
+        delegates = gd.GenericDelegateGroup(self)
+#        delegates.insertColumnDelegate(0, gd.ComboBoxColumnDelegate())
+#        delegates.insertColumnDelegate(1, gd.PlainTextColumnDelegate())
+#        delegates.insertColumnDelegate(2, gd.PlainTextColumnDelegate())
+#        table.setItemDelegate(delegates)
+        delegates.assignDelegates(table)
 
     def loadTreeView(self, full=True):
 
