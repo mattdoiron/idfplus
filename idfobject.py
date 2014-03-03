@@ -181,14 +181,17 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
         if column >= len(idfObject['fields']):
             return None
 
+        data = None
         if role == QtCore.Qt.DisplayRole:
 #            print 'data called with index ({},{})'.format(row, column)
-            return idfObject['fields'][column]
+            data = idfObject['fields'][column]
         elif role == QtCore.Qt.EditRole:
-            return idfObject['fields'][column]
+            data = idfObject['fields'][column]
         elif role == QtCore.Qt.ToolTipRole:
-            msg = "tooltip test"
-            return msg
+            data = "tooltip test"
+#            return msg
+        elif role == QtCore.Qt.DecorationRole:
+            data = QtGui.QIcon("icon.png")
         # elif role == Qt.TextAlignmentRole:
         #     if column == TEU:
         #         return QVariant(int(Qt.AlignRight|Qt.AlignVCenter))
@@ -212,7 +215,7 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
         #         return QVariant(QColor(230, 250, 250))
         #     else:
         #         return QVariant(QColor(210, 230, 230))
-        return None
+        return data
 
     def headerData(self, section, orientation, role):
         if role == QtCore.Qt.TextAlignmentRole:
@@ -233,6 +236,7 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
         return len(self.hlabels)
 
     def setData(self, index, value, role):
+#        print "set data called"
         if not index.isValid() or \
                 not (0 <= index.row() < len(self.idfObjects)):
 #            print "data() called with invalid index"
@@ -246,6 +250,7 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
             idfObject['fields'][column] = value
             self.dirty = True
             self.dataChanged.emit(index, index)
+#            print "data changed"
             return True
         return False
 

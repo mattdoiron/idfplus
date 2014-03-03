@@ -464,6 +464,10 @@ def parseIDD(filename):
     myIDD = shelve.open('myIDD.dat')
     idd = myIDD['idd']
 
+
+#    progress = QProgressDialog("Opening File...", "Abort", 0, percentProgress, self)
+#    progress.setWindowModality(Qt.WindowModal)
+
     from collections import OrderedDict
 
     print 'Parsing IDD file: ' + filename

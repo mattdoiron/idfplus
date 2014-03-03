@@ -29,8 +29,9 @@ class IDFPlus(QtGui.QMainWindow):
         self.mainView = IDFPanes(self)
 
         self.setCentralWidget(self.mainView)
-
+        self.setWindowIcon(QtGui.QIcon('eplus_sm.gif'))
         self.statusBar().showMessage('Status: Ready')
+        self.showMaximized()
 
 #        QtGui.QApplication.setStyle(QtGui.QStyleFactory.create('Cleanlooks'))
 
@@ -59,20 +60,39 @@ class IDFPlus(QtGui.QMainWindow):
         self.idd = shelve.open('myIDD.dat')
         self.idf = None
         self.groups = None
+        self.fullTree = True
         self.mainView.left.currentItemChanged.connect(self.iWasChanged)
+
+#        self.timer = QtCore.QBasicTimer()
+#        self.step = 0
 
         QtGui.QShortcut(QtGui.QKeySequence('Ctrl+v'),self).activated.connect(self._handlePaste)
         QtGui.QShortcut(QtGui.QKeySequence('Ctrl+d'),self).activated.connect(self.copytest)
+        QtGui.QShortcut(QtGui.QKeySequence('Ctrl+l'),self).activated.connect(self.toggleFullTree)
 #        self.idd = db['idd']
 
     def copytest(self):
 
-        index = self.mainView.bottomright.currentIndex()
+#        index = self.mainView.bottomright.currentIndex()
         selected = self.mainView.bottomright.selectionModel()
 #        self.mainView.topright.setText(str(index.row()))
 #        self.mainView.topright.setText(str(selected.selectedRows()))
         print str(selected.selectedIndexes())
 #        print str(selected.selectedColumns())
+
+    def toggleFullTree(self):
+        self.fullTree = not self.fullTree
+        tree = self.mainView.left
+        current = tree.currentIndex()
+
+        for item in QtGui.QTreeWidgetItemIterator(tree):
+            obj = item.value().text(0)
+            count = item.value().text(1)
+            disabled = item.value().isDisabled()
+            spanned = item.value().isFirstColumnSpanned()
+            if obj is not None and count == '' and not disabled and not spanned:
+                item.value().setHidden(not self.fullTree)
+        tree.scrollTo(current)
 
     def _handlePaste(self):
         clipboard_text = QtGui.QApplication.instance().clipboard().text()
@@ -89,6 +109,14 @@ class IDFPlus(QtGui.QMainWindow):
         self.move((screen.width() - size.width()) / 2,
                   (screen.height() - size.height()) / 2)
 
+#    def timerEvent(self, event):
+#
+#        if self.step >= 100:
+#            self.timer.stop()
+#            return
+#        self.step = self.step + 1
+#        self.pbar.setValue(self.step)
+
     def closeEvent(self, event):
 
         reply = QtGui.QMessageBox.question(self,
@@ -104,7 +132,15 @@ class IDFPlus(QtGui.QMainWindow):
             event.ignore()
 
     def openFile(self):
+#        self.pbar = QtGui.QProgressBar(self)
+#        self.pbar.setGeometry(130, 140, 200, 25)
+#        self.pbar.show()
 
+#        progress = QProgressDialog("Opening File...", "Abort", 0, percentProgress, self)
+#        progress.setWindowModality(Qt.WindowModal)
+
+#        self.center(self.pbar)
+#        self.timer.start(100, self)
         filename, _ = QtGui.QFileDialog.getOpenFileName(self,
                    'Open file', '/home', "EnergyPlus Files (*.idf)")
 
@@ -112,7 +148,7 @@ class IDFPlus(QtGui.QMainWindow):
 
         self.idf = objects
         self.groups = groups
-        self.loadTreeView()
+        self.loadTreeView(self.fullTree)
         self.mainView.topright.setText(str(object_count))  # test only
 
     def loadTableView(self, name):
@@ -134,14 +170,16 @@ class IDFPlus(QtGui.QMainWindow):
         table.setWordWrap(True)
         table.resizeColumnsToContents()
 
-#            delegate = gd.GenericDelegate(self)
-#            delegate.insertColumnDelegate(1, gd.PlainTextColumnDelegate())
-#            delegate.insertColumnDelegate(2, gd.PlainTextColumnDelegate())
-#            table.setItemDelegate(delegate)
+        delegate = gd.GenericDelegateGroup(self)
+        delegate.insertColumnDelegate(0, gd.ComboBoxColumnDelegate())
+        delegate.insertColumnDelegate(1, gd.PlainTextColumnDelegate())
+        delegate.insertColumnDelegate(2, gd.PlainTextColumnDelegate())
+        table.setItemDelegate(delegate)
 
     def loadTreeView(self, full=True):
 
         left = self.mainView.left
+        left.clear()
 #        groups = self.groups
         objects = self.idf
         group = ''
@@ -188,6 +226,8 @@ class IDFPlus(QtGui.QMainWindow):
 #        left.itemPressed.connect(self.iWasClicked)
 
     def iWasChanged(self, current, previous):
+        if current is None:
+            return
         if current.parent() is None:
             return
         self.loadTableView(current.text(0))
