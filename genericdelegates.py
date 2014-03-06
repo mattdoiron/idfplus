@@ -161,53 +161,65 @@ class ChoiceColumnDelegate(QtGui.QItemDelegate):
     def __init__(self, parent=None):
         super(ChoiceColumnDelegate, self).__init__(parent)
 
+    def imActivated(self, index):
+#        self.showPopup()
+        print 'i was activated'
+
     def createEditor(self, parent, option, index):
         combo = QtGui.QComboBox(parent)
-        combo.setMinimumContentsLength(30)
-        combo.setSizeAdjustPolicy(QtGui.QComboBox.AdjustToContents)
+        combo.setFrame(False)
+        combo.setEditable(True)
+        combo.editTextChanged.connect(self.imActivated)
+#        combo.setMinimumContentsLength(30)
+#        combo.setSizeAdjustPolicy(QtGui.QComboBox.AdjustToContents)
 
         current = index.data(QtCore.Qt.DisplayRole)
+        model = QtGui.QStandardItemModel(4, 2)
 
-        myModel = QtGui.QStandardItemModel(4, 2)
+        index = model.index(0, 0, QtCore.QModelIndex())
+        model.setData(index, current)
+        index = model.index(0, 1, QtCore.QModelIndex())
+        model.setData(index, 'Current')
+        index = model.index(1, 0, QtCore.QModelIndex())
+        model.setData(index, '123')
+        index = model.index(1, 1, QtCore.QModelIndex())
+        model.setData(index, 'Default')
+        index = model.index(2, 0, QtCore.QModelIndex())
+        model.setData(index, 'New')
+        index = model.index(2, 1, QtCore.QModelIndex())
+        model.setData(index, '')
+        index = model.index(3, 0, QtCore.QModelIndex())
+        model.setData(index, 'New From Library asd asd asd')
+        index = model.index(3, 1, QtCore.QModelIndex())
+        model.setData(index, '')
 
-        index = myModel.index(0, 0, QtCore.QModelIndex())
-        myModel.setData(index, current)
-        index = myModel.index(0, 1, QtCore.QModelIndex())
-        myModel.setData(index, 'Current')
-        index = myModel.index(1, 0, QtCore.QModelIndex())
-        myModel.setData(index, '123')
-        index = myModel.index(1, 1, QtCore.QModelIndex())
-        myModel.setData(index, 'Default')
-        index = myModel.index(2, 0, QtCore.QModelIndex())
-        myModel.setData(index, 'New')
-        index = myModel.index(2, 1, QtCore.QModelIndex())
-        myModel.setData(index, '')
-        index = myModel.index(3, 0, QtCore.QModelIndex())
-        myModel.setData(index, 'New From Library')
-        index = myModel.index(3, 1, QtCore.QModelIndex())
-        myModel.setData(index, '')
+        tableView = QtGui.QTableView()
 
-        myTable = QtGui.QTableView()
-        myTable.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAsNeeded)
-        myTable.setSelectionMode(QtGui.QAbstractItemView.SingleSelection)
-        myTable.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
-        myTable.setAutoScroll(False)
-        myTable.resizeColumnsToContents()
-        myTable.resizeRowsToContents()
-        #view.setSortingEnabled(True)
-        myTable.verticalHeader().setVisible(False)
-        myTable.horizontalHeader().setVisible(False)
-        myTable.setMinimumWidth(30)
+        tableView.setModel(model)
+#        tableView.setFrame(False)
+        tableView.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAsNeeded)
+        tableView.setSelectionMode(QtGui.QAbstractItemView.SingleSelection)
+        tableView.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
+        tableView.setAutoScroll(False)
+        tableView.resizeColumnsToContents()
+        tableView.resizeRowsToContents()
+#        tableView.setSortingEnabled(True)
+        tableView.verticalHeader().setVisible(False)
+        tableView.horizontalHeader().setVisible(False)
+        tableView.setMinimumWidth(tableView.horizontalHeader().length())
 
-        combo.setModel(myModel)
-        combo.setView(myTable)
+        combo.setModel(model)
+        combo.setView(tableView)
+        combo.showPopup()
         return combo
 
     def setEditorData(self, editor, index):
+        editor.showPopup()
         value = index.data(QtCore.Qt.DisplayRole)
         comboIndex = editor.findText(value)
         if comboIndex >= 0:
             editor.setCurrentIndex(comboIndex)
+
 
     def setModelData(self, editor, model, index):
         model.setData(index, editor.currentText(), QtCore.Qt.EditRole)

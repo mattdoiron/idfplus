@@ -245,7 +245,7 @@ class IDFPanes(QtGui.QWidget):
 
         hbox = QtGui.QVBoxLayout(self)
 
-        bottomright = QtGui.QTableView(self)
+        bottomright = MyTableView()
         bottomright.setAlternatingRowColors(True)
 #        bottomright.setFrameShape(QtGui.QFrame.StyledPanel)
 
@@ -281,6 +281,19 @@ class IDFPanes(QtGui.QWidget):
         self.left = left
 
         self.c = Communicate()
+
+
+class MyTableView(QtGui.QTableView):
+    def __init__(self):
+        super(MyTableView, self).__init__()
+
+    # Ads single-click editing
+    def mousePressEvent(self, event):
+        if event.button() == QtCore.Qt.LeftButton:
+            index = self.indexAt(event.pos())
+            if index.isValid():
+                self.edit(index)
+        QtGui.QTableView.mousePressEvent(self, event)
 
 
 def main():
