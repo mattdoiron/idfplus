@@ -336,40 +336,44 @@ def writeIDF(filename, options, idfObject):
         print 'Special formatting requested, but not yet implemented.'
 
     # Open file and write
-    with open(filename, 'w') as file:
-        for obj in idfObject:
+    try:
+        with open(filename, 'w') as file:
+            for obj in idfObject:
 
-            # Write special comments if there are any
-            if obj['comments_special'] is not None:
-                for comment in obj['comments_special']:
-                    file.write("!-{}\n".format(comment))
+                # Write special comments if there are any
+                if obj['comments_special'] is not None:
+                    for comment in obj['comments_special']:
+                        file.write("!-{}\n".format(comment))
 
-            # Write comments if there are any
-            if obj['comments'] is not None:
-                for comment in obj['comments']:
-                    file.write("!{}\n".format(comment))
+                # Write comments if there are any
+                if obj['comments'] is not None:
+                    for comment in obj['comments']:
+                        file.write("!{}\n".format(comment))
 
-            # Some objects are on one line and some fields are grouped!
-            # If enabled, check IDD file for special formatting instructions
-            if options.count('UseSpecialFormat') >= 1:
-                pass
+                # Some objects are on one line and some fields are grouped!
+                # If enabled, check IDD file for special formatting instructions
+                if options.count('UseSpecialFormat') >= 1:
+                    pass
 
-            # Write the object name
-            file.write("  {},\n".format(obj['name']))
+                # Write the object name
+                file.write("  {},\n".format(obj['name']))
 
-            # Write the fields
-            if obj['fields']:
-                field_count = len(obj['fields'])
-                for i, field in enumerate(obj['fields']):
-                    if i == field_count - 1:
-                        file.write("    {};\n".format(field))
-                    else:
-                        file.write("    {},\n".format(field))
+                # Write the fields
+                if obj['fields']:
+                    field_count = len(obj['fields'])
+                    for i, field in enumerate(obj['fields']):
+                        if i == field_count - 1:
+                            file.write("    {};\n".format(field))
+                        else:
+                            file.write("    {},\n".format(field))
 
-            # Add newline at the end of the object
-            file.write("\n")
+                # Add newline at the end of the object
+                file.write("\n")
 
-    print 'File written!'
+        print 'File written!'
+        return True
+    except:
+        return False
 
 # Write the idf file
 #writeIDF('testoutput.idf', options, objects)
@@ -461,6 +465,7 @@ def parseIDD(filename):
     '''Parse the provided idd file'''
 
     import shelve
+    import os
     myIDD = shelve.open('myIDD.dat')
     idd = myIDD['idd']
 
@@ -473,6 +478,8 @@ def parseIDD(filename):
     print 'Parsing IDD file: ' + filename
     global comment_delimiter_special
     global options_list
+
+#    fileSize = os.path.getsize(filename)
 
     # Open the specified file in a safe way
     with open(filename, 'r') as file:

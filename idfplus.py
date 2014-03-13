@@ -6,11 +6,13 @@ IDF Plus
 """
 
 import sys
+import os
 from PySide import QtGui, QtCore
 from parseIDF import parseIDD
 import shelve
 import genericdelegates as gd
 import idfobject
+import resources
 #import simpletreemodel_rc
 
 
@@ -24,44 +26,76 @@ class IDFPlus(QtGui.QMainWindow):
     def __init__(self):
         super(IDFPlus, self).__init__()
 
-        self.setGeometry(100, 100, 800, 680)
-        self.setWindowTitle('idfPlus Testing')
+#        # From pyside examples - use these instead?
+#        self.createActions()
+#        self.createMenus()
+#        self.createToolBars()
+#        self.createStatusBar()
+#
+#        self.readSettings()
+
+#        self.filename = ''
+
+#        self.setGeometry(100, 100, 800, 680)
+#        self.center()
+
+        settings = QtCore.QSettings()
+        self.recentFiles = settings.value("RecentFiles")
+
+        self.createActions()
+        self.createMenus()
+        self.createToolBars()
+        self.createStatusBar('Status: Ready')
+
+        self.readSettings()
+
+        self.setCurrentFile('')
+        self.setUnifiedTitleAndToolBarOnMac(True)
+
+        self.setWindowTitle('IDFPlus Editor')
+
+        QtCore.QTimer.singleShot(0, self.loadInitialFile)
+
         self.mainView = IDFPanes(self)
 
         self.setCentralWidget(self.mainView)
         self.setWindowIcon(QtGui.QIcon('eplus_sm.gif'))
-        self.statusBar().showMessage('Status: Ready')
-        self.showMaximized()
+#        self.statusBar().showMessage('Status: Ready')
+#        self.showMaximized()
 
-#        QtGui.QApplication.setStyle(QtGui.QStyleFactory.create('Cleanlooks'))
-
-        self.center()
 
         # Menu Bar and Toolbar Actions
-        exitAction = QtGui.QAction('&Exit', self)
-        exitAction.setShortcut('Ctrl+Q')
-        exitAction.setStatusTip('Exit application')
-        exitAction.triggered.connect(self.close)
-        openFile = QtGui.QAction('Open', self)
-        openFile.setShortcut('Ctrl+O')
-        openFile.setStatusTip('Open new File')
-        openFile.triggered.connect(self.openFile)
+#        exitAction = QtGui.QAction('&Exit', self)
+#        exitAction.setShortcut('Ctrl+Q')
+#        exitAction.setStatusTip('Exit application')
+#        exitAction.triggered.connect(self.close)
+#        fileOpenAction = QtGui.QAction('Open', self)
+#        self.fileOpenAction = fileOpenAction
+#        fileOpenAction.setShortcut('Ctrl+O')
+#        fileOpenAction.setStatusTip('Open new File')
+#        fileOpenAction.triggered.connect(self.fileOpen)
 
         # Toolbar Itself
-        toolbar = self.addToolBar('Exit')
-        toolbar.addAction(exitAction)
+#        toolbar = self.addToolBar('Exit')
+#        toolbar.addAction(exitAction)
 
         # Menu Bar Itself
-        menubar = self.menuBar()
-        fileMenu = menubar.addMenu('&File')
-        fileMenu.addAction(exitAction)
-        fileMenu.addAction(openFile)
+#        menubar = self.menuBar()
+#        fileMenu = menubar.addMenu('&File')
+#        fileMenu.addAction(exitAction)
+#        fileMenu.addAction(fileOpenAction)
+#        self.fileMenu = fileMenu
+        self.fileMenuActions = (self.openAct, None, self.exitAct)
 
         self.idd = shelve.open('myIDD.dat')
         self.idf = None
         self.groups = None
         self.fullTree = True
+        self.filename = None
         self.mainView.left.currentItemChanged.connect(self.iWasChanged)
+        self.dirty = False
+
+#        self.updateFileMenu()
 
 #        self.timer = QtCore.QBasicTimer()
 #        self.step = 0
@@ -71,8 +105,291 @@ class IDFPlus(QtGui.QMainWindow):
         QtGui.QShortcut(QtGui.QKeySequence('Ctrl+l'),self).activated.connect(self.toggleFullTree)
 #        self.idd = db['idd']
 
-    def copytest(self):
+    def closeEvent(self, event):
+        if self.okToContinue():
+            self.writeSettings()
+            event.accept()
+        else:
+            event.ignore()
 
+    def newFile(self):
+        if self.maybeSave():
+#            self.textEdit.clear()
+            self.setCurrentFile('')
+
+    def openFile(self):
+        if not self.okToContinue():
+            return
+
+#        self.pbar = QtGui.QProgressBar(self)
+#        self.pbar.setGeometry(130, 140, 200, 25)
+#        self.pbar.show()
+
+#        progress = QProgressDialog("Opening File...", "Abort", 0, percentProgress, self)
+#        progress.setWindowModality(Qt.WindowModal)
+
+#        self.center(self.pbar)
+#        self.timer.start(100, self)
+
+        directory = os.path.dirname(self.filename) if self.filename is not None else "."
+        formats = "EnergyPlus Files (*.idf)"
+        filename, _ = QtGui.QFileDialog.getOpenFileName(self,
+                   'Open file', directory, formats)
+
+        object_count, eol_char, options, groups, objects = parseIDD(filename)
+
+        self.idf = objects
+        self.groups = groups
+        self.loadTreeView(self.fullTree)
+        self.mainView.topright.setText(str(object_count))  # test only
+        self.dirty = False
+        self.filename = filename
+        self.addRecentFile(filename)
+        message = "Loaded %s" % os.path.basename(filename)
+        self.updateStatus(message, 2000)
+        self.setCurrentFile(fileName)
+
+    def save(self):
+        if self.filename:
+            return self.saveFile(self.filename)
+        return self.saveAs()
+
+    def saveAs(self):
+        directory = os.path.dirname(self.filename) if self.filename is not None else "."
+        formats = "EnergyPlus Files (*.idf)"
+        fileName, filtr = QtGui.QFileDialog.getSaveFileName(self, 'Save As',
+                                                            directory, formats)
+        if fileName:
+            return self.saveFile(fileName)
+        return False
+
+    def about(self):
+        QtGui.QMessageBox.about(self, "About Application",
+                "<b>IDFPlus</b> is an improved IDF file editor with enhanced "
+                "features and capabilities.")
+
+    def createActions(self):
+        self.newAct = QtGui.QAction(QtGui.QIcon(':/images/new.png'), "&New",
+                self, shortcut=QtGui.QKeySequence.New,
+                statusTip="Create a new file", triggered=self.newFile)
+
+        self.openAct = QtGui.QAction(QtGui.QIcon(':/images/open.png'),
+                "&Open...", self, shortcut=QtGui.QKeySequence.Open,
+                statusTip="Open an existing file", triggered=self.openFile)
+
+        self.saveAct = QtGui.QAction(QtGui.QIcon(':/images/save.png'),
+                "&Save", self, shortcut=QtGui.QKeySequence.Save,
+                statusTip="Save the document to disk", triggered=self.save)
+
+        self.saveAsAct = QtGui.QAction("Save &As...", self,
+                shortcut=QtGui.QKeySequence.SaveAs,
+                statusTip="Save the document under a new name",
+                triggered=self.saveAs)
+
+        self.exitAct = QtGui.QAction("E&xit", self, shortcut="Ctrl+Q",
+                statusTip="Exit the application", triggered=self.close)
+
+        self.cutAct = QtGui.QAction(QtGui.QIcon(':/images/cut.png'), "Cu&t",
+                self, shortcut=QtGui.QKeySequence.Cut,
+                statusTip="Cut the current selection's contents to the clipboard")
+#                triggered=self.textEdit.cut)
+
+        self.copyAct = QtGui.QAction(QtGui.QIcon(':/images/copy.png'),
+                "&Copy", self, shortcut=QtGui.QKeySequence.Copy,
+                statusTip="Copy the current selection's contents to the clipboard")
+#                triggered=self.textEdit.copy)
+
+        self.pasteAct = QtGui.QAction(QtGui.QIcon(':/images/paste.png'),
+                "&Paste", self, shortcut=QtGui.QKeySequence.Paste,
+                statusTip="Paste the clipboard's contents into the current selection")
+#                triggered=self.textEdit.paste)
+
+        self.aboutAct = QtGui.QAction("&About", self,
+                statusTip="Show the application's About box",
+                triggered=self.about)
+
+        self.cutAct.setEnabled(False)
+        self.copyAct.setEnabled(False)
+        self.pasteAct.setEnabled(False)
+#        self.textEdit.copyAvailable.connect(self.cutAct.setEnabled)
+#        self.textEdit.copyAvailable.connect(self.copyAct.setEnabled)
+
+    def createMenus(self):
+        self.fileMenu = self.menuBar().addMenu("&File")
+        self.fileMenu.addAction(self.newAct)
+        self.fileMenu.addAction(self.openAct)
+        self.fileMenu.addAction(self.saveAct)
+        self.fileMenu.addAction(self.saveAsAct)
+        self.fileMenu.addSeparator()
+        self.fileMenu.addAction(self.exitAct)
+
+        self.editMenu = self.menuBar().addMenu("&Edit")
+        self.editMenu.addAction(self.cutAct)
+        self.editMenu.addAction(self.copyAct)
+        self.editMenu.addAction(self.pasteAct)
+
+        self.menuBar().addSeparator()
+
+        self.helpMenu = self.menuBar().addMenu("&Help")
+        self.helpMenu.addAction(self.aboutAct)
+
+    def createToolBars(self):
+        self.fileToolBar = self.addToolBar("File")
+        self.fileToolBar.setObjectName('fileToolbar')
+        self.fileToolBar.addAction(self.newAct)
+        self.fileToolBar.addAction(self.openAct)
+        self.fileToolBar.addAction(self.saveAct)
+
+        self.editToolBar = self.addToolBar("Edit")
+        self.editToolBar.setObjectName('editToolbar')
+        self.editToolBar.addAction(self.cutAct)
+        self.editToolBar.addAction(self.copyAct)
+        self.editToolBar.addAction(self.pasteAct)
+
+    def createStatusBar(self, status):
+        self.statusBar().showMessage(status)
+
+    def readSettings(self):
+        settings = QtCore.QSettings()
+
+        size = settings.value("MainWindow/Size", QtCore.QSize(600, 500))
+        position = settings.value("MainWindow/Position", QtCore.QPoint(200, 200))
+#        state = QtCore.QByteArray(settings.value("MainWindow/State"))
+        state = settings.value("MainWindow/State")
+#        geometry = QtCore.QByteArray(settings.value("Geometry"))
+        geometry = settings.value("MainWindow/Geometry")
+
+        self.resize(size)
+        self.move(position)
+        self.restoreState(state)
+        self.restoreGeometry(geometry)
+
+    def writeSettings(self):
+        settings = QtCore.QSettings()
+
+        filename = self.filename or None
+        recentFiles = self.recentFiles or None
+
+        settings.setValue("LastFile", filename)
+        settings.setValue("RecentFiles", recentFiles)
+        settings.setValue("MainWindow/Size", self.size())
+        settings.setValue("MainWindow/Position", self.pos())
+        settings.setValue("MainWindow/State", self.saveState())
+        settings.setValue("MainWindow/Geometry", self.saveGeometry())
+
+#    def createAction(self, text, slot=None, shortcut=None, icon=None,
+#                     tip=None, checkable=False, signal="triggered()"):
+#        action = QtGui.QAction(text, self)
+#        if icon is not None:
+#            action.setIcon(QtGui.QIcon(":/%s.png" % icon))
+#        if shortcut is not None:
+#            action.setShortcut(shortcut)
+#        if tip is not None:
+#            action.setToolTip(tip)
+#            action.setStatusTip(tip)
+#        if slot is not None:
+#            self.connect(action, QtCore.SIGNAL(signal), slot)
+#        if checkable:
+#            action.setCheckable(True)
+#        return action
+#
+    def addActions(self, target, actions):
+        for action in actions:
+            if action is None:
+                target.addSeparator()
+            else:
+                target.addAction(action)
+
+    def saveFile(self, fileName):
+        try:
+            if writeIDF(fileName):
+                self.setCurrentFile(fileName);
+                self.statusBar().showMessage("File saved", 2000)
+                return True
+            else:
+                return False
+        except:
+            QtGui.QMessageBox.warning(self, "Application",
+                    "Cannot write file %s:\n%s." % (fileName, myFile.errorString()))
+            return False
+
+    def setCurrentFile(self, fileName):
+        self.filename = fileName
+        self.setWindowModified(False)
+
+        if self.filename:
+            shownName = self.strippedName(self.curFile)
+        else:
+            shownName = 'untitled.txt'
+
+        self.setWindowTitle("%s[*] - Application" % shownName)
+
+    def strippedName(self, fullFileName):
+        return QtCore.QFileInfo(fullFileName).fileName()
+
+    def loadInitialFile(self):
+        settings = QtCore.QSettings()
+        fname = settings.value("LastFile")
+        if fname and QtCore.QFile.exists(fname):
+            self.loadFile(fname)
+
+#    def close_current_dockwidget(self):
+#        pass
+
+    def okToContinue(self):
+        if self.dirty:
+            reply = QtGui.QMessageBox.warning(self,
+                                               "Application",
+                    "The document has been modified.\nDo you want to save your changes?",
+                                               QtGui.QMessageBox.Save |
+                                               QtGui.QMessageBox.Discard |
+                                               QtGui.QMessageBox.Cancel)
+            if reply == QtGui.QMessageBox.Cancel:
+                return False
+            elif reply == QtGui.QMessageBox.Save:
+                self.fileSave()
+        return True
+
+    def updateFileMenu(self):
+        self.fileMenu.clear()
+        self.addActions(self.fileMenu, self.fileMenuActions[:-1])
+        current = self.filename or None
+        recentFiles = []
+        if self.recentFiles is not None:
+            for fname in self.recentFiles:
+                if fname != current and QtCore.QFile.exists(fname):
+                    recentFiles.append(fname)
+        if recentFiles:
+            self.fileMenu.addSeparator()
+            for i, fname in enumerate(recentFiles):
+                action = QtCore.QAction(QtCore.QIcon(":/icon.png"),
+                                        "&%d %s" % (i + 1, QtCore.QFileInfo(fname).fileName()),
+                                        self)
+                action.setData(fname)
+                self.triggered.connect(action, self.loadFile)
+                self.fileMenu.addAction(action)
+
+    def addRecentFile(self, fname):
+        if fname is None:
+            return
+        if not self.recentFiles.contains(fname):
+            self.recentFiles.prepend(fname)
+        while self.recentFiles.count() > 9:
+            self.recentFiles.takeLast()
+
+#    def updateStatus(self, message):
+#        self.statusBar().showMessage(message, 5000)
+#        self.listWidget.addItem(message)
+#        if self.filename is not None:
+#            basename = os.path.basename(self.filename)
+#            self.setWindowTitle("IDFPlus Editor - %s[*]" % basename)
+#        elif not self.image.isNull():
+#            self.setWindowTitle("IDFPlus Editor - Unnamed[*]")
+#        else:
+#            self.setWindowTitle("IDFPlus Editor[*]")
+#            self.setWindowModified(self.dirty)
+
+    def copytest(self):
 #        index = self.mainView.bottomright.currentIndex()
         selected = self.mainView.bottomright.selectionModel()
 #        self.mainView.topright.setText(str(index.row()))
@@ -103,7 +420,6 @@ class IDFPlus(QtGui.QMainWindow):
         self.mainView.topright.setText(clipboard_text)
 
     def center(self):
-
         screen = QtGui.QDesktopWidget().screenGeometry()
         size = self.geometry()
         self.move((screen.width() - size.width()) / 2,
@@ -116,40 +432,6 @@ class IDFPlus(QtGui.QMainWindow):
 #            return
 #        self.step = self.step + 1
 #        self.pbar.setValue(self.step)
-
-    def closeEvent(self, event):
-
-        reply = QtGui.QMessageBox.question(self,
-                                           'Message',
-                                           "Are you sure to quit?",
-                                           (QtGui.QMessageBox.Yes |
-                                               QtGui.QMessageBox.No),
-                                           QtGui.QMessageBox.No)
-
-        if reply == QtGui.QMessageBox.Yes:
-            event.accept()
-        else:
-            event.ignore()
-
-    def openFile(self):
-#        self.pbar = QtGui.QProgressBar(self)
-#        self.pbar.setGeometry(130, 140, 200, 25)
-#        self.pbar.show()
-
-#        progress = QProgressDialog("Opening File...", "Abort", 0, percentProgress, self)
-#        progress.setWindowModality(Qt.WindowModal)
-
-#        self.center(self.pbar)
-#        self.timer.start(100, self)
-        filename, _ = QtGui.QFileDialog.getOpenFileName(self,
-                   'Open file', '/home', "EnergyPlus Files (*.idf)")
-
-        object_count, eol_char, options, groups, objects = parseIDD(filename)
-
-        self.idf = objects
-        self.groups = groups
-        self.loadTreeView(self.fullTree)
-        self.mainView.topright.setText(str(object_count))  # test only
 
     def loadTableView(self, name):
 
@@ -178,7 +460,6 @@ class IDFPlus(QtGui.QMainWindow):
         delegates.assignDelegates(table)
 
     def loadTreeView(self, full=True):
-
         left = self.mainView.left
         left.clear()
 #        groups = self.groups
@@ -232,6 +513,16 @@ class IDFPlus(QtGui.QMainWindow):
         if current.parent() is None:
             return
         self.loadTableView(current.text(0))
+
+    def helpAbout(self):
+        QtGui.QMessageBox.about(self, "About IDFPlus Editor",
+            """<b>IDFPlus Editor</b> v %s
+            <p>Copyright &copy; 2014 IDFPlus Ltd.
+            All rights reserved.
+            <p>This application is an improved IDF Editor!.
+            <p>Python %s - Qt %s - PyQt %s on %s""" % (
+            __version__, platform.python_version(),
+            QT_VERSION_STR, PYQT_VERSION_STR, platform.system()))
 
 
 class IDFPanes(QtGui.QWidget):
@@ -300,8 +591,14 @@ def main():
 
     app = QtGui.QApplication(sys.argv)
     app.setStyle(QtGui.QStyleFactory.create('Cleanlooks'))
-    t = IDFPlus()
-    t.show()
+    app.setOrganizationName("IDF Plus Inc.")
+    app.setOrganizationDomain("idfplus.com")
+    app.setApplicationName("IDFPlus Editor")
+
+    idfPlus = IDFPlus()
+#    idfPlus.setup()
+    idfPlus.show()
+
     sys.exit(app.exec_())
 
 
