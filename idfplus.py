@@ -23,10 +23,9 @@ class IDFPlus(QtGui.QMainWindow):
     def __init__(self):
         super(IDFPlus, self).__init__()
 
-
-
         settings = QtCore.QSettings()
-        self.recentFiles = settings.value("RecentFiles")
+        self.recentFiles = settings.value("RecentFiles") or []
+        self.filename = None
 
         self.createActions()
         self.createMenus()
@@ -34,12 +33,11 @@ class IDFPlus(QtGui.QMainWindow):
         self.readSettings()
 
         self.createStatusBar('Status: Ready')
-#        self.setCurrentFile('')
+        self.setCurrentFile('')
         QtCore.QTimer.singleShot(0, self.loadInitialFile)
         self.setUnifiedTitleAndToolBarOnMac(True)
         self.setWindowTitle('IDFPlus Editor')
         self.setWindowIcon(QtGui.QIcon('eplus_sm.gif'))
-        self.fileMenuActions = (self.openAct, None, self.exitAct)
 
         self.mainView = IDFPanes(self)
         self.setCentralWidget(self.mainView)
@@ -48,7 +46,7 @@ class IDFPlus(QtGui.QMainWindow):
         self.idf = None
         self.groups = None
         self.fullTree = True
-        self.filename = None
+
         self.mainView.left.currentItemChanged.connect(self.iWasChanged)
         self.dirty = False
 
@@ -68,7 +66,8 @@ class IDFPlus(QtGui.QMainWindow):
             event.ignore()
 
     def newFile(self):
-        if self.maybeSave():
+        if self.okToContinue():
+            self.addRecentFile(self.filename)
             self.setCurrentFile('')
 
     def openFile(self):
@@ -96,8 +95,8 @@ class IDFPlus(QtGui.QMainWindow):
         self.filename = filename
         self.addRecentFile(filename)
         message = "Loaded %s" % os.path.basename(filename)
-        self.updateStatus(message, 2000)
-        self.setCurrentFile(fileName)
+        self.updateStatus(message)
+        self.setCurrentFile(filename)
 
     def save(self):
         if self.filename:
@@ -165,13 +164,18 @@ class IDFPlus(QtGui.QMainWindow):
 #        self.textEdit.copyAvailable.connect(self.copyAct.setEnabled)
 
     def createMenus(self):
+
         self.fileMenu = self.menuBar().addMenu("&File")
-        self.fileMenu.addAction(self.newAct)
-        self.fileMenu.addAction(self.openAct)
-        self.fileMenu.addAction(self.saveAct)
-        self.fileMenu.addAction(self.saveAsAct)
-        self.fileMenu.addSeparator()
-        self.fileMenu.addAction(self.exitAct)
+#        self.fileMenu.addAction(self.newAct)
+#        self.fileMenu.addAction(self.openAct)
+#        self.fileMenu.addAction(self.saveAct)
+#        self.fileMenu.addAction(self.saveAsAct)
+#        self.fileMenu.addSeparator()
+#        self.fileMenu.addAction(self.exitAct)
+        self.fileMenuActions = (self.newAct, self.openAct, self.saveAct,
+                                self.saveAsAct, None, self.exitAct)
+        self.updateFileMenu()
+        self.fileMenu.aboutToShow.connect(self.updateFileMenu)
 
         self.editMenu = self.menuBar().addMenu("&Edit")
         self.editMenu.addAction(self.cutAct)
@@ -182,6 +186,30 @@ class IDFPlus(QtGui.QMainWindow):
 
         self.helpMenu = self.menuBar().addMenu("&Help")
         self.helpMenu.addAction(self.aboutAct)
+
+    def updateFileMenu(self):
+        self.fileMenu.clear()
+        self.addActions(self.fileMenu, self.fileMenuActions[:-1])
+        current = self.filename or None
+        recentFiles = []
+        if self.recentFiles:
+            for fname in self.recentFiles:
+                if fname != current and QtCore.QFile.exists(fname):
+                    recentFiles.append(fname)
+                    print 'appending recentfile: ' + fname
+        if recentFiles:
+            self.fileMenu.addSeparator()
+            for i, fname in enumerate(recentFiles):
+                print 'recent file name in loop: ' + fname
+                action = QtGui.QAction(QtGui.QIcon(":/icon.png"),
+                                        "&%d %s" % (i + 1, QtCore.QFileInfo(fname).fileName()),
+                                        self)
+                action.setData(fname)
+                action.triggered.connect(self.openFile)
+                self.fileMenu.addAction(action)
+                print 'adding action: ' + fname
+            self.fileMenu.addSeparator()
+            self.fileMenu.addAction(self.fileMenuActions[-1])
 
     def createToolBars(self):
         self.fileToolBar = self.addToolBar("File")
@@ -207,6 +235,8 @@ class IDFPlus(QtGui.QMainWindow):
         state = settings.value("MainWindow/State")
         geometry = settings.value("MainWindow/Geometry")
 
+        self.recentFiles = settings.value("RecentFiles") or []
+        print 'recentfiles ' + str(self.recentFiles)
         self.resize(size)
         self.move(position)
         self.restoreState(state)
@@ -216,7 +246,7 @@ class IDFPlus(QtGui.QMainWindow):
         settings = QtCore.QSettings()
 
         filename = self.filename or None
-        recentFiles = self.recentFiles or None
+        recentFiles = self.recentFiles or []
 
         settings.setValue("LastFile", filename)
         settings.setValue("RecentFiles", recentFiles)
@@ -252,13 +282,14 @@ class IDFPlus(QtGui.QMainWindow):
         try:
             if writeIDF(fileName):
                 self.setCurrentFile(fileName)
+                self.addRecentFile(filename)
                 self.statusBar().showMessage("File saved", 2000)
                 return True
             else:
                 return False
         except:
             QtGui.QMessageBox.warning(self, "Application",
-                    "Cannot write file %s:\n%s." % (fileName, myFile.errorString()))
+                    "Cannot write file %s." % (fileName))
             return False
 
     def setCurrentFile(self, fileName):
@@ -266,11 +297,12 @@ class IDFPlus(QtGui.QMainWindow):
         self.setWindowModified(False)
 
         if self.filename:
-            shownName = self.strippedName(self.curFile)
+            shownName = self.strippedName(self.filename)
         else:
-            shownName = 'untitled.txt'
+            shownName = 'Untitled'
 
         self.setWindowTitle("%s[*] - Application" % shownName)
+        self.updateStatus(shownName)
 
     def strippedName(self, fullFileName):
         return QtCore.QFileInfo(fullFileName).fileName()
@@ -299,44 +331,26 @@ class IDFPlus(QtGui.QMainWindow):
                 self.fileSave()
         return True
 
-    def updateFileMenu(self):
-        self.fileMenu.clear()
-        self.addActions(self.fileMenu, self.fileMenuActions[:-1])
-        current = self.filename or None
-        recentFiles = []
-        if self.recentFiles is not None:
-            for fname in self.recentFiles:
-                if fname != current and QtCore.QFile.exists(fname):
-                    recentFiles.append(fname)
-        if recentFiles:
-            self.fileMenu.addSeparator()
-            for i, fname in enumerate(recentFiles):
-                action = QtCore.QAction(QtCore.QIcon(":/icon.png"),
-                                        "&%d %s" % (i + 1, QtCore.QFileInfo(fname).fileName()),
-                                        self)
-                action.setData(fname)
-                self.triggered.connect(action, self.loadFile)
-                self.fileMenu.addAction(action)
-
     def addRecentFile(self, fname):
-        if fname is None:
+        if not fname:
             return
-        if not self.recentFiles.contains(fname):
-            self.recentFiles.prepend(fname)
-        while self.recentFiles.count() > 9:
-            self.recentFiles.takeLast()
+        if not fname in self.recentFiles:
+            self.recentFiles.insert(0, fname)
+            while len(self.recentFiles) > 9:
+                self.recentFiles.pop()
+            print 'added file ' + fname
 
-#    def updateStatus(self, message):
-#        self.statusBar().showMessage(message, 5000)
+    def updateStatus(self, message):
+        self.statusBar().showMessage(message, 5000)
 #        self.listWidget.addItem(message)
-#        if self.filename is not None:
-#            basename = os.path.basename(self.filename)
-#            self.setWindowTitle("IDFPlus Editor - %s[*]" % basename)
-#        elif not self.image.isNull():
-#            self.setWindowTitle("IDFPlus Editor - Unnamed[*]")
-#        else:
-#            self.setWindowTitle("IDFPlus Editor[*]")
-#            self.setWindowModified(self.dirty)
+        if self.filename is not None:
+            basename = os.path.basename(self.filename)
+            self.setWindowTitle("IDFPlus Editor - %s[*]" % basename)
+        elif not self.image.isNull():
+            self.setWindowTitle("IDFPlus Editor - Unnamed[*]")
+        else:
+            self.setWindowTitle("IDFPlus Editor[*]")
+            self.setWindowModified(self.dirty)
 
     def copytest(self):
 #        index = self.mainView.bottomright.currentIndex()
