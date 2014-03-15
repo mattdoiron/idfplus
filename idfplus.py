@@ -30,6 +30,8 @@ class IDFPlus(QtGui.QMainWindow):
         self.createActions()
         self.createMenus()
         self.createToolBars()
+#        self.recentFiles = []
+#
         self.readSettings()
 
         self.createStatusBar('Status: Ready')
@@ -46,6 +48,7 @@ class IDFPlus(QtGui.QMainWindow):
         self.idf = None
         self.groups = None
         self.fullTree = True
+
 
         self.mainView.left.currentItemChanged.connect(self.iWasChanged)
         self.dirty = False
@@ -71,8 +74,29 @@ class IDFPlus(QtGui.QMainWindow):
             self.setCurrentFile('')
 
     def openFile(self):
-        if not self.okToContinue():
-            return
+        if self.okToContinue():
+            directory = os.path.dirname(self.filename) if self.filename is not None else "."
+            formats = "EnergyPlus Files (*.idf)"
+            filename, _ = QtGui.QFileDialog.getOpenFileName(self,
+                   'Open file', directory, formats)
+#            fileName, filtr = QtGui.QFileDialog.getOpenFileName(self)
+            if filename:
+                self.loadFile(filename)
+
+    def loadFile(self, filename=None):
+        if filename is None:
+            action = self.sender()
+            if isinstance(action, QtGui.QAction):
+                filename = action.data()
+                if not self.okToContinue():
+                    return
+            else:
+                return
+
+        if filename:
+
+#        if not self.okToContinue():
+#            return
 
 #        self.pbar = QtGui.QProgressBar(self)
 #        self.pbar.setGeometry(130, 140, 200, 25)
@@ -80,23 +104,18 @@ class IDFPlus(QtGui.QMainWindow):
 #        progress = QProgressDialog("Opening File...", "Abort", 0, percentProgress, self)
 #        progress.setWindowModality(Qt.WindowModal)
 
-        directory = os.path.dirname(self.filename) if self.filename is not None else "."
-        formats = "EnergyPlus Files (*.idf)"
-        filename, _ = QtGui.QFileDialog.getOpenFileName(self,
-                   'Open file', directory, formats)
+            object_count, eol_char, options, groups, objects = parseIDD(filename)
 
-        object_count, eol_char, options, groups, objects = parseIDD(filename)
-
-        self.idf = objects
-        self.groups = groups
-        self.loadTreeView(self.fullTree)
-        self.mainView.topright.setText(str(object_count))  # test only
-        self.dirty = False
-        self.filename = filename
-        self.addRecentFile(filename)
-        message = "Loaded %s" % os.path.basename(filename)
-        self.updateStatus(message)
-        self.setCurrentFile(filename)
+            self.idf = objects
+            self.groups = groups
+            self.loadTreeView(self.fullTree)
+            self.mainView.topright.setText(str(object_count))  # test only
+            self.dirty = False
+            self.filename = filename
+            self.addRecentFile(filename)
+            message = "Loaded %s" % os.path.basename(filename)
+            self.updateStatus(message)
+            self.setCurrentFile(filename)
 
     def save(self):
         if self.filename:
@@ -194,22 +213,24 @@ class IDFPlus(QtGui.QMainWindow):
         recentFiles = []
         if self.recentFiles:
             for fname in self.recentFiles:
+#                print 'fname: ', fname
                 if fname != current and QtCore.QFile.exists(fname):
                     recentFiles.append(fname)
-                    print 'appending recentfile: ' + fname
+#                    print 'appending recentfile: ' + fname
         if recentFiles:
             self.fileMenu.addSeparator()
+#            print 'recent files length: ' + str(len(recentFiles))
             for i, fname in enumerate(recentFiles):
-                print 'recent file name in loop: ' + fname
+#                print 'recent file name in loop: ' + fname
                 action = QtGui.QAction(QtGui.QIcon(":/icon.png"),
                                         "&%d %s" % (i + 1, QtCore.QFileInfo(fname).fileName()),
                                         self)
                 action.setData(fname)
-                action.triggered.connect(self.openFile)
+                action.triggered.connect(self.loadFile)
                 self.fileMenu.addAction(action)
-                print 'adding action: ' + fname
-            self.fileMenu.addSeparator()
-            self.fileMenu.addAction(self.fileMenuActions[-1])
+#                print 'adding action: ' + fname
+        self.fileMenu.addSeparator()
+        self.fileMenu.addAction(self.fileMenuActions[-1])
 
     def createToolBars(self):
         self.fileToolBar = self.addToolBar("File")
@@ -232,10 +253,11 @@ class IDFPlus(QtGui.QMainWindow):
 
         size = settings.value("MainWindow/Size", QtCore.QSize(600, 500))
         position = settings.value("MainWindow/Position", QtCore.QPoint(200, 200))
-        state = settings.value("MainWindow/State")
-        geometry = settings.value("MainWindow/Geometry")
+        state = settings.value("MainWindow/State", QtCore.QState())
+        geometry = settings.value("MainWindow/Geometry", QtCore.QRect())
 
-        self.recentFiles = settings.value("RecentFiles") or []
+        self.recentFiles = settings.value("RecentFiles", ['']) or ['']
+        print 'recentfiles type: ', str(type(self.recentFiles))
         print 'recentfiles ' + str(self.recentFiles)
         self.resize(size)
         self.move(position)
@@ -245,8 +267,8 @@ class IDFPlus(QtGui.QMainWindow):
     def writeSettings(self):
         settings = QtCore.QSettings()
 
-        filename = self.filename or None
-        recentFiles = self.recentFiles or []
+        filename = self.filename # or '' or None
+        recentFiles = self.recentFiles or ['']
 
         settings.setValue("LastFile", filename)
         settings.setValue("RecentFiles", recentFiles)
@@ -338,7 +360,7 @@ class IDFPlus(QtGui.QMainWindow):
             self.recentFiles.insert(0, fname)
             while len(self.recentFiles) > 9:
                 self.recentFiles.pop()
-            print 'added file ' + fname
+#            print 'added file ' + fname
 
     def updateStatus(self, message):
         self.statusBar().showMessage(message, 5000)

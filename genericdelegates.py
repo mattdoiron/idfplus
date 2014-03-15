@@ -9,8 +9,6 @@
 # warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See
 # the GNU General Public License for more details.
 
-#from PyQt4.QtCore import *
-#from PyQt4.QtGui import *
 from PySide import QtGui, QtCore
 
 
@@ -138,6 +136,15 @@ class RealColumnDelegate(QtGui.QItemDelegate):
 #        model.setData(index, editor.date(), QtCore.Qt.EditRole)
 
 
+#class TimeColumnDelegate(QTGui.QItemDelegate):
+#
+#  def getEditWidget(self):
+#    e = QtGui.QLineEdit()
+#    rx = QtCore.QRegExp('[0-9]{2}:[0-6]{2}')
+#    e.setValidator(QtGui.QRegExpValidator(rx,e))
+#    return e
+
+
 class AlphaColumnDelegate(QtGui.QItemDelegate):
 
     def __init__(self, parent=None):
@@ -223,3 +230,6 @@ class ChoiceColumnDelegate(QtGui.QItemDelegate):
 
     def setModelData(self, editor, model, index):
         model.setData(index, editor.currentText(), QtCore.Qt.EditRole)
+
+
+
