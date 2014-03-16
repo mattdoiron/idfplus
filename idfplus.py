@@ -11,7 +11,7 @@ Improved IDF editor
 import sys
 import os
 from PySide import QtGui, QtCore
-from parseIDF import parseIDD, writeIDF
+from parseIDF import Parser  # , writeIDF
 import shelve
 import genericdelegates as gd
 import idfobject
@@ -30,13 +30,13 @@ class IDFPlus(QtGui.QMainWindow):
         self.createActions()
         self.createMenus()
         self.createToolBars()
-#        self.recentFiles = []
-#
+        self.createStatusBar('Status: Ready')
+        self.createShortcuts()
+        self.center()
         self.readSettings()
 
-        self.createStatusBar('Status: Ready')
         self.setCurrentFile('')
-        QtCore.QTimer.singleShot(0, self.loadInitialFile)
+#        QtCore.QTimer.singleShot(0, self.loadInitialFile)
         self.setUnifiedTitleAndToolBarOnMac(True)
         self.setWindowTitle('IDFPlus Editor')
         self.setWindowIcon(QtGui.QIcon('eplus_sm.gif'))
@@ -49,21 +49,14 @@ class IDFPlus(QtGui.QMainWindow):
         self.groups = None
         self.fullTree = True
 
-
         self.mainView.left.currentItemChanged.connect(self.iWasChanged)
         self.dirty = False
-
-#        self.updateFileMenu()
-#        self.timer = QtCore.QBasicTimer()
-#        self.step = 0
-
-        QtGui.QShortcut(QtGui.QKeySequence('Ctrl+v'),self).activated.connect(self._handlePaste)
-        QtGui.QShortcut(QtGui.QKeySequence('Ctrl+d'),self).activated.connect(self.copytest)
-        QtGui.QShortcut(QtGui.QKeySequence('Ctrl+l'),self).activated.connect(self.toggleFullTree)
+        self.msg = Communicate()
 
     def closeEvent(self, event):
         if self.okToContinue():
             self.writeSettings()
+            self.idd.close()
             event.accept()
         else:
             event.ignore()
@@ -75,11 +68,12 @@ class IDFPlus(QtGui.QMainWindow):
 
     def openFile(self):
         if self.okToContinue():
-            directory = os.path.dirname(self.filename) if self.filename is not None else "."
+            directory = os.path.dirname(self.filename) if self.filename else "."
             formats = "EnergyPlus Files (*.idf)"
-            filename, _ = QtGui.QFileDialog.getOpenFileName(self,
-                   'Open file', directory, formats)
-#            fileName, filtr = QtGui.QFileDialog.getOpenFileName(self)
+            fileDialog = QtGui.QFileDialog()
+            fileDialog.setFileMode(QtGui.QFileDialog.ExistingFile)
+            filename, filt = fileDialog.getOpenFileName(self, 'Open file',
+                                                        directory, formats)
             if filename:
                 self.loadFile(filename)
 
@@ -94,17 +88,21 @@ class IDFPlus(QtGui.QMainWindow):
                 return
 
         if filename:
+            total_size = os.path.getsize(filename)
+            self.progressDialog = QtGui.QProgressDialog("Loading File", "", 0,
+                                                        total_size, self)
+            message = "Loading {}...".format(filename)
+            self.progressDialog.setLabelText(message)
+            self.progressDialog.setWindowModality(QtCore.Qt.WindowModal)
+            self.progressDialog.setMinimumDuration(500)
+            self.progressDialog.setCancelButton(None)
+            self.progressDialog.show()
 
-#        if not self.okToContinue():
-#            return
-
-#        self.pbar = QtGui.QProgressBar(self)
-#        self.pbar.setGeometry(130, 140, 200, 25)
-#        self.pbar.show()
-#        progress = QProgressDialog("Opening File...", "Abort", 0, percentProgress, self)
-#        progress.setWindowModality(Qt.WindowModal)
-
-            object_count, eol_char, options, groups, objects = parseIDD(filename)
+            self.statusBar().showMessage(message, 5000)
+            parser = Parser(self.msg)
+            parser.msg.valueChanged.connect(self.testSignal)
+            (object_count, eol_char,
+             options, groups, objects) = parser.parseIDD(filename)
 
             self.idf = objects
             self.groups = groups
@@ -123,13 +121,19 @@ class IDFPlus(QtGui.QMainWindow):
         return self.saveAs()
 
     def saveAs(self):
-        directory = os.path.dirname(self.filename) if self.filename is not None else "."
-        formats = "EnergyPlus Files (*.idf)"
+        directory = os.path.dirname(self.filename) if self.filename is not None else '.'
+        formats = 'EnergyPlus Files (*.idf)'
         fileName, filtr = QtGui.QFileDialog.getSaveFileName(self, 'Save As',
                                                             directory, formats)
         if fileName:
             return self.saveFile(fileName)
         return False
+
+    def undo(self):
+        pass
+
+    def redo(self):
+        pass
 
     def about(self):
         QtGui.QMessageBox.about(self, "About Application",
@@ -172,6 +176,14 @@ class IDFPlus(QtGui.QMainWindow):
                 statusTip="Paste the clipboard's contents into the current selection")
 #                triggered=self.textEdit.paste)
 
+        self.undoAct = QtGui.QAction("&Undo", self,
+                shortcut=QtGui.QKeySequence.Undo,
+                statusTip="Undo the last operation", triggered=self.undo)
+
+        self.redoAct = QtGui.QAction("&Redo", self,
+                shortcut=QtGui.QKeySequence.Redo,
+                statusTip="Redo the last operation", triggered=self.redo)
+
         self.aboutAct = QtGui.QAction("&About", self,
                 statusTip="Show the application's About box",
                 triggered=self.about)
@@ -179,24 +191,19 @@ class IDFPlus(QtGui.QMainWindow):
         self.cutAct.setEnabled(False)
         self.copyAct.setEnabled(False)
         self.pasteAct.setEnabled(False)
-#        self.textEdit.copyAvailable.connect(self.cutAct.setEnabled)
-#        self.textEdit.copyAvailable.connect(self.copyAct.setEnabled)
 
     def createMenus(self):
 
         self.fileMenu = self.menuBar().addMenu("&File")
-#        self.fileMenu.addAction(self.newAct)
-#        self.fileMenu.addAction(self.openAct)
-#        self.fileMenu.addAction(self.saveAct)
-#        self.fileMenu.addAction(self.saveAsAct)
-#        self.fileMenu.addSeparator()
-#        self.fileMenu.addAction(self.exitAct)
         self.fileMenuActions = (self.newAct, self.openAct, self.saveAct,
                                 self.saveAsAct, None, self.exitAct)
         self.updateFileMenu()
         self.fileMenu.aboutToShow.connect(self.updateFileMenu)
 
         self.editMenu = self.menuBar().addMenu("&Edit")
+        self.editMenu.addAction(self.undoAct)
+        self.editMenu.addAction(self.redoAct)
+        self.editMenu.addSeparator()
         self.editMenu.addAction(self.cutAct)
         self.editMenu.addAction(self.copyAct)
         self.editMenu.addAction(self.pasteAct)
@@ -248,6 +255,12 @@ class IDFPlus(QtGui.QMainWindow):
     def createStatusBar(self, status):
         self.statusBar().showMessage(status)
 
+    def createShortcuts(self):
+        QtGui.QShortcut(QtGui.QKeySequence('Ctrl+v'),self).activated.connect(self._handlePaste)
+        QtGui.QShortcut(QtGui.QKeySequence('Ctrl+d'),self).activated.connect(self.copytest)
+        QtGui.QShortcut(QtGui.QKeySequence('Ctrl+l'),self).activated.connect(self.toggleFullTree)
+
+
     def readSettings(self):
         settings = QtCore.QSettings()
 
@@ -257,8 +270,8 @@ class IDFPlus(QtGui.QMainWindow):
         geometry = settings.value("MainWindow/Geometry", QtCore.QRect())
 
         self.recentFiles = settings.value("RecentFiles", ['']) or ['']
-        print 'recentfiles type: ', str(type(self.recentFiles))
-        print 'recentfiles ' + str(self.recentFiles)
+#        print 'recentfiles type: ', str(type(self.recentFiles))
+#        print 'recentfiles ' + str(self.recentFiles)
         self.resize(size)
         self.move(position)
         self.restoreState(state)
@@ -304,7 +317,7 @@ class IDFPlus(QtGui.QMainWindow):
         try:
             if writeIDF(fileName):
                 self.setCurrentFile(fileName)
-                self.addRecentFile(filename)
+                self.addRecentFile(fileName)
                 self.statusBar().showMessage("File saved", 2000)
                 return True
             else:
@@ -329,12 +342,12 @@ class IDFPlus(QtGui.QMainWindow):
     def strippedName(self, fullFileName):
         return QtCore.QFileInfo(fullFileName).fileName()
 
-    def loadInitialFile(self):
+#    def loadInitialFile(self):
 #        settings = QtCore.QSettings()
 #        fname = settings.value("LastFile")
-        filename = self.filename
-        if filename and QtCore.QFile.exists(filename):
-            self.openFile()
+#        filename = self.filename
+#        if filename and QtCore.QFile.exists(filename):
+#            self.openFile()
 
 #    def close_current_dockwidget(self):
 #        pass
@@ -364,7 +377,6 @@ class IDFPlus(QtGui.QMainWindow):
 
     def updateStatus(self, message):
         self.statusBar().showMessage(message, 5000)
-#        self.listWidget.addItem(message)
         if self.filename is not None:
             basename = os.path.basename(self.filename)
             self.setWindowTitle("IDFPlus Editor - %s[*]" % basename)
@@ -404,11 +416,11 @@ class IDFPlus(QtGui.QMainWindow):
         print clipboard_text
         self.mainView.topright.setText(clipboard_text)
 
-#    def center(self):
-#        screen = QtGui.QDesktopWidget().screenGeometry()
-#        size = self.geometry()
-#        self.move((screen.width() - size.width()) / 2,
-#                  (screen.height() - size.height()) / 2)
+    def center(self):
+        screen = QtGui.QDesktopWidget().screenGeometry()
+        size = self.geometry()
+        self.move((screen.width() - size.width()) / 2,
+                  (screen.height() - size.height()) / 2)
 
 #    def timerEvent(self, event):
 #
@@ -492,6 +504,9 @@ class IDFPlus(QtGui.QMainWindow):
 #        left.currentItemChanged.connect(self.iWasChanged)
 #        left.itemPressed.connect(self.iWasClicked)
 
+    def testSignal(self, myint):
+        self.progressDialog.setValue(myint)
+
     def iWasChanged(self, current, previous):
         if current is None:
             return
@@ -560,6 +575,13 @@ class MyTableView(QtGui.QTableView):
             if index.isValid():
                 self.edit(index)
         QtGui.QTableView.mousePressEvent(self, event)
+
+
+class Communicate(QtCore.QObject):
+    valueChanged = QtCore.Signal(int)
+#    def __init__(self):
+#        self.valueChanged = QtCore.Signal(int)
+#        super(Communicate, self).__init__()
 
 
 def main():
