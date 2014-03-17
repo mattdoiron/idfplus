@@ -1,0 +1,27 @@
+TODO List for IDFPlus
+
+=====================
+Present
+=====================
+* implement dynamic comboboxes for table fields
+	* this requires thorough thinking about data structures!
+* rethink data structures for idd and idf file
+* store tree-view on disk and simply populate it on loading of an idf file
+* move progress bar to status bar?
+* figure out when to load idd file into memory and how to keep it global
+
+
+
+=====================
+Future
+=====================
+* setup testing (nose, unittesting, etc)
+* Document all code
+
+
+
+
+=====================
+Done
+=====================
+* Implement dock widgets for class list, comments and help/info

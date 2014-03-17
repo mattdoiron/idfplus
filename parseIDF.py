@@ -343,8 +343,8 @@ class Writer(object):
 
 class Parser(object):
 
-    def __init__(self, com):
-        self.msg = com  # Communicate()
+    def __init__(self, msg):
+        self.msg = msg  # Communicate()
 
     def getFields(self, str_in):
         '''Strips all comments, etc and returns what's left'''
@@ -511,7 +511,7 @@ class Parser(object):
                 # Parse this line using readline (so last one is a blank)
                 line = file.readline()
                 total_read += len(line)
-                self.msg.valueChanged.emit(total_read)
+                self.msg.msg.emit(total_read)
                 line_parsed = self.parseLineIDD(line)
 
                 # If the previous line was not the end of an object check this one

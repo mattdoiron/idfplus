@@ -8,52 +8,62 @@ Improved IDF editor
 @author = Matt Doiron <mattdoiron@gmail.com>
 """
 
+# Standard library imports
 import sys
 import os
-from PySide import QtGui, QtCore
-from parseIDF import Parser  # , writeIDF
 import shelve
+import platform
+
+# PySide import
+import PySide
+from PySide import QtGui
+from PySide import QtCore
+from parseIDF import Parser
+from parseIDF import Writer
+
+# Custom imports
 import genericdelegates as gd
 import idfobject
-import resources
+import icons_qr  # Used for icons (in text format)
+import misc_icons_qr  # Used for icons (in text format)
+
+# Global variables
+__version__ = 0.1
 
 
 class IDFPlus(QtGui.QMainWindow):
+    '''Main GUI window for IDFPlus program.'''
 
     def __init__(self):
         super(IDFPlus, self).__init__()
 
-        settings = QtCore.QSettings()
-        self.recentFiles = settings.value("RecentFiles") or []
-        self.filename = None
+        # Create application UI (call this first)
+        self.createUI()
 
-        self.createActions()
-        self.createMenus()
-        self.createToolBars()
-        self.createStatusBar('Status: Ready')
-        self.createShortcuts()
-        self.center()
+        # Load settings (call this second)
         self.readSettings()
 
-        self.setCurrentFile('')
-#        QtCore.QTimer.singleShot(0, self.loadInitialFile)
-        self.setUnifiedTitleAndToolBarOnMac(True)
-        self.setWindowTitle('IDFPlus Editor')
-        self.setWindowIcon(QtGui.QIcon('eplus_sm.gif'))
-
-        self.mainView = IDFPanes(self)
-        self.setCentralWidget(self.mainView)
-
-        self.idd = shelve.open('myIDD.dat')
+        # Set some instance variables
+        self.filename = None
+        self.idd = shelve.open('myIDD.dat')  # How can this be avoided?!
         self.idf = None
         self.groups = None
         self.fullTree = True
-
-        self.mainView.left.currentItemChanged.connect(self.iWasChanged)
         self.dirty = False
-        self.msg = Communicate()
+        self.com = Communicate()
+
+        # Create main application elements
+        self.createActions()
+        self.createToolBars()
+        self.createMenus()
+        self.createShortcuts()
+        self.createTrayMenu()
+
+        # Connect some slots and signals
+        self.classTree.currentItemChanged.connect(self.iWasChanged)
 
     def closeEvent(self, event):
+        '''Called when the application is closed.'''
         if self.okToContinue():
             self.writeSettings()
             self.idd.close()
@@ -62,11 +72,13 @@ class IDFPlus(QtGui.QMainWindow):
             event.ignore()
 
     def newFile(self):
+        '''Called when a new file is to being created'''
         if self.okToContinue():
             self.addRecentFile(self.filename)
             self.setCurrentFile('')
 
     def openFile(self):
+        '''Called by the open file action.'''
         if self.okToContinue():
             directory = os.path.dirname(self.filename) if self.filename else "."
             formats = "EnergyPlus Files (*.idf)"
@@ -78,6 +90,7 @@ class IDFPlus(QtGui.QMainWindow):
                 self.loadFile(filename)
 
     def loadFile(self, filename=None):
+        '''Loads a specified file or gets the filename from the sender.'''
         if filename is None:
             action = self.sender()
             if isinstance(action, QtGui.QAction):
@@ -99,15 +112,15 @@ class IDFPlus(QtGui.QMainWindow):
             self.progressDialog.show()
 
             self.statusBar().showMessage(message, 5000)
-            parser = Parser(self.msg)
-            parser.msg.valueChanged.connect(self.testSignal)
+            parser = Parser(self.com)
+            parser.msg.msg.connect(self.testSignal)
             (object_count, eol_char,
              options, groups, objects) = parser.parseIDD(filename)
 
             self.idf = objects
             self.groups = groups
             self.loadTreeView(self.fullTree)
-            self.mainView.topright.setText(str(object_count))  # test only
+            self.commentView.setText(str(object_count))  # test only
             self.dirty = False
             self.filename = filename
             self.addRecentFile(filename)
@@ -116,11 +129,13 @@ class IDFPlus(QtGui.QMainWindow):
             self.setCurrentFile(filename)
 
     def save(self):
+        '''Called by save action.'''
         if self.filename:
             return self.saveFile(self.filename)
         return self.saveAs()
 
     def saveAs(self):
+        '''Called by the save as action.'''
         directory = os.path.dirname(self.filename) if self.filename is not None else '.'
         formats = 'EnergyPlus Files (*.idf)'
         fileName, filtr = QtGui.QFileDialog.getSaveFileName(self, 'Save As',
@@ -130,17 +145,33 @@ class IDFPlus(QtGui.QMainWindow):
         return False
 
     def undo(self):
+        '''Called by the undo action. Not yet implemented'''
         pass
 
     def redo(self):
+        '''Called by the redo action. Not yet implemented'''
         pass
 
     def about(self):
-        QtGui.QMessageBox.about(self, "About Application",
-                "<b>IDFPlus</b> is an improved IDF file editor with enhanced "
-                "features and capabilities.")
+        '''Called by the about action.'''
+#        QtGui.QMessageBox.about(self, "About Application",
+#                "<b>IDFPlus</b> is an improved IDF file editor with enhanced "
+#                "features and capabilities.")
+
+        QtGui.QMessageBox.about(self, "About IDFPlus",
+                """<b>IDFPlus</b> v{0}
+                <p>Copyright &copy; 2014 No Name Ltd.
+                All rights reserved.
+                <p>This is an improved IDF file editor with enhanced featues
+                and capabilities.
+                <p>Python {1} - Qt {2} - PyQt {3} on {4}""".format(
+                __version__, platform.python_version(),
+                PySide.QtCore.qVersion(), PySide.__version__,
+                platform.system()))
 
     def createActions(self):
+        '''Creates appropriate actions for use in menus and toolbars.'''
+
         self.newAct = QtGui.QAction(QtGui.QIcon(':/images/new.png'), "&New",
                 self, shortcut=QtGui.QKeySequence.New,
                 statusTip="Create a new file", triggered=self.newFile)
@@ -188,18 +219,30 @@ class IDFPlus(QtGui.QMainWindow):
                 statusTip="Show the application's About box",
                 triggered=self.about)
 
+        self.minimizeAction = QtGui.QAction("Mi&nimize", self,
+                triggered=self.hide)
+
+        self.maximizeAction = QtGui.QAction("Ma&ximize", self,
+                triggered=self.showMaximized)
+
+        self.restoreAction = QtGui.QAction("&Restore", self,
+                triggered=self.showNormal)
+
         self.cutAct.setEnabled(False)
         self.copyAct.setEnabled(False)
         self.pasteAct.setEnabled(False)
 
     def createMenus(self):
+        '''Create all required items for menus.'''
 
+        # File Menu
         self.fileMenu = self.menuBar().addMenu("&File")
         self.fileMenuActions = (self.newAct, self.openAct, self.saveAct,
                                 self.saveAsAct, None, self.exitAct)
         self.updateFileMenu()
         self.fileMenu.aboutToShow.connect(self.updateFileMenu)
 
+        # Edit Menu
         self.editMenu = self.menuBar().addMenu("&Edit")
         self.editMenu.addAction(self.undoAct)
         self.editMenu.addAction(self.redoAct)
@@ -208,12 +251,20 @@ class IDFPlus(QtGui.QMainWindow):
         self.editMenu.addAction(self.copyAct)
         self.editMenu.addAction(self.pasteAct)
 
-        self.menuBar().addSeparator()
+        # View Menu
+        self.viewMenu = self.menuBar().addMenu("&View")
+        self.viewMenu.addAction(self.classTree.parent().toggleViewAction())
+        self.viewMenu.addAction(self.infoView.parent().toggleViewAction())
+        self.viewMenu.addAction(self.commentView.parent().toggleViewAction())
+        self.viewMenu.addAction(self.fileToolBar.toggleViewAction())
+        self.viewMenu.addAction(self.editToolBar.toggleViewAction())
 
+        # Help Menu
         self.helpMenu = self.menuBar().addMenu("&Help")
         self.helpMenu.addAction(self.aboutAct)
 
     def updateFileMenu(self):
+        '''Called to update the recent files portion of the file menu'''
         self.fileMenu.clear()
         self.addActions(self.fileMenu, self.fileMenuActions[:-1])
         current = self.filename or None
@@ -230,8 +281,8 @@ class IDFPlus(QtGui.QMainWindow):
             for i, fname in enumerate(recentFiles):
 #                print 'recent file name in loop: ' + fname
                 action = QtGui.QAction(QtGui.QIcon(":/icon.png"),
-                                        "&%d %s" % (i + 1, QtCore.QFileInfo(fname).fileName()),
-                                        self)
+                                       "&%d %s" % (i + 1, QtCore.QFileInfo(fname).fileName()),
+                                       self)
                 action.setData(fname)
                 action.triggered.connect(self.loadFile)
                 self.fileMenu.addAction(action)
@@ -240,28 +291,27 @@ class IDFPlus(QtGui.QMainWindow):
         self.fileMenu.addAction(self.fileMenuActions[-1])
 
     def createToolBars(self):
-        self.fileToolBar = self.addToolBar("File")
+        '''Creates the necessary toolbars.'''
+        self.fileToolBar = self.addToolBar("File Toolbar")
         self.fileToolBar.setObjectName('fileToolbar')
         self.fileToolBar.addAction(self.newAct)
         self.fileToolBar.addAction(self.openAct)
         self.fileToolBar.addAction(self.saveAct)
 
-        self.editToolBar = self.addToolBar("Edit")
+        self.editToolBar = self.addToolBar("Edit Toolbar")
         self.editToolBar.setObjectName('editToolbar')
         self.editToolBar.addAction(self.cutAct)
         self.editToolBar.addAction(self.copyAct)
         self.editToolBar.addAction(self.pasteAct)
 
-    def createStatusBar(self, status):
-        self.statusBar().showMessage(status)
-
     def createShortcuts(self):
+        '''Creates keyboard shortcuts.'''
         QtGui.QShortcut(QtGui.QKeySequence('Ctrl+v'),self).activated.connect(self._handlePaste)
         QtGui.QShortcut(QtGui.QKeySequence('Ctrl+d'),self).activated.connect(self.copytest)
         QtGui.QShortcut(QtGui.QKeySequence('Ctrl+l'),self).activated.connect(self.toggleFullTree)
 
-
     def readSettings(self):
+        '''Reads application settings and restores them.'''
         settings = QtCore.QSettings()
 
         size = settings.value("MainWindow/Size", QtCore.QSize(600, 500))
@@ -270,17 +320,20 @@ class IDFPlus(QtGui.QMainWindow):
         geometry = settings.value("MainWindow/Geometry", QtCore.QRect())
 
         self.recentFiles = settings.value("RecentFiles", ['']) or ['']
-#        print 'recentfiles type: ', str(type(self.recentFiles))
-#        print 'recentfiles ' + str(self.recentFiles)
         self.resize(size)
         self.move(position)
         self.restoreState(state)
         self.restoreGeometry(geometry)
+#        self.restoreDockWidget(self.ui.classTree.parent())
+##        self.restoreDockWidget(self.ui.classTable.parent())
+#        self.restoreDockWidget(self.ui.infoView.parent())
+#        self.restoreDockWidget(self.ui.commentView.parent())
 
     def writeSettings(self):
+        '''Writes application settings to save them.'''
         settings = QtCore.QSettings()
 
-        filename = self.filename # or '' or None
+        filename = self.filename  # or '' or None
         recentFiles = self.recentFiles or ['']
 
         settings.setValue("LastFile", filename)
@@ -307,6 +360,7 @@ class IDFPlus(QtGui.QMainWindow):
 #        return action
 #
     def addActions(self, target, actions):
+        '''Helper to add actions or a separator easily.'''
         for action in actions:
             if action is None:
                 target.addSeparator()
@@ -314,8 +368,9 @@ class IDFPlus(QtGui.QMainWindow):
                 target.addAction(action)
 
     def saveFile(self, fileName):
+        '''Called by action to save the current file to disk.'''
         try:
-            if writeIDF(fileName):
+            if Writer(fileName):
                 self.setCurrentFile(fileName)
                 self.addRecentFile(fileName)
                 self.statusBar().showMessage("File saved", 2000)
@@ -324,58 +379,57 @@ class IDFPlus(QtGui.QMainWindow):
                 return False
         except:
             QtGui.QMessageBox.warning(self, "Application",
-                    "Cannot write file %s." % (fileName))
+                                      "Cannot write file %s." % (fileName))
             return False
 
     def setCurrentFile(self, fileName):
+        '''Sets the current file globaly and updates title, statusbar, etc.'''
         self.filename = fileName
         self.setWindowModified(False)
 
         if self.filename:
-            shownName = self.strippedName(self.filename)
+            filename = QtCore.QFileInfo(self.filename).fileName()
+            shownName = self.strippedName(filename)
         else:
             shownName = 'Untitled'
 
         self.setWindowTitle("%s[*] - Application" % shownName)
         self.updateStatus(shownName)
 
-    def strippedName(self, fullFileName):
-        return QtCore.QFileInfo(fullFileName).fileName()
-
 #    def loadInitialFile(self):
+#       '''Loads the previously open file upon program start.'''
 #        settings = QtCore.QSettings()
 #        fname = settings.value("LastFile")
 #        filename = self.filename
 #        if filename and QtCore.QFile.exists(filename):
 #            self.openFile()
 
-#    def close_current_dockwidget(self):
-#        pass
-
     def okToContinue(self):
+        '''Checks if there are unsaved changes and propmpts for action.'''
         if self.dirty:
             reply = QtGui.QMessageBox.warning(self,
-                                               "Application",
-                    "The document has been modified.\nDo you want to save your changes?",
-                                               QtGui.QMessageBox.Save |
-                                               QtGui.QMessageBox.Discard |
-                                               QtGui.QMessageBox.Cancel)
+                                              "Application",
+                                              "The document has been modified.\nDo you want to save your changes?",
+                                              QtGui.QMessageBox.Save |
+                                              QtGui.QMessageBox.Discard |
+                                              QtGui.QMessageBox.Cancel)
             if reply == QtGui.QMessageBox.Cancel:
                 return False
             elif reply == QtGui.QMessageBox.Save:
                 self.fileSave()
         return True
 
-    def addRecentFile(self, fname):
-        if not fname:
+    def addRecentFile(self, filename):
+        '''Adds filename to the list of recent files for the file menu.'''
+        if not filename:
             return
-        if not fname in self.recentFiles:
-            self.recentFiles.insert(0, fname)
+        if not filename in self.recentFiles:
+            self.recentFiles.insert(0, filename)
             while len(self.recentFiles) > 9:
                 self.recentFiles.pop()
-#            print 'added file ' + fname
 
     def updateStatus(self, message):
+        '''Updates the window title and status bar with a message.'''
         self.statusBar().showMessage(message, 5000)
         if self.filename is not None:
             basename = os.path.basename(self.filename)
@@ -387,16 +441,25 @@ class IDFPlus(QtGui.QMainWindow):
             self.setWindowModified(self.dirty)
 
     def copytest(self):
+        '''Testing for copy and paste.'''
 #        index = self.mainView.bottomright.currentIndex()
-        selected = self.mainView.bottomright.selectionModel()
+        selected = self.classTable.selectionModel()
 #        self.mainView.topright.setText(str(index.row()))
 #        self.mainView.topright.setText(str(selected.selectedRows()))
         print str(selected.selectedIndexes())
 #        print str(selected.selectedColumns())
 
+    def setVisible(self, visible):
+        '''Integrates system tray with minimize/maximize.'''
+        self.minimizeAction.setEnabled(visible)
+        self.maximizeAction.setEnabled(not self.isMaximized())
+        self.restoreAction.setEnabled(self.isMaximized() or not visible)
+        super(IDFPlus, self).setVisible(visible)
+
     def toggleFullTree(self):
+        '''Called to toggle the full class tree or a partial tree.'''
         self.fullTree = not self.fullTree
-        tree = self.mainView.left
+        tree = self.classTree
         current = tree.currentIndex()
 
         for item in QtGui.QTreeWidgetItemIterator(tree):
@@ -409,21 +472,22 @@ class IDFPlus(QtGui.QMainWindow):
         tree.scrollTo(current)
 
     def _handlePaste(self):
+        '''Testing for copy and paste.'''
         clipboard_text = QtGui.QApplication.instance().clipboard().text()
 #        item = QtGui.QTableWidgetItem()
 #        item.setText(clipboard_text)
 #        self.tv.setItem(0, 0, item)
         print clipboard_text
-        self.mainView.topright.setText(clipboard_text)
+        self.infoView.setText(clipboard_text)
 
     def center(self):
+        '''Called to center the window on the screen on startup.'''
         screen = QtGui.QDesktopWidget().screenGeometry()
         size = self.geometry()
         self.move((screen.width() - size.width()) / 2,
                   (screen.height() - size.height()) / 2)
 
 #    def timerEvent(self, event):
-#
 #        if self.step >= 100:
 #            self.timer.stop()
 #            return
@@ -431,8 +495,8 @@ class IDFPlus(QtGui.QMainWindow):
 #        self.pbar.setValue(self.step)
 
     def loadTableView(self, name):
-
-        table = self.mainView.bottomright
+        '''Loads the table of objects for the specified class name.'''
+        table = self.classTable
 
         iddPart = self.idd['idd'][name][0]
         if name in self.idf:
@@ -457,8 +521,9 @@ class IDFPlus(QtGui.QMainWindow):
         delegates.assignDelegates(table)
 
     def loadTreeView(self, full=True):
-        left = self.mainView.left
-        left.clear()
+        '''Loads the tree of class type names.'''
+        tree = self.classTree
+        tree.clear()
 #        groups = self.groups
         objects = self.idf
         group = ''
@@ -482,11 +547,11 @@ class IDFPlus(QtGui.QMainWindow):
                 blank = QtGui.QTreeWidgetItem([''])
                 blank.setDisabled(True)
 
-                left.addTopLevelItem(group_root)
-                left.addTopLevelItem(blank)
-                left.setItemExpanded(group_root, True)
-                left.setFirstItemColumnSpanned(group_root, True)
-                left.setRootIsDecorated(False)
+                tree.addTopLevelItem(group_root)
+                tree.addTopLevelItem(blank)
+                tree.setItemExpanded(group_root, True)
+                tree.setFirstItemColumnSpanned(group_root, True)
+                tree.setRootIsDecorated(False)
 
             # Populate the object count field
             obj_count = ''
@@ -505,83 +570,121 @@ class IDFPlus(QtGui.QMainWindow):
 #        left.itemPressed.connect(self.iWasClicked)
 
     def testSignal(self, myint):
+        '''Test signal'''
         self.progressDialog.setValue(myint)
 
     def iWasChanged(self, current, previous):
+        '''Test call to slot'''
         if current is None:
             return
         if current.parent() is None:
             return
         self.loadTableView(current.text(0))
 
+    def createUI(self):
+        '''Setup main UI elements, dock widgets, UI-related elements, etc. '''
 
-class IDFPanes(QtGui.QWidget):
+        # Class Objects Table widget
+        classTable = QtGui.QTableView()
+        classTable.setAlternatingRowColors(True)
+        classTable.setFrameShape(QtGui.QFrame.StyledPanel)
 
-    def __init__(self, parent):
-        super(IDFPanes, self).__init__()
-
-        self.initUI()
-
-    def initUI(self):
-
-        hbox = QtGui.QVBoxLayout(self)
-
-        bottomright = MyTableView()
-        bottomright.setAlternatingRowColors(True)
-#        bottomright.setFrameShape(QtGui.QFrame.StyledPanel)
-
-        topright = QtGui.QTextEdit(self)
-        topright.setFrameShape(QtGui.QFrame.StyledPanel)
-
-        left = QtGui.QTreeWidget(self)
-#        left.setColumnCount(2)
+        # Class name tree widget
+        classTreeDockWidget = QtGui.QDockWidget("Class Names and Counts", self)
+        classTreeDockWidget.setObjectName("classTreeDockWidget")
+        classTreeDockWidget.setAllowedAreas(QtCore.Qt.AllDockWidgetAreas)
+        classTree = QtGui.QTreeWidget(classTreeDockWidget)
         header = QtGui.QTreeWidgetItem(['Object Class', 'Count'])
         header.setFirstColumnSpanned(True)
+        classTree.setHeaderItem(header)
+        classTree.header().resizeSection(0, 250)
+        classTree.header().resizeSection(1, 10)
+        classTree.header().setResizeMode(QtGui.QHeaderView.ResizeToContents)
+        classTree.setAlternatingRowColors(True)
+        classTreeDockWidget.setWidget(classTree)
 
-        left.setHeaderItem(header)
-        left.header().resizeSection(0, 250)
-        left.header().resizeSection(1, 10)
-        left.header().setResizeMode(QtGui.QHeaderView.ResizeToContents)
-        left.setAlternatingRowColors(True)
+        # Comments widget
+        commentDockWidget = QtGui.QDockWidget("Comments", self)
+        commentDockWidget.setObjectName("commentDockWidget")
+        commentDockWidget.setAllowedAreas(QtCore.Qt.AllDockWidgetAreas)
+        commentView = QtGui.QTextEdit(commentDockWidget)
+        commentView.setFrameShape(QtGui.QFrame.StyledPanel)
+        commentDockWidget.setWidget(commentView)
 
-        splitter1 = QtGui.QSplitter(QtCore.Qt.Vertical)
-        splitter1.addWidget(topright)
-        splitter1.addWidget(bottomright)
-        splitter1.setSizes([100, 100])
+        # Info and help widget
+        infoDockWidget = QtGui.QDockWidget("Info", self)
+        infoDockWidget.setObjectName("infoDockWidget")
+        infoDockWidget.setAllowedAreas(QtCore.Qt.AllDockWidgetAreas)
+        infoView = QtGui.QTextEdit(infoDockWidget)
+        infoView.setFrameShape(QtGui.QFrame.StyledPanel)
+        infoDockWidget.setWidget(infoView)
 
-        splitter2 = QtGui.QSplitter(QtCore.Qt.Horizontal)
-        splitter2.addWidget(left)
-        splitter2.addWidget(splitter1)
-        splitter2.setSizes([70, 100])
+        # Define corner docking behaviour
+        self.setDockNestingEnabled(True)
+        self.setCorner(QtCore.Qt.TopLeftCorner,
+                       QtCore.Qt.LeftDockWidgetArea)
+        self.setCorner(QtCore.Qt.TopRightCorner,
+                       QtCore.Qt.RightDockWidgetArea)
+        self.setCorner(QtCore.Qt.BottomLeftCorner,
+                       QtCore.Qt.LeftDockWidgetArea)
+        self.setCorner(QtCore.Qt.BottomRightCorner,
+                       QtCore.Qt.RightDockWidgetArea)
 
-        hbox.addWidget(splitter2)
-        self.setLayout(hbox)
+        # Assign main widget and dockwidgets to QMainWindow
+        self.setCentralWidget(classTable)
+        self.addDockWidget(QtCore.Qt.LeftDockWidgetArea, classTreeDockWidget)
+        self.addDockWidget(QtCore.Qt.RightDockWidgetArea, commentDockWidget)
+        self.addDockWidget(QtCore.Qt.RightDockWidgetArea, infoDockWidget)
 
-        self.bottomright = bottomright
-        self.topright = topright
-        self.left = left
+        # Store widgets for access by other objects
+        self.classTable = classTable
+        self.commentView = commentView
+        self.infoView = infoView
+        self.classTree = classTree
 
-#        self.c = Communicate()
+        # Perform other UI-related initialization tasks
+        self.center()
+        self.setUnifiedTitleAndToolBarOnMac(True)
+        self.setWindowTitle('IDFPlus Editor')
+        self.statusBar().showMessage('Status: Ready')
+        self.setWindowIcon(QtGui.QIcon(':/eplussm.gif'))
 
+    def createTrayMenu(self):
+        '''Creates an icon and menu for the system tray'''
 
-class MyTableView(QtGui.QTableView):
-    def __init__(self):
-        super(MyTableView, self).__init__()
+        # Menu for the system tray
+        self.trayIconMenu = QtGui.QMenu(self)
+        self.trayIconMenu.addAction(self.minimizeAction)
+        self.trayIconMenu.addAction(self.maximizeAction)
+        self.trayIconMenu.addAction(self.restoreAction)
+        self.trayIconMenu.addSeparator()
+        self.trayIconMenu.addAction(self.exitAct)
 
-    # Ads single-click editing
-    def mousePressEvent(self, event):
-        if event.button() == QtCore.Qt.LeftButton:
-            index = self.indexAt(event.pos())
-            if index.isValid():
-                self.edit(index)
-        QtGui.QTableView.mousePressEvent(self, event)
+        # System tray itself
+        self.trayIcon = QtGui.QSystemTrayIcon(self)
+        self.trayIcon.setContextMenu(self.trayIconMenu)
+        self.trayIcon.setIcon(QtGui.QIcon(':/eplussm.gif'))
+        self.trayIcon.setToolTip('IDFPlus')
+        self.trayIcon.show()
+
+#class MyTableView(QtGui.QTableView):
+#    '''Subclass of QTableView used to override mousePressEvent'''
+#    def __init__(self):
+#        super(MyTableView, self).__init__()
+#
+#    # Ads single-click editing
+#    def mousePressEvent(self, event):
+#        if event.button() == QtCore.Qt.LeftButton:
+#            index = self.indexAt(event.pos())
+#            if index.isValid():
+#                self.edit(index)
+#        QtGui.QTableView.mousePressEvent(self, event)
 
 
 class Communicate(QtCore.QObject):
-    valueChanged = QtCore.Signal(int)
-#    def __init__(self):
-#        self.valueChanged = QtCore.Signal(int)
-#        super(Communicate, self).__init__()
+    '''Class used to communicate with other objects in the application'''
+
+    msg = QtCore.Signal(int)
 
 
 def main():
@@ -593,7 +696,6 @@ def main():
     app.setApplicationName("IDFPlus Editor")
 
     idfPlus = IDFPlus()
-#    idfPlus.setup()
     idfPlus.show()
 
     sys.exit(app.exec_())
