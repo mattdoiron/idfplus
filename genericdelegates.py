@@ -55,11 +55,92 @@ class GenericDelegateGroup(QtGui.QItemDelegate):
         else:
             QtGui.QItemDelegate.setModelData(self, editor, model, index)
 
-    def assignDelegates(self, table):
+    def assignDelegates(self, table, idd_obj):
         # cycle through table and assign delegates as needed
-        self.insertColumnDelegate(0, ChoiceColumnDelegate())
-        self.insertColumnDelegate(1, RealColumnDelegate())
-        self.insertColumnDelegate(2, AlphaColumnDelegate())
+        # This will depend on the type of idd object!
+
+        # All delegates are combo boxes!
+        # examine the idd object and assemble combo box choices
+        # the following fields need to have their values added:
+        #       minimum, minimum>, maximum, maximum<, default, autosizable,
+        #       autocalculatable,
+
+        # Other fields to be passed to the delegate include:
+        #       field, note, units, ip-units, required-field, key(s)
+
+        # pass the type as well (integer, real, alpha)
+
+        # examine the 'type' field in the idd object
+        # if it's 'choice' add the choices
+        # if it's 'object-list' assemble the list of objects
+
+        fieldTags = ['\\field',
+                     '\\note',
+                     '\\required-field',
+                     '\\begin-extensible',
+                     '\\units',
+                     '\\ip-units',
+                     '\\unitsBasedOnField',
+                     '\\minimum',
+                     '\\minimum>',
+                     '\\maximum',
+                     '\\maximum<',
+                     '\\default',
+                     '\\deprecated',
+                     '\\autosizeable',
+                     '\\autocalculatable',
+                     '\\type',
+                     '\\retaincase',
+                     '\\key',
+                     '\\object-list',
+                     '\\reference',
+                     '\\memo',
+                     '\\unique-object',
+                     '\\required-object',
+                     '\\min-fields',
+                     '\\obsolete',
+                     '\\extensible:',
+                     '\\begin-extensible',
+                     '\\format',
+                     '\\group']
+
+        comboFields = ['\\minimum',
+                       '\\minimum>',
+                       '\\maximum',
+                       '\\maximum<',
+                       '\\default',
+                       '\\autosizeable',
+                       '\\autocalculatable',
+                       '\\key']
+
+        for i, tags in enumerate(idd_obj['field_tags'][1:]):
+
+            model = QtGui.QStandardItemModel()
+            tag_list = []
+            tag_count = 0
+
+            for tag in tags:
+                if tag['tag'] in comboFields:
+                    value_item = QtGui.QStandardItem(tag['value'])
+                    tag_item = QtGui.QStandardItem(tag['tag'].strip('\\'))
+                    model.appendRow([value_item, tag_item])
+                    tag_list.append(tag['tag'])
+                    tag_count += 1
+
+            if tag_count > 0:
+                self.insertColumnDelegate(i, ChoiceColumnDelegate(model))
+            else:
+#                if '\\type' in tag_list:
+#                    if type is integer use integer delegate...etc
+                fieldName = idd_obj['fields'][i - 1]
+                if fieldName.startswith('A'):
+                    self.insertColumnDelegate(i, AlphaColumnDelegate())
+                elif fieldName.startswith('N'):
+                    self.insertColumnDelegate(i, RealColumnDelegate())
+
+#        self.insertColumnDelegate(0, ChoiceColumnDelegate(model))
+#        self.insertColumnDelegate(1, RealColumnDelegate())
+#        self.insertColumnDelegate(2, AlphaColumnDelegate())
         table.setItemDelegate(self)
 
 
@@ -152,7 +233,7 @@ class AlphaColumnDelegate(QtGui.QItemDelegate):
 
     def createEditor(self, parent, option, index):
         lineedit = QtGui.QLineEdit(parent)
-#        lineedit.setFrame(False)
+        lineedit.setFrame(False)
         return lineedit
 
     def setEditorData(self, editor, index):
@@ -165,71 +246,79 @@ class AlphaColumnDelegate(QtGui.QItemDelegate):
 
 class ChoiceColumnDelegate(QtGui.QItemDelegate):
 
-    def __init__(self, parent=None):
+    def __init__(self, model, parent=None):
         super(ChoiceColumnDelegate, self).__init__(parent)
+        self.model = model
 
     def imActivated(self, index):
-#        self.showPopup()
+#        self.combo.showPopup()
         print 'i was activated'
 
     def createEditor(self, parent, option, index):
         combo = QtGui.QComboBox(parent)
         combo.setFrame(False)
         combo.setEditable(True)
+#        self.combo = combo
         combo.editTextChanged.connect(self.imActivated)
 #        combo.setMinimumContentsLength(30)
 #        combo.setSizeAdjustPolicy(QtGui.QComboBox.AdjustToContents)
 
-        current = index.data(QtCore.Qt.DisplayRole)
-        model = QtGui.QStandardItemModel(4, 2)
+#        current = index.data(QtCore.Qt.DisplayRole)
+#        model = QtGui.QStandardItemModel(4, 2)
+#
+#        index = model.index(0, 0, QtCore.QModelIndex())
+#        model.setData(index, current)
+#        index = model.index(0, 1, QtCore.QModelIndex())
+#        model.setData(index, 'Current')
+#        index = model.index(1, 0, QtCore.QModelIndex())
+#        model.setData(index, '123')
+#        index = model.index(1, 1, QtCore.QModelIndex())
+#        model.setData(index, 'Default')
+#        index = model.index(2, 0, QtCore.QModelIndex())
+#        model.setData(index, 'New')
+#        index = model.index(2, 1, QtCore.QModelIndex())
+#        model.setData(index, '')
+#        index = model.index(3, 0, QtCore.QModelIndex())
+#        model.setData(index, 'New From Library asd asd asd')
+#        index = model.index(3, 1, QtCore.QModelIndex())
+#        model.setData(index, '')
 
-        index = model.index(0, 0, QtCore.QModelIndex())
-        model.setData(index, current)
-        index = model.index(0, 1, QtCore.QModelIndex())
-        model.setData(index, 'Current')
-        index = model.index(1, 0, QtCore.QModelIndex())
-        model.setData(index, '123')
-        index = model.index(1, 1, QtCore.QModelIndex())
-        model.setData(index, 'Default')
-        index = model.index(2, 0, QtCore.QModelIndex())
-        model.setData(index, 'New')
-        index = model.index(2, 1, QtCore.QModelIndex())
-        model.setData(index, '')
-        index = model.index(3, 0, QtCore.QModelIndex())
-        model.setData(index, 'New From Library asd asd asd')
-        index = model.index(3, 1, QtCore.QModelIndex())
-        model.setData(index, '')
+        myitem = self.model.findItems('current', column=1)
+        if len(myitem) > 0:
+            self.model.removeRow(myitem[0].row())
 
-        tableView = QtGui.QTableView()
+        value = index.data(QtCore.Qt.DisplayRole)
+        current_item = QtGui.QStandardItem('current')
+        value_item = QtGui.QStandardItem(value)
+        self.model.insertRow(0, [value_item, current_item])
 
-        tableView.setModel(model)
-#        tableView.setFrame(False)
+        tableView = QtGui.QTableView(parent)
+        tableView.setModel(self.model)
         tableView.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAsNeeded)
         tableView.setSelectionMode(QtGui.QAbstractItemView.SingleSelection)
         tableView.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
         tableView.setAutoScroll(False)
         tableView.resizeColumnsToContents()
         tableView.resizeRowsToContents()
+#        tableView.setContentsMargins(0,0,0,0)
 #        tableView.setSortingEnabled(True)
         tableView.verticalHeader().setVisible(False)
         tableView.horizontalHeader().setVisible(False)
         tableView.setMinimumWidth(tableView.horizontalHeader().length())
+#        tableView.setFrameShape(QtGui.QFrame.NoFrame)
 
-        combo.setModel(model)
+        combo.setModel(self.model)
         combo.setView(tableView)
-        combo.showPopup()
+#        combo.setContentsMargins(0,0,0,0)
+#        combo.showPopup()
         return combo
 
     def setEditorData(self, editor, index):
-        editor.showPopup()
+#        editor.showPopup()
         value = index.data(QtCore.Qt.DisplayRole)
         comboIndex = editor.findText(value)
         if comboIndex >= 0:
             editor.setCurrentIndex(comboIndex)
 
-
     def setModelData(self, editor, model, index):
         model.setData(index, editor.currentText(), QtCore.Qt.EditRole)
-
-
-

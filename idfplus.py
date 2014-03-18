@@ -297,12 +297,14 @@ class IDFPlus(QtGui.QMainWindow):
         self.fileToolBar.addAction(self.newAct)
         self.fileToolBar.addAction(self.openAct)
         self.fileToolBar.addAction(self.saveAct)
+        self.fileToolBar.setToolButtonStyle(QtCore.Qt.ToolButtonTextBesideIcon)
 
         self.editToolBar = self.addToolBar("Edit Toolbar")
         self.editToolBar.setObjectName('editToolbar')
         self.editToolBar.addAction(self.cutAct)
         self.editToolBar.addAction(self.copyAct)
         self.editToolBar.addAction(self.pasteAct)
+        self.editToolBar.setToolButtonStyle(QtCore.Qt.ToolButtonTextBesideIcon)
 
     def createShortcuts(self):
         '''Creates keyboard shortcuts.'''
@@ -389,7 +391,7 @@ class IDFPlus(QtGui.QMainWindow):
 
         if self.filename:
             filename = QtCore.QFileInfo(self.filename).fileName()
-            shownName = self.strippedName(filename)
+            shownName = filename
         else:
             shownName = 'Untitled'
 
@@ -518,7 +520,7 @@ class IDFPlus(QtGui.QMainWindow):
 #        delegates.insertColumnDelegate(1, gd.PlainTextColumnDelegate())
 #        delegates.insertColumnDelegate(2, gd.PlainTextColumnDelegate())
 #        table.setItemDelegate(delegates)
-        delegates.assignDelegates(table)
+        delegates.assignDelegates(table, iddPart)
 
     def loadTreeView(self, full=True):
         '''Loads the tree of class type names.'''
@@ -585,9 +587,16 @@ class IDFPlus(QtGui.QMainWindow):
         '''Setup main UI elements, dock widgets, UI-related elements, etc. '''
 
         # Class Objects Table widget
-        classTable = QtGui.QTableView()
+#        mainView = QtGui.QWidget(self)
+        classTable = QtGui.QTableView(self)
         classTable.setAlternatingRowColors(True)
         classTable.setFrameShape(QtGui.QFrame.StyledPanel)
+#        layout = QtGui.QVBoxLayout(self)
+#        layout.addWidget(self.editToolBar)
+#        layout.addWidget(classTable)
+#        mainView.setLayout(layout)
+#        self.mainView = mainView
+#        self.layout = layout
 
         # Class name tree widget
         classTreeDockWidget = QtGui.QDockWidget("Class Names and Counts", self)
