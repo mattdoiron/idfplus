@@ -351,113 +351,163 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
                 raise exception
 
 
-class IDFObjectDelegate(QtGui.QItemDelegate):
+#class IDFObjectDelegate(QtGui.QItemDelegate):
+#
+#    def __init__(self, parent=None):
+#        super(IDFObjectDelegate, self).__init__(parent)
+#
+#    def paint(self, painter, option, index):
+#        if index.column() == DESCRIPTION:
+#            text = index.model().data(index).toString()
+#            palette = QApplication.palette()
+#            document = QTextDocument()
+#            document.setDefaultFont(option.font)
+#            if option.state & QStyle.State_Selected:
+#                document.setHtml(QString("<font color=%1>%2</font>") \
+#                        .arg(palette.highlightedText().color().name()) \
+#                        .arg(text))
+#            else:
+#                document.setHtml(text)
+#            color = palette.highlight().color() \
+#                if option.state & QStyle.State_Selected \
+#                else QColor(index.model().data(index,
+#                            Qt.BackgroundColorRole))
+#            painter.save()
+#            painter.fillRect(option.rect, color)
+#            painter.translate(option.rect.x(), option.rect.y())
+#            document.drawContents(painter)
+#            painter.restore()
+#        else:
+#            QItemDelegate.paint(self, painter, option, index)
+#
+#    def sizeHint(self, option, index):
+#        fm = option.fontMetrics
+#        if index.column() == TEU:
+#            return QSize(fm.width("9,999,999"), fm.height())
+#        if index.column() == DESCRIPTION:
+#            text = index.model().data(index).toString()
+#            document = QTextDocument()
+#            document.setDefaultFont(option.font)
+#            document.setHtml(text)
+#            return QSize(document.idealWidth() + 5, fm.height())
+#        return QItemDelegate.sizeHint(self, option, index)
+#
+#    def createEditor(self, parent, option, index):
+#        if index.column() == TEU:
+#            spinbox = QSpinBox(parent)
+#            spinbox.setRange(0, 200000)
+#            spinbox.setSingleStep(1000)
+#            spinbox.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
+#            return spinbox
+#        elif index.column() == OWNER:
+#            combobox = QComboBox(parent)
+#            combobox.addItems(sorted(index.model().owners))
+#            combobox.setEditable(True)
+#            return combobox
+#        elif index.column() == COUNTRY:
+#            combobox = QComboBox(parent)
+#            combobox.addItems(sorted(index.model().countries))
+#            combobox.setEditable(True)
+#            return combobox
+#        elif index.column() == NAME:
+#            editor = QLineEdit(parent)
+#            self.connect(editor, SIGNAL("returnPressed()"),
+#                         self.commitAndCloseEditor)
+#            return editor
+#        elif index.column() == DESCRIPTION:
+#            editor = richtextlineedit.RichTextLineEdit(parent)
+#            self.connect(editor, SIGNAL("returnPressed()"),
+#                         self.commitAndCloseEditor)
+#            return editor
+#        else:
+#            return QItemDelegate.createEditor(self, parent, option,
+#                                              index)
+#
+#    def commitAndCloseEditor(self):
+#        editor = self.sender()
+#        if isinstance(editor, (QTextEdit, QLineEdit)):
+#            self.emit(SIGNAL("commitData(QWidget*)"), editor)
+#            self.emit(SIGNAL("closeEditor(QWidget*)"), editor)
+#
+#    def setEditorData(self, editor, index):
+#        text = index.model().data(index, Qt.DisplayRole).toString()
+#        if index.column() == TEU:
+#            value = text.replace(QRegExp("[., ]"), "").toInt()[0]
+#            editor.setValue(value)
+#        elif index.column() in (OWNER, COUNTRY):
+#            i = editor.findText(text)
+#            if i == -1:
+#                i = 0
+#            editor.setCurrentIndex(i)
+#        elif index.column() == NAME:
+#            editor.setText(text)
+#        elif index.column() == DESCRIPTION:
+#            editor.setHtml(text)
+#        else:
+#            QItemDelegate.setEditorData(self, editor, index)
+#
+#    def setModelData(self, editor, model, index):
+#        if index.column() == TEU:
+#            model.setData(index, editor.value())
+#        elif index.column() in (OWNER, COUNTRY):
+#            text = editor.currentText()
+#            if text.length() >= 3:
+#                model.setData(index, text)
+#        elif index.column() == NAME:
+#            text = editor.text()
+#            if text.length() >= 3:
+#                model.setData(index, text)
+#        elif index.column() == DESCRIPTION:
+#            model.setData(index, editor.toSimpleHtml())
+#        else:
+#            QItemDelegate.setModelData(self, editor, model, index)
+
+
+class TransposeProxyModel(QtGui.QAbstractProxyModel):
 
     def __init__(self, parent=None):
-        super(IDFObjectDelegate, self).__init__(parent)
+        super(TransposeProxyModel, self).__init__(parent)
 
-    def paint(self, painter, option, index):
-        if index.column() == DESCRIPTION:
-            text = index.model().data(index).toString()
-            palette = QApplication.palette()
-            document = QTextDocument()
-            document.setDefaultFont(option.font)
-            if option.state & QStyle.State_Selected:
-                document.setHtml(QString("<font color=%1>%2</font>") \
-                        .arg(palette.highlightedText().color().name()) \
-                        .arg(text))
-            else:
-                document.setHtml(text)
-            color = palette.highlight().color() \
-                if option.state & QStyle.State_Selected \
-                else QColor(index.model().data(index,
-                            Qt.BackgroundColorRole))
-            painter.save()
-            painter.fillRect(option.rect, color)
-            painter.translate(option.rect.x(), option.rect.y())
-            document.drawContents(painter)
-            painter.restore()
+#    def setSourceModel(self, source):
+#        super(TransposeProxyModel, self).setSourceModel(source)
+#
+#        # connect signals
+#        self.sourceModel().columnsAboutToBeInserted.connect(self.columnsAboutToBeInserted.emit)
+#        self.sourceModel().columnsInserted.connect(self.columnsInserted.emit)
+#        self.sourceModel().columnsAboutToBeRemoved.connect(self.columnsAboutToBeRemoved.emit)
+#        self.sourceModel().columnsRemoved.connect(self.columnsRemoved.emit)
+#
+#        self.sourceModel().rowsInserted.connect(self._rowsInserted)
+#        self.sourceModel().rowsRemoved.connect(self._rowsRemoved)
+#        self.sourceModel().dataChanged.connect(self._dataChanged)
+
+    def mapFromSource(self, sourceIndex):
+        return self.createIndex(sourceIndex.column(),
+                                sourceIndex.row(),
+                                QtCore.QModelIndex())
+
+    def mapToSource(self, proxyIndex):
+        return self.sourceModel().createIndex(proxyIndex.column(),
+                                              proxyIndex.row(),
+                                              QtCore.QModelIndex())
+
+    def index(self, row, col, parent):
+        return self.createIndex(row, col)
+
+    def parent(self, index):
+        return QtCore.QModelIndex()
+
+    def rowCount(self, parent):
+        if self.sourceModel():
+            return self.sourceModel().columnCount(QtCore.QModelIndex())
         else:
-            QItemDelegate.paint(self, painter, option, index)
+            return 0
 
-    def sizeHint(self, option, index):
-        fm = option.fontMetrics
-        if index.column() == TEU:
-            return QSize(fm.width("9,999,999"), fm.height())
-        if index.column() == DESCRIPTION:
-            text = index.model().data(index).toString()
-            document = QTextDocument()
-            document.setDefaultFont(option.font)
-            document.setHtml(text)
-            return QSize(document.idealWidth() + 5, fm.height())
-        return QItemDelegate.sizeHint(self, option, index)
-
-    def createEditor(self, parent, option, index):
-        if index.column() == TEU:
-            spinbox = QSpinBox(parent)
-            spinbox.setRange(0, 200000)
-            spinbox.setSingleStep(1000)
-            spinbox.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
-            return spinbox
-        elif index.column() == OWNER:
-            combobox = QComboBox(parent)
-            combobox.addItems(sorted(index.model().owners))
-            combobox.setEditable(True)
-            return combobox
-        elif index.column() == COUNTRY:
-            combobox = QComboBox(parent)
-            combobox.addItems(sorted(index.model().countries))
-            combobox.setEditable(True)
-            return combobox
-        elif index.column() == NAME:
-            editor = QLineEdit(parent)
-            self.connect(editor, SIGNAL("returnPressed()"),
-                         self.commitAndCloseEditor)
-            return editor
-        elif index.column() == DESCRIPTION:
-            editor = richtextlineedit.RichTextLineEdit(parent)
-            self.connect(editor, SIGNAL("returnPressed()"),
-                         self.commitAndCloseEditor)
-            return editor
+    def columnCount(self, parent):
+        if self.sourceModel():
+            return self.sourceModel().rowCount(QtCore.QModelIndex())
         else:
-            return QItemDelegate.createEditor(self, parent, option,
-                                              index)
+            return 0
 
-    def commitAndCloseEditor(self):
-        editor = self.sender()
-        if isinstance(editor, (QTextEdit, QLineEdit)):
-            self.emit(SIGNAL("commitData(QWidget*)"), editor)
-            self.emit(SIGNAL("closeEditor(QWidget*)"), editor)
-
-    def setEditorData(self, editor, index):
-        text = index.model().data(index, Qt.DisplayRole).toString()
-        if index.column() == TEU:
-            value = text.replace(QRegExp("[., ]"), "").toInt()[0]
-            editor.setValue(value)
-        elif index.column() in (OWNER, COUNTRY):
-            i = editor.findText(text)
-            if i == -1:
-                i = 0
-            editor.setCurrentIndex(i)
-        elif index.column() == NAME:
-            editor.setText(text)
-        elif index.column() == DESCRIPTION:
-            editor.setHtml(text)
-        else:
-            QItemDelegate.setEditorData(self, editor, index)
-
-    def setModelData(self, editor, model, index):
-        if index.column() == TEU:
-            model.setData(index, editor.value())
-        elif index.column() in (OWNER, COUNTRY):
-            text = editor.currentText()
-            if text.length() >= 3:
-                model.setData(index, text)
-        elif index.column() == NAME:
-            text = editor.text()
-            if text.length() >= 3:
-                model.setData(index, text)
-        elif index.column() == DESCRIPTION:
-            model.setData(index, editor.toSimpleHtml())
-        else:
-            QItemDelegate.setModelData(self, editor, model, index)
+    def data(self, index, role):
+        return self.sourceModel().data(self.mapToSource(index), role)

@@ -24,6 +24,7 @@ from parseIDF import Writer
 # Custom imports
 import genericdelegates as gd
 import idfobject
+from idfobject import TransposeProxyModel
 import icons_qr  # Used for icons (in text format)
 import misc_icons_qr  # Used for icons (in text format)
 
@@ -508,6 +509,10 @@ class IDFPlus(QtGui.QMainWindow):
 
         myModel = idfobject.IDFObjectTableModel(idfObjects, iddPart)
         myModel.load()
+
+        proxyModel = TransposeProxyModel()
+        proxyModel.setSourceModel(myModel)
+
         table.setModel(myModel)
         font = QtGui.QFont("Arial", 10)
         table.setFont(font)
@@ -515,12 +520,8 @@ class IDFPlus(QtGui.QMainWindow):
         table.setWordWrap(True)
         table.resizeColumnsToContents()
 
-        delegates = gd.GenericDelegateGroup(self)
-#        delegates.insertColumnDelegate(0, gd.ComboBoxColumnDelegate())
-#        delegates.insertColumnDelegate(1, gd.PlainTextColumnDelegate())
-#        delegates.insertColumnDelegate(2, gd.PlainTextColumnDelegate())
-#        table.setItemDelegate(delegates)
-        delegates.assignDelegates(table, iddPart)
+        delegates = gd.GenericDelegate(table, iddPart)
+#        delegates.assignDelegates(table, iddPart)
 
     def loadTreeView(self, full=True):
         '''Loads the tree of class type names.'''
