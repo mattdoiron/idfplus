@@ -14,28 +14,35 @@ from PySide import QtGui, QtCore
 
 class GenericDelegate(QtGui.QItemDelegate):
 
-    def __init__(self, table, idd_obj, parent=None):
+    def __init__(self, idd_obj, obj_orientation, parent=None):
         super(GenericDelegate, self).__init__(parent)
         self.delegates = {}
-        self.assignDelegates(table, idd_obj)
+        self.obj_orientation = obj_orientation
+        self.assignDelegates(idd_obj)
 
-    def insertDelegate(self, column, delegate):
+    def insertDelegate(self, index, delegate):
         delegate.setParent(self)
-        self.delegates[column] = delegate
+        self.delegates[index] = delegate
 
-    def removeDelegate(self, column):
-        if column in self.delegates:
-            del self.delegates[column]
+    def removeDelegate(self, index):
+        if index in self.delegates:
+            del self.delegates[index]
+
+    def getRowOrCol(self, index):
+        if self.obj_orientation == QtCore.Qt.Vertical:
+            return index.column()
+        else:
+            return index.row()
 
     def paint(self, painter, option, index):
-        delegate = self.delegates.get(index.column())
+        delegate = self.delegates.get(self.getRowOrCol(index))
         if delegate is not None:
             delegate.paint(painter, option, index)
         else:
             QtGui.QItemDelegate.paint(self, painter, option, index)
 
     def createEditor(self, parent, option, index):
-        delegate = self.delegates.get(index.column())
+        delegate = self.delegates.get(self.getRowOrCol(index))
         if delegate is not None:
             return delegate.createEditor(parent, option, index)
         else:
@@ -43,37 +50,25 @@ class GenericDelegate(QtGui.QItemDelegate):
                                                     option, index)
 
     def setEditorData(self, editor, index):
-        delegate = self.delegates.get(index.column())
+        delegate = self.delegates.get(self.getRowOrCol(index))
         if delegate is not None:
             delegate.setEditorData(editor, index)
         else:
             QtGui.QItemDelegate.setEditorData(self, editor, index)
 
     def setModelData(self, editor, model, index):
-        delegate = self.delegates.get(index.column())
+        delegate = self.delegates.get(self.getRowOrCol(index))
         if delegate is not None:
             delegate.setModelData(editor, model, index)
         else:
             QtGui.QItemDelegate.setModelData(self, editor, model, index)
 
-    def assignDelegates(self, table, idd_obj):
+    def assignDelegates(self, idd_obj):
         # cycle through table and assign delegates as needed
         # This will depend on the type of idd object!
 
-        # All delegates are combo boxes!
-        # examine the idd object and assemble combo box choices
-        # the following fields need to have their values added:
-        #       minimum, minimum>, maximum, maximum<, default, autosizable,
-        #       autocalculatable,
-
         # Other fields to be passed to the delegate include:
         #       field, note, units, ip-units, required-field, key(s)
-
-        # pass the type as well (integer, real, alpha)
-
-        # examine the 'type' field in the idd object
-        # if it's 'choice' add the choices
-        # if it's 'object-list' assemble the list of objects
 
         # List of tags that would go in a combobox
         comboFields = ['\\minimum',
@@ -104,7 +99,6 @@ class GenericDelegate(QtGui.QItemDelegate):
 
             # If there are choices then use the choiceDelegate
             if tag_count > 0:
-
                 self.insertDelegate(i, ChoiceDelegate(tags))
             else:
                 # Otherwise check the type field
@@ -123,9 +117,6 @@ class GenericDelegate(QtGui.QItemDelegate):
                         self.insertDelegate(i, RealDelegate(tags))
                     else:
                         self.insertDelegate(i, AlphaDelegate(tags))
-
-        # Assign this object to be the item delegate for the parent table
-        table.setItemDelegate(self)
 
 
 class IntegerDelegate(QtGui.QItemDelegate):

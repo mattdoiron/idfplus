@@ -262,53 +262,57 @@ class Writer(object):
     def __init__(self):
         pass
 
-    def writeIDF(filename, options, idfObject):
+    def writeIDF(self, filename, options, idf_file):
         '''Write an IDF from the specified idfObject'''
 
-        print 'Writing file: ' + filename
+        print 'Writing file: ' + filename + '_test'
 
         # Check for special options
-        if options.count('UseSpecialFormat') >= 1:
-            print 'Special formatting requested, but not yet implemented.'
+#        if options and options is not None:
+#            options = []
+#            if options.count('UseSpecialFormat') >= 1:
+#                print 'Special formatting requested, but not yet implemented.'
 
         # Open file and write
         try:
-            with open(filename, 'w') as file:
-                for obj in idfObject:
+            with open(filename + '_test', 'w') as file:
+                for obj_class, obj_list in idf_file.iteritems():
 
-                    # Write special comments if there are any
-                    if obj['comments_special'] is not None:
-                        for comment in obj['comments_special']:
-                            file.write("!-{}\n".format(comment))
+                    for obj in obj_list:
+                        # Write special comments if there are any
+                        if obj['comments_special'] is not None:
+                            for comment in obj['comments_special']:
+                                file.write("!-{}\n".format(comment))
 
-                    # Write comments if there are any
-                    if obj['comments'] is not None:
-                        for comment in obj['comments']:
-                            file.write("!{}\n".format(comment))
+                        # Write comments if there are any
+                        if obj['comments'] is not None:
+                            for comment in obj['comments']:
+                                file.write("!{}\n".format(comment))
 
-                    # Some objects are on one line and some fields are grouped!
-                    # If enabled, check IDD file for special formatting instructions
-                    if options.count('UseSpecialFormat') >= 1:
-                        pass
+                        # Some objects are on one line and some fields are grouped!
+                        # If enabled, check IDD file for special formatting instructions
+#                        if options.count('UseSpecialFormat') >= 1:
+#                            pass
 
-                    # Write the object name
-                    file.write("  {},\n".format(obj['name']))
+                        # Write the object name
+                        file.write("  {},\n".format(obj_class))
 
-                    # Write the fields
-                    if obj['fields']:
-                        field_count = len(obj['fields'])
-                        for i, field in enumerate(obj['fields']):
-                            if i == field_count - 1:
-                                file.write("    {};\n".format(field))
-                            else:
-                                file.write("    {},\n".format(field))
+                        # Write the fields
+                        if obj['fields']:
+                            field_count = len(obj['fields'])
+                            for i, field in enumerate(obj['fields']):
+                                if i == field_count - 1:
+                                    file.write("    {};\n".format(field))
+                                else:
+                                    file.write("    {},\n".format(field))
 
-                    # Add newline at the end of the object
-                    file.write("\n")
+                        # Add newline at the end of the object
+                        file.write("\n")
 
             print 'File written!'
             return True
-        except:
+        except IOError as e:
+            print 'File not written! Exception!' + e.strerror
             return False
 
 # Write the idf file

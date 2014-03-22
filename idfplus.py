@@ -51,6 +51,8 @@ class IDFPlus(QtGui.QMainWindow):
         self.groups = None
         self.fullTree = True
         self.dirty = False
+        self.obj_orientation = QtCore.Qt.Vertical
+        self.current_obj = None
         self.com = Communicate()
 
         # Create main application elements
@@ -132,7 +134,7 @@ class IDFPlus(QtGui.QMainWindow):
     def save(self):
         '''Called by save action.'''
         if self.filename:
-            return self.saveFile(self.filename)
+            return self.saveFile()
         return self.saveAs()
 
     def saveAs(self):
@@ -142,8 +144,27 @@ class IDFPlus(QtGui.QMainWindow):
         fileName, filtr = QtGui.QFileDialog.getSaveFileName(self, 'Save As',
                                                             directory, formats)
         if fileName:
-            return self.saveFile(fileName)
+            return self.saveFile(fileName, self.idf)
         return False
+
+    def saveFile(self):
+        '''Called by action to save the current file to disk.'''
+#        try:
+        if not self.filename or not self.idf:
+            return False
+        filename = self.filename
+        writer = Writer()
+        if writer.writeIDF(filename, None, self.idf):
+            self.setCurrentFile(filename)
+            self.addRecentFile(filename)
+            self.statusBar().showMessage("File saved", 2000)
+            return True
+        else:
+            return False
+#        except:
+#            QtGui.QMessageBox.warning(self, "Application",
+#                                      "Cannot write file %s." % (fileName))
+#            return False
 
     def undo(self):
         '''Called by the undo action. Not yet implemented'''
@@ -229,9 +250,26 @@ class IDFPlus(QtGui.QMainWindow):
         self.restoreAction = QtGui.QAction("&Restore", self,
                 triggered=self.showNormal)
 
+        self.transposeAct = QtGui.QAction("Transpose", self,
+                shortcut=QtGui.QKeySequence('Ctrl+t'),
+                statusTip="Transpose rows and columns in object display.",
+                triggered=self.transposeTable)
+
+        self.newObjAct = QtGui.QAction("New Obj", self,
+                statusTip="Create a new object in the current class.",
+                triggered=self.newObject)
+
+        self.dupObjAct = QtGui.QAction("Dup Obj", self,
+#                shortcut=QtGui.QKeySequence('Ctrl+t'),
+                statusTip="Duplicate the current Object.",
+                triggered=self.duplicateObject)
+
         self.cutAct.setEnabled(False)
         self.copyAct.setEnabled(False)
         self.pasteAct.setEnabled(False)
+        self.transposeAct.setEnabled(False)
+        self.newObjAct.setEnabled(False)
+        self.dupObjAct.setEnabled(False)
 
     def createMenus(self):
         '''Create all required items for menus.'''
@@ -248,6 +286,8 @@ class IDFPlus(QtGui.QMainWindow):
         self.editMenu.addAction(self.undoAct)
         self.editMenu.addAction(self.redoAct)
         self.editMenu.addSeparator()
+        self.editMenu.addAction(self.newObjAct)
+        self.editMenu.addAction(self.dupObjAct)
         self.editMenu.addAction(self.cutAct)
         self.editMenu.addAction(self.copyAct)
         self.editMenu.addAction(self.pasteAct)
@@ -257,8 +297,11 @@ class IDFPlus(QtGui.QMainWindow):
         self.viewMenu.addAction(self.classTree.parent().toggleViewAction())
         self.viewMenu.addAction(self.infoView.parent().toggleViewAction())
         self.viewMenu.addAction(self.commentView.parent().toggleViewAction())
+        self.viewMenu.addSeparator()
         self.viewMenu.addAction(self.fileToolBar.toggleViewAction())
         self.viewMenu.addAction(self.editToolBar.toggleViewAction())
+        self.viewMenu.addSeparator()
+        self.viewMenu.addAction(self.transposeAct)
 
         # Help Menu
         self.helpMenu = self.menuBar().addMenu("&Help")
@@ -302,10 +345,17 @@ class IDFPlus(QtGui.QMainWindow):
 
         self.editToolBar = self.addToolBar("Edit Toolbar")
         self.editToolBar.setObjectName('editToolbar')
+        self.editToolBar.addAction(self.newObjAct)
+        self.editToolBar.addAction(self.dupObjAct)
         self.editToolBar.addAction(self.cutAct)
         self.editToolBar.addAction(self.copyAct)
         self.editToolBar.addAction(self.pasteAct)
         self.editToolBar.setToolButtonStyle(QtCore.Qt.ToolButtonTextBesideIcon)
+
+        self.viewToolBar = self.addToolBar("View Toolbar")
+        self.viewToolBar.setObjectName('viewToolBar')
+        self.viewToolBar.addAction(self.transposeAct)
+        self.viewToolBar.setToolButtonStyle(QtCore.Qt.ToolButtonTextBesideIcon)
 
     def createShortcuts(self):
         '''Creates keyboard shortcuts.'''
@@ -369,21 +419,6 @@ class IDFPlus(QtGui.QMainWindow):
                 target.addSeparator()
             else:
                 target.addAction(action)
-
-    def saveFile(self, fileName):
-        '''Called by action to save the current file to disk.'''
-        try:
-            if Writer(fileName):
-                self.setCurrentFile(fileName)
-                self.addRecentFile(fileName)
-                self.statusBar().showMessage("File saved", 2000)
-                return True
-            else:
-                return False
-        except:
-            QtGui.QMessageBox.warning(self, "Application",
-                                      "Cannot write file %s." % (fileName))
-            return False
 
     def setCurrentFile(self, fileName):
         '''Sets the current file globaly and updates title, statusbar, etc.'''
@@ -459,6 +494,12 @@ class IDFPlus(QtGui.QMainWindow):
         self.restoreAction.setEnabled(self.isMaximized() or not visible)
         super(IDFPlus, self).setVisible(visible)
 
+    def newObject(self):
+        pass
+
+    def duplicateObject(self):
+        pass
+
     def toggleFullTree(self):
         '''Called to toggle the full class tree or a partial tree.'''
         self.fullTree = not self.fullTree
@@ -500,6 +541,10 @@ class IDFPlus(QtGui.QMainWindow):
     def loadTableView(self, name):
         '''Loads the table of objects for the specified class name.'''
         table = self.classTable
+        self.current_obj = name
+
+        if not name:
+            return
 
         iddPart = self.idd['idd'][name][0]
         if name in self.idf:
@@ -507,21 +552,35 @@ class IDFPlus(QtGui.QMainWindow):
         else:
             idfObjects = [{'fields':[None for i in iddPart['fields']]}]
 
-        myModel = idfobject.IDFObjectTableModel(idfObjects, iddPart)
-        myModel.load()
+        default_model = idfobject.IDFObjectTableModel(idfObjects, iddPart)
+        default_model.load()
+        model = default_model
 
-        proxyModel = TransposeProxyModel()
-        proxyModel.setSourceModel(myModel)
+        # If objects are horizontal, create transposed model
+        if self.obj_orientation == QtCore.Qt.Horizontal:
+            proxyModel = TransposeProxyModel()
+            proxyModel.setSourceModel(default_model)
+            model = proxyModel
 
-        table.setModel(myModel)
+        # Assign model to table and set some variables
+        table.setModel(model)
         font = QtGui.QFont("Arial", 10)
         table.setFont(font)
         table.setSortingEnabled(True)
         table.setWordWrap(True)
         table.resizeColumnsToContents()
 
-        delegates = gd.GenericDelegate(table, iddPart)
+        # Create generic delegates for table cells
+        delegates = gd.GenericDelegate(iddPart, self.obj_orientation)
 #        delegates.assignDelegates(table, iddPart)
+
+        # Assign delegates depending on object orientation
+#        if self.obj_orientation == QtCore.Qt.Horizontal:
+#            table.setItemDelegateForRow(delegates)
+#        else:
+#            table.setItemDelegateForColumn(delegates)
+
+        table.setItemDelegate(delegates)
 
     def loadTreeView(self, full=True):
         '''Loads the tree of class type names.'''
@@ -571,6 +630,14 @@ class IDFPlus(QtGui.QMainWindow):
 #        left.itemActivated.connect(self.iWasClicked)
 #        left.currentItemChanged.connect(self.iWasChanged)
 #        left.itemPressed.connect(self.iWasClicked)
+        self.transposeAct.setEnabled(True)
+
+    def transposeTable(self):
+        if self.obj_orientation == QtCore.Qt.Horizontal:
+            self.obj_orientation = QtCore.Qt.Vertical
+        else:
+            self.obj_orientation = QtCore.Qt.Horizontal
+        self.loadTableView(self.current_obj)
 
     def testSignal(self, myint):
         '''Test signal'''
