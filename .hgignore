@@ -3,6 +3,7 @@ syntax: glob
 
 *.pyc
 *~
+*.idea
 
 # switch to regexp syntax.
 syntax: regexp

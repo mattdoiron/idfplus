@@ -8,6 +8,10 @@ Improved IDF editor
 @author = Matt Doiron <mattdoiron@gmail.com>
 """
 
+# Prepare for Python 3
+from __future__ import (print_function, division,
+                        absolute_import)
+
 # Standard library imports
 import sys
 import os
@@ -485,7 +489,7 @@ class IDFPlus(QtGui.QMainWindow):
         selected = self.classTable.selectionModel()
 #        self.mainView.topright.setText(str(index.row()))
 #        self.mainView.topright.setText(str(selected.selectedRows()))
-        print str(selected.selectedIndexes())
+        print(str(selected.selectedIndexes()))
 #        print str(selected.selectedColumns())
 
     def setVisible(self, visible):
@@ -522,7 +526,7 @@ class IDFPlus(QtGui.QMainWindow):
 #        item = QtGui.QTableWidgetItem()
 #        item.setText(clipboard_text)
 #        self.tv.setItem(0, 0, item)
-        print clipboard_text
+        print(clipboard_text)
         self.infoView.setText(clipboard_text)
 
     def center(self):
