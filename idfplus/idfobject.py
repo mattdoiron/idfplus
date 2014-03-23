@@ -1,24 +1,6 @@
 #!/usr/bin/env python
-# Copyright (c) 2007-8 Qtrac Ltd. All rights reserved.
-# This program or module is free software: you can redistribute it and/or
-# modify it under the terms of the GNU General Public License as published
-# by the Free Software Foundation, either version 2 of the License, or
-# version 3 of the License, or (at your option) any later version. It is
-# provided for educational purposes and is distributed in the hope that
-# it will be useful, but WITHOUT ANY WARRANTY; without even the implied
-# warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See
-# the GNU General Public License for more details.
 
-#import platform
 from PySide import QtGui, QtCore
-#import richtextlineedit
-
-
-#NAME, OWNER, COUNTRY, DESCRIPTION, TEU = range(5)
-#
-#MAGIC_NUMBER = 0x570C4
-#FILE_VERSION = 1
-
 
 #class IDFObject(object):
 #
@@ -192,6 +174,14 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
 #            return msg
         elif role == QtCore.Qt.DecorationRole:
             data = QtGui.QIcon("icon.png")
+        #    row = index.row()
+        #    value = self.__colors[row]
+        #
+        #    pixmap = QtGui.QPixmap(26, 26)
+        #    pixmap.fill(value)
+        #
+        #    icon = QtGui.QIcon(pixmap)
+        #    return icon
         # elif role == Qt.TextAlignmentRole:
         #     if column == TEU:
         #         return QVariant(int(Qt.AlignRight|Qt.AlignVCenter))
@@ -324,162 +314,51 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
         #     if exception is not None:
         #         raise exception
 
-    def save(self):
-        exception = None
-        fh = None
-        try:
-            if self.filename.isEmpty():
-                raise IOError, "no filename specified for saving"
-            fh = QFile(self.filename)
-            if not fh.open(QIODevice.WriteOnly):
-                raise IOError, unicode(fh.errorString())
-            stream = QDataStream(fh)
-            stream.writeInt32(MAGIC_NUMBER)
-            stream.writeInt16(FILE_VERSION)
-            stream.setVersion(QDataStream.Qt_4_1)
-            for idfObject in self.idfObjects:
-                stream << idfObject.name << idfObject.owner << idfObject.country \
-                       << idfObject.description
-                stream.writeInt32(idfObject.teu)
-            self.dirty = False
-        except IOError, e:
-            exception = e
-        finally:
-            if fh is not None:
-                fh.close()
-            if exception is not None:
-                raise exception
-
-
-#class IDFObjectDelegate(QtGui.QItemDelegate):
-#
-#    def __init__(self, parent=None):
-#        super(IDFObjectDelegate, self).__init__(parent)
-#
-#    def paint(self, painter, option, index):
-#        if index.column() == DESCRIPTION:
-#            text = index.model().data(index).toString()
-#            palette = QApplication.palette()
-#            document = QTextDocument()
-#            document.setDefaultFont(option.font)
-#            if option.state & QStyle.State_Selected:
-#                document.setHtml(QString("<font color=%1>%2</font>") \
-#                        .arg(palette.highlightedText().color().name()) \
-#                        .arg(text))
-#            else:
-#                document.setHtml(text)
-#            color = palette.highlight().color() \
-#                if option.state & QStyle.State_Selected \
-#                else QColor(index.model().data(index,
-#                            Qt.BackgroundColorRole))
-#            painter.save()
-#            painter.fillRect(option.rect, color)
-#            painter.translate(option.rect.x(), option.rect.y())
-#            document.drawContents(painter)
-#            painter.restore()
-#        else:
-#            QItemDelegate.paint(self, painter, option, index)
-#
-#    def sizeHint(self, option, index):
-#        fm = option.fontMetrics
-#        if index.column() == TEU:
-#            return QSize(fm.width("9,999,999"), fm.height())
-#        if index.column() == DESCRIPTION:
-#            text = index.model().data(index).toString()
-#            document = QTextDocument()
-#            document.setDefaultFont(option.font)
-#            document.setHtml(text)
-#            return QSize(document.idealWidth() + 5, fm.height())
-#        return QItemDelegate.sizeHint(self, option, index)
-#
-#    def createEditor(self, parent, option, index):
-#        if index.column() == TEU:
-#            spinbox = QSpinBox(parent)
-#            spinbox.setRange(0, 200000)
-#            spinbox.setSingleStep(1000)
-#            spinbox.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
-#            return spinbox
-#        elif index.column() == OWNER:
-#            combobox = QComboBox(parent)
-#            combobox.addItems(sorted(index.model().owners))
-#            combobox.setEditable(True)
-#            return combobox
-#        elif index.column() == COUNTRY:
-#            combobox = QComboBox(parent)
-#            combobox.addItems(sorted(index.model().countries))
-#            combobox.setEditable(True)
-#            return combobox
-#        elif index.column() == NAME:
-#            editor = QLineEdit(parent)
-#            self.connect(editor, SIGNAL("returnPressed()"),
-#                         self.commitAndCloseEditor)
-#            return editor
-#        elif index.column() == DESCRIPTION:
-#            editor = richtextlineedit.RichTextLineEdit(parent)
-#            self.connect(editor, SIGNAL("returnPressed()"),
-#                         self.commitAndCloseEditor)
-#            return editor
-#        else:
-#            return QItemDelegate.createEditor(self, parent, option,
-#                                              index)
-#
-#    def commitAndCloseEditor(self):
-#        editor = self.sender()
-#        if isinstance(editor, (QTextEdit, QLineEdit)):
-#            self.emit(SIGNAL("commitData(QWidget*)"), editor)
-#            self.emit(SIGNAL("closeEditor(QWidget*)"), editor)
-#
-#    def setEditorData(self, editor, index):
-#        text = index.model().data(index, Qt.DisplayRole).toString()
-#        if index.column() == TEU:
-#            value = text.replace(QRegExp("[., ]"), "").toInt()[0]
-#            editor.setValue(value)
-#        elif index.column() in (OWNER, COUNTRY):
-#            i = editor.findText(text)
-#            if i == -1:
-#                i = 0
-#            editor.setCurrentIndex(i)
-#        elif index.column() == NAME:
-#            editor.setText(text)
-#        elif index.column() == DESCRIPTION:
-#            editor.setHtml(text)
-#        else:
-#            QItemDelegate.setEditorData(self, editor, index)
-#
-#    def setModelData(self, editor, model, index):
-#        if index.column() == TEU:
-#            model.setData(index, editor.value())
-#        elif index.column() in (OWNER, COUNTRY):
-#            text = editor.currentText()
-#            if text.length() >= 3:
-#                model.setData(index, text)
-#        elif index.column() == NAME:
-#            text = editor.text()
-#            if text.length() >= 3:
-#                model.setData(index, text)
-#        elif index.column() == DESCRIPTION:
-#            model.setData(index, editor.toSimpleHtml())
-#        else:
-#            QItemDelegate.setModelData(self, editor, model, index)
+#    def save(self):
+#        exception = None
+#        fh = None
+#        try:
+#            if self.filename.isEmpty():
+#                raise IOError, "no filename specified for saving"
+#            fh = QFile(self.filename)
+#            if not fh.open(QIODevice.WriteOnly):
+#                raise IOError, unicode(fh.errorString())
+#            stream = QDataStream(fh)
+#            stream.writeInt32(MAGIC_NUMBER)
+#            stream.writeInt16(FILE_VERSION)
+#            stream.setVersion(QDataStream.Qt_4_1)
+#            for idfObject in self.idfObjects:
+#                stream << idfObject.name << idfObject.owner << idfObject.country \
+#                       << idfObject.description
+#                stream.writeInt32(idfObject.teu)
+#            self.dirty = False
+#        except IOError, e:
+#            exception = e
+#        finally:
+#            if fh is not None:
+#                fh.close()
+#            if exception is not None:
+#                raise exception
 
 
 class TransposeProxyModel(QtGui.QAbstractProxyModel):
+    '''Translates columns to rows or vice versa'''
 
     def __init__(self, parent=None):
         super(TransposeProxyModel, self).__init__(parent)
 
-#    def setSourceModel(self, source):
-#        super(TransposeProxyModel, self).setSourceModel(source)
-#
-#        # connect signals
-#        self.sourceModel().columnsAboutToBeInserted.connect(self.columnsAboutToBeInserted.emit)
-#        self.sourceModel().columnsInserted.connect(self.columnsInserted.emit)
-#        self.sourceModel().columnsAboutToBeRemoved.connect(self.columnsAboutToBeRemoved.emit)
-#        self.sourceModel().columnsRemoved.connect(self.columnsRemoved.emit)
-#
-#        self.sourceModel().rowsInserted.connect(self._rowsInserted)
-#        self.sourceModel().rowsRemoved.connect(self._rowsRemoved)
-#        self.sourceModel().dataChanged.connect(self._dataChanged)
+    def setSourceModel(self, source):
+        super(TransposeProxyModel, self).setSourceModel(source)
+
+        # connect signals
+        self.sourceModel().columnsAboutToBeInserted.connect(self.columnsAboutToBeInserted.emit)
+        self.sourceModel().columnsInserted.connect(self.columnsInserted.emit)
+        self.sourceModel().columnsAboutToBeRemoved.connect(self.columnsAboutToBeRemoved.emit)
+        self.sourceModel().columnsRemoved.connect(self.columnsRemoved.emit)
+
+        self.sourceModel().rowsInserted.connect(self._rowsInserted)
+        self.sourceModel().rowsRemoved.connect(self._rowsRemoved)
+        self.sourceModel().dataChanged.connect(self._dataChanged)
 
     def mapFromSource(self, sourceIndex):
         return self.createIndex(sourceIndex.column(),

@@ -18,18 +18,18 @@ import platform
 import PySide
 from PySide import QtGui
 from PySide import QtCore
-from parseIDF import Parser
-from parseIDF import Writer
 
 # Custom imports
-import genericdelegates as gd
+import idfdelegates
 import idfobject
-from idfobject import TransposeProxyModel
+import idfparse
+
+# Resource imports
 import icons_qr  # Used for icons (in text format)
 import misc_icons_qr  # Used for icons (in text format)
 
 # Global variables
-__version__ = 0.1
+__version__ = '0.0.1'
 
 
 class IDFPlus(QtGui.QMainWindow):
@@ -46,7 +46,8 @@ class IDFPlus(QtGui.QMainWindow):
 
         # Set some instance variables
         self.filename = None
-        self.idd = shelve.open('myIDD.dat')  # How can this be avoided?!
+#        myPath = os.path.abspath(os.path.curdir)
+        self.idd = shelve.open('data/myIDD.dat')  # How can this be avoided?!
         self.idf = None
         self.groups = None
         self.fullTree = True
@@ -115,7 +116,7 @@ class IDFPlus(QtGui.QMainWindow):
             self.progressDialog.show()
 
             self.statusBar().showMessage(message, 5000)
-            parser = Parser(self.com)
+            parser = idfparse.Parser(self.com)
             parser.msg.msg.connect(self.testSignal)
             (object_count, eol_char,
              options, groups, objects) = parser.parseIDD(filename)
@@ -153,7 +154,7 @@ class IDFPlus(QtGui.QMainWindow):
         if not self.filename or not self.idf:
             return False
         filename = self.filename
-        writer = Writer()
+        writer = idfparse.Writer()
         if writer.writeIDF(filename, None, self.idf):
             self.setCurrentFile(filename)
             self.addRecentFile(filename)
@@ -558,7 +559,7 @@ class IDFPlus(QtGui.QMainWindow):
 
         # If objects are horizontal, create transposed model
         if self.obj_orientation == QtCore.Qt.Horizontal:
-            proxyModel = TransposeProxyModel()
+            proxyModel = idfobject.TransposeProxyModel()
             proxyModel.setSourceModel(default_model)
             model = proxyModel
 
@@ -571,7 +572,7 @@ class IDFPlus(QtGui.QMainWindow):
         table.resizeColumnsToContents()
 
         # Create generic delegates for table cells
-        delegates = gd.GenericDelegate(iddPart, self.obj_orientation)
+        delegates = idfdelegates.GenericDelegate(iddPart, self.obj_orientation)
 #        delegates.assignDelegates(table, iddPart)
 
         # Assign delegates depending on object orientation

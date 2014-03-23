@@ -1,18 +1,10 @@
 #!/usr/bin/env python
-# Copyright (c) 2007-8 Qtrac Ltd. All rights reserved.
-# This program or module is free software: you can redistribute it and/or
-# modify it under the terms of the GNU General Public License as published
-# by the Free Software Foundation, either version 2 of the License, or
-# version 3 of the License, or (at your option) any later version. It is
-# provided for educational purposes and is distributed in the hope that
-# it will be useful, but WITHOUT ANY WARRANTY; without even the implied
-# warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See
-# the GNU General Public License for more details.
 
 from PySide import QtGui, QtCore
 
 
 class GenericDelegate(QtGui.QItemDelegate):
+    '''Template delegate for the table view.'''
 
     def __init__(self, idd_obj, obj_orientation, parent=None):
         super(GenericDelegate, self).__init__(parent)
@@ -62,6 +54,48 @@ class GenericDelegate(QtGui.QItemDelegate):
             delegate.setModelData(editor, model, index)
         else:
             QtGui.QItemDelegate.setModelData(self, editor, model, index)
+
+#    def paint(self, painter, option, index):
+#        if index.column() == DESCRIPTION:
+#            text = index.model().data(index).toString()
+#            palette = QApplication.palette()
+#            document = QTextDocument()
+#            document.setDefaultFont(option.font)
+#            if option.state & QStyle.State_Selected:
+#                document.setHtml(QString("<font color=%1>%2</font>") \
+#                        .arg(palette.highlightedText().color().name()) \
+#                        .arg(text))
+#            else:
+#                document.setHtml(text)
+#            color = palette.highlight().color() \
+#                if option.state & QStyle.State_Selected \
+#                else QColor(index.model().data(index,
+#                            Qt.BackgroundColorRole))
+#            painter.save()
+#            painter.fillRect(option.rect, color)
+#            painter.translate(option.rect.x(), option.rect.y())
+#            document.drawContents(painter)
+#            painter.restore()
+#        else:
+#            QItemDelegate.paint(self, painter, option, index)
+
+#    def sizeHint(self, option, index):
+#        fm = option.fontMetrics
+#        if index.column() == TEU:
+#            return QSize(fm.width("9,999,999"), fm.height())
+#        if index.column() == DESCRIPTION:
+#            text = index.model().data(index).toString()
+#            document = QTextDocument()
+#            document.setDefaultFont(option.font)
+#            document.setHtml(text)
+#            return QSize(document.idealWidth() + 5, fm.height())
+#        return QItemDelegate.sizeHint(self, option, index)
+
+#    def commitAndCloseEditor(self):
+#        editor = self.sender()
+#        if isinstance(editor, (QTextEdit, QLineEdit)):
+#            self.emit(SIGNAL("commitData(QWidget*)"), editor)
+#            self.emit(SIGNAL("closeEditor(QWidget*)"), editor)
 
     def assignDelegates(self, idd_obj):
         # cycle through table and assign delegates as needed
@@ -205,7 +239,8 @@ class ChoiceDelegate(QtGui.QItemDelegate):
 
     def imActivated(self, index):
 #        self.combo.showPopup()
-        print 'i was activated'
+#        print 'i was activated'
+        pass
 
     def createEditor(self, parent, option, index):
         combo = QtGui.QComboBox(parent)
@@ -229,7 +264,7 @@ class ChoiceDelegate(QtGui.QItemDelegate):
                     model.appendRow([value_item, tag_item])
                 tag_list.append(tag['tag'])
 
-        print 'found tags: {}'.format(tag_list)
+#        print 'found tags: {}'.format(tag_list)
         myitem = model.findItems('current', column=1)
         if len(myitem) > 0:
             model.removeRow(myitem[0].row())

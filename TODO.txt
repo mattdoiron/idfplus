@@ -29,3 +29,4 @@ Done
 * Implement dock widgets for class list, comments and help/info
 * implement dynamic comboboxes for table fields
 * implemented transposing of object table
+* reorganized file structure to resemble a python project

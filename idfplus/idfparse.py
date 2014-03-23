@@ -494,7 +494,7 @@ class Parser(object):
         print 'Parsing IDD file: {} ({} bytes)'.format(filename, total_size)
 
         # Open the specified file in a safe way
-        with open(filename, 'r') as file, closing(shelve.open('myIDD.dat')) as myIDD:
+        with open(filename, 'r') as file, closing(shelve.open('data/myIDD.dat')) as myIDD:
             # Prepare some variables to store the results
             idd = myIDD['idd']
             objects = OrderedDict()
