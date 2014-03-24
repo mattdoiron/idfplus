@@ -21,9 +21,9 @@ class GenericDelegate(QtGui.QItemDelegate):
             del self.delegates[index]
 
     def getRowOrCol(self, index):
-        if self.obj_orientation == QtCore.Qt.Vertical:
+        if self.obj_orientation == QtCore.Qt.Horizontal:
             return index.column()
-        else:
+        if self.obj_orientation == QtCore.Qt.Vertical:
             return index.row()
 
     def paint(self, painter, option, index):

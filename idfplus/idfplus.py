@@ -124,12 +124,14 @@ class IDFPlus(QtGui.QMainWindow):
             parser.msg.msg.connect(self.testSignal)
             (object_count, eol_char,
              options, groups, objects) = parser.parseIDD(filename)
-
+            self.idd = shelve.open('data/myIDD.dat')
+            # TODO: find vesion of idf file and load appropriate idd file!
             self.idf = objects
             self.groups = groups
             self.loadTreeView(self.fullTree)
+            self.classTable.setModel(None)
             self.commentView.setText(str(object_count))  # test only
-            self.dirty = False
+            self.dirty = False  # Move this into idfObjectContainer
             self.filename = filename
             self.addRecentFile(filename)
             message = "Loaded %s" % os.path.basename(filename)
@@ -546,6 +548,7 @@ class IDFPlus(QtGui.QMainWindow):
     def loadTableView(self, name):
         '''Loads the table of objects for the specified class name.'''
         table = self.classTable
+
         self.current_obj = name
 
         if not name:
@@ -561,19 +564,19 @@ class IDFPlus(QtGui.QMainWindow):
         default_model.load()
         model = default_model
 
-        # If objects are horizontal, create transposed model
-        if self.obj_orientation == QtCore.Qt.Horizontal:
+        # If objects are vertical, create transposed model
+        if self.obj_orientation == QtCore.Qt.Vertical:
             proxyModel = idfobject.TransposeProxyModel()
             proxyModel.setSourceModel(default_model)
             model = proxyModel
 
         # Assign model to table and set some variables
         table.setModel(model)
-        font = QtGui.QFont("Arial", 10)
-        table.setFont(font)
-        table.setSortingEnabled(True)
-        table.setWordWrap(True)
-        table.resizeColumnsToContents()
+#        font = QtGui.QFont("Arial", 10)
+#        table.setFont(font)
+#        table.setSortingEnabled(True)
+#        table.setWordWrap(True)
+#        table.resizeColumnsToContents()
 
         # Create generic delegates for table cells
         delegates = idfdelegates.GenericDelegate(iddPart, self.obj_orientation)
@@ -591,6 +594,7 @@ class IDFPlus(QtGui.QMainWindow):
         '''Loads the tree of class type names.'''
         tree = self.classTree
         tree.clear()
+
 #        groups = self.groups
         objects = self.idf
         group = ''
@@ -640,8 +644,11 @@ class IDFPlus(QtGui.QMainWindow):
     def transposeTable(self):
         if self.obj_orientation == QtCore.Qt.Horizontal:
             self.obj_orientation = QtCore.Qt.Vertical
+            print('Setting object orientation to: Vertical')
         else:
             self.obj_orientation = QtCore.Qt.Horizontal
+            print('Setting object orientation to: Horizontal')
+#        self.classTable.obj_orientation = self.obj_orientation
         self.loadTableView(self.current_obj)
 
     def testSignal(self, myint):
@@ -664,6 +671,11 @@ class IDFPlus(QtGui.QMainWindow):
         classTable = QtGui.QTableView(self)
         classTable.setAlternatingRowColors(True)
         classTable.setFrameShape(QtGui.QFrame.StyledPanel)
+        font = QtGui.QFont("Arial", 10)
+        classTable.setFont(font)
+        classTable.setSortingEnabled(True)
+        classTable.setWordWrap(True)
+        classTable.resizeColumnsToContents()
 #        layout = QtGui.QVBoxLayout(self)
 #        layout.addWidget(self.editToolBar)
 #        layout.addWidget(classTable)

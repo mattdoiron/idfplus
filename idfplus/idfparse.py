@@ -275,7 +275,7 @@ class Writer(object):
 
         # Open file and write
         try:
-            with open(filename + '_test', 'w', encoding='ascii', newline='') as file:
+            with open(filename + '_test', 'w') as file:
                 for obj_class, obj_list in idf_file.iteritems():
 
                     for obj in obj_list:

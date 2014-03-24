@@ -3,13 +3,20 @@ TODO List for IDFPlus
 =====================
 Present
 =====================
-* impove file saving to preserve white space, add !- comments, etc
+* fix file saving
+* make sure file saving preserves white space, add !- comments, etc
 * rethink data structures for idd and idf file!
+    * use blitzdb for idf files?
+    * use zodb for IDD?
 * store tree-view on disk and simply populate it on loading of an idf file
+    * part of idd stored file?
 * move progress bar to status bar?
 * figure out when to load idd file into memory and how to keep it global
+    * simply use shelve call when idf is loaded. save in self.idd
 * empty class types should not show a table at all unless the new button is pushed
 * make info and comment panes update with content
+* ensure that IDD file is of proper version! (currently its not so things break!)
+* implement file locking
 
 
 =====================
@@ -17,9 +24,9 @@ Future
 =====================
 * setup testing (nose, unittesting, etc)
 * Document all code
-* restructure files to a more standard python package
 * is it worth converting to Python 3?
-
+* copy and paste to/from excel (http://stackoverflow.com/questions/1230222/selected-rows-line-in-qtableview-copy-to-qclipboard)
+* implement full undo support
 
 
 
@@ -30,3 +37,4 @@ Done
 * implement dynamic comboboxes for table fields
 * implemented transposing of object table
 * reorganized file structure to resemble a python project
+* make class table clear on loading a new file

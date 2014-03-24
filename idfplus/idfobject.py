@@ -149,8 +149,8 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
         return QtCore.Qt.ItemFlags(current_flags | QtCore.Qt.ItemIsEditable)
 
     def data(self, index, role):
-        if not index.isValid() or \
-                not (0 <= index.row() < len(self.idfObjects)):
+        if not index.isValid():  # or \
+#                not (0 <= index.row() < len(self.idfObjects)):
 #            print "data() called with invalid index"
             return None
 
@@ -165,15 +165,14 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
 
         data = None
         if role == QtCore.Qt.DisplayRole:
-#            print 'data called with index ({},{})'.format(row, column)
             data = idfObject['fields'][column]
         elif role == QtCore.Qt.EditRole:
             data = idfObject['fields'][column]
         elif role == QtCore.Qt.ToolTipRole:
             data = "tooltip test"
 #            return msg
-        elif role == QtCore.Qt.DecorationRole:
-            data = QtGui.QIcon("icon.png")
+#        elif role == QtCore.Qt.DecorationRole:
+#            data = QtGui.QIcon("icon.png")
         #    row = index.row()
         #    value = self.__colors[row]
         #
@@ -214,22 +213,20 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
             return QtCore.Qt.AlignRight | QtCore.Qt.AlignVCenter
         if role == QtCore.Qt.DisplayRole:
             if orientation == QtCore.Qt.Horizontal:
-                return self.hlabels[section]
+                return self.field_labels[section]
             if orientation == QtCore.Qt.Vertical:
-                return self.vlabels[section]
+                return self.objID_lables[section]
         return None
 
     def rowCount(self, index):
         return len(self.idfObjects)
 
     def columnCount(self, index):
-        return len(self.hlabels)
+        return len(self.field_labels)
 
     def setData(self, index, value, role):
-#        print "set data called"
-        if not index.isValid() or \
-                not (0 <= index.row() < len(self.idfObjects)):
-#            print "data() called with invalid index"
+        if not index.isValid():  # or \
+#                not (0 <= index.row() < len(self.idfObjects)):
             return False
 
         if role == QtCore.Qt.EditRole:
@@ -267,16 +264,16 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
 
     def load(self):
 #        self.idfObjects = []
-        hlabels = []
+        field_labels = []
         for tag_item in self.iddPart['field_tags']:
             for tag in tag_item:
                 if tag['tag'] == '\\field':
-                    hlabels.append(tag['value'])
+                    field_labels.append(tag['value'])
 
-        vlabels = ['Obj' + str(i) for i in range(len(self.idfObjects))]
+        objID_lables = ['Obj' + str(i) for i in range(1, len(self.idfObjects) + 1)]
 
-        self.vlabels = vlabels
-        self.hlabels = hlabels
+        self.objID_lables = objID_lables
+        self.field_labels = field_labels
 
         # exception = None
         # fh = None
@@ -356,16 +353,20 @@ class TransposeProxyModel(QtGui.QAbstractProxyModel):
         self.sourceModel().columnsAboutToBeRemoved.connect(self.columnsAboutToBeRemoved.emit)
         self.sourceModel().columnsRemoved.connect(self.columnsRemoved.emit)
 
-        self.sourceModel().rowsInserted.connect(self._rowsInserted)
-        self.sourceModel().rowsRemoved.connect(self._rowsRemoved)
-        self.sourceModel().dataChanged.connect(self._dataChanged)
+#        self.sourceModel().rowsInserted.connect(self._rowsInserted)
+#        self.sourceModel().rowsRemoved.connect(self._rowsRemoved)
+#        self.sourceModel().dataChanged.connect(self._dataChanged)
 
     def mapFromSource(self, sourceIndex):
+        if not sourceIndex.isValid():
+            return QtCore.QModelIndex()
         return self.createIndex(sourceIndex.column(),
                                 sourceIndex.row(),
                                 QtCore.QModelIndex())
 
     def mapToSource(self, proxyIndex):
+        if not proxyIndex.isValid():
+            return QtCore.QModelIndex()
         return self.sourceModel().createIndex(proxyIndex.column(),
                                               proxyIndex.row(),
                                               QtCore.QModelIndex())
@@ -390,3 +391,10 @@ class TransposeProxyModel(QtGui.QAbstractProxyModel):
 
     def data(self, index, role):
         return self.sourceModel().data(self.mapToSource(index), role)
+
+    def headerData(self, section, orientation, role):
+        if orientation == QtCore.Qt.Horizontal:
+            new_orientation = QtCore.Qt.Vertical
+        else:
+            new_orientation = QtCore.Qt.Horizontal
+        return self.sourceModel().headerData(section, new_orientation, role)
