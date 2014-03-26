@@ -482,7 +482,7 @@ class Parser(object):
         import os
         from collections import OrderedDict
 
-        global comment_delimiter_special
+        global comment_delimiter_special  # Avoid these...
         global options_list
 
 #        myIDD = shelve.open('myIDD.dat')  # This should be done using 'with'
@@ -494,7 +494,7 @@ class Parser(object):
         print 'Parsing IDD file: {} ({} bytes)'.format(filename, total_size)
 
         # Open the specified file in a safe way
-        with open(filename, 'r') as file, closing(shelve.open('data/myIDD.dat')) as myIDD:
+        with open(filename, 'r') as file, closing(shelve.open('data/EnergyPlus_IDD_v8.1.0.008.dat')) as myIDD:
             # Prepare some variables to store the results
             idd = myIDD['idd']
             objects = OrderedDict()
@@ -515,7 +515,8 @@ class Parser(object):
                 # Parse this line using readline (so last one is a blank)
                 line = file.readline()
                 total_read += len(line)
-                self.msg.msg.emit(total_read)
+                if self.msg:
+                    self.msg.msg.emit(total_read)
                 line_parsed = self.parseLineIDD(line)
 
                 # If the previous line was not the end of an object check this one
@@ -610,27 +611,29 @@ class Parser(object):
         print 'Parsing IDD complete!'
         return (len(objects), eol_char, options, group_list, objects)
 
+    def compile_idd(self, idd_filename, version):
+        '''Opens, parses and then shelves a copy of the IDD file object.'''
+
+        import shelve
+        parser = Parser(None)
+
+        (object_count, eol_char,
+         options, groups, objects) = parser.parseIDD(idd_filename)
+
+        database = shelve.open('data/EnergyPlus_IDD_v{}.dat'.format(version))
+        database['idd'] = objects
+        database['groups'] = groups[1:]
+        tree_model = None
+        database['tree_model'] = tree_model
+        database.close()
 
 ## Parse this idd file
 #idd_file = 'Energy+.idd'
 #idf_file = 'RefBldgLargeOfficeNew2004_Chicago.idf'
-idf_file2 = '5ZoneBoilerOutsideAirReset.idf'
+#idf_file2 = '5ZoneBoilerOutsideAirReset.idf'
 #idf_file3 = 'ChicagoSM.idf'
 #object_count, eol_char, options, groups, objects = parseIDD(idf_file2)
 ##writeIDF('testoutput.idf', options, objects)
 #import json
 #encoded = json.dumps(objects)
 #obj = json.loads(encoded)
-
-
-#import shelve
-#database = shelve.open('myIDD.dat')
-#database['idd'] = objects
-#database['groups'] = groups[1:]
-#tree_model = None
-#database['tree_model'] = tree_model
-#database.close()
-
-
-
-

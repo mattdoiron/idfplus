@@ -124,7 +124,7 @@ class IDFPlus(QtGui.QMainWindow):
             parser.msg.msg.connect(self.testSignal)
             (object_count, eol_char,
              options, groups, objects) = parser.parseIDD(filename)
-            self.idd = shelve.open('data/myIDD.dat')
+            self.idd = shelve.open('data/EnergyPlus_IDD_v8.1.0.008.dat')
             # TODO: find vesion of idf file and load appropriate idd file!
             self.idf = objects
             self.groups = groups

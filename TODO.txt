@@ -3,11 +3,14 @@ TODO List for IDFPlus
 =====================
 Present
 =====================
-* fix file saving
+* load different IDD file depending on IDF file version
 * make sure file saving preserves white space, add !- comments, etc
 * rethink data structures for idd and idf file!
     * use blitzdb for idf files?
     * use zodb for IDD?
+* Create objects to contain all data related to IDF and IDD files
+    * use these to perform all interactions with IDF and IDD files
+    * IDFFile class, IDDFile class
 * store tree-view on disk and simply populate it on loading of an idf file
     * part of idd stored file?
 * move progress bar to status bar?
@@ -17,6 +20,7 @@ Present
 * make info and comment panes update with content
 * ensure that IDD file is of proper version! (currently its not so things break!)
 * implement file locking
+* Split the IDD processing stuff from the IDF processing stuff
 
 
 =====================
