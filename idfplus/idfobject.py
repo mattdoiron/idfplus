@@ -1,5 +1,8 @@
 #!/usr/bin/env python
 
+import shelve
+import os
+
 from PySide import QtGui, QtCore
 
 #class IDFObject(object):
@@ -398,3 +401,32 @@ class TransposeProxyModel(QtGui.QAbstractProxyModel):
         else:
             new_orientation = QtCore.Qt.Horizontal
         return self.sourceModel().headerData(section, new_orientation, role)
+
+
+class IDDFile(object):
+    '''Object to handle all interaction with idd files.'''
+
+    def __init__(self, parent, version):
+
+        if not version or not parent:
+            raise ValueError("Missing version number when defining IDD.")
+
+        self.parent = parent
+        self.version = version
+        self.idd = None
+        self.settings = parent.settings
+
+    def loadIDD(self):
+        '''Loads the idd file of the appropriate version for use later.'''
+
+        idd_file = os.path.join(self.settings.getDirName(),
+                                'data',
+                                'EnergyPlus_IDD_v') + self.version + '.dat'
+
+        try:
+            print('Loading IDD file: {}'.format(idd_file))
+            self.idd = shelve.open(idd_file)
+            return True
+        except Exception as e:
+            print("Can't open file: {} ({})".format(idd_file, e))
+            return False

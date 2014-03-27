@@ -27,6 +27,7 @@ from PySide import QtCore
 import idfdelegates
 import idfobject
 import idfparse
+import idfsettings
 
 # Resource imports
 import icons_qr  # Used for icons (in text format)
@@ -46,12 +47,14 @@ class IDFPlus(QtGui.QMainWindow):
         self.createUI()
 
         # Load settings (call this second)
-        self.readSettings()
+        self.settings = idfsettings.Settings(self)
+        self.settings.readSettings()
 
         # Set some instance variables
         self.filename = None
 #        myPath = os.path.abspath(os.path.curdir)
-        self.idd = shelve.open('data/myIDD.dat')  # How can this be avoided?!
+#        self.idd = shelve.open('data/myIDD.dat')  # How can this be avoided?!
+        self.idd = None
         self.idf = None
         self.groups = None
         self.fullTree = True
@@ -73,8 +76,9 @@ class IDFPlus(QtGui.QMainWindow):
     def closeEvent(self, event):
         '''Called when the application is closed.'''
         if self.okToContinue():
-            self.writeSettings()
-            self.idd.close()
+            self.settings.writeSettings()
+            if self.idd:
+                self.idd.close()
             event.accept()
         else:
             event.ignore()
@@ -118,14 +122,31 @@ class IDFPlus(QtGui.QMainWindow):
             self.progressDialog.setMinimumDuration(500)
             self.progressDialog.setCancelButton(None)
             self.progressDialog.show()
-
             self.statusBar().showMessage(message, 5000)
+
+            # Prepare the parser and load the IDD file with it
             parser = idfparse.Parser(self.com)
             parser.msg.msg.connect(self.testSignal)
             (object_count, eol_char,
              options, groups, objects) = parser.parseIDD(filename)
-            self.idd = shelve.open('data/EnergyPlus_IDD_v8.1.0.008.dat')
-            # TODO: find vesion of idf file and load appropriate idd file!
+
+            # Load IDD File for the version of this IDF file
+            version = '8.1.0.008'  # Get this from IDF file!
+            idd = idfobject.IDDFile(self, version)
+            if idd.loadIDD():
+                self.idd = idd.idd
+            else:
+                QtGui.QMessageBox.warning(self,
+                                          "Application",
+                                          ("Could not find IDD file of "
+                                           "appropriate version!\nLoading "
+                                           "cancelled"),
+                                          QtGui.QMessageBox.Ok)
+                message = ("Loading failed. Could not find "
+                           "matching IDD version.")
+                self.updateStatus(message)
+                return False
+
             self.idf = objects
             self.groups = groups
             self.loadTreeView(self.fullTree)
@@ -370,39 +391,6 @@ class IDFPlus(QtGui.QMainWindow):
         QtGui.QShortcut(QtGui.QKeySequence('Ctrl+d'),self).activated.connect(self.copytest)
         QtGui.QShortcut(QtGui.QKeySequence('Ctrl+l'),self).activated.connect(self.toggleFullTree)
 
-    def readSettings(self):
-        '''Reads application settings and restores them.'''
-        settings = QtCore.QSettings()
-
-        size = settings.value("MainWindow/Size", QtCore.QSize(600, 500))
-        position = settings.value("MainWindow/Position", QtCore.QPoint(200, 200))
-        state = settings.value("MainWindow/State", QtCore.QState())
-        geometry = settings.value("MainWindow/Geometry", QtCore.QRect())
-
-        self.recentFiles = settings.value("RecentFiles", ['']) or ['']
-        self.resize(size)
-        self.move(position)
-        self.restoreState(state)
-        self.restoreGeometry(geometry)
-#        self.restoreDockWidget(self.ui.classTree.parent())
-##        self.restoreDockWidget(self.ui.classTable.parent())
-#        self.restoreDockWidget(self.ui.infoView.parent())
-#        self.restoreDockWidget(self.ui.commentView.parent())
-
-    def writeSettings(self):
-        '''Writes application settings to save them.'''
-        settings = QtCore.QSettings()
-
-        filename = self.filename  # or '' or None
-        recentFiles = self.recentFiles or ['']
-
-        settings.setValue("LastFile", filename)
-        settings.setValue("RecentFiles", recentFiles)
-        settings.setValue("MainWindow/Size", self.size())
-        settings.setValue("MainWindow/Position", self.pos())
-        settings.setValue("MainWindow/State", self.saveState())
-        settings.setValue("MainWindow/Geometry", self.saveGeometry())
-
 #    def createAction(self, text, slot=None, shortcut=None, icon=None,
 #                     tip=None, checkable=False, signal="triggered()"):
 #        action = QtGui.QAction(text, self)
@@ -479,8 +467,8 @@ class IDFPlus(QtGui.QMainWindow):
         if self.filename is not None:
             basename = os.path.basename(self.filename)
             self.setWindowTitle("IDFPlus Editor - %s[*]" % basename)
-        elif not self.image.isNull():
-            self.setWindowTitle("IDFPlus Editor - Unnamed[*]")
+#        elif not self.image.isNull():
+#            self.setWindowTitle("IDFPlus Editor - Unnamed[*]")
         else:
             self.setWindowTitle("IDFPlus Editor[*]")
             self.setWindowModified(self.dirty)
@@ -736,6 +724,11 @@ class IDFPlus(QtGui.QMainWindow):
         self.infoView = infoView
         self.classTree = classTree
 
+        # Store docks for access by other objects
+        self.commentDockWidget = commentDockWidget
+        self.infoDockWidget = infoDockWidget
+        self.classTreeDockWidget = classTreeDockWidget
+
         # Perform other UI-related initialization tasks
         self.center()
         self.setUnifiedTitleAndToolBarOnMac(True)
@@ -784,10 +777,10 @@ class Communicate(QtCore.QObject):
 def main():
 
     app = QtGui.QApplication(sys.argv)
-    app.setStyle(QtGui.QStyleFactory.create('Cleanlooks'))
-    app.setOrganizationName("IDF Plus Inc.")
-    app.setOrganizationDomain("idfplus.com")
-    app.setApplicationName("IDFPlus Editor")
+#    app.setStyle(QtGui.QStyleFactory.create('Cleanlooks'))
+#    app.setOrganizationName("IDF Plus Inc.")
+#    app.setOrganizationDomain("idfplus.com")
+#    app.setApplicationName("IDFPlus Editor")
 
     idfPlus = IDFPlus()
     idfPlus.show()
