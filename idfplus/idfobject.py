@@ -125,6 +125,9 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
 #        self.filename = filename
         self.dirty = False
 
+#    def sortTable(self):
+#        print('sort called!')
+
 #    def sortByName(self):
 #        self.idfObjects = sorted(self.idfObjects)
 #        self.reset()
@@ -344,8 +347,10 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
 class TransposeProxyModel(QtGui.QAbstractProxyModel):
     '''Translates columns to rows or vice versa'''
 
-    def __init__(self, parent=None):
+    def __init__(self, source_model, parent=None):
         super(TransposeProxyModel, self).__init__(parent)
+        self.source_model = source_model
+        self.setSourceModel(self.source_model)
 
     def setSourceModel(self, source):
         super(TransposeProxyModel, self).setSourceModel(source)
@@ -359,6 +364,12 @@ class TransposeProxyModel(QtGui.QAbstractProxyModel):
 #        self.sourceModel().rowsInserted.connect(self._rowsInserted)
 #        self.sourceModel().rowsRemoved.connect(self._rowsRemoved)
 #        self.sourceModel().dataChanged.connect(self._dataChanged)
+
+#    def sortTable(self):
+#        print('sort called')
+#
+#    def lessThan(self, left, right):
+#        print('lessthan!')
 
     def mapFromSource(self, sourceIndex):
         if not sourceIndex.isValid():

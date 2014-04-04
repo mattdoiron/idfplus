@@ -548,18 +548,25 @@ class IDFPlus(QtGui.QMainWindow):
         else:
             idfObjects = [{'fields':[None for i in iddPart['fields']]}]
 
-        default_model = idfobject.IDFObjectTableModel(idfObjects, iddPart)
-        default_model.load()
-        model = default_model
+        self.default_model = idfobject.IDFObjectTableModel(idfObjects, iddPart)
+        self.default_model.load()
+        model = self.default_model
 
         # If objects are vertical, create transposed model
         if self.obj_orientation == QtCore.Qt.Vertical:
-            proxyModel = idfobject.TransposeProxyModel()
-            proxyModel.setSourceModel(default_model)
+            proxyModel = idfobject.TransposeProxyModel(self.default_model)
+#            proxyModel.setSourceModel(self.default_model)
             model = proxyModel
+#            table.horizontalHeader().sectionClicked.connect(model.sortTable)
+
+        sortable = QtGui.QSortFilterProxyModel()
+        sortable.setDynamicSortFilter(True)
+        sortable.setSourceModel(model)
+        table.setSortingEnabled(True)
 
         # Assign model to table and set some variables
-        table.setModel(model)
+        table.setModel(sortable)
+
 #        font = QtGui.QFont("Arial", 10)
 #        table.setFont(font)
 #        table.setSortingEnabled(True)
@@ -657,12 +664,13 @@ class IDFPlus(QtGui.QMainWindow):
         # Class Objects Table widget
 #        mainView = QtGui.QWidget(self)
         classTable = QtGui.QTableView(self)
+        classTable.setObjectName("classTable")
         classTable.setAlternatingRowColors(True)
         classTable.setFrameShape(QtGui.QFrame.StyledPanel)
         font = QtGui.QFont("Arial", 10)
         classTable.setFont(font)
-        classTable.setSortingEnabled(True)
         classTable.setWordWrap(True)
+        classTable.horizontalHeader().setMovable(True)
         classTable.resizeColumnsToContents()
 #        layout = QtGui.QVBoxLayout(self)
 #        layout.addWidget(self.editToolBar)
@@ -672,16 +680,16 @@ class IDFPlus(QtGui.QMainWindow):
 #        self.layout = layout
 
         # Class name tree widget
-        classTreeDockWidget = QtGui.QDockWidget("Class Names and Counts", self)
+        classTreeDockWidget = QtGui.QDockWidget("Object Classes and Counts", self)
         classTreeDockWidget.setObjectName("classTreeDockWidget")
         classTreeDockWidget.setAllowedAreas(QtCore.Qt.AllDockWidgetAreas)
         classTree = QtGui.QTreeWidget(classTreeDockWidget)
         header = QtGui.QTreeWidgetItem(['Object Class', 'Count'])
         header.setFirstColumnSpanned(True)
         classTree.setHeaderItem(header)
-        classTree.header().resizeSection(0, 250)
+        classTree.header().resizeSection(0, 200)
         classTree.header().resizeSection(1, 10)
-        classTree.header().setResizeMode(QtGui.QHeaderView.ResizeToContents)
+#        classTree.header().setResizeMode(QtGui.QHeaderView.ResizeToContents)
         classTree.setAlternatingRowColors(True)
         classTreeDockWidget.setWidget(classTree)
 
