@@ -1,8 +1,20 @@
+#!/usr/bin/python
 # -*- coding: utf-8 -*-
-"""
-Created on Sat Jan 18 11:34:45 2014
+""""
+Copyright (c) 2014, IDFPlus Inc. All rights reserved.
 
-@author: Matt Doiron <mattdoiron@gmail.com>
+IDFPlus is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+IDFPlus is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with Foobar. If not, see <http://www.gnu.org/licenses/>.
 """
 
 #from PySide.QtCore import QObject, Signal
@@ -478,9 +490,10 @@ class Parser(object):
 
     def parseIDD(self, filename):
         '''Parse the provided idd (or idf) file'''
-        import shelve
+#        import shelve
         import os
         from collections import OrderedDict
+        import idfmodel
 
         global comment_delimiter_special  # Avoid these...
         global options_list
@@ -494,9 +507,9 @@ class Parser(object):
         print 'Parsing IDD file: {} ({} bytes)'.format(filename, total_size)
 
         # Open the specified file in a safe way
-        with open(filename, 'r') as file, closing(shelve.open('data/EnergyPlus_IDD_v8.1.0.008.dat')) as myIDD:
+        with open(filename, 'r') as file:  #, closing(shelve.open('data/EnergyPlus_IDD_v8.1.0.008.dat')) as myIDD:
             # Prepare some variables to store the results
-            idd = myIDD['idd']
+            idd = None  # myIDD['idd']
             objects = OrderedDict()
             field_list = []
             comment_list = []
@@ -508,6 +521,7 @@ class Parser(object):
             group_list = []
             end_object = False
             eol_char = None  # Detect this and save it
+            version = None  # '8.1.0.008'  # Get this from IDF file!
 
             # Cycle through each line in the file
             while True:
@@ -519,12 +533,12 @@ class Parser(object):
                     self.msg.msg.emit(total_read)
                 line_parsed = self.parseLineIDD(line)
 
-                # If the previous line was not the end of an object check this one
+                # If previous line was not the end of an object check this one
                 if end_object is False:
                     end_object = line_parsed['end_object']
                 empty_line = line_parsed['empty_line']
 
-                # Check for special comments and options (write a func for this?)
+                # Check for special comments and options (make func for this?)
                 line_clean = line.expandtabs().lstrip()
                 if line_clean.startswith(comment_delimiter_special):
                     # Special comment found, save it
@@ -532,7 +546,7 @@ class Parser(object):
                         line_clean.lstrip(comment_delimiter_special).rstrip()
                     )
 
-                # Check for special options (write a separate function for this?)
+                # Check for special options (make separate function for this?)
                 if line_clean.startswith('!-Option'):
                     match = [x for x in options_list if x in line_clean]
                     options.extend(match)
@@ -544,6 +558,10 @@ class Parser(object):
                 # If there are any fields save them
                 if line_parsed['fields']:
                     field_list.extend(line_parsed['fields'])
+
+                    # Detect idf file version and use it to select idd file
+                    if not idd and field_list[0] == 'Version':
+                        idd = idfmodel.IDDFile(field_list[1])
 
                 # Check for the end of an object before checking for new tags
                 if (end_object and empty_line) or line_parsed['fields']:
@@ -582,6 +600,12 @@ class Parser(object):
                         group_list.append(group)
 
                     # Save the object
+                    # obj = IDFObject(fields,
+                    #                 comments=comment_list,
+                    #                 comments_special=comment_list_special,
+                    #                 field_tags=field_tag_list,
+                    #                 group=group,
+                    #                 obj_class=obj_class)
                     obj = dict(fields=field_list,
                                comments=comment_list,
                                comments_special=comment_list_special,
@@ -609,7 +633,8 @@ class Parser(object):
 
 #        myIDD.close()
         print 'Parsing IDD complete!'
-        return (len(objects), eol_char, options, group_list, objects)
+        return (len(objects), eol_char, options, idd,
+                group_list, objects, version)
 
     def compile_idd(self, idd_filename, version):
         '''Opens, parses and then shelves a copy of the IDD file object.'''

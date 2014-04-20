@@ -1,11 +1,20 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
+""""
+Copyright (c) 2014, IDFPlus Inc. All rights reserved.
 
-"""
-IDF Plus
-Improved IDF editor
+IDFPlus is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
 
-@author = Matt Doiron <mattdoiron@gmail.com>
+IDFPlus is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with Foobar. If not, see <http://www.gnu.org/licenses/>.
 """
 
 # Prepare for Python 3
@@ -645,6 +654,16 @@ class IDFPlus(QtGui.QMainWindow):
             print('Setting object orientation to: Horizontal')
 #        self.classTable.obj_orientation = self.obj_orientation
         self.loadTableView(self.current_obj)
+        print(self.search(self.idf, 'Holiday'))
+
+    def search(self, dictionary, searchFor):
+        '''Brute force search trial'''
+        for key in dictionary:
+            for obj in dictionary[key]:
+                for val in obj:
+                    if searchFor in val:
+                        return key
+        return None
 
     def testSignal(self, myint):
         '''Test signal'''
