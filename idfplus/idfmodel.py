@@ -14,7 +14,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with Foobar. If not, see <http://www.gnu.org/licenses/>.
+along with IDFPlus. If not, see <http://www.gnu.org/licenses/>.
 """
 
 import shelve
@@ -30,46 +30,50 @@ class IDDFile(OrderedDict):
         {'ScheduleTypeLimits': IDDObject,
          'SimulationControl':  IDDObject}
 
-    :property version: IDD file version
-    :type version: string
-    :property groups: List of groups to which classes can belong
-    :type groups: list of strings
-    :property idd_path: file name of idd files, minus version number
-    :type idd_path: string
-    :property data_path: Folder where idd files are found (relative to root)
-    :type data_path: string
-
+    :attr version: IDD file version
+    :attr groups: List of groups to which classes can belong
     """
 
-    # Various properties of the idd file
-    version = None      # EnergyPlus vesion number (eg. 8.1.0.800)
-    groups = []         # Groups to which various classes can belong
-    idd_file = 'EnergyPlus_IDD_v{}.dat'
-    data_path = 'data'
-
     def __init__(self, version, *args, **kwargs):
-        """
+        """Initializes the idd file
 
         :param version: IDD file version
-        :type version: string
         :param *args: arguments to pass to dictionary
         :param **kwargs: keyword arguments to pass to dictionary
-
         """
+
+        # Various attributes of the idd file
+        self.__idd_file = 'EnergyPlus_IDD_v{}.dat'
+        self.__data_path = 'data'
+
+        # Call the parent class' init method
         super(IDDFile, self).__init__(*args, **kwargs)
 
-        file_name = os.path.join(self.data_path,
-                                 self.idd_file.format(version))
+        # Create the full path to the idd file
+        file_name = os.path.join(self.__data_path,
+                                 self.__idd_file.format(version))
 
+        # Check if the file name is a file and then open the idd file
         if os.path.isfile(file_name):
             with shelve.open(file_name) as f:
                 version, groups, idd = f
         else:
             raise IOError
 
-        self.version = version
-        self.groups = groups
+        # Set some more attributes with using the idd file
+        self.__version = version
+        self.__groups = groups
         self._OrderedDict__update(idd)
+
+    @property
+    def version(self):
+        """Read-only property containing idf file version"""
+        return self.__version
+
+    @property
+    def groups(self):
+        """Read-only property containing list of all possible class groups"""
+        return self.__groups
 
 
 class IDDObject(OrderedDict):
@@ -79,7 +83,6 @@ class IDDObject(OrderedDict):
         {'A1': IDDField1,
          'N1': IDDField2,
          'A2': IDDField3}
-
     """
     pass
 
@@ -90,7 +93,6 @@ class IDDField(dict):
     Simply a regular dict containing keys in the form of 'A1' or 'N2' and
     values for each of the idd field properties in the following list:
         required, field, type, minimum, etc.
-
     """
     pass
 
@@ -103,32 +105,36 @@ class IDFFile(OrderedDict):
         {'ScheduleTypeLimits': [IDFObject1, IDFObject2, IDFObject3],
          'SimulationControl':  [IDFObject4]}
 
+    :attr idd: IDDFile object containing precompiled idd file
+    :attr version: EnergyPlus vesion number (eg. 8.1.0.800)
+    :attr eol_char: depends on file (could be \n or \r\n, etc)
+    :attr options: options that may have been found in idf file
+    :attr file_path: full, absolute path to idf file
     """
 
-    # Various properties of the idf file
-    idd = None          # IDDFile object containing precompiled idd file
-    version = None      # EnergyPlus vesion number (eg. 8.1.0.800)
-    options = []        # options that may have been found in idf file
-    file_path = None    # full, absolute path to idf file
-    eol_char = None     # depends on file (could be \n or \r\n, etc)
-
     def __init__(self, file_path, *args, **kwargs):
-        """
+        """Initializes a new idf file with the given file_path
 
         :param file_path:
         :param *args: arguments to pass to dictionary
         :param **kwargs: keyword arguments to pass to dictionary
-
         """
+        # Call the parent class' init method
         super(IDFFile, self).__init__(*args, **kwargs)
+
+        # Various attributes of the idf file
+        self.__idd = None
+        self.__version = None
+        self.__eol_char = None
+        self.options = []
         self.file_path = file_path
-        self.__load()
 
-    def __load(self):
+        # Call the load method to parse and save the idf file
+        self.__load__()
+
+    def __load__(self):
         """Parses and loads an idf file into the object instance variable.
-        Also sets some properties of the file.
-
-
+        Also sets some attributes of the file.
         """
 
         import idfparse
@@ -136,25 +142,38 @@ class IDFFile(OrderedDict):
         (count, eol_char, options, idd,
          group_list, objects, version) = idfparse.Parser(self.file_path)
 
-        self.idd = idd
-        self.version = version
+        self.__idd = idd
+        self.__version = version
+        self.__eol_char = eol_char
         self.options = options
-        self.eol_char = eol_char
         self._OrderedDict__update(objects)
 
+    @property
+    def version(self):
+        """Read-only property containing idf file version"""
+        return self.__version
+
+    @property
+    def idd(self):
+        """Read-only property containing idd file"""
+        return self.__idd
+
+    @property
+    def eol_char(self):
+        """Read-only property containing the end of line characters"""
+        return self.__eol_char
+
     def find(self, contains=None):
-        """Searches within the file for objects having "contains"
+        """Searches within the file for objects having 'contains'
 
         :param contains:  (Default value = None)
-
         """
         pass
 
     def save(self, file_path):
         """Handles writing of the idf file back to disk.
 
-        :param file_path:
-
+        :param file_path: The absolute file path to the corresponding idf
         """
         pass
 
@@ -167,62 +186,126 @@ class IDFObject(OrderedDict):
          'N1': 123.23,
          'A2': 'field value 213'}
 
-
+    :attr idd: Contains the IDD file used by this IDF object
+    :attr obj_class: Class type of object
+    :attr group: Group to which this object belongs
+    :attr comments: User comments for this object
+    :attr incomming_links: List of tupples of objects that link to this
+    :attr outgoing_links: List of tupples of objects to which this links
     """
 
-    # Various properties of the idf object
-    idd = None
-    comments = None         # User comments for field
-    obj_class = None        # Class type of object
-    group = None            # Group to which this object belongs
-    incomming_links = []    # List of tupples of objects that link to this
-    outgoing_links = []     # List of tupples of objects to which this links
-
-    def __init__(self, idd, *args, **kwargs):
+    def __init__(self, idd, obj_class, *args, **kwargs):
         """Use kwargs to prepopulate some values, then remove them from kwargs
         Also sets the idd file for use by this object.
 
-        :param idd:
+        :param idd: idd file used by this idf file
+        :param obj_class: Class type of this idf object
         :param *args: arguments to pass to dictionary
         :param **kwargs: keyword arguments to pass to dictionary
-
         """
-        self.idd = idd
+
+        # Set various attributes of the idf object
+        self.__idd = idd
+        self.__obj_class = obj_class
+        self.__incomming_links = []
+        self.__outgoing_links = []
         self.comments = kwargs.pop('comments', None)
-        self.obj_class = kwargs.pop('obj_class', None)
-        self.group = kwargs.pop('group', None)
+
+        # Call the parent class' init method
         super(IDFObject, self).__init__(*args, **kwargs)
 
-    def value(self, fld):
+    def __repr__(self):
+        """Returns a string representation of the object in idf format"""
+        values = [str(val) for val in self.values()]
+        str_list = ','.join(values)
+        return self.__obj_class + ',' + str_list + ';'
+
+    @property
+    def idd(self):
+        """Read-only property containing idd file"""
+        return self.__idd
+
+    @property
+    def obj_class(self):
+        """Read-only property containing idf object's class type"""
+        return self.__obj_class
+
+    @property
+    def group(self):
+        """Read-only property containing idf object's group"""
+        return self.__group
+
+    @property
+    def incomming_links(self):
+        """Read-only property containing incomming links"""
+        return self.__incomming_links
+
+    @property
+    def outgoing_links(self):
+        """Read-only property containing outgoing links"""
+        return self.__outgoing_links
+
+    def value(self, field):
+        """Returns the value of the specified field.
+
+        :param field: Field id or key to be retrieved
+        :raises TypeError: If field is not a string or an int
         """
 
-        :param fld:
-
-        """
-        if type(fld) is int:
-            # return self.items()[fld][1] (alternate method)
-            return self[self.keys()[fld]]
-        elif type(fld) is str:
-            return self[fld]
+        # Check for proper types and return the value
+        if isinstance(field, int):
+            return self[self.keys()[field]]
+        elif isinstance(field, str):
+            return self[field]
         else:
             raise TypeError('Invalid key type - must be string or int')
 
-    def add_link(self, obj, field_id, incomming=False, outgoing=False):
+    def addLink(self, obj, field_id, incomming=False, outgoing=False):
         """Ads a link to and/or from this object.
-        obj should be another IDFObject and field_id like 'A1' or 'N2'
 
-        :param obj:
-        :param field_id:
+        :param obj: Another object of type IDFObject
+        :param field_id: A field id like 'A1' or 'N1'
         :param incomming:  (Default value = False)
         :param outgoing:  (Default value = False)
-
+        :raises ValueError: If neither incomming nor outgoing is True
+        :raises TypeError: If either field_id or obj are not a valid types
         """
+
+        # Checks for valid inputs
         if not incomming and not outgoing:
             raise ValueError('Must specify either incomming or outgoing.')
         if not isinstance(obj, IDFObject) or not isinstance(field_id, str):
             raise TypeError('Invalid object or field_id type.')
-        if incomming:
-            self.incomming_links.append((obj, field_id))
-        if outgoing:
-            self.outgoing_links.append((obj, field_id))
+
+        # Adds the specified objects to the list(s) of links
+        link = (obj, field_id)
+        if incomming and link not in self.__incomming_links:
+            self.__incomming_links.append((obj, field_id))
+        if outgoing and link not in self.__outgoing_links:
+            self.__outgoing_links.append((obj, field_id))
+        return True
+
+    def removeLink(self, obj, field_id, incomming=False, outgoing=False):
+        """Removes a link to and/or from this object.
+
+        :param obj: Another object of type IDFObject
+        :param field_id: A field id like 'A1' or 'N1'
+        :param incomming:  (Default value = False)
+        :param outgoing:  (Default value = False)
+        :raises ValueError: If neither incomming nor outgoing is True
+        :raises TypeError: If either field_id or obj are not a valid types
+        """
+
+        # Checks for valid inputs
+        if not incomming and not outgoing:
+            raise ValueError('Must specify either incomming or outgoing.')
+        if not isinstance(obj, IDFObject) or not isinstance(field_id, str):
+            raise TypeError('Invalid object or field_id type.')
+
+        # Removes the specified objects to the list(s) of links
+        link = (obj, field_id)
+        if incomming and link in self.__incomming_links:
+            self.__incomming_links.remove(link)
+        if outgoing and link in self.__outgoing_links:
+            self.__outgoing_links.remove(link)
         return True
