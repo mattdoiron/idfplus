@@ -3,6 +3,8 @@ TODO List for IDFPlus
 =====================
 Present
 =====================
+* when a change is made to a value in a qt table, how is that value taken
+back to the IDFObject? I don't think it currently is!
 * load different IDD file depending on IDF file version
 * make sure file saving preserves white space, add !- comments, etc
 * rethink data structures for idd and idf file!

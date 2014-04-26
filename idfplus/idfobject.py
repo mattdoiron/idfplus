@@ -22,6 +22,8 @@ import os
 
 from PySide import QtGui, QtCore
 
+from idfmodel import IDFFile
+
 #class IDFObject(object):
 #
 #    def __init__(self, name, owner, country, teu=0, description=""):
