@@ -56,14 +56,22 @@ class IDDFile(OrderedDict):
         # Check if the file name is a file and then open the idd file
         if os.path.isfile(file_name):
             with shelve.open(file_name) as f:
-                version, groups, idd = f
+                # Set some more attributes with using the idd file
+                self.__version = f['version']
+                self.__groups = f['groups']
+                self.__conversions = f['conversions']
+                self._OrderedDict__update(f['idd'])
         else:
             raise IOError
 
-        # Set some more attributes with using the idd file
-        self.__version = version
-        self.__groups = groups
-        self._OrderedDict__update(idd)
+    def __setitem__(self, key, value, dict_setitem=dict.__setitem__):
+        """Override the default __setitem__ to ensure that only certain
+        object types are allowed."""
+
+        if not isinstance(value, IDDObject):
+            raise TypeError('Only items of type IDDObject can be added!')
+
+        super(IDDFile, self).__setitem__(key, value, dict_setitem)
 
     @property
     def version(self):
@@ -75,6 +83,11 @@ class IDDFile(OrderedDict):
         """Read-only property containing list of all possible class groups"""
         return self.__groups
 
+    @property
+    def conversions(self):
+        """Read-only property containing list unit conversions"""
+        return self.__conversions
+
 
 class IDDObject(OrderedDict):
     """Represents objects in idd files.
@@ -84,14 +97,22 @@ class IDDObject(OrderedDict):
          'N1': IDDField2,
          'A2': IDDField3}
     """
-    pass
+
+    def __setitem__(self, key, value, dict_setitem=dict.__setitem__):
+        """Override the default __setitem__ to ensure that only certain
+        object types are allowed."""
+
+        if not isinstance(value, IDDField):
+            raise TypeError('Only items of type IDDField can be added!')
+
+        super(IDDObject, self).__setitem__(key, value, dict_setitem)
 
 
 class IDDField(dict):
     """Basic component of the idd object classes.
 
-    Simply a regular dict containing keys in the form of 'A1' or 'N2' and
-    values for each of the idd field properties in the following list:
+    Simply a regular dict containing keys which are the names of various
+    field tags from the following list:
         required, field, type, minimum, etc.
     """
     pass
@@ -131,6 +152,19 @@ class IDFFile(OrderedDict):
 
         # Call the load method to parse and save the idf file
         self.__load__()
+
+    def __setitem__(self, key, value, dict_setitem=dict.__setitem__):
+        """Override the default __setitem__ to ensure that only certain
+        object types are allowed."""
+
+        if not isinstance(value, list):
+            raise TypeError('Only lists of IDFObjects can be added!')
+
+        for val in value:
+            if not isinstance(val, IDFObject):
+                raise TypeError('Only items of type IDFObject can be added!')
+
+        super(IDFFile, self).__setitem__(key, value, dict_setitem)
 
     def __load__(self):
         """Parses and loads an idf file into the object instance variable.
@@ -194,7 +228,7 @@ class IDFObject(OrderedDict):
     :attr outgoing_links: List of tupples of objects to which this links
     """
 
-    def __init__(self, idd, obj_class, *args, **kwargs):
+    def __init__(self, idd, obj_class, parent, *args, **kwargs):
         """Use kwargs to prepopulate some values, then remove them from kwargs
         Also sets the idd file for use by this object.
 
@@ -209,10 +243,19 @@ class IDFObject(OrderedDict):
         self.__obj_class = obj_class
         self.__incomming_links = []
         self.__outgoing_links = []
+        self.__parent = parent
         self.comments = kwargs.pop('comments', None)
 
         # Call the parent class' init method
         super(IDFObject, self).__init__(*args, **kwargs)
+
+    def __getitem__(self, key):
+        if 'IPUnits' in self.__parent.options:
+            return self.toIP(super(IDFObject, self).__getitem__(key),
+                             self.__obj_class,
+                             key)
+        else:
+            return super(IDFObject, self).__getitem__(key)
 
     def __repr__(self):
         """Returns a string representation of the object in idf format"""
@@ -244,6 +287,11 @@ class IDFObject(OrderedDict):
     def outgoing_links(self):
         """Read-only property containing outgoing links"""
         return self.__outgoing_links
+
+    @property
+    def parent(self):
+        """Read-only property containing the parent of this obj"""
+        return self.__parent
 
     def value(self, field):
         """Returns the value of the specified field.
@@ -309,3 +357,44 @@ class IDFObject(OrderedDict):
         if outgoing and link in self.__outgoing_links:
             self.__outgoing_links.remove(link)
         return True
+
+
+class IDFField(dict):
+    """Basic component of the idf object classes.
+
+    Simply a regular dict containing keys which are the names of various
+    field tags from the following list:
+        required, field, type, minimum, etc.
+    """
+
+    def __init__(self, key, value, parent, *args, **kwargs):
+        """Initializes a new idf field"""
+        self.__key = key
+        self.__value = value
+        self.__parent = parent
+
+        # Call the parent class' init method
+        super(IDFField, self).__init__(*args, **kwargs)
+
+    def __repr__(self):
+        return self.__parent.obj_class + ':' + self.__key
+
+    def __toIP__(self, value, obj_class, key):
+        """Converts incomming value to IP units
+        1. Get units of specified obj_class:key combo.
+        2. Lookup equivalent IP unit (where?)
+        3. Retrieve conversion factor from parent
+        4. Return input value multiplied by conversion factor"""
+
+#        conversion_type = 'm=>ft'
+#        conversion_factor = self.__parent.conversions[conversion_type]
+#        return value * conversion_factor
+        return value
+
+    def value(self, ip=False):
+        if ip:
+            return self.__toIP__(self.__value,
+                                 self.__parent.obj_class,
+                                 self.__key)
+        else:
+            return self.__value
