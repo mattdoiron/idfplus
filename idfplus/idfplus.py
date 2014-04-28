@@ -24,7 +24,7 @@ from __future__ import (print_function, division,
 # Standard library imports
 import sys
 import os
-import shelve
+#import shelve
 import platform
 
 # PySide import
@@ -34,7 +34,7 @@ from PySide import QtCore
 
 # Custom imports
 import idfdelegates
-import idfobject
+import idfobject as idfObj
 import idfparse
 import idfsettings
 
@@ -69,7 +69,7 @@ class IDFPlus(QtGui.QMainWindow):
         self.fullTree = True
         self.dirty = False
         self.obj_orientation = QtCore.Qt.Vertical
-        self.current_obj = None
+        self.current_obj_class = None
         self.com = Communicate()
 
         # Create main application elements
@@ -141,7 +141,7 @@ class IDFPlus(QtGui.QMainWindow):
 
             # Load IDD File for the version of this IDF file
             version = '8.1.0.008'  # Get this from IDF file!
-            idd = idfobject.IDDFile(self, version)
+            idd = idfObj.IDDFile(self, version)
             if idd.loadIDD():
                 self.idd = idd.idd
             else:
@@ -542,28 +542,30 @@ class IDFPlus(QtGui.QMainWindow):
 #        self.step = self.step + 1
 #        self.pbar.setValue(self.step)
 
-    def loadTableView(self, name):
+    def loadTableView(self, obj_class):
         '''Loads the table of objects for the specified class name.'''
         table = self.classTable
+        self.current_obj_class = obj_class
 
-        self.current_obj = name
+#        if not obj_class:
+#            return
 
-        if not name:
-            return
+#        iddPart = self.idd['idd'][name][0]
+#        if name in self.idf:
+#            idfObjects = self.idf[name]
+#        else:
+#            idfObjects = [{'fields':[None for i in iddPart['fields']]}]
 
-        iddPart = self.idd['idd'][name][0]
-        if name in self.idf:
-            idfObjects = self.idf[name]
-        else:
-            idfObjects = [{'fields':[None for i in iddPart['fields']]}]
-
-        self.default_model = idfobject.IDFObjectTableModel(idfObjects, iddPart)
-        self.default_model.load()
+#        self.default_model = idfObj.IDFObjectTableModel(idfObjects, iddPart)
+#        self.default_model.load()
+        self.default_model = idfObj.IDFObjectTableModel(obj_class,
+                                                        self.idf,
+                                                        self.idd)
         model = self.default_model
 
         # If objects are vertical, create transposed model
         if self.obj_orientation == QtCore.Qt.Vertical:
-            proxyModel = idfobject.TransposeProxyModel(self.default_model)
+            proxyModel = idfObj.TransposeProxyModel(self.default_model)
 #            proxyModel.setSourceModel(self.default_model)
             model = proxyModel
 #            table.horizontalHeader().sectionClicked.connect(model.sortTable)
@@ -583,36 +585,22 @@ class IDFPlus(QtGui.QMainWindow):
 #        table.resizeColumnsToContents()
 
         # Create generic delegates for table cells
-        delegates = idfdelegates.GenericDelegate(iddPart, self.obj_orientation)
-#        delegates.assignDelegates(table, iddPart)
-
-        # Assign delegates depending on object orientation
-#        if self.obj_orientation == QtCore.Qt.Horizontal:
-#            table.setItemDelegateForRow(delegates)
-#        else:
-#            table.setItemDelegateForColumn(delegates)
-
+        delegates = idfdelegates.GenericDelegate(obj_class,
+                                                 self.idd,
+                                                 self.obj_orientation)
         table.setItemDelegate(delegates)
 
-    def loadTreeView(self, full=True):
+    def loadTreeView(self):
         '''Loads the tree of class type names.'''
         tree = self.classTree
         tree.clear()
-
-#        groups = self.groups
         objects = self.idf
         group = ''
 
-        # If we want a full list use the idd, otherwise use the idf only
-        if full is True:
-            obj_list = self.idd['idd']
-        else:
-            obj_list = objects
+        for obj_class, obj in self.idd.iteritems():
+            if group != obj.group:
 
-        for name, obj in obj_list.iteritems():
-            if group != obj[0]['group']:
-
-                group = obj[0]['group']
+                group = obj.group
                 group_root = QtGui.QTreeWidgetItem([group])
                 group_root.setFirstColumnSpanned(True)
                 colour = QtGui.QColor(205, 192, 176)  # light grey
@@ -628,13 +616,8 @@ class IDFPlus(QtGui.QMainWindow):
                 tree.setFirstItemColumnSpanned(group_root, True)
                 tree.setRootIsDecorated(False)
 
-            # Populate the object count field
-            obj_count = ''
-            if name in objects:
-                if objects[name]:
-                    obj_count = len(objects[name])
-
-            child = QtGui.QTreeWidgetItem([name, str(obj_count)])
+            obj_count = len(self.idd.get(obj_class, None) or ''
+            child = QtGui.QTreeWidgetItem([obj_class, str(obj_count)])
             child.setTextAlignment(1, QtCore.Qt.AlignRight)
             group_root.addChild(child)
 
@@ -653,7 +636,7 @@ class IDFPlus(QtGui.QMainWindow):
             self.obj_orientation = QtCore.Qt.Horizontal
             print('Setting object orientation to: Horizontal')
 #        self.classTable.obj_orientation = self.obj_orientation
-        self.loadTableView(self.current_obj)
+        self.loadTableView(self.current_obj_class)
         print(self.search(self.idf, 'Holiday'))
 
     def search(self, dictionary, searchFor):

@@ -43,50 +43,51 @@ class IDDFile(OrderedDict):
         """
 
         # Various attributes of the idd file
-        self.__idd_file = 'EnergyPlus_IDD_v{}.dat'
-        self.__data_path = 'data'
+        self._idd_file = 'EnergyPlus_IDD_v{}.dat'
+        self._data_path = 'data'
 
         # Call the parent class' init method
         super(IDDFile, self).__init__(*args, **kwargs)
 
         # Create the full path to the idd file
-        file_name = os.path.join(self.__data_path,
-                                 self.__idd_file.format(version))
+        file_name = os.path.join(self._data_path,
+                                 self._idd_file.format(version))
 
         # Check if the file name is a file and then open the idd file
         if os.path.isfile(file_name):
             with shelve.open(file_name) as f:
                 # Set some more attributes with using the idd file
-                self.__version = f['version']
-                self.__groups = f['groups']
-                self.__conversions = f['conversions']
+                self._version = f['version']
+                self._groups = f['groups']
+                self._conversions = f['conversions']
+#                self._class_tree = f['class_tree']  # To be implemented
                 self._OrderedDict__update(f['idd'])
         else:
             raise IOError
 
-    def __setitem__(self, key, value, dict_setitem=dict.__setitem__):
+    def __setitem__(self, key, value):
         """Override the default __setitem__ to ensure that only certain
         object types are allowed."""
 
         if not isinstance(value, IDDObject):
             raise TypeError('Only items of type IDDObject can be added!')
 
-        super(IDDFile, self).__setitem__(key, value, dict_setitem)
+        super(IDDFile, self).__setitem__(self, key, value)
 
     @property
     def version(self):
         """Read-only property containing idf file version"""
-        return self.__version
+        return self._version
 
     @property
     def groups(self):
         """Read-only property containing list of all possible class groups"""
-        return self.__groups
+        return self._groups
 
     @property
     def conversions(self):
         """Read-only property containing list unit conversions"""
-        return self.__conversions
+        return self._conversions
 
 
 class IDDObject(OrderedDict):
@@ -98,6 +99,26 @@ class IDDObject(OrderedDict):
          'A2': IDDField3}
     """
 
+    def __init__(self, obj_class, group, parent, *args, **kwargs):
+        """Use kwargs to prepopulate some values, then remove them from kwargs
+        Also sets the idd file for use by this object.
+
+        :param obj_class: Class type of this idf object
+        :param group: group that this idd object belongs to
+        :param parent: the parent object for this object (type IDDFile)
+        :param *args: arguments to pass to dictionary
+        :param **kwargs: keyword arguments to pass to dictionary
+        """
+
+        # Set various attributes of the idf object
+        self._obj_class = obj_class
+        self._group = group
+        self._parent = parent
+        self.comments = kwargs.pop('comments', None)
+
+        # Call the parent class' init method
+        super(IDDObject, self).__init__(*args, **kwargs)
+
     def __setitem__(self, key, value, dict_setitem=dict.__setitem__):
         """Override the default __setitem__ to ensure that only certain
         object types are allowed."""
@@ -106,6 +127,16 @@ class IDDObject(OrderedDict):
             raise TypeError('Only items of type IDDField can be added!')
 
         super(IDDObject, self).__setitem__(key, value, dict_setitem)
+
+    @property
+    def obj_class(self):
+        """Read-only property containing idd object's class type"""
+        return self._obj_class
+
+    @property
+    def group(self):
+        """Read-only property containing idd object's group"""
+        return self._group
 
 
 class IDDField(dict):
@@ -144,16 +175,16 @@ class IDFFile(OrderedDict):
         super(IDFFile, self).__init__(*args, **kwargs)
 
         # Various attributes of the idf file
-        self.__idd = None
-        self.__version = None
-        self.__eol_char = None
+        self._idd = None
+        self._version = None
+        self._eol_char = None
         self.options = []
         self.file_path = file_path
 
         # Call the load method to parse and save the idf file
         self.__load__()
 
-    def __setitem__(self, key, value, dict_setitem=dict.__setitem__):
+    def __setitem__(self, key, value):
         """Override the default __setitem__ to ensure that only certain
         object types are allowed."""
 
@@ -164,7 +195,7 @@ class IDFFile(OrderedDict):
             if not isinstance(val, IDFObject):
                 raise TypeError('Only items of type IDFObject can be added!')
 
-        super(IDFFile, self).__setitem__(key, value, dict_setitem)
+        super(IDFFile, self).__setitem__(self, key, value)
 
     def __load__(self):
         """Parses and loads an idf file into the object instance variable.
@@ -176,26 +207,26 @@ class IDFFile(OrderedDict):
         (count, eol_char, options, idd,
          group_list, objects, version) = idfparse.Parser(self.file_path)
 
-        self.__idd = idd
-        self.__version = version
-        self.__eol_char = eol_char
+        self._idd = idd
+        self._version = version
+        self._eol_char = eol_char
         self.options = options
         self._OrderedDict__update(objects)
 
     @property
     def version(self):
         """Read-only property containing idf file version"""
-        return self.__version
+        return self._version
 
     @property
     def idd(self):
         """Read-only property containing idd file"""
-        return self.__idd
+        return self._idd
 
     @property
     def eol_char(self):
         """Read-only property containing the end of line characters"""
-        return self.__eol_char
+        return self._eol_char
 
     def find(self, contains=None):
         """Searches within the file for objects having 'contains'
@@ -209,26 +240,48 @@ class IDFFile(OrderedDict):
 
         :param file_path: The absolute file path to the corresponding idf
         """
+#        exception = None
+#        fh = None
+#        try:
+#            if file_path.isEmpty():
+#                raise IOError, "no filename specified for saving"
+#            fh = QtCore.QFile(self.file_path)
+#            if not fh.open(QtCore.QIODevice.WriteOnly):
+#                raise IOError, unicode(fh.errorString())
+#            stream = QtCore.QDataStream(fh)
+#            stream.writeInt32(MAGIC_NUMBER)
+#            stream.writeInt16(FILE_VERSION)
+#            stream.setVersion(QtCore.QDataStream.Qt_4_1)
+#            for idfObject in self.idfObjects:
+#                stream << idfObject.name << idfObject.owner \
+#                       << idfObject.description
+#                stream.writeInt32(idfObject.teu)
+#            self.dirty = False
+#        except IOError, e:
+#            exception = e
+#        finally:
+#            if fh is not None:
+#                fh.close()
+#            if exception is not None:
+#                raise exception
         pass
 
 
-class IDFObject(OrderedDict):
+class IDFObject(list):
     """Represents objects in idf files.
 
-    Contains an OrderedDict of fields in the form:
-        {'A1': 'field1 value',
-         'N1': 123.23,
-         'A2': 'field value 213'}
+    Contains a list of fields in the form:
+        [IDFField1, IDFField2, IDFField3]
 
-    :attr idd: Contains the IDD file used by this IDF object
     :attr obj_class: Class type of object
     :attr group: Group to which this object belongs
+    :attr idd: Contains the IDD file used by this IDF object
     :attr comments: User comments for this object
     :attr incomming_links: List of tupples of objects that link to this
     :attr outgoing_links: List of tupples of objects to which this links
     """
 
-    def __init__(self, idd, obj_class, parent, *args, **kwargs):
+    def __init__(self, obj_class, group, parent, idd, *args, **kwargs):
         """Use kwargs to prepopulate some values, then remove them from kwargs
         Also sets the idd file for use by this object.
 
@@ -239,20 +292,21 @@ class IDFObject(OrderedDict):
         """
 
         # Set various attributes of the idf object
-        self.__idd = idd
-        self.__obj_class = obj_class
-        self.__incomming_links = []
-        self.__outgoing_links = []
-        self.__parent = parent
+        self._group = group
+        self._obj_class = obj_class
+        self._idd = idd
+        self._incomming_links = []
+        self._outgoing_links = []
+        self._parent = parent
         self.comments = kwargs.pop('comments', None)
 
         # Call the parent class' init method
         super(IDFObject, self).__init__(*args, **kwargs)
 
     def __getitem__(self, key):
-        if 'IPUnits' in self.__parent.options:
+        if 'IPUnits' in self._parent.options:
             return self.toIP(super(IDFObject, self).__getitem__(key),
-                             self.__obj_class,
+                             self._obj_class,
                              key)
         else:
             return super(IDFObject, self).__getitem__(key)
@@ -261,52 +315,52 @@ class IDFObject(OrderedDict):
         """Returns a string representation of the object in idf format"""
         values = [str(val) for val in self.values()]
         str_list = ','.join(values)
-        return self.__obj_class + ',' + str_list + ';'
+        return self._obj_class + ',' + str_list + ';'
 
     @property
     def idd(self):
         """Read-only property containing idd file"""
-        return self.__idd
+        return self._idd
 
     @property
     def obj_class(self):
         """Read-only property containing idf object's class type"""
-        return self.__obj_class
+        return self._obj_class
 
     @property
     def group(self):
         """Read-only property containing idf object's group"""
-        return self.__group
+        return self._group
 
     @property
     def incomming_links(self):
         """Read-only property containing incomming links"""
-        return self.__incomming_links
+        return self._incomming_links
 
     @property
     def outgoing_links(self):
         """Read-only property containing outgoing links"""
-        return self.__outgoing_links
+        return self._outgoing_links
 
     @property
     def parent(self):
         """Read-only property containing the parent of this obj"""
-        return self.__parent
+        return self._parent
 
-    def value(self, field):
-        """Returns the value of the specified field.
-
-        :param field: Field id or key to be retrieved
-        :raises TypeError: If field is not a string or an int
-        """
-
-        # Check for proper types and return the value
-        if isinstance(field, int):
-            return self[self.keys()[field]]
-        elif isinstance(field, str):
-            return self[field]
-        else:
-            raise TypeError('Invalid key type - must be string or int')
+#    def value(self, field):
+#        """Returns the value of the specified field.
+#
+#        :param field: Field id or key to be retrieved
+#        :raises TypeError: If field is not a string or an int
+#        """
+#
+#        # Check for proper types and return the value
+#        if isinstance(field, int):
+#            return self[self.keys()[field]]
+#        elif isinstance(field, str):
+#            return self[field]
+#        else:
+#            raise TypeError('Invalid key type - must be string or int')
 
     def addLink(self, obj, field_id, incomming=False, outgoing=False):
         """Ads a link to and/or from this object.
@@ -327,10 +381,10 @@ class IDFObject(OrderedDict):
 
         # Adds the specified objects to the list(s) of links
         link = (obj, field_id)
-        if incomming and link not in self.__incomming_links:
-            self.__incomming_links.append((obj, field_id))
-        if outgoing and link not in self.__outgoing_links:
-            self.__outgoing_links.append((obj, field_id))
+        if incomming and link not in self._incomming_links:
+            self._incomming_links.append((obj, field_id))
+        if outgoing and link not in self._outgoing_links:
+            self._outgoing_links.append((obj, field_id))
         return True
 
     def removeLink(self, obj, field_id, incomming=False, outgoing=False):
@@ -352,10 +406,10 @@ class IDFObject(OrderedDict):
 
         # Removes the specified objects to the list(s) of links
         link = (obj, field_id)
-        if incomming and link in self.__incomming_links:
-            self.__incomming_links.remove(link)
-        if outgoing and link in self.__outgoing_links:
-            self.__outgoing_links.remove(link)
+        if incomming and link in self._incomming_links:
+            self._incomming_links.remove(link)
+        if outgoing and link in self._outgoing_links:
+            self._outgoing_links.remove(link)
         return True
 
 
@@ -369,15 +423,15 @@ class IDFField(dict):
 
     def __init__(self, key, value, parent, *args, **kwargs):
         """Initializes a new idf field"""
-        self.__key = key
-        self.__value = value
-        self.__parent = parent
+        self._key = key
+        self._value = value
+        self._parent = parent
 
         # Call the parent class' init method
         super(IDFField, self).__init__(*args, **kwargs)
 
     def __repr__(self):
-        return self.__parent.obj_class + ':' + self.__key
+        return self._parent.obj_class + ':' + self.__key
 
     def __toIP__(self, value, obj_class, key):
         """Converts incomming value to IP units
@@ -387,14 +441,14 @@ class IDFField(dict):
         4. Return input value multiplied by conversion factor"""
 
 #        conversion_type = 'm=>ft'
-#        conversion_factor = self.__parent.conversions[conversion_type]
+#        conversion_factor = self._parent.conversions[conversion_type]
 #        return value * conversion_factor
         return value
 
     def value(self, ip=False):
         if ip:
-            return self.__toIP__(self.__value,
-                                 self.__parent.obj_class,
-                                 self.__key)
+            return self.__toIP__(self._value,
+                                 self._parent.obj_class,
+                                 self._key)
         else:
-            return self.__value
+            return self._value

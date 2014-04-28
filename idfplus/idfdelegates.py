@@ -23,11 +23,14 @@ from PySide import QtGui, QtCore
 class GenericDelegate(QtGui.QItemDelegate):
     '''Template delegate for the table view.'''
 
-    def __init__(self, idd_obj, obj_orientation, parent=None):
+    def __init__(self, obj_class, idd, obj_orientation, parent=None):
         super(GenericDelegate, self).__init__(parent)
+        self.obj_class = obj_class
+        self.idd = idd
+#        self.idd_object = idd[obj_class]
         self.delegates = {}
         self.obj_orientation = obj_orientation
-        self.assignDelegates(idd_obj)
+        self.assignDelegates(idd[obj_class])
 
     def insertDelegate(self, index, delegate):
         delegate.setParent(self)
@@ -115,7 +118,7 @@ class GenericDelegate(QtGui.QItemDelegate):
 #            self.emit(SIGNAL("closeEditor(QWidget*)"), editor)
 
     def assignDelegates(self, idd_obj):
-        # cycle through table and assign delegates as needed
+        # Cycle through table and assign delegates as needed
         # This will depend on the type of idd object!
 
         # Other fields to be passed to the delegate include:
