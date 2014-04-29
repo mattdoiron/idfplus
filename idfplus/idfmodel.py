@@ -171,18 +171,21 @@ class IDFFile(OrderedDict):
         :param *args: arguments to pass to dictionary
         :param **kwargs: keyword arguments to pass to dictionary
         """
-        # Call the parent class' init method
-        super(IDFFile, self).__init__(*args, **kwargs)
 
         # Various attributes of the idf file
+        new = kwargs.pop('new', False)
         self._idd = None
         self._version = None
-        self._eol_char = None
+        self.eol_char = None
         self.options = []
         self.file_path = file_path
 
-        # Call the load method to parse and save the idf file
-        self.__load__()
+        # Call the parent class' init method
+        super(IDFFile, self).__init__(*args, **kwargs)
+
+        # Call the load method to parse the idf file (unless it's a new one)
+        if not new:
+            self.__load__()
 
     def __setitem__(self, key, value):
         """Override the default __setitem__ to ensure that only certain
@@ -222,11 +225,6 @@ class IDFFile(OrderedDict):
     def idd(self):
         """Read-only property containing idd file"""
         return self._idd
-
-    @property
-    def eol_char(self):
-        """Read-only property containing the end of line characters"""
-        return self._eol_char
 
     def find(self, contains=None):
         """Searches within the file for objects having 'contains'

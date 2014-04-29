@@ -18,7 +18,11 @@ along with IDFPlus. If not, see <http://www.gnu.org/licenses/>.
 """
 
 #from PySide.QtCore import QObject, Signal
-from contextlib import closing
+#from contextlib import closing
+
+import os
+from collections import OrderedDict
+import idfmodel
 
 #fieldTags = set('\\field',
 #                '\\note',
@@ -274,21 +278,22 @@ class Writer(object):
     def __init__(self):
         pass
 
-    def writeIDF(self, filename, options, idf_file):
+    def writeIDF(self, idf, idd, options):
         '''Write an IDF from the specified idfObject'''
 
-        print 'Writing file: ' + filename + '_test'
+
+        print 'Writing file: ' + idf.file_path + '_test'
 
         # Check for special options
-#        if options and options is not None:
-#            options = []
-#            if options.count('UseSpecialFormat') >= 1:
-#                print 'Special formatting requested, but not yet implemented.'
+        use_special_format = False
+        if 'UseSpecialFormat' in options:
+            use_special_format = True
+            print 'Special formatting requested, but not yet implemented.'
 
         # Open file and write
         try:
-            with open(filename + '_test', 'w') as file:
-                for obj_class, obj_list in idf_file.iteritems():
+            with open(idf.file_path + '_test', 'w') as file:
+                for obj_class, obj_list in idf.iteritems():
 
                     for obj in obj_list:
                         # Write special comments if there are any
@@ -303,8 +308,8 @@ class Writer(object):
 
                         # Some objects are on one line and some fields are grouped!
                         # If enabled, check IDD file for special formatting instructions
-#                        if options.count('UseSpecialFormat') >= 1:
-#                            pass
+                        if use_special_format:
+                            pass
 
                         # Write the object name
                         file.write("  {},\n".format(obj_class))
@@ -358,6 +363,7 @@ class Writer(object):
 #print parseLineIDD(test_line16)
 
 class Parser(object):
+    """Base class for more specialized parsers"""
 
     def __init__(self, msg):
         self.msg = msg  # Communicate()
@@ -400,7 +406,7 @@ class Parser(object):
         else:
             return None
 
-    def getGeneralComment(self, str_in):
+    def getGeneralComments(self, str_in):
         '''Parses a string and returns the general comment if it exists'''
         global comment_delimiter_general
         global comment_delimiter_special
@@ -434,45 +440,45 @@ class Parser(object):
             return partB[-1].expandtabs()
 
     def getTags(self, line_in):
-        '''Parses a line and gets any fields tags present'''
+            '''Parses a line and gets any fields tags present'''
 
-        global fieldTags
-        tag_result = None
+            global fieldTags
+            tag_result = None
 
-        # Create a list containing any tags found in line_in
-        match = [x for x in fieldTags if x in line_in]
+            # Create a list containing any tags found in line_in
+            match = [x for x in fieldTags if x in line_in]
 
-        # If there are any matches, save the first one
-        if match:
+            # If there are any matches, save the first one
+            if match:
 
-            # Partition the line at the match
-            part = line_in.strip().partition(match[0])
+                # Partition the line at the match
+                part = line_in.strip().partition(match[0])
 
-            # If there is a value save it
-            if part[-1]:
-                value = part[-1].lstrip()
-            else:
-                value = None
+                # If there is a value save it
+                if part[-1]:
+                    value = part[-1].lstrip()
+                else:
+                    value = None
 
-            # Save results
-            tag_result = dict(tag=match[0],
-                              value=value)
+                # Save results
+                tag_result = dict(tag=match[0],
+                                  value=value)
 
-        # Return results
-        return tag_result
+            # Return results
+            return tag_result
 
-    def parseLineIDD(self, line_in):
-        '''Parses a line from the IDD file and returns results'''
+    def parseLine(self, line_in):
+        '''Parses a line from the IDD/IDF file and returns results'''
 
         # Get results
         fields = self.getFields(line_in) or None
-        comment = self.getGeneralComment(line_in)  # Preserve blanks!
+        comments = self.getGeneralComments(line_in)  # Preserve blanks!
         tags = self.getTags(line_in) or None
         end_object = False
         empty_line = False
 
         # Check for an empty line
-        if not fields and not comment and not tags:
+        if not fields and not comments and not tags:
             empty_line = True
 
         # Check for and remove the semicolon, indicating the end of an object
@@ -483,33 +489,45 @@ class Parser(object):
 
         # Return a dictionary of results
         return dict(fields=fields,
-                    comment=comment,
+                    comments=comments,
                     field_tags=tags,
                     end_object=end_object,
                     empty_line=empty_line)
 
+    def compile_idd(self, idd_filename, version):
+        '''Opens, parses and then shelves a copy of the IDD file object.'''
+
+        import shelve
+        parser = Parser(None)
+
+        (object_count, eol_char,
+         options, groups, objects) = parser.parseIDD(idd_filename)
+
+        database = shelve.open('data/EnergyPlus_IDD_v{}.dat'.format(version))
+        database['idd'] = objects
+        database['groups'] = groups[1:]
+        tree_model = None
+        database['tree_model'] = tree_model
+        database.close()
+
+
+class IDDParser(Parser):
+
     def parseIDD(self, filename):
         '''Parse the provided idd (or idf) file'''
-#        import shelve
-        import os
-        from collections import OrderedDict
-        import idfmodel
 
         global comment_delimiter_special  # Avoid these...
         global options_list
-
-#        myIDD = shelve.open('myIDD.dat')  # This should be done using 'with'
-#        idd = myIDD['idd']
-
         total_size = os.path.getsize(filename)
         total_read = 0.0
 
         print 'Parsing IDD file: {} ({} bytes)'.format(filename, total_size)
 
         # Open the specified file in a safe way
-        with open(filename, 'r') as file:  #, closing(shelve.open('data/EnergyPlus_IDD_v8.1.0.008.dat')) as myIDD:
+        with open(filename, 'r') as file:
+
             # Prepare some variables to store the results
-            idd = None  # myIDD['idd']
+            idd = None
             objects = OrderedDict()
             field_list = []
             comment_list = []
@@ -531,7 +549,7 @@ class Parser(object):
                 total_read += len(line)
                 if self.msg:
                     self.msg.msg.emit(total_read)
-                line_parsed = self.parseLineIDD(line)
+                line_parsed = self.parseLine(line)
 
                 # If previous line was not the end of an object check this one
                 if end_object is False:
@@ -636,21 +654,115 @@ class Parser(object):
         return (len(objects), eol_char, options, idd,
                 group_list, objects, version)
 
-    def compile_idd(self, idd_filename, version):
-        '''Opens, parses and then shelves a copy of the IDD file object.'''
 
-        import shelve
-        parser = Parser(None)
+#---------------------------------------------------------------------------
 
-        (object_count, eol_char,
-         options, groups, objects) = parser.parseIDD(idd_filename)
 
-        database = shelve.open('data/EnergyPlus_IDD_v{}.dat'.format(version))
-        database['idd'] = objects
-        database['groups'] = groups[1:]
-        tree_model = None
-        database['tree_model'] = tree_model
-        database.close()
+class IDFParser(Parser):
+    """IDF file parser that handles opening, parsing and returning."""
+
+    def parseIDF(self, file_path):
+        '''Parse the provided idf file and return an IDFObject'''
+
+        global options_list  # Avoid these?
+        total_size = os.path.getsize(file_path)
+        total_read = 0.0
+
+        print 'Parsing IDF file: {} ({} bytes)'.format(file_path, total_size)
+
+        # Open the specified file in a safe way
+        with open(file_path, 'r') as file:
+
+            # Prepare some variables to store the results
+            idd = None
+            idf = idfmodel.IDFFile(file_path, new=True)
+            field_list = []
+            comment_list = []
+            options = []
+            group = None
+            end_object = False
+            version = None
+
+            # Cycle through each line in the file (yes, use while!)
+            while True:
+
+                # Parse this line using readline (so last one is a blank)
+                line = file.readline()
+                total_read += len(line)
+                line_parsed = self.parseLine(line)
+
+                # Emit signal for progress bar
+                if self.msg:
+                    self.msg.msg.emit(total_read)
+
+                # Detect end of line character for use when re-writing file
+                if line.endswith('\r\n'):
+                    idf.eol_char = '\r\n'
+                else:
+                    idf.eol_char = '\n'
+
+                # If previous line was not the end of an object check this one
+                if end_object is False:
+                    end_object = line_parsed['end_object']
+                empty_line = line_parsed['empty_line']
+
+                # Clean the input line (get rid of tabs and left white spaces)
+                line_clean = line.expandtabs().lstrip()
+
+                # Check for special options (make separate function for this?)
+                if line_clean.startswith('!-Option'):
+                    match = [x for x in options_list if x in line_clean]
+                    options.extend(match)
+
+                # If there are any comments save them
+                if line_parsed['comment'] is not None:
+                    comment_list.append(line_parsed['comment'])
+
+                # If there are any fields save them
+                if line_parsed['fields']:
+                    field_list.extend(line_parsed['fields'])
+
+                    # Detect idf file version and use it to select idd file
+                    if field_list[0] == 'Version':
+                        version = field_list[1]
+                        if not idd:
+                            idd = idfmodel.IDDFile(version)
+
+                # If this is the end of an object save it
+                if end_object and empty_line:
+
+                    # The first field is the object name
+                    obj_class = field_list.pop(0)
+
+                    # Make sure there are values or return None
+                    field_list = field_list  # or None
+                    comment_list = comment_list  # or None
+                    group = self.idd[obj_class].group
+
+                    # If this is an IDF file, perform checks against IDD
+                    # file here (mandatory fields, unique objects, etc)
+
+                    # Create a new idfObject from the parsed variables
+                    obj = idfmodel.IDFObject(obj_class, group, idf, idd,
+                                             comments=comment_list)
+                    obj.update(field_list)
+
+                    # Save the new object as part of the IDF file
+                    idf.setdefault(obj_class, []).append(obj)
+
+                    # Reset lists for next object
+                    field_list = []
+                    comment_list = []
+                    end_object = False
+
+                # Detect end of file and break. Do it this way to be sure
+                # the last line can be processed AND identified as last!
+                if not line:
+                    break
+
+        print 'Parsing IDF complete!'
+
+        return idf
 
 ## Parse this idd file
 #idd_file = 'Energy+.idd'
