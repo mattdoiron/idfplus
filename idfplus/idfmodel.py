@@ -22,6 +22,10 @@ import os.path
 from collections import OrderedDict
 
 
+class IDDFileDoesNotExist(Exception):
+    pass
+
+
 class IDDFile(OrderedDict):
     """Primary object representing idd file and container for idd objects.
 
@@ -38,6 +42,8 @@ class IDDFile(OrderedDict):
         """Initializes the idd file
 
         :param version: IDD file version
+        :param groups: list of groups from the idd file
+        :param conversions: list of unit conversions from the idd file
         :param *args: arguments to pass to dictionary
         :param **kwargs: keyword arguments to pass to dictionary
         """
@@ -45,9 +51,20 @@ class IDDFile(OrderedDict):
         # Various attributes of the idd file
         self._idd_file = 'EnergyPlus_IDD_v{}.dat'
         self._data_path = 'data'
+        new = kwargs.pop('new', False)
+
+        if new:
+            self._version = kwargs.pop('new', '8.1')
+            self._groups = kwargs.pop('new', [])
+            self._conversions = kwargs.pop('new', [])
+#            self._class_tree = kwargs.pop('new', [])
 
         # Call the parent class' init method
         super(IDDFile, self).__init__(*args, **kwargs)
+
+        # Proceed only if this is not a new idd file
+        if new:
+            return
 
         # Create the full path to the idd file
         file_name = os.path.join(self._data_path,
@@ -63,7 +80,7 @@ class IDDFile(OrderedDict):
 #                self._class_tree = f['class_tree']  # To be implemented
                 self._OrderedDict__update(f['idd'])
         else:
-            raise IOError
+            raise IDDFileDoesNotExist
 
     def __setitem__(self, key, value):
         """Override the default __setitem__ to ensure that only certain
@@ -115,6 +132,7 @@ class IDDObject(OrderedDict):
         self._group = group
         self._parent = parent
         self.comments = kwargs.pop('comments', None)
+        self.comments_special = kwargs.pop('comments_special', None)
 
         # Call the parent class' init method
         super(IDDObject, self).__init__(*args, **kwargs)

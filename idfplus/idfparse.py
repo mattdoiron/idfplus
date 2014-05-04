@@ -513,22 +513,22 @@ class Parser(object):
 
 class IDDParser(Parser):
 
-    def parseIDD(self, filename):
+    def parseIDD(self, file_path):
         '''Parse the provided idd (or idf) file'''
 
         global comment_delimiter_special  # Avoid these...
         global options_list
-        total_size = os.path.getsize(filename)
+        total_size = os.path.getsize(file_path)
         total_read = 0.0
 
-        print 'Parsing IDD file: {} ({} bytes)'.format(filename, total_size)
+        print 'Parsing IDD file: {} ({} bytes)'.format(file_path, total_size)
 
         # Open the specified file in a safe way
-        with open(filename, 'r') as file:
+        with open(file_path, 'r') as file:
 
             # Prepare some variables to store the results
-            idd = None
-            objects = OrderedDict()
+            idd = idfmodel.IDDFile(file_path, new=True)
+#            objects = OrderedDict()
             field_list = []
             comment_list = []
             comment_list_special = []
@@ -559,6 +559,7 @@ class IDDParser(Parser):
                 # Check for special comments and options (make func for this?)
                 line_clean = line.expandtabs().lstrip()
                 if line_clean.startswith(comment_delimiter_special):
+
                     # Special comment found, save it
                     comment_list_special.append(
                         line_clean.lstrip(comment_delimiter_special).rstrip()
@@ -578,8 +579,8 @@ class IDDParser(Parser):
                     field_list.extend(line_parsed['fields'])
 
                     # Detect idf file version and use it to select idd file
-                    if not idd and field_list[0] == 'Version':
-                        idd = idfmodel.IDDFile(field_list[1])
+                    if field_list[0] == 'Version':
+                        version = field_list[1]
 
                 # Check for the end of an object before checking for new tags
                 if (end_object and empty_line) or line_parsed['fields']:
@@ -597,8 +598,7 @@ class IDDParser(Parser):
                 if end_object and empty_line:
 
                     # The first field is the object name
-                    object_name = field_list[0]
-                    field_list.pop(0)
+                    obj_class = field_list.pop(0)
 
                     # Make sure there are values or return None
                     field_list = field_list or None
@@ -606,35 +606,26 @@ class IDDParser(Parser):
                     comment_list = comment_list or None
                     comment_list_special = comment_list_special or None
 
-                    # If this is an IDF file, perform checks against IDD
-                    # file here (mandatory fields, unique objects, etc)
-
                     # Search idd file for object name
-                    if object_name in idd:
-                        group = idd[object_name][0]['group']
+                    if obj_class in idd:
+                        group = idd[obj_class][0]['group']
 
                     # Add the group to the list if it isn't already there
                     if group not in group_list:
                         group_list.append(group)
 
-                    # Save the object
-                    # obj = IDFObject(fields,
-                    #                 comments=comment_list,
-                    #                 comments_special=comment_list_special,
-                    #                 field_tags=field_tag_list,
-                    #                 group=group,
-                    #                 obj_class=obj_class)
-                    obj = dict(fields=field_list,
-                               comments=comment_list,
-                               comments_special=comment_list_special,
-                               field_tags=field_tag_list,
-                               group=group)
+                    # Create a new iddObject from the parsed variables
+                    obj = idfmodel.IDDObject(obj_class, group, idd,
+                                             comments=comment_list,
+                                             comments_special=comment_list_special)
+                    obj.update(field_list) # TODO this is supposed to be a dictionary of IDDFields!!
 
-                    # Assign or append results
-                    if object_name in objects:
-                        objects[object_name].append(obj)
-                    else:
-                        objects[object_name] = [obj]
+                    # TODO assign field tags to each field. Each field needs
+                    # to be added to the IDDObject individually?!
+#                    field_tags=field_tag_list
+
+                    # Save the new object as part of the IDD file
+                    idd.setdefault(obj_class, obj)
 
                     # Reset lists for next object
                     field_list = []
@@ -745,7 +736,7 @@ class IDFParser(Parser):
                     # Create a new idfObject from the parsed variables
                     obj = idfmodel.IDFObject(obj_class, group, idf, idd,
                                              comments=comment_list)
-                    obj.update(field_list)
+                    obj.extend(field_list)
 
                     # Save the new object as part of the IDF file
                     idf.setdefault(obj_class, []).append(obj)

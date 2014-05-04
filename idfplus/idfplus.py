@@ -137,7 +137,7 @@ class IDFPlus(QtGui.QMainWindow):
             parser = idfparse.Parser(self.com)
             parser.msg.msg.connect(self.testSignal)
             (object_count, eol_char,
-             options, groups, objects) = parser.parseIDD(filename)
+             options, groups, objects) = parser.parseIDF(filename)
 
             # Load IDD File for the version of this IDF file
             version = '8.1.0.008'  # Get this from IDF file!
