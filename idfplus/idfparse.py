@@ -666,7 +666,8 @@ class IDFParser(Parser):
 
             # Prepare some variables to store the results
             idd = None
-            idf = idfmodel.IDFFile(file_path, new=True)
+            idf = idfmodel.IDFFile(None)
+            idf.file_path = file_path
             field_list = []
             comment_list = []
             options = []

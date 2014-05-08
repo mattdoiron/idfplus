@@ -134,33 +134,38 @@ class IDFPlus(QtGui.QMainWindow):
             self.statusBar().showMessage(message, 5000)
 
             # Prepare the parser and load the IDD file with it
-            parser = idfparse.Parser(self.com)
+            parser = idfparse.IDFParser(self.com)
             parser.msg.msg.connect(self.testSignal)
-            (object_count, eol_char,
-             options, groups, objects) = parser.parseIDF(filename)
+            #(object_count, eol_char,
+            # options, groups, objects) = parser.parseIDF(filename)
+
+            try:
+                self.idf = parser.parseIDF(filename)
+                self.idd = self.idf.idd
+            except IDDFileDoesNotExist(message):
 
             # Load IDD File for the version of this IDF file
-            version = '8.1.0.008'  # Get this from IDF file!
-            idd = idfObj.IDDFile(self, version)
-            if idd.loadIDD():
-                self.idd = idd.idd
-            else:
-                QtGui.QMessageBox.warning(self,
-                                          "Application",
-                                          ("Could not find IDD file of "
-                                           "appropriate version!\nLoading "
-                                           "cancelled"),
-                                          QtGui.QMessageBox.Ok)
-                message = ("Loading failed. Could not find "
-                           "matching IDD version.")
-                self.updateStatus(message)
-                return False
+#            version = idf.version  # '8.1.0.008'  # Get this from IDF file!
+#            self.idd = idf.idd  # idfObj.IDDFile(self, version)
+            #if idd.loadIDD():
+            #    self.idd = idd.idd
+                else:
+                    QtGui.QMessageBox.warning(self,
+                                              "Application",
+                                              ("Could not find IDD file of "
+                                               "appropriate version!\nLoading "
+                                               "cancelled"),
+                                              QtGui.QMessageBox.Ok)
+                    message = ("Loading failed. Could not find "
+                               "matching IDD version.")
+                    self.updateStatus(message)
+                    return False
 
-            self.idf = objects
-            self.groups = groups
+#            self.idf = idf
+            self.groups = self.idf.groups
             self.loadTreeView(self.fullTree)
             self.classTable.setModel(None)
-            self.commentView.setText(str(object_count))  # test only
+            self.commentView.setText(str(len(self.idf)))  # test only
             self.dirty = False  # Move this into idfObjectContainer
             self.filename = filename
             self.addRecentFile(filename)

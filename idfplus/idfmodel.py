@@ -49,38 +49,32 @@ class IDDFile(OrderedDict):
         """
 
         # Various attributes of the idd file
-        self._idd_file = 'EnergyPlus_IDD_v{}.dat'
+        self._idd_file_name = 'EnergyPlus_IDD_v{}.dat'
         self._data_path = 'data'
+        self._version = version
         new = kwargs.pop('new', False)
 
-        if new:
-            self._version = kwargs.pop('new', '8.1')
-            self._groups = kwargs.pop('new', [])
-            self._conversions = kwargs.pop('new', [])
-#            self._class_tree = kwargs.pop('new', [])
+        # Continue only if not a new, blank IDD file
+        if not new:
+
+            # Create the full path to the idd file
+            file_name = os.path.join(self._data_path,
+                                     self._idd_file_name.format(version))
+
+            # Check if the file name is a file and then open the idd file
+            if os.path.isfile(file_name):
+                with shelve.open(file_name) as f:
+
+                    # Set some more attributes with using the idd file
+                    self._groups = f['groups']
+                    self._conversions = f['conversions']
+                    #self._class_tree = f['class_tree']  # To be implemented
+                    self._OrderedDict__update(f['idd'])
+            else:
+                raise IDDFileDoesNotExist
 
         # Call the parent class' init method
         super(IDDFile, self).__init__(*args, **kwargs)
-
-        # Proceed only if this is not a new idd file
-        if new:
-            return
-
-        # Create the full path to the idd file
-        file_name = os.path.join(self._data_path,
-                                 self._idd_file.format(version))
-
-        # Check if the file name is a file and then open the idd file
-        if os.path.isfile(file_name):
-            with shelve.open(file_name) as f:
-                # Set some more attributes with using the idd file
-                self._version = f['version']
-                self._groups = f['groups']
-                self._conversions = f['conversions']
-#                self._class_tree = f['class_tree']  # To be implemented
-                self._OrderedDict__update(f['idd'])
-        else:
-            raise IDDFileDoesNotExist
 
     def __setitem__(self, key, value):
         """Override the default __setitem__ to ensure that only certain
@@ -182,28 +176,35 @@ class IDFFile(OrderedDict):
     :attr file_path: full, absolute path to idf file
     """
 
-    def __init__(self, file_path, *args, **kwargs):
-        """Initializes a new idf file with the given file_path
+    def __init__(self, file_path=None, *args, **kwargs):
+        """Initializes a new idf, blank or opens the given file_path
 
         :param file_path:
         :param *args: arguments to pass to dictionary
         :param **kwargs: keyword arguments to pass to dictionary
         """
 
-        # Various attributes of the idf file
-        new = kwargs.pop('new', False)
-        self._idd = None
-        self._version = None
-        self.eol_char = None
-        self.options = []
-        self.file_path = file_path
+        # Load the idf file if specified, otherwise prepare a blank one
+        if file_path:
+            import idfparse
+            (count, eol_char, options, idd,
+             group_list, objects, version) = idfparse.IDFParser(file_path)
+            self._idd = idd
+            self._version = version
+            self._eol_char = eol_char
+            self.options = options
+            self.file_path = file_path
+            self._OrderedDict__update(objects)
+        else:
+            default = '8.1'  # retrieve this from settings eventually
+            self._version = kwargs.pop('version', default)
+            self._idd = IDDFile(self._version)
+            self._eol_char = None
+            self.file_path = None
+            self.options = []
 
         # Call the parent class' init method
         super(IDFFile, self).__init__(*args, **kwargs)
-
-        # Call the load method to parse the idf file (unless it's a new one)
-        if not new:
-            self.__load__()
 
     def __setitem__(self, key, value):
         """Override the default __setitem__ to ensure that only certain
@@ -218,7 +219,7 @@ class IDFFile(OrderedDict):
 
         super(IDFFile, self).__setitem__(self, key, value)
 
-    def __load__(self):
+    def _load(self):
         """Parses and loads an idf file into the object instance variable.
         Also sets some attributes of the file.
         """
@@ -233,6 +234,12 @@ class IDFFile(OrderedDict):
         self._eol_char = eol_char
         self.options = options
         self._OrderedDict__update(objects)
+
+    def _load_idd(self):
+        """Loads an idd file in the case where this is a blank idf file."""
+
+        default = '8.1'  # retrieve this from settings eventually
+        self.idd = IDDFile(self._version or default)
 
     @property
     def version(self):
