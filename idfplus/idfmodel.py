@@ -26,6 +26,10 @@ class IDDFileDoesNotExist(Exception):
     pass
 
 
+class VersionAlreadySet(Exception):
+    pass
+
+
 class IDDFile(OrderedDict):
     """Primary object representing idd file and container for idd objects.
 
@@ -38,7 +42,7 @@ class IDDFile(OrderedDict):
     :attr groups: List of groups to which classes can belong
     """
 
-    def __init__(self, version, *args, **kwargs):
+    def __init__(self, version=None, *args, **kwargs):
         """Initializes the idd file
 
         :param version: IDD file version
@@ -49,13 +53,13 @@ class IDDFile(OrderedDict):
         """
 
         # Various attributes of the idd file
+        self._version_set = False
         self._idd_file_name = 'EnergyPlus_IDD_v{}.dat'
         self._data_path = 'data'
         self._version = version
-        new = kwargs.pop('new', False)
 
-        # Continue only if not a new, blank IDD file
-        if not new:
+        # Continue only if a version is specified, else a blank IDD file
+        if version:
 
             # Create the full path to the idd file
             file_name = os.path.join(self._data_path,
@@ -71,7 +75,7 @@ class IDDFile(OrderedDict):
                     #self._class_tree = f['class_tree']  # To be implemented
                     self._OrderedDict__update(f['idd'])
             else:
-                raise IDDFileDoesNotExist
+                raise IDDFileDoesNotExist("Can't find IDD file: {}".format(file_name))
 
         # Call the parent class' init method
         super(IDDFile, self).__init__(*args, **kwargs)
@@ -85,9 +89,18 @@ class IDDFile(OrderedDict):
 
         super(IDDFile, self).__setitem__(self, key, value)
 
+    def _set_version(self, version):
+        """Method used to set the version of the IDD file. Can only
+        be set once for safety and sanity."""
+        if self._version_set is True:
+            raise VersionAlreadySet('Version can be set only once.')
+        else:
+            self._version = version
+            self._version_set = True
+
     @property
     def version(self):
-        """Read-only property containing idf file version"""
+        """Read-only property containing idf file version."""
         return self._version
 
     @property
@@ -170,7 +183,7 @@ class IDFFile(OrderedDict):
          'SimulationControl':  [IDFObject4]}
 
     :attr idd: IDDFile object containing precompiled idd file
-    :attr version: EnergyPlus vesion number (eg. 8.1.0.800)
+    :attr version: EnergyPlus vesion number (eg. 8.1.0.008)
     :attr eol_char: depends on file (could be \n or \r\n, etc)
     :attr options: options that may have been found in idf file
     :attr file_path: full, absolute path to idf file
@@ -184,15 +197,17 @@ class IDFFile(OrderedDict):
         :param **kwargs: keyword arguments to pass to dictionary
         """
 
+        # Various attributes of the idf file
+        self._version_set = False
+
         # Load the idf file if specified, otherwise prepare a blank one
         if file_path:
             import idfparse
-            (count, eol_char, options, idd,
-             group_list, objects, version) = idfparse.IDFParser(file_path)
-            self._idd = idd
-            self._version = version
-            self._eol_char = eol_char
-            self.options = options
+            idf = idfparse.IDFParser(file_path)
+            self._idd = idf.idd
+            self._version = idf.version
+            self._eol_char = idf.eol_char
+            self.options = idf.options
             self.file_path = file_path
             self._OrderedDict__update(objects)
         else:
@@ -240,6 +255,15 @@ class IDFFile(OrderedDict):
 
         default = '8.1'  # retrieve this from settings eventually
         self.idd = IDDFile(self._version or default)
+
+    def _set_version(self, version):
+        """Method used to set the version of the IDF file. Can only
+        be set once for safety and sanity."""
+        if self._version_set is True:
+            raise VersionAlreadySet('Version can be set only once.')
+        else:
+            self._version = version
+            self._version_set = True
 
     @property
     def version(self):

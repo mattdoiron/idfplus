@@ -527,8 +527,7 @@ class IDDParser(Parser):
         with open(file_path, 'r') as file:
 
             # Prepare some variables to store the results
-            idd = idfmodel.IDDFile(file_path, new=True)
-#            objects = OrderedDict()
+            idd = idfmodel.IDDFile()
             field_list = []
             comment_list = []
             comment_list_special = []
@@ -538,7 +537,6 @@ class IDDParser(Parser):
             group = None
             group_list = []
             end_object = False
-            eol_char = None  # Detect this and save it
             version = None  # '8.1.0.008'  # Get this from IDF file!
 
             # Cycle through each line in the file
@@ -550,6 +548,12 @@ class IDDParser(Parser):
                 if self.msg:
                     self.msg.msg.emit(total_read)
                 line_parsed = self.parseLine(line)
+
+                # Detect end of line character for use when re-writing file
+                if line.endswith('\r\n'):
+                    idd.eol_char = '\r\n'
+                else:
+                    idd.eol_char = '\n'
 
                 # If previous line was not the end of an object check this one
                 if end_object is False:
@@ -581,6 +585,7 @@ class IDDParser(Parser):
                     # Detect idf file version and use it to select idd file
                     if field_list[0] == 'Version':
                         version = field_list[1]
+                        idd._set_version(version)
 
                 # Check for the end of an object before checking for new tags
                 if (end_object and empty_line) or line_parsed['fields']:
@@ -640,10 +645,8 @@ class IDDParser(Parser):
                 if not line:
                     break
 
-#        myIDD.close()
         print 'Parsing IDD complete!'
-        return (len(objects), eol_char, options, idd,
-                group_list, objects, version)
+        return idd
 
 
 #---------------------------------------------------------------------------
@@ -666,7 +669,7 @@ class IDFParser(Parser):
 
             # Prepare some variables to store the results
             idd = None
-            idf = idfmodel.IDFFile(None)
+            idf = idfmodel.IDFFile()
             idf.file_path = file_path
             field_list = []
             comment_list = []
@@ -717,6 +720,7 @@ class IDFParser(Parser):
                     # Detect idf file version and use it to select idd file
                     if field_list[0] == 'Version':
                         version = field_list[1]
+                        idf._set_version(version)
                         if not idd:
                             idd = idfmodel.IDDFile(version)
 

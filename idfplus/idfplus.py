@@ -37,6 +37,7 @@ import idfdelegates
 import idfobject as idfObj
 import idfparse
 import idfsettings
+import idfmodel
 
 # Resource imports
 import icons_qr  # Used for icons (in text format)
@@ -140,26 +141,26 @@ class IDFPlus(QtGui.QMainWindow):
             # options, groups, objects) = parser.parseIDF(filename)
 
             try:
-                self.idf = parser.parseIDF(filename)
+                self.idf = idfmodel.IDFFile(filename)
                 self.idd = self.idf.idd
-            except IDDFileDoesNotExist(message):
+            except idfmodel.IDDFileDoesNotExist(message):
 
             # Load IDD File for the version of this IDF file
 #            version = idf.version  # '8.1.0.008'  # Get this from IDF file!
 #            self.idd = idf.idd  # idfObj.IDDFile(self, version)
             #if idd.loadIDD():
             #    self.idd = idd.idd
-                else:
-                    QtGui.QMessageBox.warning(self,
-                                              "Application",
-                                              ("Could not find IDD file of "
-                                               "appropriate version!\nLoading "
-                                               "cancelled"),
-                                              QtGui.QMessageBox.Ok)
-                    message = ("Loading failed. Could not find "
-                               "matching IDD version.")
-                    self.updateStatus(message)
-                    return False
+#                else:
+                QtGui.QMessageBox.warning(self,
+                                          "Application",
+                                          ("Could not find IDD file of "
+                                           "appropriate version!\nLoading "
+                                           "cancelled"),
+                                          QtGui.QMessageBox.Ok)
+                message = ("Loading failed. Could not find "
+                           "matching IDD version.")
+                self.updateStatus(message)
+                return False
 
 #            self.idf = idf
             self.groups = self.idf.groups
@@ -621,7 +622,7 @@ class IDFPlus(QtGui.QMainWindow):
                 tree.setFirstItemColumnSpanned(group_root, True)
                 tree.setRootIsDecorated(False)
 
-            obj_count = len(self.idd.get(obj_class, None) or ''
+            obj_count = len(self.idd.get(obj_class, None)) or ''
             child = QtGui.QTreeWidgetItem([obj_class, str(obj_count)])
             child.setTextAlignment(1, QtCore.Qt.AlignRight)
             group_root.addChild(child)
