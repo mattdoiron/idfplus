@@ -135,13 +135,14 @@ class IDFPlus(QtGui.QMainWindow):
             self.statusBar().showMessage(message, 5000)
 
             # Prepare the parser and load the IDD file with it
-            parser = idfparse.IDFParser(self.com)
-            parser.msg.msg.connect(self.testSignal)
+#            parser = idfparse.IDFParser(self.com)
+#            parser.msg.msg.connect(self.testSignal)
             #(object_count, eol_char,
             # options, groups, objects) = parser.parseIDF(filename)
 
             try:
                 self.idf = idfmodel.IDFFile(filename)
+                print(self.idf.version)
                 self.idd = self.idf.idd
             except idfmodel.IDDFileDoesNotExist(message):
 

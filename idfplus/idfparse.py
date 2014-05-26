@@ -365,8 +365,9 @@ class Writer(object):
 class Parser(object):
     """Base class for more specialized parsers"""
 
-    def __init__(self, msg):
-        self.msg = msg  # Communicate()
+    def __init__(self):
+#        self.msg = msg  # Communicate()
+        pass
 
     def getFields(self, str_in):
         '''Strips all comments, etc and returns what's left'''
@@ -513,6 +514,12 @@ class Parser(object):
 
 class IDDParser(Parser):
 
+    def __init__(self, idd, *args, **kwargs):
+        self.idd = idd
+
+        # Call the parent class' init method
+        super(IDDParser, self).__init__(*args, **kwargs)
+
     def parseIDD(self, file_path):
         '''Parse the provided idd (or idf) file'''
 
@@ -527,7 +534,7 @@ class IDDParser(Parser):
         with open(file_path, 'r') as file:
 
             # Prepare some variables to store the results
-            idd = idfmodel.IDDFile()
+#            idd = idfmodel.IDDFile()
             field_list = []
             comment_list = []
             comment_list_special = []
@@ -545,15 +552,15 @@ class IDDParser(Parser):
                 # Parse this line using readline (so last one is a blank)
                 line = file.readline()
                 total_read += len(line)
-                if self.msg:
-                    self.msg.msg.emit(total_read)
+#                if self.msg:
+#                    self.msg.msg.emit(total_read)
                 line_parsed = self.parseLine(line)
 
                 # Detect end of line character for use when re-writing file
                 if line.endswith('\r\n'):
-                    idd.eol_char = '\r\n'
+                    self.idd._eol_char = '\r\n'
                 else:
-                    idd.eol_char = '\n'
+                    self.idd._eol_char = '\n'
 
                 # If previous line was not the end of an object check this one
                 if end_object is False:
@@ -575,8 +582,8 @@ class IDDParser(Parser):
                     options.extend(match)
 
                 # If there are any comments save them
-                if line_parsed['comment'] is not None:
-                    comment_list.append(line_parsed['comment'])
+                if line_parsed['comments'] is not None:
+                    comment_list.append(line_parsed['comments'])
 
                 # If there are any fields save them
                 if line_parsed['fields']:
@@ -585,7 +592,7 @@ class IDDParser(Parser):
                     # Detect idf file version and use it to select idd file
                     if field_list[0] == 'Version':
                         version = field_list[1]
-                        idd._set_version(version)
+                        self.idd._set_version(version)
 
                 # Check for the end of an object before checking for new tags
                 if (end_object and empty_line) or line_parsed['fields']:
@@ -612,15 +619,15 @@ class IDDParser(Parser):
                     comment_list_special = comment_list_special or None
 
                     # Search idd file for object name
-                    if obj_class in idd:
-                        group = idd[obj_class][0]['group']
+                    if obj_class in self.idd:
+                        group = self.idd[obj_class]['group']
 
                     # Add the group to the list if it isn't already there
                     if group not in group_list:
                         group_list.append(group)
 
                     # Create a new iddObject from the parsed variables
-                    obj = idfmodel.IDDObject(obj_class, group, idd,
+                    obj = idfmodel.IDDObject(obj_class, group, self.idd,
                                              comments=comment_list,
                                              comments_special=comment_list_special)
                     obj.update(field_list) # TODO this is supposed to be a dictionary of IDDFields!!
@@ -630,7 +637,7 @@ class IDDParser(Parser):
 #                    field_tags=field_tag_list
 
                     # Save the new object as part of the IDD file
-                    idd.setdefault(obj_class, obj)
+                    self.idd.setdefault(obj_class, obj)
 
                     # Reset lists for next object
                     field_list = []
@@ -645,8 +652,11 @@ class IDDParser(Parser):
                 if not line:
                     break
 
+                # yield the current progress for progress bars
+                yield total_read
+
         print 'Parsing IDD complete!'
-        return idd
+#        return True
 
 
 #---------------------------------------------------------------------------
@@ -654,6 +664,12 @@ class IDDParser(Parser):
 
 class IDFParser(Parser):
     """IDF file parser that handles opening, parsing and returning."""
+
+    def __init__(self, idf, *args, **kwargs):
+        self.idf = idf
+
+        # Call the parent class' init method
+        super(IDFParser, self).__init__(*args, **kwargs)
 
     def parseIDF(self, file_path):
         '''Parse the provided idf file and return an IDFObject'''
@@ -668,12 +684,12 @@ class IDFParser(Parser):
         with open(file_path, 'r') as file:
 
             # Prepare some variables to store the results
-            idd = None
-            idf = idfmodel.IDFFile()
-            idf.file_path = file_path
+#            idd = None
+#            idf = self.idf
+#            idf.file_path = file_path
             field_list = []
             comment_list = []
-            options = []
+#            options = []
             group = None
             end_object = False
             version = None
@@ -687,14 +703,14 @@ class IDFParser(Parser):
                 line_parsed = self.parseLine(line)
 
                 # Emit signal for progress bar
-                if self.msg:
-                    self.msg.msg.emit(total_read)
+#                if self.msg:
+#                    self.msg.msg.emit(total_read)
 
                 # Detect end of line character for use when re-writing file
                 if line.endswith('\r\n'):
-                    idf.eol_char = '\r\n'
+                    self.idf._eol_char = '\r\n'
                 else:
-                    idf.eol_char = '\n'
+                    self.idf._eol_char = '\n'
 
                 # If previous line was not the end of an object check this one
                 if end_object is False:
@@ -707,11 +723,11 @@ class IDFParser(Parser):
                 # Check for special options (make separate function for this?)
                 if line_clean.startswith('!-Option'):
                     match = [x for x in options_list if x in line_clean]
-                    options.extend(match)
+                    self.idf.options.extend(match)
 
                 # If there are any comments save them
-                if line_parsed['comment'] is not None:
-                    comment_list.append(line_parsed['comment'])
+                if line_parsed['comments'] is not None:
+                    comment_list.append(line_parsed['comments'])
 
                 # If there are any fields save them
                 if line_parsed['fields']:
@@ -720,9 +736,9 @@ class IDFParser(Parser):
                     # Detect idf file version and use it to select idd file
                     if field_list[0] == 'Version':
                         version = field_list[1]
-                        idf._set_version(version)
-                        if not idd:
-                            idd = idfmodel.IDDFile(version)
+                        self.idf._set_version(version)
+                        if not self.idf._idd:
+                            self.idf._idd = idfmodel.IDDFile(version)
 
                 # If this is the end of an object save it
                 if end_object and empty_line:
@@ -733,18 +749,19 @@ class IDFParser(Parser):
                     # Make sure there are values or return None
                     field_list = field_list  # or None
                     comment_list = comment_list  # or None
-                    group = self.idd[obj_class].group
+                    group = self.idf._idd[obj_class].group
 
                     # If this is an IDF file, perform checks against IDD
                     # file here (mandatory fields, unique objects, etc)
 
                     # Create a new idfObject from the parsed variables
-                    obj = idfmodel.IDFObject(obj_class, group, idf, idd,
+                    obj = idfmodel.IDFObject(obj_class, group,
+                                             self.idf, self.idf._idd,
                                              comments=comment_list)
                     obj.extend(field_list)
 
                     # Save the new object as part of the IDF file
-                    idf.setdefault(obj_class, []).append(obj)
+                    self.idf.setdefault(obj_class, []).append(obj)
 
                     # Reset lists for next object
                     field_list = []
@@ -756,9 +773,12 @@ class IDFParser(Parser):
                 if not line:
                     break
 
+                # yield the current progress for progress bars
+                yield total_read
+
         print 'Parsing IDF complete!'
 
-        return idf
+#        return True
 
 ## Parse this idd file
 #idd_file = 'Energy+.idd'

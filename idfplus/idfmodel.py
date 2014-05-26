@@ -67,13 +67,15 @@ class IDDFile(OrderedDict):
 
             # Check if the file name is a file and then open the idd file
             if os.path.isfile(file_name):
-                with shelve.open(file_name) as f:
+                f = shelve.open(file_name)
 
-                    # Set some more attributes with using the idd file
-                    self._groups = f['groups']
-                    self._conversions = f['conversions']
-                    #self._class_tree = f['class_tree']  # To be implemented
-                    self._OrderedDict__update(f['idd'])
+                # Set some more attributes with using the idd file
+                self._groups = f['groups']
+                self._conversions = f.get('conversions', None)
+                #self._class_tree = f['class_tree']  # To be implemented
+                self._OrderedDict__update(f['idd'])
+
+                f.close()
             else:
                 raise IDDFileDoesNotExist("Can't find IDD file: {}".format(file_name))
 
@@ -199,24 +201,28 @@ class IDFFile(OrderedDict):
 
         # Various attributes of the idf file
         self._version_set = False
+        self._idd = None
+        self._eol_char = None
+        self.file_path = None
+        self.options = []
 
         # Load the idf file if specified, otherwise prepare a blank one
         if file_path:
             import idfparse
-            idf = idfparse.IDFParser(file_path)
-            self._idd = idf.idd
-            self._version = idf.version
-            self._eol_char = idf.eol_char
-            self.options = idf.options
+#            idf = idfparse.IDFParser(file_path)
             self.file_path = file_path
-            self._OrderedDict__update(objects)
+            parser = idfparse.IDFParser(self)
+            for progress in parser.parseIDF(file_path):
+                print progress
+#            self._idd = idf.idd
+#            self._version = idf.version
+#            self._eol_char = idf.eol_char
+#            self.options = idf.options
+#            self._OrderedDict__update(objects)
         else:
             default = '8.1'  # retrieve this from settings eventually
             self._version = kwargs.pop('version', default)
             self._idd = IDDFile(self._version)
-            self._eol_char = None
-            self.file_path = None
-            self.options = []
 
         # Call the parent class' init method
         super(IDFFile, self).__init__(*args, **kwargs)
@@ -234,21 +240,21 @@ class IDFFile(OrderedDict):
 
         super(IDFFile, self).__setitem__(self, key, value)
 
-    def _load(self):
-        """Parses and loads an idf file into the object instance variable.
-        Also sets some attributes of the file.
-        """
-
-        import idfparse
-
-        (count, eol_char, options, idd,
-         group_list, objects, version) = idfparse.Parser(self.file_path)
-
-        self._idd = idd
-        self._version = version
-        self._eol_char = eol_char
-        self.options = options
-        self._OrderedDict__update(objects)
+#    def _load(self):
+#        """Parses and loads an idf file into the object instance variable.
+#        Also sets some attributes of the file.
+#        """
+#
+#        import idfparse
+#
+#        (count, eol_char, options, idd,
+#         group_list, objects, version) = idfparse.Parser(self.file_path)
+#
+#        self._idd = idd
+#        self._version = version
+#        self._eol_char = eol_char
+#        self.options = options
+#        self._OrderedDict__update(objects)
 
     def _load_idd(self):
         """Loads an idd file in the case where this is a blank idf file."""
