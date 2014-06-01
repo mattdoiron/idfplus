@@ -332,6 +332,19 @@ class Writer(object):
             print 'File not written! Exception!' + e.strerror
             return False
 
+    def writeIDD(self, idd, options):
+        '''Write an IDD from the specified iddObject'''
+
+        print 'Writing file: ' + idd.file_path
+
+        # how will this be written? shelve? ZODB?
+        # probably just shelve...
+
+        import shelve
+
+
+
+
 # Write the idf file
 #writeIDF('testoutput.idf', options, objects)
 
@@ -515,12 +528,16 @@ class Parser(object):
 class IDDParser(Parser):
 
     def __init__(self, idd, *args, **kwargs):
-        self.idd = idd
+        if idd:
+            self.idd = idd
+            self.parseIDD(idd)
+        else:
+            self.idd = idfmodel.IDDFile()
 
         # Call the parent class' init method
         super(IDDParser, self).__init__(*args, **kwargs)
 
-    def parseIDD(self, file_path):
+    def parseIDD(self, file_path):  # rename to loadIDD?
         '''Parse the provided idd (or idf) file'''
 
         global comment_delimiter_special  # Avoid these...
@@ -665,13 +682,17 @@ class IDDParser(Parser):
 class IDFParser(Parser):
     """IDF file parser that handles opening, parsing and returning."""
 
-    def __init__(self, idf, *args, **kwargs):
-        self.idf = idf
+    def __init__(self, idf=None, *args, **kwargs):
+        if idf:
+            self.idf = idf
+            self.parseIDF(idf)
+        else:
+            self.idf = idfmodel.IDFFile()
 
         # Call the parent class' init method
         super(IDFParser, self).__init__(*args, **kwargs)
 
-    def parseIDF(self, file_path):
+    def parseIDF(self, file_path):  # rename to loadIDF?
         '''Parse the provided idf file and return an IDFObject'''
 
         global options_list  # Avoid these?

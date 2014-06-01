@@ -111,6 +111,31 @@ class IDFPlus(QtGui.QMainWindow):
             if filename:
                 self.loadFile(filename)
 
+    def findIddFile(self):
+        '''Called to open an idd file location.'''
+        if self.okToContinue():
+            directory = os.path.dirname(self.filename) if self.filename else "."
+            dialog_name = 'Open EnergyPlus Installation Directory'
+            fileDialog = QtGui.QFileDialog()
+            fileDialog.setFileMode(QtGui.QFileDialog.Directory)
+            filename, filt = fileDialog.getOpenFileName(self, dialog_name,
+                                                        directory)
+            if filename:
+                result = self.saveIddFile(filename)
+                if result is True:
+                    return True
+
+    def saveIddFile(self, filename):
+        """Loads a given idd file and saves it."""
+        idd = idfmodel.IDDFile()
+        parser = idfparse.IDDParser(idd)
+        for progress in parser.parseIDD(filename):
+            print(progress)
+        writer = idfparse.Writer(self)
+        result = writer.writeIDD(idd, None)
+        if result is True:
+            return True
+
     def loadFile(self, filename=None):
         '''Loads a specified file or gets the filename from the sender.'''
         if filename is None:
@@ -144,24 +169,26 @@ class IDFPlus(QtGui.QMainWindow):
                 self.idf = idfmodel.IDFFile(filename)
                 print(self.idf.version)
                 self.idd = self.idf.idd
-            except idfmodel.IDDFileDoesNotExist(message):
-
+            except idfmodel.IDDFileDoesNotExist:
             # Load IDD File for the version of this IDF file
 #            version = idf.version  # '8.1.0.008'  # Get this from IDF file!
 #            self.idd = idf.idd  # idfObj.IDDFile(self, version)
             #if idd.loadIDD():
             #    self.idd = idd.idd
 #                else:
-                QtGui.QMessageBox.warning(self,
-                                          "Application",
-                                          ("Could not find IDD file of "
-                                           "appropriate version!\nLoading "
-                                           "cancelled"),
-                                          QtGui.QMessageBox.Ok)
-                message = ("Loading failed. Could not find "
-                           "matching IDD version.")
-                self.updateStatus(message)
-                return False
+                result = self.findIddFile()
+                if result is not True:
+                    return False
+#                QtGui.QMessageBox.warning(self,
+#                                          "Application",
+#                                          ("Could not find IDD file of "
+#                                           "appropriate version!\nLoading "
+#                                           "cancelled"),
+#                                          QtGui.QMessageBox.Ok)
+#                message = ("Loading failed. Could not find "
+#                           "matching IDD version.")
+#                self.updateStatus(message)
+#                return False
 
 #            self.idf = idf
             self.groups = self.idf.groups
