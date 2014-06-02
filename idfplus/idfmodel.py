@@ -82,14 +82,14 @@ class IDDFile(OrderedDict):
         # Call the parent class' init method
         super(IDDFile, self).__init__(*args, **kwargs)
 
-    def __setitem__(self, key, value):
+    def __setitem__(self, key, value, dict_setitem=dict.__setitem__):
         """Override the default __setitem__ to ensure that only certain
         object types are allowed."""
 
         if not isinstance(value, IDDObject):
             raise TypeError('Only items of type IDDObject can be added!')
 
-        super(IDDFile, self).__setitem__(self, key, value)
+        super(IDDFile, self).__setitem__(key, value, dict_setitem)
 
     def _set_version(self, version):
         """Method used to set the version of the IDD file. Can only
@@ -212,7 +212,7 @@ class IDFFile(OrderedDict):
 #            idf = idfparse.IDFParser(file_path)
             self.file_path = file_path
             parser = idfparse.IDFParser(self)
-            for progress in parser.parseIDF(file_path):
+            for progress in parser.parse_idf(file_path):
                 print progress
 #            self._idd = idf.idd
 #            self._version = idf.version
@@ -227,7 +227,7 @@ class IDFFile(OrderedDict):
         # Call the parent class' init method
         super(IDFFile, self).__init__(*args, **kwargs)
 
-    def __setitem__(self, key, value):
+    def __setitem__(self, key, value, dict_setitem=dict.__setitem__):
         """Override the default __setitem__ to ensure that only certain
         object types are allowed."""
 
@@ -238,7 +238,7 @@ class IDFFile(OrderedDict):
             if not isinstance(val, IDFObject):
                 raise TypeError('Only items of type IDFObject can be added!')
 
-        super(IDFFile, self).__setitem__(self, key, value)
+        super(IDFFile, self).__setitem__(key, value, dict_setitem)
 
 #    def _load(self):
 #        """Parses and loads an idf file into the object instance variable.
@@ -260,7 +260,7 @@ class IDFFile(OrderedDict):
         """Loads an idd file in the case where this is a blank idf file."""
 
         default = '8.1'  # retrieve this from settings eventually
-        self.idd = IDDFile(self._version or default)
+        self._idd = IDDFile(self._version or default)
 
     def _set_version(self, version):
         """Method used to set the version of the IDF file. Can only
@@ -330,14 +330,18 @@ class IDFObject(list):
     :attr group: Group to which this object belongs
     :attr idd: Contains the IDD file used by this IDF object
     :attr comments: User comments for this object
-    :attr incomming_links: List of tupples of objects that link to this
-    :attr outgoing_links: List of tupples of objects to which this links
+    :attr incoming_links: List of tuples of objects that link to this
+    :attr outgoing_links: List of tuples of objects to which this links
     """
 
     def __init__(self, obj_class, group, parent, idd, *args, **kwargs):
         """Use kwargs to prepopulate some values, then remove them from kwargs
         Also sets the idd file for use by this object.
 
+        :param group:
+        :param parent:
+        :param args:
+        :param kwargs:
         :param idd: idd file used by this idf file
         :param obj_class: Class type of this idf object
         :param *args: arguments to pass to dictionary
@@ -348,7 +352,7 @@ class IDFObject(list):
         self._group = group
         self._obj_class = obj_class
         self._idd = idd
-        self._incomming_links = []
+        self._incoming_links = []
         self._outgoing_links = []
         self._parent = parent
         self.comments = kwargs.pop('comments', None)
@@ -386,9 +390,9 @@ class IDFObject(list):
         return self._group
 
     @property
-    def incomming_links(self):
-        """Read-only property containing incomming links"""
-        return self._incomming_links
+    def incoming_links(self):
+        """Read-only property containing incoming links"""
+        return self._incoming_links
 
     @property
     def outgoing_links(self):
@@ -415,52 +419,52 @@ class IDFObject(list):
 #        else:
 #            raise TypeError('Invalid key type - must be string or int')
 
-    def addLink(self, obj, field_id, incomming=False, outgoing=False):
+    def add_link(self, obj, field_id, incoming=False, outgoing=False):
         """Ads a link to and/or from this object.
 
         :param obj: Another object of type IDFObject
         :param field_id: A field id like 'A1' or 'N1'
-        :param incomming:  (Default value = False)
+        :param incoming:  (Default value = False)
         :param outgoing:  (Default value = False)
-        :raises ValueError: If neither incomming nor outgoing is True
+        :raises ValueError: If neither incoming nor outgoing is True
         :raises TypeError: If either field_id or obj are not a valid types
         """
 
         # Checks for valid inputs
-        if not incomming and not outgoing:
-            raise ValueError('Must specify either incomming or outgoing.')
+        if not incoming and not outgoing:
+            raise ValueError('Must specify either incoming or outgoing.')
         if not isinstance(obj, IDFObject) or not isinstance(field_id, str):
             raise TypeError('Invalid object or field_id type.')
 
         # Adds the specified objects to the list(s) of links
         link = (obj, field_id)
-        if incomming and link not in self._incomming_links:
-            self._incomming_links.append((obj, field_id))
+        if incoming and link not in self._incoming_links:
+            self._incoming_links.append((obj, field_id))
         if outgoing and link not in self._outgoing_links:
             self._outgoing_links.append((obj, field_id))
         return True
 
-    def removeLink(self, obj, field_id, incomming=False, outgoing=False):
+    def remove_link(self, obj, field_id, incoming=False, outgoing=False):
         """Removes a link to and/or from this object.
 
         :param obj: Another object of type IDFObject
         :param field_id: A field id like 'A1' or 'N1'
-        :param incomming:  (Default value = False)
+        :param incoming:  (Default value = False)
         :param outgoing:  (Default value = False)
-        :raises ValueError: If neither incomming nor outgoing is True
+        :raises ValueError: If neither incoming nor outgoing is True
         :raises TypeError: If either field_id or obj are not a valid types
         """
 
         # Checks for valid inputs
-        if not incomming and not outgoing:
-            raise ValueError('Must specify either incomming or outgoing.')
+        if not incoming and not outgoing:
+            raise ValueError('Must specify either incoming or outgoing.')
         if not isinstance(obj, IDFObject) or not isinstance(field_id, str):
             raise TypeError('Invalid object or field_id type.')
 
         # Removes the specified objects to the list(s) of links
         link = (obj, field_id)
-        if incomming and link in self._incomming_links:
-            self._incomming_links.remove(link)
+        if incoming and link in self._incoming_links:
+            self._incoming_links.remove(link)
         if outgoing and link in self._outgoing_links:
             self._outgoing_links.remove(link)
         return True
@@ -475,7 +479,13 @@ class IDFField(dict):
     """
 
     def __init__(self, key, value, parent, *args, **kwargs):
-        """Initializes a new idf field"""
+        """Initializes a new idf field
+        :param key:
+        :param value:
+        :param parent:
+        :param args:
+        :param kwargs:
+        """
         self._key = key
         self._value = value
         self._parent = parent
@@ -484,10 +494,13 @@ class IDFField(dict):
         super(IDFField, self).__init__(*args, **kwargs)
 
     def __repr__(self):
-        return self._parent.obj_class + ':' + self.__key
+        return self._parent.obj_class + ':' + self._key
 
-    def __toIP__(self, value, obj_class, key):
-        """Converts incomming value to IP units
+    def _to_ip_(self, value, obj_class, key):
+        """Converts incoming value to IP units
+        :param value:
+        :param obj_class:
+        :param key:
         1. Get units of specified obj_class:key combo.
         2. Lookup equivalent IP unit (where?)
         3. Retrieve conversion factor from parent
@@ -499,8 +512,13 @@ class IDFField(dict):
         return value
 
     def value(self, ip=False):
+        """
+
+        :param ip:
+        :return:
+        """
         if ip:
-            return self.__toIP__(self._value,
+            return self._to_ip_(self._value,
                                  self._parent.obj_class,
                                  self._key)
         else:

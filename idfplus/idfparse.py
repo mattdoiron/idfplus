@@ -1,4 +1,4 @@
-#!/usr/bin/python
+# !/usr/bin/python
 # -*- coding: utf-8 -*-
 """"
 Copyright (c) 2014, IDFPlus Inc. All rights reserved.
@@ -21,7 +21,7 @@ along with IDFPlus. If not, see <http://www.gnu.org/licenses/>.
 #from contextlib import closing
 
 import os
-from collections import OrderedDict
+#from collections import OrderedDict
 import idfmodel
 
 #fieldTags = set('\\field',
@@ -55,34 +55,34 @@ import idfmodel
 #                '\\group')
 
 fieldTags = ['\\field',
-                '\\note',
-                '\\required-field',
-                '\\begin-extensible',
-                '\\units',
-                '\\ip-units',
-                '\\unitsBasedOnField',
-                '\\minimum',
-                '\\minimum>',
-                '\\maximum',
-                '\\maximum<',
-                '\\default',
-                '\\deprecated',
-                '\\autosizeable',
-                '\\autocalculatable',
-                '\\type',
-                '\\retaincase',
-                '\\key',
-                '\\object-list',
-                '\\reference',
-                '\\memo',
-                '\\unique-object',
-                '\\required-object',
-                '\\min-fields',
-                '\\obsolete',
-                '\\extensible:',
-                '\\begin-extensible',
-                '\\format',
-                '\\group']
+             '\\note',
+             '\\required-field',
+             '\\begin-extensible',
+             '\\units',
+             '\\ip-units',
+             '\\unitsBasedOnField',
+             '\\minimum',
+             '\\minimum>',
+             '\\maximum',
+             '\\maximum<',
+             '\\default',
+             '\\deprecated',
+             '\\autosizeable',
+             '\\autocalculatable',
+             '\\type',
+             '\\retaincase',
+             '\\key',
+             '\\object-list',
+             '\\reference',
+             '\\memo',
+             '\\unique-object',
+             '\\required-object',
+             '\\min-fields',
+             '\\obsolete',
+             '\\extensible:',
+             '\\begin-extensible',
+             '\\format',
+             '\\group']
 
 options_list = ['OriginalOrderTop', 'UseSpecialFormat']
 
@@ -137,29 +137,29 @@ comment_delimiter_special = '!-'
 
 
 #print 'Fields:'
-#print '- line 1: "' + str(getFields(test_line1)) + '"'
-#print '- line 2: "' + str(getFields(test_line2)) + '"'
-#print '- line 3: "' + str(getFields(test_line3)) + '"'
-#print '- line 4: "' + str(getFields(test_line4)) + '"'
-#print '- line 5: "' + str(getFields(test_line5)) + '"'
-#print '- line 6: "' + str(getFields(test_line6)) + '"'
-#print '- line 7: "' + str(getFields(test_line7)) + '"'
-#print '- line 8: "' + str(getFields(test_line8)) + '"'
-#print '- line 9: "' + str(getFields(test_line9)) + '"'
-#print '- line 10: "' + str(getFields(test_line10)) + '"'
-#print '- line 11: "' + str(getFields(test_line11)) + '"'
-#print '- line 12: "' + str(getFields(test_line12)) + '"'
-#print '- line 13: "' + str(getFields(test_line13)) + '"'
-#print '- line 14: "' + str(getFields(test_line14)) + '"'
-#print '- line 15: "' + str(getFields(test_line15)) + '"'
-#print '- line 16: "' + str(getFields(test_line16)) + '"'
+#print '- line 1: "' + str(get_fields(test_line1)) + '"'
+#print '- line 2: "' + str(get_fields(test_line2)) + '"'
+#print '- line 3: "' + str(get_fields(test_line3)) + '"'
+#print '- line 4: "' + str(get_fields(test_line4)) + '"'
+#print '- line 5: "' + str(get_fields(test_line5)) + '"'
+#print '- line 6: "' + str(get_fields(test_line6)) + '"'
+#print '- line 7: "' + str(get_fields(test_line7)) + '"'
+#print '- line 8: "' + str(get_fields(test_line8)) + '"'
+#print '- line 9: "' + str(get_fields(test_line9)) + '"'
+#print '- line 10: "' + str(get_fields(test_line10)) + '"'
+#print '- line 11: "' + str(get_fields(test_line11)) + '"'
+#print '- line 12: "' + str(get_fields(test_line12)) + '"'
+#print '- line 13: "' + str(get_fields(test_line13)) + '"'
+#print '- line 14: "' + str(get_fields(test_line14)) + '"'
+#print '- line 15: "' + str(get_fields(test_line15)) + '"'
+#print '- line 16: "' + str(get_fields(test_line16)) + '"'
 
 
 #def parseLineIDF(line_in):
 #    '''Parses a line from the IDF file and returns results'''
 #
 #    # Get results
-#    fields = getFields(line_in)
+#    fields = get_fields(line_in)
 #    comment = getGeneralComment(line_in)
 #    end_object = False
 #
@@ -176,25 +176,25 @@ comment_delimiter_special = '!-'
 
 
 #print 'Whole Line:'
-#print parseLine(test_line1)
-#print parseLine(test_line2)
-#print parseLine(test_line3)
-#print parseLine(test_line4)
-#print parseLine(test_line5)
-#print parseLine(test_line6)
-#print parseLine(test_line7)
-#print parseLine(test_line8)
-#print parseLine(test_line9)
-#print parseLine(test_line10)
-#print parseLine(test_line11)
-#print parseLine(test_line12)
-#print parseLine(test_line13)
-#print parseLine(test_line14)
-#print parseLine(test_line15)
-#print parseLine(test_line16)
+#print parse_line(test_line1)
+#print parse_line(test_line2)
+#print parse_line(test_line3)
+#print parse_line(test_line4)
+#print parse_line(test_line5)
+#print parse_line(test_line6)
+#print parse_line(test_line7)
+#print parse_line(test_line8)
+#print parse_line(test_line9)
+#print parse_line(test_line10)
+#print parse_line(test_line11)
+#print parse_line(test_line12)
+#print parse_line(test_line13)
+#print parse_line(test_line14)
+#print parse_line(test_line15)
+#print parse_line(test_line16)
 
 
-#def parseIDF(filename):
+#def parse_idf(filename):
 #    '''Parse the provided IDF file'''
 #
 #    print 'Parsing IDF file: ' + filename
@@ -271,16 +271,15 @@ comment_delimiter_special = '!-'
 # Parse these idf files
 #idf_file = 'RefBldgLargeOfficeNew2004_Chicago.idf'
 #idf_file2 = '5ZoneBoilerOutsideAirReset.idf'
-#lines, object_count, options, objects = parseIDF(idf_file2)
+#lines, object_count, options, objects = parse_idf(idf_file2)
 
 class Writer(object):
-
     def __init__(self):
         pass
 
-    def writeIDF(self, idf, idd, options):
-        '''Write an IDF from the specified idfObject'''
-
+    @staticmethod
+    def write_idf(idf, idd, options):
+        """Write an IDF from the specified idfObject"""
 
         print 'Writing file: ' + idf.file_path + '_test'
 
@@ -329,11 +328,12 @@ class Writer(object):
             print 'File written!'
             return True
         except IOError as e:
-            print 'File not written! Exception!' + e.strerror
+            print 'File not written! Exception!' + str(e.strerror)
             return False
 
-    def writeIDD(self, idd, options):
-        '''Write an IDD from the specified iddObject'''
+    @staticmethod
+    def write_idd(idd, options):
+        """Write an IDD from the specified iddObject"""
 
         print 'Writing file: ' + idd.file_path
 
@@ -343,18 +343,16 @@ class Writer(object):
         import shelve
 
 
-
-
 # Write the idf file
 #writeIDF('testoutput.idf', options, objects)
 
 
-#print getTags(tag_line1)
-#print getTags(tag_line2)
-#print getTags(tag_line3)
-#print getTags(tag_line4)
-#print getTags(tag_line5)
-#print getTags(tag_line6)
+#print get_tags(tag_line1)
+#print get_tags(tag_line2)
+#print get_tags(tag_line3)
+#print get_tags(tag_line4)
+#print get_tags(tag_line5)
+#print get_tags(tag_line6)
 
 
 #print 'Whole Line:'
@@ -378,26 +376,30 @@ class Writer(object):
 class Parser(object):
     """Base class for more specialized parsers"""
 
-    def __init__(self):
-#        self.msg = msg  # Communicate()
+    def __init__(self, *args, **kwargs):
+        #        self.msg = msg  # Communicate()
         pass
 
-    def getFields(self, str_in):
-        '''Strips all comments, etc and returns what's left'''
+    @staticmethod
+    def get_fields(str_in):
+        """Strips all comments, etc and returns what's left
+        :rtype : str
+        :param str_in: 
+        """
         global comment_delimiter_general
         global comment_delimiter_special
 
         # Partition the line twice
-        partA = str_in.partition(comment_delimiter_special)
-        partB = partA[0].partition(comment_delimiter_general)
+        part_a = str_in.partition(comment_delimiter_special)
+        part_b = part_a[0].partition(comment_delimiter_general)
 
-        if partB[0].strip().startswith('\\'):
+        if part_b[0].strip().startswith('\\'):
             # This is a tag and not a comment
             return None
 
-        elif partB[0].strip():
+        elif part_b[0].strip():
             # Split the list into fields at the commas
-            fields = partB[0].expandtabs().strip().split(',')
+            fields = part_b[0].expandtabs().strip().split(',')
 
             # Check for and remove items created by a trailing comma
             if not fields[-1] and len(fields) > 1:
@@ -420,8 +422,12 @@ class Parser(object):
         else:
             return None
 
-    def getGeneralComments(self, str_in):
-        '''Parses a string and returns the general comment if it exists'''
+    @staticmethod
+    def get_general_comments(str_in):
+        """Parses a string and returns the general comment if it exists
+        :param str_in: 
+        :rtype : object
+        """
         global comment_delimiter_general
         global comment_delimiter_special
 
@@ -435,59 +441,66 @@ class Parser(object):
             return part[-1].expandtabs().rstrip()
 
         elif str_in.find(comment_delimiter_special) != -1 and \
-                str_in.count(comment_delimiter_general) == 1:
+                         str_in.count(comment_delimiter_general) == 1:
             # Special comment found, but no general comment
             return None
 
         else:
             # Both types of comments may be present so parse in more detail
-            partA = str_in.partition(comment_delimiter_special)
+            part_a = str_in.partition(comment_delimiter_special)
 
-            if partA[0].find(comment_delimiter_general) != -1:
+            if part_a[0].find(comment_delimiter_general) != -1:
                 # General comment precedes special comment, repartition
-                partB = str_in.partition(comment_delimiter_general)
+                part_b = str_in.partition(comment_delimiter_general)
 
-            elif partA[-1].find(comment_delimiter_general) != -1:
+            elif part_a[-1].find(comment_delimiter_general) != -1:
                 # General comment is in the last item (part of special comment)
                 return None
 
-            return partB[-1].expandtabs()
+            return part_b[-1].expandtabs()
 
-    def getTags(self, line_in):
-            '''Parses a line and gets any fields tags present'''
+    @staticmethod
+    def get_tags(line_in):
+        """Parses a line and gets any fields tags present
+        :rtype : dict
+        :param line_in: 
+        """
 
-            global fieldTags
-            tag_result = None
+        global fieldTags
+        tag_result = None
 
-            # Create a list containing any tags found in line_in
-            match = [x for x in fieldTags if x in line_in]
+        # Create a list containing any tags found in line_in
+        match = [x for x in fieldTags if x in line_in]
 
-            # If there are any matches, save the first one
-            if match:
+        # If there are any matches, save the first one
+        if match:
 
-                # Partition the line at the match
-                part = line_in.strip().partition(match[0])
+            # Partition the line at the match
+            part = line_in.strip().partition(match[0])
 
-                # If there is a value save it
-                if part[-1]:
-                    value = part[-1].lstrip()
-                else:
-                    value = None
+            # If there is a value save it
+            if part[-1]:
+                value = part[-1].lstrip()
+            else:
+                value = None
 
-                # Save results
-                tag_result = dict(tag=match[0],
-                                  value=value)
+            # Save results
+            tag_result = dict(tag=match[0],
+                              value=value)
 
-            # Return results
-            return tag_result
+        # Return results
+        return tag_result
 
-    def parseLine(self, line_in):
-        '''Parses a line from the IDD/IDF file and returns results'''
+    def parse_line(self, line_in):
+        """Parses a line from the IDD/IDF file and returns results
+        :rtype : dict
+        :param line_in: 
+        """
 
         # Get results
-        fields = self.getFields(line_in) or None
-        comments = self.getGeneralComments(line_in)  # Preserve blanks!
-        tags = self.getTags(line_in) or None
+        fields = self.get_fields(line_in) or None
+        comments = self.get_general_comments(line_in)  # Preserve blanks!
+        tags = self.get_tags(line_in) or None
         end_object = False
         empty_line = False
 
@@ -508,14 +521,19 @@ class Parser(object):
                     end_object=end_object,
                     empty_line=empty_line)
 
-    def compile_idd(self, idd_filename, version):
-        '''Opens, parses and then shelves a copy of the IDD file object.'''
+    @staticmethod
+    def compile_idd(idd_filename, version):
+        """Opens, parses and then shelves a copy of the IDD file object.
+        :param idd_filename: 
+        :param version: 
+        """
 
         import shelve
+
         parser = Parser(None)
 
         (object_count, eol_char,
-         options, groups, objects) = parser.parseIDD(idd_filename)
+         options, groups, objects) = parser.parse_idd(idd_filename)
 
         database = shelve.open('data/EnergyPlus_IDD_v{}.dat'.format(version))
         database['idd'] = objects
@@ -526,19 +544,21 @@ class Parser(object):
 
 
 class IDDParser(Parser):
-
     def __init__(self, idd, *args, **kwargs):
         if idd:
             self.idd = idd
-            self.parseIDD(idd)
+            self.parse_idd(idd)
         else:
             self.idd = idfmodel.IDDFile()
 
         # Call the parent class' init method
         super(IDDParser, self).__init__(*args, **kwargs)
 
-    def parseIDD(self, file_path):  # rename to loadIDD?
-        '''Parse the provided idd (or idf) file'''
+    def parse_idd(self, file_path):  # rename to loadIDD?
+        """Parse the provided idd (or idf) file
+        :rtype : bool
+        :param file_path: 
+        """
 
         global comment_delimiter_special  # Avoid these...
         global options_list
@@ -551,7 +571,7 @@ class IDDParser(Parser):
         with open(file_path, 'r') as file:
 
             # Prepare some variables to store the results
-#            idd = idfmodel.IDDFile()
+            #            idd = idfmodel.IDDFile()
             field_list = []
             comment_list = []
             comment_list_special = []
@@ -569,9 +589,9 @@ class IDDParser(Parser):
                 # Parse this line using readline (so last one is a blank)
                 line = file.readline()
                 total_read += len(line)
-#                if self.msg:
-#                    self.msg.msg.emit(total_read)
-                line_parsed = self.parseLine(line)
+                #                if self.msg:
+                #                    self.msg.msg.emit(total_read)
+                line_parsed = self.parse_line(line)
 
                 # Detect end of line character for use when re-writing file
                 if line.endswith('\r\n'):
@@ -587,7 +607,6 @@ class IDDParser(Parser):
                 # Check for special comments and options (make func for this?)
                 line_clean = line.expandtabs().lstrip()
                 if line_clean.startswith(comment_delimiter_special):
-
                     # Special comment found, save it
                     comment_list_special.append(
                         line_clean.lstrip(comment_delimiter_special).rstrip()
@@ -647,11 +666,11 @@ class IDDParser(Parser):
                     obj = idfmodel.IDDObject(obj_class, group, self.idd,
                                              comments=comment_list,
                                              comments_special=comment_list_special)
-                    obj.update(field_list) # TODO this is supposed to be a dictionary of IDDFields!!
+                    obj.update(field_list)  # TODO this is supposed to be a dictionary of IDDFields!!
 
                     # TODO assign field tags to each field. Each field needs
                     # to be added to the IDDObject individually?!
-#                    field_tags=field_tag_list
+                    #                    field_tags=field_tag_list
 
                     # Save the new object as part of the IDD file
                     self.idd.setdefault(obj_class, obj)
@@ -673,6 +692,7 @@ class IDDParser(Parser):
                 yield total_read
 
         print 'Parsing IDD complete!'
+
 #        return True
 
 
@@ -685,15 +705,17 @@ class IDFParser(Parser):
     def __init__(self, idf=None, *args, **kwargs):
         if idf:
             self.idf = idf
-            self.parseIDF(idf)
+            self.parse_idf(idf)
         else:
             self.idf = idfmodel.IDFFile()
 
         # Call the parent class' init method
         super(IDFParser, self).__init__(*args, **kwargs)
 
-    def parseIDF(self, file_path):  # rename to loadIDF?
-        '''Parse the provided idf file and return an IDFObject'''
+    def parse_idf(self, file_path):  # rename to loadIDF?
+        """Parse the provided idf file and return an IDFObject
+        :param file_path:
+        """
 
         global options_list  # Avoid these?
         total_size = os.path.getsize(file_path)
@@ -705,12 +727,12 @@ class IDFParser(Parser):
         with open(file_path, 'r') as file:
 
             # Prepare some variables to store the results
-#            idd = None
-#            idf = self.idf
-#            idf.file_path = file_path
+            #            idd = None
+            #            idf = self.idf
+            #            idf.file_path = file_path
             field_list = []
             comment_list = []
-#            options = []
+            #            options = []
             group = None
             end_object = False
             version = None
@@ -721,11 +743,11 @@ class IDFParser(Parser):
                 # Parse this line using readline (so last one is a blank)
                 line = file.readline()
                 total_read += len(line)
-                line_parsed = self.parseLine(line)
+                line_parsed = self.parse_line(line)
 
                 # Emit signal for progress bar
-#                if self.msg:
-#                    self.msg.msg.emit(total_read)
+                #                if self.msg:
+                #                    self.msg.msg.emit(total_read)
 
                 # Detect end of line character for use when re-writing file
                 if line.endswith('\r\n'):
@@ -763,7 +785,6 @@ class IDFParser(Parser):
 
                 # If this is the end of an object save it
                 if end_object and empty_line:
-
                     # The first field is the object name
                     obj_class = field_list.pop(0)
 
@@ -806,7 +827,7 @@ class IDFParser(Parser):
 #idf_file = 'RefBldgLargeOfficeNew2004_Chicago.idf'
 #idf_file2 = '5ZoneBoilerOutsideAirReset.idf'
 #idf_file3 = 'ChicagoSM.idf'
-#object_count, eol_char, options, groups, objects = parseIDD(idf_file2)
+#object_count, eol_char, options, groups, objects = parse_idd(idf_file2)
 ##writeIDF('testoutput.idf', options, objects)
 #import json
 #encoded = json.dumps(objects)

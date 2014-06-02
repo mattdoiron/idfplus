@@ -129,7 +129,7 @@ class IDFPlus(QtGui.QMainWindow):
         """Loads a given idd file and saves it."""
         idd = idfmodel.IDDFile()
         parser = idfparse.IDDParser(idd)
-        for progress in parser.parseIDD(filename):
+        for progress in parser.parse_idd(filename):
             print(progress)
         writer = idfparse.Writer(self)
         result = writer.writeIDD(idd, None)
@@ -163,7 +163,7 @@ class IDFPlus(QtGui.QMainWindow):
 #            parser = idfparse.IDFParser(self.com)
 #            parser.msg.msg.connect(self.testSignal)
             #(object_count, eol_char,
-            # options, groups, objects) = parser.parseIDF(filename)
+            # options, groups, objects) = parser.parse_idf(filename)
 
             try:
                 self.idf = idfmodel.IDFFile(filename)
