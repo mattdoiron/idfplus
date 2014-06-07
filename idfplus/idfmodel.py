@@ -17,6 +17,9 @@ You should have received a copy of the GNU General Public License
 along with IDFPlus. If not, see <http://www.gnu.org/licenses/>.
 """
 
+# Prepare for Python 3
+from __future__ import (print_function, division, with_statement, absolute_import)
+
 import shelve
 import os.path
 from collections import OrderedDict
@@ -38,16 +41,16 @@ class IDDFile(OrderedDict):
         {'ScheduleTypeLimits': IDDObject,
          'SimulationControl':  IDDObject}
 
-    :attr version: IDD file version
-    :attr groups: List of groups to which classes can belong
+    :attr str version: IDD file version
+    :attr list groups: List of groups to which classes can belong
     """
 
     def __init__(self, version=None, *args, **kwargs):
         """Initializes the idd file
 
-        :param version: IDD file version
-        :param groups: list of groups from the idd file
-        :param conversions: list of unit conversions from the idd file
+        :param str version: IDD file version
+        :param list groups: list of groups from the idd file
+        :param list conversions: list of unit conversions from the idd file
         :param *args: arguments to pass to dictionary
         :param **kwargs: keyword arguments to pass to dictionary
         """
@@ -93,6 +96,7 @@ class IDDFile(OrderedDict):
 
     def _set_version(self, version):
         """Method used to set the version of the IDD file. Can only
+        :param str version:
         be set once for safety and sanity."""
         if self._version_set is True:
             raise VersionAlreadySet('Version can be set only once.')
@@ -129,9 +133,9 @@ class IDDObject(OrderedDict):
         """Use kwargs to prepopulate some values, then remove them from kwargs
         Also sets the idd file for use by this object.
 
-        :param obj_class: Class type of this idf object
-        :param group: group that this idd object belongs to
-        :param parent: the parent object for this object (type IDDFile)
+        :param str obj_class: Class type of this idf object
+        :param str group: group that this idd object belongs to
+        :param IDFFile parent: the parent object for this object (type IDDFile)
         :param *args: arguments to pass to dictionary
         :param **kwargs: keyword arguments to pass to dictionary
         """
@@ -157,12 +161,16 @@ class IDDObject(OrderedDict):
 
     @property
     def obj_class(self):
-        """Read-only property containing idd object's class type"""
+        """Read-only property containing idd object's class type
+        :returns str: Returns the obj_class string
+        """
         return self._obj_class
 
     @property
     def group(self):
-        """Read-only property containing idd object's group"""
+        """Read-only property containing idd object's group.
+        :rtype : str
+        """
         return self._group
 
 
@@ -184,17 +192,17 @@ class IDFFile(OrderedDict):
         {'ScheduleTypeLimits': [IDFObject1, IDFObject2, IDFObject3],
          'SimulationControl':  [IDFObject4]}
 
-    :attr idd: IDDFile object containing precompiled idd file
-    :attr version: EnergyPlus vesion number (eg. 8.1.0.008)
-    :attr eol_char: depends on file (could be \n or \r\n, etc)
-    :attr options: options that may have been found in idf file
-    :attr file_path: full, absolute path to idf file
+    :attr IDDFile idd: IDDFile object containing precompiled idd file
+    :attr str version: EnergyPlus vesion number (eg. 8.1.0.008)
+    :attr str eol_char: depends on file (could be \n or \r\n, etc)
+    :attr list options: options that may have been found in idf file
+    :attr str file_path: full, absolute path to idf file
     """
 
     def __init__(self, file_path=None, *args, **kwargs):
         """Initializes a new idf, blank or opens the given file_path
 
-        :param file_path:
+        :param str file_path:
         :param *args: arguments to pass to dictionary
         :param **kwargs: keyword arguments to pass to dictionary
         """
@@ -213,8 +221,8 @@ class IDFFile(OrderedDict):
             self.file_path = file_path
             parser = idfparse.IDFParser(self)
             for progress in parser.parse_idf(file_path):
-                print progress
-#            self._idd = idf.idd
+                print(progress)
+            #            self._idd = idf.idd
 #            self._version = idf.version
 #            self._eol_char = idf.eol_char
 #            self.options = idf.options
@@ -283,15 +291,13 @@ class IDFFile(OrderedDict):
 
     def find(self, contains=None):
         """Searches within the file for objects having 'contains'
-
-        :param contains:  (Default value = None)
+        :param str contains:  (Default value = None)
         """
         pass
 
     def save(self, file_path):
         """Handles writing of the idf file back to disk.
-
-        :param file_path: The absolute file path to the corresponding idf
+        :param str file_path: The absolute file path to the corresponding idf
         """
 #        exception = None
 #        fh = None
@@ -326,24 +332,23 @@ class IDFObject(list):
     Contains a list of fields in the form:
         [IDFField1, IDFField2, IDFField3]
 
-    :attr obj_class: Class type of object
-    :attr group: Group to which this object belongs
-    :attr idd: Contains the IDD file used by this IDF object
-    :attr comments: User comments for this object
-    :attr incoming_links: List of tuples of objects that link to this
-    :attr outgoing_links: List of tuples of objects to which this links
+    :attr str obj_class: Class type of object
+    :attr str group: Group to which this object belongs
+    :attr IDFFile idd: Contains the IDD file used by this IDF object
+    :attr list comments: User comments for this object
+    :attr list incoming_links: List of tuples of objects that link to this
+    :attr list outgoing_links: List of tuples of objects to which this links
     """
 
     def __init__(self, obj_class, group, parent, idd, *args, **kwargs):
         """Use kwargs to prepopulate some values, then remove them from kwargs
         Also sets the idd file for use by this object.
 
-        :param group:
-        :param parent:
-        :param args:
-        :param kwargs:
-        :param idd: idd file used by this idf file
-        :param obj_class: Class type of this idf object
+        :param str group:
+        :param str parent:
+        :param str args:
+        :param IDDFile idd: idd file used by this idf file
+        :param str obj_class: Class type of this idf object
         :param *args: arguments to pass to dictionary
         :param **kwargs: keyword arguments to pass to dictionary
         """
@@ -422,10 +427,10 @@ class IDFObject(list):
     def add_link(self, obj, field_id, incoming=False, outgoing=False):
         """Ads a link to and/or from this object.
 
-        :param obj: Another object of type IDFObject
-        :param field_id: A field id like 'A1' or 'N1'
-        :param incoming:  (Default value = False)
-        :param outgoing:  (Default value = False)
+        :param IDFObject obj: Another object of type IDFObject
+        :param str field_id: A field id like 'A1' or 'N1'
+        :param bool incoming:  (Default value = False)
+        :param bool outgoing:  (Default value = False)
         :raises ValueError: If neither incoming nor outgoing is True
         :raises TypeError: If either field_id or obj are not a valid types
         """
@@ -447,10 +452,10 @@ class IDFObject(list):
     def remove_link(self, obj, field_id, incoming=False, outgoing=False):
         """Removes a link to and/or from this object.
 
-        :param obj: Another object of type IDFObject
-        :param field_id: A field id like 'A1' or 'N1'
-        :param incoming:  (Default value = False)
-        :param outgoing:  (Default value = False)
+        :param IDFObject obj: Another object of type IDFObject
+        :param str field_id: A field id like 'A1' or 'N1'
+        :param bool incoming:  (Default value = False)
+        :param bool outgoing:  (Default value = False)
         :raises ValueError: If neither incoming nor outgoing is True
         :raises TypeError: If either field_id or obj are not a valid types
         """
@@ -480,11 +485,11 @@ class IDFField(dict):
 
     def __init__(self, key, value, parent, *args, **kwargs):
         """Initializes a new idf field
-        :param key:
+        :param str key:
         :param value:
-        :param parent:
-        :param args:
-        :param kwargs:
+        :param IDFObject parent:
+        :param *args:
+        :param **kwargs:
         """
         self._key = key
         self._value = value
@@ -499,7 +504,7 @@ class IDFField(dict):
     def _to_ip_(self, value, obj_class, key):
         """Converts incoming value to IP units
         :param value:
-        :param obj_class:
+        :param str obj_class:
         :param key:
         1. Get units of specified obj_class:key combo.
         2. Lookup equivalent IP unit (where?)
@@ -512,10 +517,9 @@ class IDFField(dict):
         return value
 
     def value(self, ip=False):
-        """
-
-        :param ip:
-        :return:
+        """Returns the value of the field, optionally converted to IP units.
+        :param bool ip:
+        :returns: converted value
         """
         if ip:
             return self._to_ip_(self._value,

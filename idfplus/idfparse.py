@@ -20,9 +20,11 @@ along with IDFPlus. If not, see <http://www.gnu.org/licenses/>.
 #from PySide.QtCore import QObject, Signal
 #from contextlib import closing
 
+from __future__ import (print_function, division, with_statement, absolute_import)
+
 import os
 #from collections import OrderedDict
-import idfmodel
+from . import idfmodel
 
 #fieldTags = set('\\field',
 #                '\\note',
@@ -274,20 +276,26 @@ comment_delimiter_special = '!-'
 #lines, object_count, options, objects = parse_idf(idf_file2)
 
 class Writer(object):
+    """Class to take care of writing idf and idd files."""
+
     def __init__(self):
         pass
 
     @staticmethod
     def write_idf(idf, idd, options):
-        """Write an IDF from the specified idfObject"""
+        """Write an IDF from the specified idfObject
+        :param idf: :type IDFObject
+        :param idd: :type IDDObject
+        :param options: :type list: List of options
+        """
 
-        print 'Writing file: ' + idf.file_path + '_test'
+        print('Writing file: ' + idf.file_path + '_test')
 
         # Check for special options
         use_special_format = False
         if 'UseSpecialFormat' in options:
             use_special_format = True
-            print 'Special formatting requested, but not yet implemented.'
+            print('Special formatting requested, but not yet implemented.')
 
         # Open file and write
         try:
@@ -325,17 +333,20 @@ class Writer(object):
                         # Add newline at the end of the object
                         file.write("\n")
 
-            print 'File written!'
+            print('File written!')
             return True
         except IOError as e:
-            print 'File not written! Exception!' + str(e.strerror)
+            print('File not written! Exception!' + str(e.strerror))
             return False
 
     @staticmethod
     def write_idd(idd, options):
-        """Write an IDD from the specified iddObject"""
+        """Write an IDD from the specified iddObject
+        :param idd:
+        :param options:
+        """
 
-        print 'Writing file: ' + idd.file_path
+        print('Writing file: ' + idd.file_path)
 
         # how will this be written? shelve? ZODB?
         # probably just shelve...
@@ -383,7 +394,7 @@ class Parser(object):
     @staticmethod
     def get_fields(str_in):
         """Strips all comments, etc and returns what's left
-        :rtype : str
+        :rtype : list:
         :param str_in: 
         """
         global comment_delimiter_general
@@ -395,7 +406,7 @@ class Parser(object):
 
         if part_b[0].strip().startswith('\\'):
             # This is a tag and not a comment
-            return None
+            return []
 
         elif part_b[0].strip():
             # Split the list into fields at the commas
@@ -420,20 +431,20 @@ class Parser(object):
             # Return list of fields
             return fields
         else:
-            return None
+            return []
 
     @staticmethod
     def get_general_comments(str_in):
         """Parses a string and returns the general comment if it exists
         :param str_in: 
-        :rtype : object
+        :rtype : str:
         """
         global comment_delimiter_general
         global comment_delimiter_special
 
         if str_in.find(comment_delimiter_general) == -1:
             # No comments found at all
-            return None
+            return ''
 
         elif str_in.find(comment_delimiter_special) == -1:
             # No special comment found so parse simply
@@ -443,7 +454,7 @@ class Parser(object):
         elif str_in.find(comment_delimiter_special) != -1 and \
                          str_in.count(comment_delimiter_general) == 1:
             # Special comment found, but no general comment
-            return None
+            return ''
 
         else:
             # Both types of comments may be present so parse in more detail
@@ -462,12 +473,12 @@ class Parser(object):
     @staticmethod
     def get_tags(line_in):
         """Parses a line and gets any fields tags present
-        :rtype : dict
+        :rtype : dict:
         :param line_in: 
         """
 
         global fieldTags
-        tag_result = None
+        tag_result = dict()
 
         # Create a list containing any tags found in line_in
         match = [x for x in fieldTags if x in line_in]
@@ -493,7 +504,7 @@ class Parser(object):
 
     def parse_line(self, line_in):
         """Parses a line from the IDD/IDF file and returns results
-        :rtype : dict
+        :rtype : dict:
         :param line_in: 
         """
 
@@ -521,29 +532,14 @@ class Parser(object):
                     end_object=end_object,
                     empty_line=empty_line)
 
-    @staticmethod
-    def compile_idd(idd_filename, version):
-        """Opens, parses and then shelves a copy of the IDD file object.
-        :param idd_filename: 
-        :param version: 
-        """
-
-        import shelve
-
-        parser = Parser(None)
-
-        (object_count, eol_char,
-         options, groups, objects) = parser.parse_idd(idd_filename)
-
-        database = shelve.open('data/EnergyPlus_IDD_v{}.dat'.format(version))
-        database['idd'] = objects
-        database['groups'] = groups[1:]
-        tree_model = None
-        database['tree_model'] = tree_model
-        database.close()
-
 
 class IDDParser(Parser):
+    """Class that handles all parsing related specifically to IDD files.
+    :param idd:
+    :param args:
+    :param kwargs:
+    """
+
     def __init__(self, idd, *args, **kwargs):
         if idd:
             self.idd = idd
@@ -565,7 +561,7 @@ class IDDParser(Parser):
         total_size = os.path.getsize(file_path)
         total_read = 0.0
 
-        print 'Parsing IDD file: {} ({} bytes)'.format(file_path, total_size)
+        print('Parsing IDD file: {} ({} bytes)'.format(file_path, total_size))
 
         # Open the specified file in a safe way
         with open(file_path, 'r') as file:
@@ -691,9 +687,31 @@ class IDDParser(Parser):
                 # yield the current progress for progress bars
                 yield total_read
 
-        print 'Parsing IDD complete!'
+        print('Parsing IDD complete!')
 
-#        return True
+    #        return True
+
+    def compile_idd(self, idd_filename, version):
+        """Opens, parses and then shelves a copy of the IDD file object.
+        :param idd_filename:
+        :param version:
+        """
+
+        import shelve
+
+        (object_count, eol_char,
+         options, groups, objects) = self.parse_idd(idd_filename)
+
+        data_dir = 'data'
+        file_name = 'EnergyPlus_IDD_v{}.dat'.format(version)
+        path = os.path.join(data_dir, file_name)
+
+        database = shelve.open(path)
+        database['idd'] = objects
+        database['groups'] = groups[1:]
+        tree_model = None
+        database['tree_model'] = tree_model
+        database.close()
 
 
 #---------------------------------------------------------------------------
@@ -703,6 +721,11 @@ class IDFParser(Parser):
     """IDF file parser that handles opening, parsing and returning."""
 
     def __init__(self, idf=None, *args, **kwargs):
+        """Initializes the IDFParser class with an option idf file.
+        :param idf:
+        :param args:
+        :param kwargs:
+        """
         if idf:
             self.idf = idf
             self.parse_idf(idf)
@@ -721,7 +744,7 @@ class IDFParser(Parser):
         total_size = os.path.getsize(file_path)
         total_read = 0.0
 
-        print 'Parsing IDF file: {} ({} bytes)'.format(file_path, total_size)
+        print('Parsing IDF file: {} ({} bytes)'.format(file_path, total_size))
 
         # Open the specified file in a safe way
         with open(file_path, 'r') as file:
@@ -818,7 +841,7 @@ class IDFParser(Parser):
                 # yield the current progress for progress bars
                 yield total_read
 
-        print 'Parsing IDF complete!'
+        print('Parsing IDF complete!')
 
 #        return True
 
