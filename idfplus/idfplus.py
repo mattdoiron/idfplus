@@ -39,15 +39,15 @@ from . import idfsettings
 from . import idfmodel
 
 # Resource imports
-import icons_qr  # Used for icons (in text format)
-import misc_icons_qr  # Used for icons (in text format)
+from . import icons_qr  # Used for icons (in text format)
+from . import misc_icons_qr  # Used for icons (in text format)
 
 # Global variables
 __version__ = '0.0.1'
 
 
 class IDFPlus(QtGui.QMainWindow):
-    '''Main GUI window for IDFPlus program.'''
+    """Main GUI window for IDFPlus program."""
 
     def __init__(self):
         super(IDFPlus, self).__init__()
@@ -398,7 +398,7 @@ class IDFPlus(QtGui.QMainWindow):
             for i, fname in enumerate(recentFiles):
 #                print 'recent file name in loop: ' + fname
                 action = QtGui.QAction(QtGui.QIcon(":/icon.png"),
-                                       "&%d %s" % (i + 1, QtCore.QFileInfo(fname).file_name()),
+                                       "&%d %s" % (i + 1, QtCore.QFileInfo(fname).fileName()),
                                        self)
                 action.setData(fname)
                 action.triggered.connect(self.loadFile)
@@ -832,20 +832,20 @@ class Communicate(QtCore.QObject):
     msg = QtCore.Signal(int)
 
 
-def main():
-    """Main function to start the program."""
-
-    app = QtGui.QApplication(sys.argv)
-#    app.setStyle(QtGui.QStyleFactory.create('Cleanlooks'))
-#    app.setOrganizationName("IDF Plus Inc.")
-#    app.setOrganizationDomain("idfplus.com")
-#    app.setApplicationName("IDFPlus Editor")
-
-    idf_plus = IDFPlus()
-    idf_plus.show()
-
-    sys.exit(app.exec_())
-
-
-if __name__ == '__main__':
-    main()
+# def main():
+#     """Main function to start the program."""
+#
+#     app = QtGui.QApplication(sys.argv)
+# #    app.setStyle(QtGui.QStyleFactory.create('Cleanlooks'))
+# #    app.setOrganizationName("IDF Plus Inc.")
+# #    app.setOrganizationDomain("idfplus.com")
+# #    app.setApplicationName("IDFPlus Editor")
+#
+#     idf_plus = IDFPlus()
+#     idf_plus.show()
+#
+#     sys.exit(app.exec_())
+#
+#
+# if __name__ == '__main__':
+#     main()

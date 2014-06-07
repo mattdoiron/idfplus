@@ -216,7 +216,7 @@ class IDFFile(OrderedDict):
 
         # Load the idf file if specified, otherwise prepare a blank one
         if file_path:
-            import idfparse
+            from . import idfparse
 #            idf = idfparse.IDFParser(file_path)
             self.file_path = file_path
             parser = idfparse.IDFParser(self)
