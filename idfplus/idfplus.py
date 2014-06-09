@@ -217,7 +217,7 @@ class IDFPlus(QtGui.QMainWindow):
         file_name, filtr = QtGui.QFileDialog.getSaveFileName(self, 'Save As',
                                                             directory, formats)
         if file_name:
-            return self.save_file(file_name, self.idf)
+            return self.save_file()
         return False
 
     def save_file(self):
@@ -227,7 +227,7 @@ class IDFPlus(QtGui.QMainWindow):
             return False
         file_name = self.file_name
         writer = idfparse.Writer()
-        if writer.writeIDF(file_name, None, self.idf):
+        if writer.write_idf(file_name, None, self.idf):
             self.set_current_file(file_name)
             self.add_recent_file(file_name)
             self.statusBar().showMessage("File saved", 2000)

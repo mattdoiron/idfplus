@@ -17,23 +17,20 @@ You should have received a copy of the GNU General Public License
 along with IDFPlus. If not, see <http://www.gnu.org/licenses/>.
 """
 
-# Prepare for Python 3
-from __future__ import (print_function, division, with_statement, absolute_import)
-
-# PySide import
-import PySide
-from PySide import QtGui
-from PySide import QtCore
-
-# Custom imports
+# Standard library imports
 import sys
+
+# PySide imports
+from PySide.QtGui import QApplication
+
+# Local imports
 from idfplus.idfplus import IDFPlus
 
 
 def main():
     """Main function to start the program."""
 
-    app = QtGui.QApplication(sys.argv)
+    app = QApplication(sys.argv)
 #    app.setStyle(QtGui.QStyleFactory.create('Cleanlooks'))
 #    app.setOrganizationName("IDF Plus Inc.")
 #    app.setOrganizationDomain("idfplus.com")

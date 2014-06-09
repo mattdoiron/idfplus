@@ -23,13 +23,16 @@ from __future__ import (print_function, division, with_statement, absolute_impor
 import shelve
 import os.path
 from collections import OrderedDict
+from pint import UnitRegistry
 
 
 class IDDFileDoesNotExist(Exception):
+    """Exception called when no IDD file is found."""
     pass
 
 
 class VersionAlreadySet(Exception):
+    """Exception called when the IDD/IDF version is already set."""
     pass
 
 
@@ -56,17 +59,20 @@ class IDDFile(OrderedDict):
         """
 
         # Various attributes of the idd file
+        self._groups = list()
+        self._conversions = list()
         self._version_set = False
-        self._idd_file_name = 'EnergyPlus_IDD_v{}.dat'
+        self._file_name = 'EnergyPlus_IDD_v{}.dat'
         self._data_path = 'data'
         self._version = version
+        self._ureg = UnitRegistry(os.path.join(self._data_path, 'units.dat'))
 
         # Continue only if a version is specified, else a blank IDD file
         if version:
 
             # Create the full path to the idd file
             file_name = os.path.join(self._data_path,
-                                     self._idd_file_name.format(version))
+                                     self._file_name.format(version))
 
             # Check if the file name is a file and then open the idd file
             if os.path.isfile(file_name):
@@ -90,6 +96,7 @@ class IDDFile(OrderedDict):
         object types are allowed."""
 
         if not isinstance(value, IDDObject):
+            print('value is: {}'.format(value))
             raise TypeError('Only items of type IDDObject can be added!')
 
         super(IDDFile, self).__setitem__(key, value, dict_setitem)
@@ -129,13 +136,13 @@ class IDDObject(OrderedDict):
          'A2': IDDField3}
     """
 
-    def __init__(self, obj_class, group, parent, *args, **kwargs):
+    def __init__(self, obj_class, group, outer, *args, **kwargs):
         """Use kwargs to prepopulate some values, then remove them from kwargs
         Also sets the idd file for use by this object.
 
         :param str obj_class: Class type of this idf object
         :param str group: group that this idd object belongs to
-        :param IDFFile parent: the parent object for this object (type IDDFile)
+        :param IDFFile outer: the outer object for this object (type IDDFile)
         :param *args: arguments to pass to dictionary
         :param **kwargs: keyword arguments to pass to dictionary
         """
@@ -143,7 +150,7 @@ class IDDObject(OrderedDict):
         # Set various attributes of the idf object
         self._obj_class = obj_class
         self._group = group
-        self._parent = parent
+        self._outer = outer
         self.comments = kwargs.pop('comments', None)
         self.comments_special = kwargs.pop('comments_special', None)
 
@@ -181,7 +188,27 @@ class IDDField(dict):
     field tags from the following list:
         required, field, type, minimum, etc.
     """
-    pass
+    #TODO Values should be Quantities from the pint python library.
+    #TODO merge this class with IDFField?
+
+    def __init__(self, key, value, idd_file, *args, **kwargs):
+
+        # Call the parent class' init method
+        super(IDFField, self).__init__(*args, **kwargs)
+
+    @property
+    def units(self):
+        """Read-only property containing idd field's SI units.
+        :rtype : str
+        """
+        return self._value.units
+
+    @property
+    def ip_units(self):
+        """Read-only property containing idd field's IP units.
+        :rtype : str
+        """
+        return self._ip_units
 
 
 class IDFFile(OrderedDict):
@@ -203,8 +230,8 @@ class IDFFile(OrderedDict):
         """Initializes a new idf, blank or opens the given file_path
 
         :param str file_path:
-        :param *args: arguments to pass to dictionary
-        :param **kwargs: keyword arguments to pass to dictionary
+        :param *args: arguments to pass to base dictionary type
+        :param **kwargs: keyword arguments to pass to base dictionary type
         """
 
         # Various attributes of the idf file
@@ -217,16 +244,10 @@ class IDFFile(OrderedDict):
         # Load the idf file if specified, otherwise prepare a blank one
         if file_path:
             from . import idfparse
-#            idf = idfparse.IDFParser(file_path)
             self.file_path = file_path
             parser = idfparse.IDFParser(self)
-            for progress in parser.parse_idf(file_path):
+            for progress in parser.parse_idf():
                 print(progress)
-            #            self._idd = idf.idd
-#            self._version = idf.version
-#            self._eol_char = idf.eol_char
-#            self.options = idf.options
-#            self._OrderedDict__update(objects)
         else:
             default = '8.1'  # retrieve this from settings eventually
             self._version = kwargs.pop('version', default)
@@ -340,12 +361,14 @@ class IDFObject(list):
     :attr list outgoing_links: List of tuples of objects to which this links
     """
 
-    def __init__(self, obj_class, group, parent, idd, *args, **kwargs):
+    #TODO This class is almost the same as IDDObject. It should subclass it.
+
+    def __init__(self, obj_class, group, idf_file, *args, **kwargs):
         """Use kwargs to prepopulate some values, then remove them from kwargs
         Also sets the idd file for use by this object.
 
         :param str group:
-        :param str parent:
+        :param str outer:
         :param str args:
         :param IDDFile idd: idd file used by this idf file
         :param str obj_class: Class type of this idf object
@@ -356,58 +379,57 @@ class IDFObject(list):
         # Set various attributes of the idf object
         self._group = group
         self._obj_class = obj_class
-        self._idd = idd
+        self._idd = idf_file.idd
         self._incoming_links = []
         self._outgoing_links = []
-        self._parent = parent
+        self._idf_file = idf_file
         self.comments = kwargs.pop('comments', None)
 
         # Call the parent class' init method
         super(IDFObject, self).__init__(*args, **kwargs)
 
-    def __getitem__(self, key):
-        if 'IPUnits' in self._parent.options:
-            return self.toIP(super(IDFObject, self).__getitem__(key),
-                             self._obj_class,
-                             key)
-        else:
-            return super(IDFObject, self).__getitem__(key)
-
     def __repr__(self):
         """Returns a string representation of the object in idf format"""
-        values = [str(val) for val in self.values()]
+        values = [str(val) for val in self.value()]
         str_list = ','.join(values)
         return self._obj_class + ',' + str_list + ';'
 
     @property
     def idd(self):
-        """Read-only property containing idd file"""
+        """Read-only property containing idd file
+        :rtype : IDDFile"""
         return self._idd
 
     @property
     def obj_class(self):
-        """Read-only property containing idf object's class type"""
+        """Read-only property containing idf object's class type
+        :rtype : str"""
         return self._obj_class
 
     @property
     def group(self):
-        """Read-only property containing idf object's group"""
+        """Read-only property containing idf object's group
+        :rtype : str"""
         return self._group
 
     @property
     def incoming_links(self):
-        """Read-only property containing incoming links"""
+        """Read-only property containing incoming links
+        :rtype : list"""
         return self._incoming_links
 
     @property
     def outgoing_links(self):
-        """Read-only property containing outgoing links"""
+        """Read-only property containing outgoing links
+        :rtype : list
+        """
         return self._outgoing_links
 
     @property
-    def parent(self):
-        """Read-only property containing the parent of this obj"""
-        return self._parent
+    def idf_file(self):
+        """Read-only property containing the outer class of this obj
+        :rtype : IDFFile"""
+        return self._idf_file
 
 #    def value(self, field):
 #        """Returns the value of the specified field.
@@ -483,38 +505,30 @@ class IDFField(dict):
         required, field, type, minimum, etc.
     """
 
-    def __init__(self, key, value, parent, *args, **kwargs):
+    # TODO This class is actually the same as IDDField. Merge them?
+
+    def __init__(self, key, value, idf_file, *args, **kwargs):
         """Initializes a new idf field
         :param str key:
         :param value:
-        :param IDFObject parent:
-        :param *args:
-        :param **kwargs:
+        :param IDFObject outer:
         """
         self._key = key
         self._value = value
-        self._parent = parent
+        self._idf_file = idf_file
+        idd = idf_file.idd
+        self._obj_class = idf_file.obj_class
+        self._units = idd[self._obj_class][key].units
+        self._ureg = idd._ureg
+        self._ip_units = idd[self._obj_class][key].ip_units
+        if not self._ip_units:
+            self._ip_units = idd.conversions[self._units]
 
         # Call the parent class' init method
         super(IDFField, self).__init__(*args, **kwargs)
 
     def __repr__(self):
-        return self._parent.obj_class + ':' + self._key
-
-    def _to_ip_(self, value, obj_class, key):
-        """Converts incoming value to IP units
-        :param value:
-        :param str obj_class:
-        :param key:
-        1. Get units of specified obj_class:key combo.
-        2. Lookup equivalent IP unit (where?)
-        3. Retrieve conversion factor from parent
-        4. Return input value multiplied by conversion factor"""
-
-#        conversion_type = 'm=>ft'
-#        conversion_factor = self._parent.conversions[conversion_type]
-#        return value * conversion_factor
-        return value
+        return self._idf_file.obj_class + ':' + self._key
 
     def value(self, ip=False):
         """Returns the value of the field, optionally converted to IP units.
@@ -522,8 +536,8 @@ class IDFField(dict):
         :returns: converted value
         """
         if ip:
-            return self._to_ip_(self._value,
-                                 self._parent.obj_class,
-                                 self._key)
+            quantity = self._value * self._ureg(self._units)
+            ip_quantity = quantity.to(self._ip_units)
+            return ip_quantity.magnitude
         else:
             return self._value

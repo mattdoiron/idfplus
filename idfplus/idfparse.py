@@ -540,21 +540,30 @@ class IDDParser(Parser):
     :param kwargs:
     """
 
-    def __init__(self, idd, *args, **kwargs):
+    def __init__(self, idd=None, *args, **kwargs):
+        """Initialize the parser
+        :type idd: IDDFile
+        :param idd:
+        :param args:
+        :param kwargs:
+        """
         if idd:
             self.idd = idd
             self.parse_idd(idd)
+            self.save_idd()
         else:
             self.idd = idfmodel.IDDFile()
 
         # Call the parent class' init method
         super(IDDParser, self).__init__(*args, **kwargs)
 
-    def parse_idd(self, file_path):  # rename to loadIDD?
+    def parse_idd(self, file_path):
         """Parse the provided idd (or idf) file
         :rtype : bool
         :param file_path: 
         """
+        #TODO write parser for unit conversion comments!
+        #TODO rename to load_idd?
 
         global comment_delimiter_special  # Avoid these...
         global options_list
@@ -564,7 +573,7 @@ class IDDParser(Parser):
         print('Parsing IDD file: {} ({} bytes)'.format(file_path, total_size))
 
         # Open the specified file in a safe way
-        with open(file_path, 'r') as file:
+        with open(file_path, 'r') as idd_file:
 
             # Prepare some variables to store the results
             #            idd = idfmodel.IDDFile()
@@ -576,6 +585,7 @@ class IDDParser(Parser):
             options = []
             group = None
             group_list = []
+            conversions = []
             end_object = False
             version = None  # '8.1.0.008'  # Get this from IDF file!
 
@@ -583,7 +593,7 @@ class IDDParser(Parser):
             while True:
 
                 # Parse this line using readline (so last one is a blank)
-                line = file.readline()
+                line = idd_file.readline()
                 total_read += len(line)
                 #                if self.msg:
                 #                    self.msg.msg.emit(total_read)
@@ -624,7 +634,7 @@ class IDDParser(Parser):
                     # Detect idf file version and use it to select idd file
                     if field_list[0] == 'Version':
                         version = field_list[1]
-                        self.idd._set_version(version)
+                        self.idd.version = version
 
                 # Check for the end of an object before checking for new tags
                 if (end_object and empty_line) or line_parsed['fields']:
@@ -687,31 +697,35 @@ class IDDParser(Parser):
                 # yield the current progress for progress bars
                 yield total_read
 
+            self.idd._conversions = conversions
+            self.idd._groups = group_list
+            self.idd._tree_model = None
+
         print('Parsing IDD complete!')
 
     #        return True
 
-    def compile_idd(self, idd_filename, version):
-        """Opens, parses and then shelves a copy of the IDD file object.
-        :param idd_filename:
-        :param version:
+    def save_idd(self):
+        """Shelves a copy of the IDD file object.
+        :raises : Exception
+        :rtype : bool
         """
 
         import shelve
+        import datetime as dt
 
-        (object_count, eol_char,
-         options, groups, objects) = self.parse_idd(idd_filename)
+        if not self.idd.version:
+            raise Exception("Missing IDD file version")
 
         data_dir = 'data'
-        file_name = 'EnergyPlus_IDD_v{}.dat'.format(version)
-        path = os.path.join(data_dir, file_name)
+        file_name = 'EnergyPlus_IDD_v{}.dat'.format(self.idd.version)
+        idf_path = os.path.join(data_dir, file_name)
 
-        database = shelve.open(path)
-        database['idd'] = objects
-        database['groups'] = groups[1:]
-        tree_model = None
-        database['tree_model'] = tree_model
+        database = shelve.open(idf_path)
+        database['idd'] = self.idd
+        database['date_generated'] = dt.datetime.now()
         database.close()
+        return True
 
 
 #---------------------------------------------------------------------------
@@ -735,19 +749,18 @@ class IDFParser(Parser):
         # Call the parent class' init method
         super(IDFParser, self).__init__(*args, **kwargs)
 
-    def parse_idf(self, file_path):  # rename to loadIDF?
-        """Parse the provided idf file and return an IDFObject
-        :param file_path:
-        """
+    def parse_idf(self):  # rename to loadIDF?
+        """Parse the provided idf file and return an IDFObject."""
 
         global options_list  # Avoid these?
+        file_path = self.idf.file_path
         total_size = os.path.getsize(file_path)
         total_read = 0.0
 
         print('Parsing IDF file: {} ({} bytes)'.format(file_path, total_size))
 
         # Open the specified file in a safe way
-        with open(file_path, 'r') as file:
+        with open(file_path, 'r') as idf_file:
 
             # Prepare some variables to store the results
             #            idd = None
@@ -764,7 +777,7 @@ class IDFParser(Parser):
             while True:
 
                 # Parse this line using readline (so last one is a blank)
-                line = file.readline()
+                line = idf_file.readline()
                 total_read += len(line)
                 line_parsed = self.parse_line(line)
 
@@ -801,8 +814,8 @@ class IDFParser(Parser):
 
                     # Detect idf file version and use it to select idd file
                     if field_list[0] == 'Version':
-                        version = field_list[1]
-                        self.idf._set_version(version)
+                        #version = field_list[1]
+                        self.idf._version = field_list[1]
                         if not self.idf._idd:
                             self.idf._idd = idfmodel.IDDFile(version)
 
