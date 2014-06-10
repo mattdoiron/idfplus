@@ -19,13 +19,13 @@ along with IDFPlus. If not, see <http://www.gnu.org/licenses/>.
 
 # Standard library imports
 import sys
+import os
 
 # PySide imports
 from PySide.QtGui import QApplication
 
 # Local imports
 from idfplus.idfplus import IDFPlus
-
 
 def main():
     """Main function to start the program."""

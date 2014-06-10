@@ -21,10 +21,11 @@ along with IDFPlus. If not, see <http://www.gnu.org/licenses/>.
 from __future__ import (print_function, division, with_statement, absolute_import)
 
 import shelve
-import os.path
+import os
 from collections import OrderedDict
 from pint import UnitRegistry
 
+APP_ROOT = os.path.join(os.path.dirname(os.path.realpath(__file__)), '..')
 
 class IDDFileDoesNotExist(Exception):
     """Exception called when no IDD file is found."""
@@ -62,21 +63,22 @@ class IDDFile(OrderedDict):
         self._groups = list()
         self._conversions = list()
         self._version_set = False
-        self._file_name = 'EnergyPlus_IDD_v{}.dat'
-        self._data_path = 'data'
         self._version = version
-        self._ureg = UnitRegistry(os.path.join(self._data_path, 'units.dat'))
+        compiled_idd_file_name = 'EnergyPlus_IDD_v{}.dat'
+        data_dir = 'data'
+        units_file = 'units.dat'
+        self._ureg = UnitRegistry(os.path.join(APP_ROOT, data_dir, units_file))
 
         # Continue only if a version is specified, else a blank IDD file
         if version:
 
             # Create the full path to the idd file
-            file_name = os.path.join(self._data_path,
-                                     self._file_name.format(version))
+            file_path = os.path.join(APP_ROOT, data_dir,
+                                     compiled_idd_file_name.format(version))
 
             # Check if the file name is a file and then open the idd file
-            if os.path.isfile(file_name):
-                f = shelve.open(file_name)
+            if os.path.isfile(file_path):
+                f = shelve.open(file_path)
 
                 # Set some more attributes with using the idd file
                 self._groups = f['groups']
@@ -86,7 +88,7 @@ class IDDFile(OrderedDict):
 
                 f.close()
             else:
-                raise IDDFileDoesNotExist("Can't find IDD file: {}".format(file_name))
+                raise IDDFileDoesNotExist("Can't find IDD file: {}".format(file_path))
 
         # Call the parent class' init method
         super(IDDFile, self).__init__(*args, **kwargs)
@@ -191,10 +193,19 @@ class IDDField(dict):
     #TODO Values should be Quantities from the pint python library.
     #TODO merge this class with IDFField?
 
-    def __init__(self, key, value, idd_file, *args, **kwargs):
+    def __init__(self, key, value, outer, iterable=None, **kwargs):
 
-        # Call the parent class' init method
-        super(IDFField, self).__init__(*args, **kwargs)
+        self._value = value
+        self._key = key
+        self._idd = outer.idd or None
+        self._obj_class = outer.obj_class
+
+        if iterable:
+            iterable.setdefault(key, key)
+            iterable.setdefault(value, value)
+
+         # Call the parent class' init method
+        super(IDDField, self).__init__(iterable, **kwargs)
 
     @property
     def units(self):
@@ -507,7 +518,7 @@ class IDFField(dict):
 
     # TODO This class is actually the same as IDDField. Merge them?
 
-    def __init__(self, key, value, idf_file, *args, **kwargs):
+    def __init__(self, key, value, outer, *args, **kwargs):
         """Initializes a new idf field
         :param str key:
         :param value:
@@ -515,9 +526,9 @@ class IDFField(dict):
         """
         self._key = key
         self._value = value
-        self._idf_file = idf_file
-        idd = idf_file.idd
-        self._obj_class = idf_file.obj_class
+        self._idf_file = outer._outer
+        idd = outer.idd
+        self._obj_class = outer.obj_class
         self._units = idd[self._obj_class][key].units
         self._ureg = idd._ureg
         self._ip_units = idd[self._obj_class][key].ip_units
