@@ -64,6 +64,7 @@ class IDDFile(OrderedDict):
         self._conversions = list()
         self._version_set = False
         self._version = version
+        self.options = list()
         compiled_idd_file_name = 'EnergyPlus_IDD_v{}.dat'
         data_dir = 'data'
         units_file = 'units.dat'
@@ -138,21 +139,22 @@ class IDDObject(OrderedDict):
          'A2': IDDField3}
     """
 
-    def __init__(self, obj_class, group, outer, *args, **kwargs):
+    def __init__(self, outer, *args, **kwargs):
         """Use kwargs to prepopulate some values, then remove them from kwargs
         Also sets the idd file for use by this object.
 
         :param str obj_class: Class type of this idf object
         :param str group: group that this idd object belongs to
-        :param IDFFile outer: the outer object for this object (type IDDFile)
-        :param *args: arguments to pass to dictionary
-        :param **kwargs: keyword arguments to pass to dictionary
+        :param IDDFile outer: the outer object for this object (type IDDFile)
+        :param args: arguments to pass to dictionary
+        :param kwargs: keyword arguments to pass to dictionary
         """
 
         # Set various attributes of the idf object
-        self._obj_class = obj_class
-        self._group = group
+        self._obj_class = kwargs.pop('obj_class', None)
+        self._group = kwargs.pop('group', None)
         self._outer = outer
+        self._idd = outer
         self.comments = kwargs.pop('comments', None)
         self.comments_special = kwargs.pop('comments_special', None)
 
@@ -193,11 +195,12 @@ class IDDField(dict):
     #TODO Values should be Quantities from the pint python library.
     #TODO merge this class with IDFField?
 
-    def __init__(self, key, value, outer, iterable=None, **kwargs):
+    def __init__(self, outer, iterable=None, **kwargs):
 
-        self._value = value
-        self._key = key
-        self._idd = outer.idd or None
+        # self._value = value
+        # self._key = key
+        self._idd = outer._idd
+        self._outer = outer
         self._obj_class = outer.obj_class
 
         if iterable:

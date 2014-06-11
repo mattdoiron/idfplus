@@ -26,7 +26,7 @@ import os
 #from collections import OrderedDict
 from . import idfmodel
 
-#fieldTags = set('\\field',
+#FIELD_TAGS = set('\\field',
 #                '\\note',
 #                '\\required-field',
 #                '\\begin-extensible',
@@ -56,7 +56,7 @@ from . import idfmodel
 #                '\\format',
 #                '\\group')
 
-fieldTags = ['\\field',
+FIELD_TAGS = ['\\field',
              '\\note',
              '\\required-field',
              '\\begin-extensible',
@@ -86,11 +86,11 @@ fieldTags = ['\\field',
              '\\format',
              '\\group']
 
-options_list = ['OriginalOrderTop', 'UseSpecialFormat']
+OPTIONS_LIST = ['OriginalOrderTop', 'UseSpecialFormat']
 
 field_tag_delimiter = '\\'
-comment_delimiter_general = '!'
-comment_delimiter_special = '!-'
+COMMENT_DELIMITER_GENERAL = '!'
+COMMENT_DELIMITER_SPECIAL = '!-'
 
 #test_line1 = '0.0,15.2,3.0;  !- X,Y,Z ==> Vertex 4 {m} '
 #test_line2 = '0.0,15.2,3.0 ;  !test '
@@ -200,7 +200,7 @@ comment_delimiter_special = '!-'
 #    '''Parse the provided IDF file'''
 #
 #    print 'Parsing IDF file: ' + filename
-#    global comment_delimiter_special
+#    global COMMENT_DELIMITER_SPECIAL
 #
 #    # Open the specified file in a safe way
 #    with open(filename, 'r') as file:
@@ -217,10 +217,10 @@ comment_delimiter_special = '!-'
 #            line_parsed = parseLineIDF(line)
 #
 #            line_clean = line.expandtabs().lstrip()
-#            if line_clean.startswith(comment_delimiter_special):
+#            if line_clean.startswith(COMMENT_DELIMITER_SPECIAL):
 #                # Special comment found, save it
 #                comment_list_special.append(
-#                    line_clean.lstrip(comment_delimiter_special).rstrip()
+#                    line_clean.lstrip(COMMENT_DELIMITER_SPECIAL).rstrip()
 #                )
 #
 #                # Check for special options
@@ -392,21 +392,22 @@ class Parser(object):
         pass
 
     @staticmethod
-    def get_fields(str_in):
+    def get_fields(line_in):
         """Strips all comments, etc and returns what's left
         :rtype : list:
-        :param str_in: 
+        :param line_in:
         """
-        global comment_delimiter_general
-        global comment_delimiter_special
+        global COMMENT_DELIMITER_GENERAL
+        global COMMENT_DELIMITER_SPECIAL
+        fields = list()
 
         # Partition the line twice
-        part_a = str_in.partition(comment_delimiter_special)
-        part_b = part_a[0].partition(comment_delimiter_general)
+        part_a = line_in.partition(COMMENT_DELIMITER_SPECIAL)
+        part_b = part_a[0].partition(COMMENT_DELIMITER_GENERAL)
 
         if part_b[0].strip().startswith('\\'):
             # This is a tag and not a comment
-            return []
+            fields = list()
 
         elif part_b[0].strip():
             # Split the list into fields at the commas
@@ -428,47 +429,64 @@ class Parser(object):
                     fields[-1] = fields[-1].partition(';')[0].strip()
                     fields.extend([';'])
 
-            # Return list of fields
-            return fields
-        else:
-            return []
+        # Return list of fields
+        return fields
 
     @staticmethod
-    def get_general_comments(str_in):
+    def get_comments_general(line_in):
         """Parses a string and returns the general comment if it exists
-        :param str_in: 
+        :param line_in:
         :rtype : str:
         """
-        global comment_delimiter_general
-        global comment_delimiter_special
+        global COMMENT_DELIMITER_GENERAL
+        global COMMENT_DELIMITER_SPECIAL
+        comments = str()
 
-        if str_in.find(comment_delimiter_general) == -1:
+        if line_in.find(COMMENT_DELIMITER_GENERAL) == -1:
             # No comments found at all
-            return ''
+            comments = str()
 
-        elif str_in.find(comment_delimiter_special) == -1:
+        elif line_in.find(COMMENT_DELIMITER_SPECIAL) == -1:
             # No special comment found so parse simply
-            part = str_in.partition(comment_delimiter_general)
-            return part[-1].expandtabs().rstrip()
+            part = line_in.partition(COMMENT_DELIMITER_GENERAL)
+            comments = part[-1].expandtabs()
 
-        elif str_in.find(comment_delimiter_special) != -1 and \
-                         str_in.count(comment_delimiter_general) == 1:
+        elif line_in.find(COMMENT_DELIMITER_SPECIAL) != -1 and \
+             line_in.count(COMMENT_DELIMITER_GENERAL) == 1:
             # Special comment found, but no general comment
-            return ''
+            comments = str()
 
         else:
             # Both types of comments may be present so parse in more detail
-            part_a = str_in.partition(comment_delimiter_special)
+            part_a = line_in.partition(COMMENT_DELIMITER_SPECIAL)
 
-            if part_a[0].find(comment_delimiter_general) != -1:
+            if part_a[0].find(COMMENT_DELIMITER_GENERAL) != -1:
                 # General comment precedes special comment, repartition
-                part_b = str_in.partition(comment_delimiter_general)
+                part_b = line_in.partition(COMMENT_DELIMITER_GENERAL)
+                comments = part_b[-1].expandtabs()
 
-            elif part_a[-1].find(comment_delimiter_general) != -1:
+            elif part_a[-1].find(COMMENT_DELIMITER_GENERAL) != -1:
                 # General comment is in the last item (part of special comment)
-                return None
+                comments = str()
 
-            return part_b[-1].expandtabs()
+        # Return comments
+        return comments
+
+    @staticmethod
+    def get_comments_special(line_in):
+        """Parses a line and returns any special comments present.
+        :rtype : str
+        :param line_in:
+        """
+        global COMMENT_DELIMITER_SPECIAL
+        line_clean = line_in.expandtabs().lstrip()
+        comment_list_special = str()
+
+        if line_clean.startswith(COMMENT_DELIMITER_SPECIAL):
+            comment_list_special = line_clean.lstrip(COMMENT_DELIMITER_SPECIAL)
+
+        # Return comments
+        return comment_list_special
 
     @staticmethod
     def get_tags(line_in):
@@ -477,11 +495,11 @@ class Parser(object):
         :param line_in: 
         """
 
-        global fieldTags
+        global FIELD_TAGS
         tag_result = dict()
 
         # Create a list containing any tags found in line_in
-        match = [x for x in fieldTags if x in line_in]
+        match = [x for x in FIELD_TAGS if x in line_in]
 
         # If there are any matches, save the first one
         if match:
@@ -502,6 +520,22 @@ class Parser(object):
         # Return results
         return tag_result
 
+    @staticmethod
+    def get_options(line_in):
+        """Parses a line and returns any options present.
+        :rtype : list
+        :param line_in:
+        """
+        global OPTIONS_LIST
+        line_clean = line_in.expandtabs().lstrip()
+        matches = list()
+
+        if line_clean.startswith('!-Option'):
+            matches = [x for x in OPTIONS_LIST if x in line_clean]
+
+        # Return matches
+        return matches
+
     def parse_line(self, line_in):
         """Parses a line from the IDD/IDF file and returns results
         :rtype : dict:
@@ -509,18 +543,20 @@ class Parser(object):
         """
 
         # Get results
-        fields = self.get_fields(line_in) or None
-        comments = self.get_general_comments(line_in)  # Preserve blanks!
-        tags = self.get_tags(line_in) or None
+        fields = self.get_fields(line_in) #or None
+        comments = self.get_comments_general(line_in)  # Preserve blanks!
+        comments_special = self.get_comments_special(line_in)
+        options = self.get_options(line_in)
+        tags = self.get_tags(line_in) #or None
         end_object = False
         empty_line = False
 
         # Check for an empty line
-        if not fields and not comments and not tags:
+        if not (fields or comments or tags or comments_special or options):
             empty_line = True
 
         # Check for and remove the semicolon, indicating the end of an object
-        if fields:
+        elif fields:
             if fields[-1] == ';':
                 fields.pop(-1)
                 end_object = True
@@ -528,6 +564,8 @@ class Parser(object):
         # Return a dictionary of results
         return dict(fields=fields,
                     comments=comments,
+                    comments_special=comments_special,
+                    options=options,
                     field_tags=tags,
                     end_object=end_object,
                     empty_line=empty_line)
@@ -565,8 +603,8 @@ class IDDParser(Parser):
         #TODO write parser for unit conversion comments!
         #TODO rename to load_idd?
 
-        global comment_delimiter_special  # Avoid these...
-        global options_list
+        global COMMENT_DELIMITER_SPECIAL  # Avoid these...
+
         total_size = os.path.getsize(file_path)
         total_read = 0.0
 
@@ -588,15 +626,17 @@ class IDDParser(Parser):
             conversions = []
             end_object = False
             version = None  # '8.1.0.008'  # Get this from IDF file!
+            idd_object = idfmodel.IDDObject(self.idd)
+            idd_field = idfmodel.IDDField(idd_object)
 
-            # Cycle through each line in the file
+            # Cycle through each line in the file (yes, use while!)
             while True:
 
                 # Parse this line using readline (so last one is a blank)
                 line = idd_file.readline()
                 total_read += len(line)
-                #                if self.msg:
-                #                    self.msg.msg.emit(total_read)
+                # if self.msg:
+                #     self.msg.msg.emit(total_read)
                 line_parsed = self.parse_line(line)
 
                 # Detect end of line character for use when re-writing file
@@ -610,22 +650,17 @@ class IDDParser(Parser):
                     end_object = line_parsed['end_object']
                 empty_line = line_parsed['empty_line']
 
-                # Check for special comments and options (make func for this?)
-                line_clean = line.expandtabs().lstrip()
-                if line_clean.startswith(comment_delimiter_special):
-                    # Special comment found, save it
-                    comment_list_special.append(
-                        line_clean.lstrip(comment_delimiter_special).rstrip()
-                    )
-
-                # Check for special options (make separate function for this?)
-                if line_clean.startswith('!-Option'):
-                    match = [x for x in options_list if x in line_clean]
-                    options.extend(match)
+                # Check for special options
+                if line_parsed['options']:
+                    self.idd.options.extend(line_parsed['options'])
 
                 # If there are any comments save them
                 if line_parsed['comments'] is not None:
                     comment_list.append(line_parsed['comments'])
+
+                # Check for special comments and options
+                if line_parsed['comments_special']:
+                    comment_list_special.append(line_parsed['comments_special'])
 
                 # If there are any fields save them
                 if line_parsed['fields']:
@@ -633,8 +668,7 @@ class IDDParser(Parser):
 
                     # Detect idf file version and use it to select idd file
                     if field_list[0] == 'Version':
-                        version = field_list[1]
-                        self.idd.version = version
+                        self.idd._version = field_list[1]
 
                 # Check for the end of an object before checking for new tags
                 if (end_object and empty_line) or line_parsed['fields']:
@@ -668,18 +702,24 @@ class IDDParser(Parser):
                     if group not in group_list:
                         group_list.append(group)
 
-                    # Create a new iddObject from the parsed variables
-                    obj = idfmodel.IDDObject(obj_class, group, self.idd,
-                                             comments=comment_list,
-                                             comments_special=comment_list_special)
-                    obj.update(field_list)  # TODO this is supposed to be a dictionary of IDDFields!!
+                    # Save the parsed variables in the idd_object
+                    idd_object._obj_class = obj_class
+                    idd_object._group = group
+                    idd_object.comments_special = comment_list_special
+                    idd_object.comments = comment_list
+                    idd_object.update(field_list)
+
+                    # obj = idfmodel.IDDObject(obj_class, group, self.idd,
+                    #                          comments=comment_list,
+                    #                          comments_special=comment_list_special)
+                    # obj.update(field_list)  # TODO this is supposed to be a dictionary of IDDFields!!
 
                     # TODO assign field tags to each field. Each field needs
                     # to be added to the IDDObject individually?!
                     #                    field_tags=field_tag_list
 
                     # Save the new object as part of the IDD file
-                    self.idd.setdefault(obj_class, obj)
+                    self.idd.setdefault(obj_class, idd_object)
 
                     # Reset lists for next object
                     field_list = []
