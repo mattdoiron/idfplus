@@ -674,7 +674,7 @@ class IDDParser(Parser):
                 if (end_object and empty_line) or line_parsed['fields']:
                     if field_tag_sublist:
                         field_tag_list.append(field_tag_sublist)
-                        field_tag_sublist = []
+                        field_tag_sublist = list()
 
                 # If there are any field tags for this object save them
                 if line_parsed['field_tags']:
@@ -689,30 +689,31 @@ class IDDParser(Parser):
                     obj_class = field_list.pop(0)
 
                     # Make sure there are values or return None
-                    field_list = field_list or None
-                    field_tag_list = field_tag_list or None
-                    comment_list = comment_list or None
-                    comment_list_special = comment_list_special or None
+                    # field_list = field_list or None
+                    # field_tag_list = field_tag_list or None
+                    # comment_list = comment_list or None
+                    # comment_list_special = comment_list_special or None
 
                     # Search idd file for object name
-                    if obj_class in self.idd:
-                        group = self.idd[obj_class]['group']
+                    # if obj_class in self.idd:
+                    #     group = self.idd[obj_class]['group']
 
                     # Add the group to the list if it isn't already there
                     if group not in group_list:
                         group_list.append(group)
+
+                    # Create IDDField objects for all fields
+                    for i, field in enumerate(field_list):
+                        new_field = idfmodel.IDDField(idd_object)
+                        new_field.key = field
+                        new_field.tags = field_tag_list[i]
+                        idd_object.update({field:new_field})
 
                     # Save the parsed variables in the idd_object
                     idd_object._obj_class = obj_class
                     idd_object._group = group
                     idd_object.comments_special = comment_list_special
                     idd_object.comments = comment_list
-                    idd_object.update(field_list)
-
-                    # obj = idfmodel.IDDObject(obj_class, group, self.idd,
-                    #                          comments=comment_list,
-                    #                          comments_special=comment_list_special)
-                    # obj.update(field_list)  # TODO this is supposed to be a dictionary of IDDFields!!
 
                     # TODO assign field tags to each field. Each field needs
                     # to be added to the IDDObject individually?!

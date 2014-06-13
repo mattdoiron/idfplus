@@ -185,30 +185,31 @@ class IDDObject(OrderedDict):
         return self._group
 
 
-class IDDField(dict):
+class IDDField(object):
     """Basic component of the idd object classes.
 
-    Simply a regular dict containing keys which are the names of various
-    field tags from the following list:
+    A regular object containing parameters such as key, value, tags.
+    Examples of tags from are:
         required, field, type, minimum, etc.
     """
     #TODO Values should be Quantities from the pint python library.
     #TODO merge this class with IDFField?
 
-    def __init__(self, outer, iterable=None, **kwargs):
+    def __init__(self, outer):
 
-        # self._value = value
-        # self._key = key
+        self.value = value
+        self.key = key
         self._idd = outer._idd
         self._outer = outer
-        self._obj_class = outer.obj_class
+        self.obj_class = outer.obj_class
+        self.tags = None
 
-        if iterable:
-            iterable.setdefault(key, key)
-            iterable.setdefault(value, value)
+        # if iterable:
+        #     iterable.setdefault(key, key)
+        #     iterable.setdefault(value, value)
 
          # Call the parent class' init method
-        super(IDDField, self).__init__(iterable, **kwargs)
+        super(IDDField, self).__init__()
 
     @property
     def units(self):
@@ -511,7 +512,7 @@ class IDFObject(list):
         return True
 
 
-class IDFField(dict):
+class IDFField(object):
     """Basic component of the idf object classes.
 
     Simply a regular dict containing keys which are the names of various
