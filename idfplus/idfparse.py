@@ -55,6 +55,7 @@ from . import idfmodel
 #                '\\begin-extensible',
 #                '\\format',
 #                '\\group')
+import idfplus.idfmodel
 
 FIELD_TAGS = ['\\field',
              '\\note',
@@ -346,6 +347,7 @@ class Writer(object):
         :param options:
         """
 
+        import shelve
         print('Writing file: ' + idd.file_path)
 
         # how will this be written? shelve? ZODB?
@@ -511,7 +513,7 @@ class Parser(object):
             if part[-1]:
                 value = part[-1].lstrip()
             else:
-                value = None
+                value = True
 
             # Save results
             tag_result = dict(tag=match[0],
@@ -543,11 +545,11 @@ class Parser(object):
         """
 
         # Get results
-        fields = self.get_fields(line_in) #or None
-        comments = self.get_comments_general(line_in)  # Preserve blanks!
+        fields = self.get_fields(line_in)
+        comments = self.get_comments_general(line_in)
         comments_special = self.get_comments_special(line_in)
         options = self.get_options(line_in)
-        tags = self.get_tags(line_in) #or None
+        tags = self.get_tags(line_in)
         end_object = False
         empty_line = False
 
@@ -587,8 +589,8 @@ class IDDParser(Parser):
         """
         if idd:
             self.idd = idd
-            self.parse_idd(idd)
-            self.save_idd()
+            # self.parse_idd(idd)
+            # self.save_idd()
         else:
             self.idd = idfmodel.IDDFile()
 
@@ -597,7 +599,7 @@ class IDDParser(Parser):
 
     def parse_idd(self, file_path):
         """Parse the provided idd (or idf) file
-        :rtype : bool
+        :rtype : generator
         :param file_path: 
         """
         #TODO write parser for unit conversion comments!
@@ -614,20 +616,18 @@ class IDDParser(Parser):
         with open(file_path, 'r') as idd_file:
 
             # Prepare some variables to store the results
-            #            idd = idfmodel.IDDFile()
-            field_list = []
-            comment_list = []
-            comment_list_special = []
-            field_tag_list = []
-            field_tag_sublist = []
-            options = []
+            field_list = list()
+            comment_list = list()
+            comment_list_special = list()
+            field_tag_list = list()
+            field_tag_dict = dict()
+            options = list()
             group = None
-            group_list = []
-            conversions = []
+            group_list = list()
+            conversions = list()
             end_object = False
-            version = None  # '8.1.0.008'  # Get this from IDF file!
+            version = None
             idd_object = idfmodel.IDDObject(self.idd)
-            idd_field = idfmodel.IDDField(idd_object)
 
             # Cycle through each line in the file (yes, use while!)
             while True:
@@ -635,8 +635,6 @@ class IDDParser(Parser):
                 # Parse this line using readline (so last one is a blank)
                 line = idd_file.readline()
                 total_read += len(line)
-                # if self.msg:
-                #     self.msg.msg.emit(total_read)
                 line_parsed = self.parse_line(line)
 
                 # Detect end of line character for use when re-writing file
@@ -655,8 +653,14 @@ class IDDParser(Parser):
                     self.idd.options.extend(line_parsed['options'])
 
                 # If there are any comments save them
-                if line_parsed['comments'] is not None:
+                if line_parsed['comments']:
                     comment_list.append(line_parsed['comments'])
+
+                    # Detect file version
+                    if 'IDD_Version' in line_parsed['comments']:
+                        version_raw = line_parsed['comments'].split()[1].strip()
+                        version = '.'.join(version_raw.split('.')[0:2])
+                        self.idd._version = version
 
                 # Check for special comments and options
                 if line_parsed['comments_special']:
@@ -666,47 +670,43 @@ class IDDParser(Parser):
                 if line_parsed['fields']:
                     field_list.extend(line_parsed['fields'])
 
-                    # Detect idf file version and use it to select idd file
-                    if field_list[0] == 'Version':
-                        self.idd._version = field_list[1]
-
                 # Check for the end of an object before checking for new tags
                 if (end_object and empty_line) or line_parsed['fields']:
-                    if field_tag_sublist:
-                        field_tag_list.append(field_tag_sublist)
-                        field_tag_sublist = list()
+                    if field_tag_dict:
+                        field_tag_list.append(field_tag_dict)
+                        field_tag_dict = dict()
 
                 # If there are any field tags for this object save them
                 if line_parsed['field_tags']:
-                    field_tag_sublist.append(line_parsed['field_tags'])
+                    tag = line_parsed['field_tags']['tag']
+                    value = line_parsed['field_tags']['value']
+
+                    # If this tag is already present, try to append its value
+                    if tag in field_tag_dict:
+                        try:
+                            field_tag_dict[tag].append(value)
+                        except AttributeError:
+                            field_tag_dict[tag] = [field_tag_dict[tag], value]
+
+                    # Check for the special group tag
                     if line_parsed['field_tags']['tag'] == '\\group':
                         group = line_parsed['field_tags']['value']
 
-                # If this is the end of an object save it
+                # If this is the end of an object then save it
                 if end_object and empty_line:
 
-                    # The first field is the object name
+                    # The first field is the object class name
                     obj_class = field_list.pop(0)
-
-                    # Make sure there are values or return None
-                    # field_list = field_list or None
-                    # field_tag_list = field_tag_list or None
-                    # comment_list = comment_list or None
-                    # comment_list_special = comment_list_special or None
-
-                    # Search idd file for object name
-                    # if obj_class in self.idd:
-                    #     group = self.idd[obj_class]['group']
-
-                    # Add the group to the list if it isn't already there
-                    if group not in group_list:
-                        group_list.append(group)
 
                     # Create IDDField objects for all fields
                     for i, field in enumerate(field_list):
                         new_field = idfmodel.IDDField(idd_object)
                         new_field.key = field
-                        new_field.tags = field_tag_list[i]
+                        new_field.value = None
+                        try:
+                            new_field.tags = field_tag_list[i]
+                        except IndexError:
+                            new_field.tags = dict()
                         idd_object.update({field:new_field})
 
                     # Save the parsed variables in the idd_object
@@ -715,27 +715,28 @@ class IDDParser(Parser):
                     idd_object.comments_special = comment_list_special
                     idd_object.comments = comment_list
 
-                    # TODO assign field tags to each field. Each field needs
-                    # to be added to the IDDObject individually?!
-                    #                    field_tags=field_tag_list
+                    # Add the group to the idd's list if it isn't already there
+                    if group not in self.idd._groups:
+                        self.idd._groups.append(group)
 
                     # Save the new object as part of the IDD file
-                    self.idd.setdefault(obj_class, idd_object)
+                    self.idd[obj_class] = idd_object
 
-                    # Reset lists for next object
-                    field_list = []
-                    comment_list = []
-                    comment_list_special = []
-                    field_tag_list = []
-                    field_tag_sublist = []
+                    # Reset variables for next object
+                    field_list = list()
+                    comment_list = list()
+                    comment_list_special = list()
+                    field_tag_list = list()
+                    field_tag_dict = dict()
                     end_object = False
+                    idd_object = idfmodel.IDDObject(self.idd)
 
                 # Detect end of file and break. Do it this way to be sure
                 # the last line can be processed AND identified as last!
                 if not line:
                     break
 
-                # yield the current progress for progress bars
+                # Yield the current progress for progress bars
                 yield total_read
 
             self.idd._conversions = conversions
@@ -751,27 +752,39 @@ class IDDParser(Parser):
         :raises : Exception
         :rtype : bool
         """
-
-        import shelve
+        print('saving idd')
+        # import shelve
         import datetime as dt
+        import ZODB
+        import ZODB.FileStorage
 
         if not self.idd.version:
             raise Exception("Missing IDD file version")
 
+        version = self.idd.version
         data_dir = 'data'
-        file_name = 'EnergyPlus_IDD_v{}.dat'.format(self.idd.version)
-        idf_path = os.path.join(data_dir, file_name)
+        file_name_root = 'EnergyPlus_IDD_v{}.dat'
+        file_name = file_name_root.format(version)
+        idd_path = os.path.join(idfplus.idfmodel.APP_ROOT, data_dir, file_name)
 
-        database = shelve.open(idf_path)
-        database['idd'] = self.idd
-        database['date_generated'] = dt.datetime.now()
-        database.close()
+        storage = ZODB.FileStorage.FileStorage(idd_path)
+        db = ZODB.DB(storage)
+        connection = db.open()
+        root = connection.root
+
+        # database = shelve.open(idd_path)
+        # print('idd data type is: {}'.format(self.idd))
+        # database['idd'] = self.idd
+        # database['date_generated'] = dt.datetime.now()
+        # database.close()
+
+        root.idd = self.idd
+        root.date_generated = dt.datetime.now()
+        db.close()
         return True
 
 
 #---------------------------------------------------------------------------
-
-
 class IDFParser(Parser):
     """IDF file parser that handles opening, parsing and returning."""
 
@@ -781,9 +794,9 @@ class IDFParser(Parser):
         :param args:
         :param kwargs:
         """
-        if idf:
+
+        if idf is not None:
             self.idf = idf
-            self.parse_idf(idf)
         else:
             self.idf = idfmodel.IDFFile()
 
@@ -793,7 +806,8 @@ class IDFParser(Parser):
     def parse_idf(self):  # rename to loadIDF?
         """Parse the provided idf file and return an IDFObject."""
 
-        global options_list  # Avoid these?
+        global OPTIONS_LIST  # Avoid these?
+
         file_path = self.idf.file_path
         total_size = os.path.getsize(file_path)
         total_read = 0.0
@@ -842,7 +856,7 @@ class IDFParser(Parser):
 
                 # Check for special options (make separate function for this?)
                 if line_clean.startswith('!-Option'):
-                    match = [x for x in options_list if x in line_clean]
+                    match = [x for x in OPTIONS_LIST if x in line_clean]
                     self.idf.options.extend(match)
 
                 # If there are any comments save them
@@ -855,10 +869,14 @@ class IDFParser(Parser):
 
                     # Detect idf file version and use it to select idd file
                     if field_list[0] == 'Version':
-                        #version = field_list[1]
-                        self.idf._version = field_list[1]
+                        version = field_list[1]
+                        self.idf._version = version
+                        print('checking for idd')
+                        print('idf version detected as: {}'.format(version))
                         if not self.idf._idd:
-                            self.idf._idd = idfmodel.IDDFile(version)
+                            print('no idd')
+                            self.idf._idd = self.idf.load_idd()
+                            print('idd loaded as version: {}'.format(self.idf._idd.version))
 
                 # If this is the end of an object save it
                 if end_object and empty_line:
@@ -869,6 +887,10 @@ class IDFParser(Parser):
                     field_list = field_list  # or None
                     comment_list = comment_list  # or None
                     group = self.idf._idd[obj_class].group
+
+                    # Search idd file for object name
+                    # if obj_class in self.idd:
+                    #     group = self.idd[obj_class]['group']
 
                     # If this is an IDF file, perform checks against IDD
                     # file here (mandatory fields, unique objects, etc)

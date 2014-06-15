@@ -17,6 +17,8 @@ You should have received a copy of the GNU General Public License
 along with IDFPlus. If not, see <http://www.gnu.org/licenses/>.
 """
 
+# TODO don't use setdefault with ZODB?
+
 # Prepare for Python 3
 from __future__ import (print_function, division, with_statement, absolute_import)
 
@@ -24,6 +26,8 @@ import shelve
 import os
 from collections import OrderedDict
 from pint import UnitRegistry
+import ZODB
+import ZODB.FileStorage
 
 APP_ROOT = os.path.join(os.path.dirname(os.path.realpath(__file__)), '..')
 
@@ -65,31 +69,48 @@ class IDDFile(OrderedDict):
         self._version_set = False
         self._version = version
         self.options = list()
-        compiled_idd_file_name = 'EnergyPlus_IDD_v{}.dat'
+        # compiled_idd_file_name = 'EnergyPlus_IDD_v{}.dat'
         data_dir = 'data'
         units_file = 'units.dat'
         self._ureg = UnitRegistry(os.path.join(APP_ROOT, data_dir, units_file))
 
-        # Continue only if a version is specified, else a blank IDD file
-        if version:
+        # # Continue only if a version is specified, else a blank IDD file
+        # if version:
+        #
+        #     # Create the full path to the idd file
+        #     idd_file_path = os.path.join(APP_ROOT, data_dir,
+        #                                  compiled_idd_file_name.format(version))
+        #     print(idd_file_path)
+        #     # Check if the file name is a file and then open the idd file
+        #     if os.path.isfile(idd_file_path):
+        #         storage = ZODB.FileStorage.FileStorage(idd_file_path)
+        #         db = ZODB.DB(storage)
+        #         connection = db.open()
+        #
+        #         with db.open() as connection:
+        #             root = connection.root
+        #
+        #             try:
+        #                 test = root.idd.version
+        #                 return root.idd
+        #             except AttributeError:
+        #                 raise IDDFileDoesNotExist("Can't find IDD file: {}".format(idd_file_path))
 
-            # Create the full path to the idd file
-            file_path = os.path.join(APP_ROOT, data_dir,
-                                     compiled_idd_file_name.format(version))
+                # f = shelve.open(idd_file_path)
 
-            # Check if the file name is a file and then open the idd file
-            if os.path.isfile(file_path):
-                f = shelve.open(file_path)
-
-                # Set some more attributes with using the idd file
-                self._groups = f['groups']
-                self._conversions = f.get('conversions', None)
-                #self._class_tree = f['class_tree']  # To be implemented
-                self._OrderedDict__update(f['idd'])
-
-                f.close()
-            else:
-                raise IDDFileDoesNotExist("Can't find IDD file: {}".format(file_path))
+                # if f.get('idd', None):
+                #     return f
+                # else:
+                #     raise IDDFileDoesNotExist("Can't find IDD file: {}".format(idd_file_path))
+            #     # Set some more attributes with using the idd file
+            #     self._groups = f['groups']
+            #     self._conversions = f.get('conversions', None)
+            #     #self._class_tree = f['class_tree']  # To be implemented
+            #     self._OrderedDict__update(f['idd'])
+            #
+            #     f.close()
+            # else:
+            #     raise IDDFileDoesNotExist("Can't find IDD file: {}".format(idd_file_path))
 
         # Call the parent class' init method
         super(IDDFile, self).__init__(*args, **kwargs)
@@ -195,14 +216,14 @@ class IDDField(object):
     #TODO Values should be Quantities from the pint python library.
     #TODO merge this class with IDFField?
 
-    def __init__(self, outer):
+    def __init__(self, outer, **kwargs):
 
-        self.value = value
-        self.key = key
+        self.value = kwargs.pop('value', None)
+        self.key = kwargs.pop('key', None)
         self._idd = outer._idd
         self._outer = outer
         self.obj_class = outer.obj_class
-        self.tags = None
+        self.tags = dict()
 
         # if iterable:
         #     iterable.setdefault(key, key)
@@ -241,7 +262,7 @@ class IDFFile(OrderedDict):
     :attr str file_path: full, absolute path to idf file
     """
 
-    def __init__(self, file_path=None, *args, **kwargs):
+    def __init__(self, *args, **kwargs):
         """Initializes a new idf, blank or opens the given file_path
 
         :param str file_path:
@@ -256,17 +277,20 @@ class IDFFile(OrderedDict):
         self.file_path = None
         self.options = []
 
-        # Load the idf file if specified, otherwise prepare a blank one
-        if file_path:
-            from . import idfparse
-            self.file_path = file_path
-            parser = idfparse.IDFParser(self)
-            for progress in parser.parse_idf():
-                print(progress)
-        else:
-            default = '8.1'  # retrieve this from settings eventually
-            self._version = kwargs.pop('version', default)
-            self._idd = IDDFile(self._version)
+        # # Load the idf file if specified, otherwise prepare a blank one
+        # if file_path:
+        #     from . import idfparse
+        #     print("IDFFile file_path: {}".format(file_path))
+        #     self.file_path = file_path
+        #     parser = idfparse.IDFParser(self)
+        #     for progress in parser.parse_idf():
+        #         # print(progress)
+        #         yield progress
+        # else:
+        #     default = '8.1'  # retrieve this from settings eventually
+        #     self._version = kwargs.pop('version', default)
+        #     self._idd = IDDFile(self._version)
+        # yield self
 
         # Call the parent class' init method
         super(IDFFile, self).__init__(*args, **kwargs)
@@ -284,27 +308,55 @@ class IDFFile(OrderedDict):
 
         super(IDFFile, self).__setitem__(key, value, dict_setitem)
 
-#    def _load(self):
-#        """Parses and loads an idf file into the object instance variable.
-#        Also sets some attributes of the file.
-#        """
-#
-#        import idfparse
-#
-#        (count, eol_char, options, idd,
-#         group_list, objects, version) = idfparse.Parser(self.file_path)
-#
-#        self._idd = idd
-#        self._version = version
-#        self._eol_char = eol_char
-#        self.options = options
-#        self._OrderedDict__update(objects)
+    def load_idd(self):
+        """Loads an idd file into the object instance variable.
+        Also sets some attributes of the file.
+        :rtype : bool
+        :param version:
+        :return: :raise IDDFileDoesNotExist:
+        """
 
-    def _load_idd(self):
-        """Loads an idd file in the case where this is a blank idf file."""
+        idd_file_name = 'EnergyPlus_IDD_v{}.dat'.format(self.version)
+        data_dir = 'data'
 
-        default = '8.1'  # retrieve this from settings eventually
-        self._idd = IDDFile(self._version or default)
+        # Create the full path to the idd file
+        idd_file_path = os.path.join(APP_ROOT, data_dir, idd_file_name)
+        print('checking for idd version: {}'.format(self.version))
+        print(idd_file_path)
+
+        # Check if the file name is a file and then open the idd file
+        if os.path.isfile(idd_file_path):
+            print('idd found, loading...')
+            storage = ZODB.FileStorage.FileStorage(idd_file_path)
+            db = ZODB.DB(storage)
+            connection = db.open()
+            root = connection.root
+
+            try:
+                print('testing if loaded idd file has a version attribute')
+                test = root.idd.version
+                idd = root.idd
+                db.close()
+                return idd
+            except AttributeError:
+                print('no version attribute found!')
+                raise IDDFileDoesNotExist("Can't find IDD file: {}".format(idd_file_path))
+        else:
+            print('idd not found')
+            raise IDDFileDoesNotExist("Can't find IDD file: {}".format(idd_file_path))
+
+    def load_idf(self, file_path):
+        """Parses and loads an idf file into the object instance variable.
+        Also sets some attributes of the file.
+        :param file_path:
+        """
+        from . import idfparse
+        print("IDFFile file_path: {}".format(file_path))
+        self.file_path = file_path
+        parser = idfparse.IDFParser(self)
+        for progress in parser.parse_idf():
+            # print(progress)
+            yield progress
 
     def _set_version(self, version):
         """Method used to set the version of the IDF file. Can only
