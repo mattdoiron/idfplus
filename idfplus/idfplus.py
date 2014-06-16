@@ -129,8 +129,7 @@ class IDFPlus(QtGui.QMainWindow):
         :param str file_path:
         """
         print('processing idd file')
-        idd = idfmodel.IDDFile()
-        parser = idfparse.IDDParser(idd)
+
         total_size = os.path.getsize(file_path)
         self.progressDialogIDD = QtGui.QProgressDialog("Loading IDD File", "", 0,
                                                        total_size, self)
@@ -142,11 +141,13 @@ class IDFPlus(QtGui.QMainWindow):
         self.progressDialogIDD.show()
         self.statusBar().showMessage(message, 5000)
 
+        idd = idfmodel.IDDFile()
+        parser = idfparse.IDDParser(idd)
         for progress in parser.parse_idd(file_path):
             # print(progress)
             self.progressDialogIDD.setValue(progress)
 
-        result = parser.save_idd()
+        result = idfparse.save_idd(idd)
 
         return result
 

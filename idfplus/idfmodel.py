@@ -25,9 +25,10 @@ from __future__ import (print_function, division, with_statement, absolute_impor
 import shelve
 import os
 from collections import OrderedDict
-from pint import UnitRegistry
+# from pint import UnitRegistry
 import ZODB
-import ZODB.FileStorage
+# import ZODB.FileStorage
+from persistent import Persistent
 
 APP_ROOT = os.path.join(os.path.dirname(os.path.realpath(__file__)), '..')
 
@@ -41,10 +42,10 @@ class VersionAlreadySet(Exception):
     pass
 
 
-class IDDFile(OrderedDict):
+class IDDFile(Persistent):
     """Primary object representing idd file and container for idd objects.
 
-    Contains an OrderedDict of lists of IDDObjects with the class type as a
+    Is an OrderedDict of IDDObjects with the class type as a
     key. For example:
         {'ScheduleTypeLimits': IDDObject,
          'SimulationControl':  IDDObject}
@@ -67,12 +68,13 @@ class IDDFile(OrderedDict):
         self._groups = list()
         self._conversions = list()
         self._version_set = False
+        self._classes = OrderedDict()
         self._version = version
         self.options = list()
         # compiled_idd_file_name = 'EnergyPlus_IDD_v{}.dat'
         data_dir = 'data'
         units_file = 'units.dat'
-        self._ureg = UnitRegistry(os.path.join(APP_ROOT, data_dir, units_file))
+        self._ureg = None #UnitRegistry(os.path.join(APP_ROOT, data_dir, units_file))
 
         # # Continue only if a version is specified, else a blank IDD file
         # if version:
@@ -115,15 +117,15 @@ class IDDFile(OrderedDict):
         # Call the parent class' init method
         super(IDDFile, self).__init__(*args, **kwargs)
 
-    def __setitem__(self, key, value, dict_setitem=dict.__setitem__):
-        """Override the default __setitem__ to ensure that only certain
-        object types are allowed."""
-
-        if not isinstance(value, IDDObject):
-            print('value is: {}'.format(value))
-            raise TypeError('Only items of type IDDObject can be added!')
-
-        super(IDDFile, self).__setitem__(key, value, dict_setitem)
+    # def __setitem__(self, key, value, dict_setitem=dict.__setitem__):
+    #     """Override the default __setitem__ to ensure that only certain
+    #     object types are allowed."""
+    #
+    #     if not isinstance(value, IDDObject):
+    #         print('value is: {}'.format(value))
+    #         raise TypeError('Only items of type IDDObject can be added!')
+    #
+    #     super(IDDFile, self).__setitem__(key, value, dict_setitem)
 
     def _set_version(self, version):
         """Method used to set the version of the IDD file. Can only
@@ -174,8 +176,8 @@ class IDDObject(OrderedDict):
         # Set various attributes of the idf object
         self._obj_class = kwargs.pop('obj_class', None)
         self._group = kwargs.pop('group', None)
-        self._outer = outer
-        self._idd = outer
+        # self._outer = outer
+        # self._idd = outer
         self.comments = kwargs.pop('comments', None)
         self.comments_special = kwargs.pop('comments_special', None)
 
@@ -220,8 +222,8 @@ class IDDField(object):
 
         self.value = kwargs.pop('value', None)
         self.key = kwargs.pop('key', None)
-        self._idd = outer._idd
-        self._outer = outer
+        # self._idd = outer._idd
+        # self._outer = outer
         self.obj_class = outer.obj_class
         self.tags = dict()
 
@@ -232,22 +234,22 @@ class IDDField(object):
          # Call the parent class' init method
         super(IDDField, self).__init__()
 
-    @property
-    def units(self):
-        """Read-only property containing idd field's SI units.
-        :rtype : str
-        """
-        return self._value.units
+    # @property
+    # def units(self):
+    #     """Read-only property containing idd field's SI units.
+    #     :rtype : str
+    #     """
+    #     return self._value # .units
+    #
+    # @property
+    # def ip_units(self):
+    #     """Read-only property containing idd field's IP units.
+    #     :rtype : str
+    #     """
+    #     return self._value # _ip_units
 
-    @property
-    def ip_units(self):
-        """Read-only property containing idd field's IP units.
-        :rtype : str
-        """
-        return self._ip_units
 
-
-class IDFFile(OrderedDict):
+class IDFFile(Persistent):
     """Primary object representing idf file and container for idf objects.
 
     Contains an OrderedDict of lists of IDFObjects with the class type as a
@@ -273,6 +275,7 @@ class IDFFile(OrderedDict):
         # Various attributes of the idf file
         self._version_set = False
         self._idd = None
+        self._classes = OrderedDict()
         self._eol_char = None
         self.file_path = None
         self.options = []
@@ -327,8 +330,8 @@ class IDFFile(OrderedDict):
         # Check if the file name is a file and then open the idd file
         if os.path.isfile(idd_file_path):
             print('idd found, loading...')
-            storage = ZODB.FileStorage.FileStorage(idd_file_path)
-            db = ZODB.DB(storage)
+            # storage = ZODB.FileStorage.FileStorage(idd_file_path)
+            db = ZODB.DB(idd_file_path)
             connection = db.open()
             root = connection.root
 

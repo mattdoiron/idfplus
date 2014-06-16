@@ -23,39 +23,9 @@ along with IDFPlus. If not, see <http://www.gnu.org/licenses/>.
 from __future__ import (print_function, division, with_statement, absolute_import)
 
 import os
-#from collections import OrderedDict
+# from collections import OrderedDict
 from . import idfmodel
-
-#FIELD_TAGS = set('\\field',
-#                '\\note',
-#                '\\required-field',
-#                '\\begin-extensible',
-#                '\\units',
-#                '\\ip-units',
-#                '\\unitsBasedOnField',
-#                '\\minimum',
-#                '\\minimum>',
-#                '\\maximum',
-#                '\\maximum<',
-#                '\\default',
-#                '\\deprecated',
-#                '\\autosizeable',
-#                '\\autocalculatable',
-#                '\\type',
-#                '\\retaincase',
-#                '\\key',
-#                '\\object-list',
-#                '\\reference',
-#                '\\memo',
-#                '\\unique-object',
-#                '\\required-object',
-#                '\\min-fields',
-#                '\\obsolete',
-#                '\\extensible:',
-#                '\\begin-extensible',
-#                '\\format',
-#                '\\group')
-import idfplus.idfmodel
+# import idfplus.idfmodel
 
 FIELD_TAGS = ['\\field',
              '\\note',
@@ -89,7 +59,7 @@ FIELD_TAGS = ['\\field',
 
 OPTIONS_LIST = ['OriginalOrderTop', 'UseSpecialFormat']
 
-field_tag_delimiter = '\\'
+# field_tag_delimiter = '\\'
 COMMENT_DELIMITER_GENERAL = '!'
 COMMENT_DELIMITER_SPECIAL = '!-'
 
@@ -110,14 +80,13 @@ COMMENT_DELIMITER_SPECIAL = '!-'
 #test_line15 = ' N1; \memothis is a test'
 #test_line16 = '  '
 #test_line17 = '!'
-#
+
 #tag_line1 = 'SimulationControl,'
 #tag_line2 = '      \unique-object'
 #tag_line3 = '     \memo Note that the following 3 fields are related to the Sizing:Zone, Sizing:System,'
 #tag_line4 = '      \key Yes'
 #tag_line5 = 'SimulationControl, \memo this is a test'
 #tag_line6 = ' SimulationControl, \memothis is a test'
-
 
 #print 'Comments:'
 #print '- line 1: "' + str(getGeneralComment(test_line1)) + '"'
@@ -138,7 +107,6 @@ COMMENT_DELIMITER_SPECIAL = '!-'
 #print '- line 16: "' + str(getGeneralComment(test_line16)) + '"'
 #print '- line 17: "' + str(getGeneralComment(test_line17)) + '"'
 
-
 #print 'Fields:'
 #print '- line 1: "' + str(get_fields(test_line1)) + '"'
 #print '- line 2: "' + str(get_fields(test_line2)) + '"'
@@ -156,27 +124,6 @@ COMMENT_DELIMITER_SPECIAL = '!-'
 #print '- line 14: "' + str(get_fields(test_line14)) + '"'
 #print '- line 15: "' + str(get_fields(test_line15)) + '"'
 #print '- line 16: "' + str(get_fields(test_line16)) + '"'
-
-
-#def parseLineIDF(line_in):
-#    '''Parses a line from the IDF file and returns results'''
-#
-#    # Get results
-#    fields = get_fields(line_in)
-#    comment = getGeneralComment(line_in)
-#    end_object = False
-#
-#    # Check for and remove the semicolon, indicating the end of an object
-#    if fields:
-#        if fields[-1] == ';':
-#            fields.pop(-1)
-#            end_object = True
-#
-#    # Return a dictionary of results
-#    return dict(fields=fields,
-#                comment=comment,
-#                end_object=end_object)
-
 
 #print 'Whole Line:'
 #print parse_line(test_line1)
@@ -196,85 +143,6 @@ COMMENT_DELIMITER_SPECIAL = '!-'
 #print parse_line(test_line15)
 #print parse_line(test_line16)
 
-
-#def parse_idf(filename):
-#    '''Parse the provided IDF file'''
-#
-#    print 'Parsing IDF file: ' + filename
-#    global COMMENT_DELIMITER_SPECIAL
-#
-#    # Open the specified file in a safe way
-#    with open(filename, 'r') as file:
-#        # Prepare some variables to store the results
-#        objects = []
-#        field_list = []
-#        comment_list = []
-#        comment_list_special = []
-#        options = []
-#        object_index = 0
-#
-#        # Cycle through each line in the file
-#        for i, line in enumerate(file):
-#            line_parsed = parseLineIDF(line)
-#
-#            line_clean = line.expandtabs().lstrip()
-#            if line_clean.startswith(COMMENT_DELIMITER_SPECIAL):
-#                # Special comment found, save it
-#                comment_list_special.append(
-#                    line_clean.lstrip(COMMENT_DELIMITER_SPECIAL).rstrip()
-#                )
-#
-#                # Check for special options
-#                if line_clean.startswith('!-Option'):
-#                    if line_clean.find('UseSpecialFormat') != -1:
-#                        options.append('UseSpecialFormat')
-#                    if line_clean.find('OriginalOrderTop') != -1:
-#                        options.append('OriginalOrderTop')
-#
-#            # If there are any fields save them
-#            if line_parsed['fields']:
-#                field_list.extend(line_parsed['fields'])
-#
-#            # If there are any comments save them
-#            if line_parsed['comment'] is not None:
-#                comment_list.append(line_parsed['comment'])
-#
-#            # If this is the end of an object save it
-#            if line_parsed['end_object'] is True:
-#                if not comment_list:
-#                    comment_list = None
-#
-#                # The first field is the object name
-#                object_name = field_list[0]
-#                field_list.pop(0)
-#
-##                if len(field_list) == 0 or not field_list[0]:
-##                    field_list = None
-#
-##                print 'here! ' + object_name  + str(field_list)
-#                # Perform check for object here (against IDD file)
-#
-#                # Save the object
-#                objects.append(dict(name=object_name,
-#                                    fields=field_list,
-#                                    comments=comment_list,
-#                                    comments_special=comment_list_special,
-#                                    order=object_index))
-#
-#                # Reset lists for next object
-#                field_list = []
-#                comment_list = []
-#                comment_list_special = []
-#                object_index += 1
-#
-#    print 'Parsing IDF complete!'
-#    return (i + 1, len(objects), options, objects)
-#
-
-# Parse these idf files
-#idf_file = 'RefBldgLargeOfficeNew2004_Chicago.idf'
-#idf_file2 = '5ZoneBoilerOutsideAirReset.idf'
-#lines, object_count, options, objects = parse_idf(idf_file2)
 
 class Writer(object):
     """Class to take care of writing idf and idd files."""
@@ -587,11 +455,12 @@ class IDDParser(Parser):
         :param args:
         :param kwargs:
         """
-        if idd:
+
+        if idd is not None:
+            print('custom idd received by parser')
             self.idd = idd
-            # self.parse_idd(idd)
-            # self.save_idd()
         else:
+            print('no custom idd received by parser. using blank')
             self.idd = idfmodel.IDDFile()
 
         # Call the parent class' init method
@@ -673,7 +542,7 @@ class IDDParser(Parser):
                 # Check for the end of an object before checking for new tags
                 if (end_object and empty_line) or line_parsed['fields']:
                     if field_tag_dict:
-                        field_tag_list.append(field_tag_dict)
+                        field_tag_list.append(field_tag_dict.copy())
                         field_tag_dict = dict()
 
                 # If there are any field tags for this object save them
@@ -691,6 +560,8 @@ class IDDParser(Parser):
                     # Check for the special group tag
                     if line_parsed['field_tags']['tag'] == '\\group':
                         group = line_parsed['field_tags']['value']
+                        if group not in group_list:
+                            group_list.append(group)
 
                 # If this is the end of an object then save it
                 if end_object and empty_line:
@@ -720,7 +591,7 @@ class IDDParser(Parser):
                         self.idd._groups.append(group)
 
                     # Save the new object as part of the IDD file
-                    self.idd[obj_class] = idd_object
+                    self.idd._classes[obj_class] = idd_object
 
                     # Reset variables for next object
                     field_list = list()
@@ -747,41 +618,50 @@ class IDDParser(Parser):
 
     #        return True
 
-    def save_idd(self):
-        """Shelves a copy of the IDD file object.
-        :raises : Exception
-        :rtype : bool
-        """
-        print('saving idd')
-        # import shelve
-        import datetime as dt
-        import ZODB
-        import ZODB.FileStorage
+def save_idd(idd):
+    """Shelves a copy of the IDD file object.
+    :raises : Exception
+    :rtype : bool
+    """
+    print('saving idd')
+    # import shelve
+    import datetime as dt
 
-        if not self.idd.version:
-            raise Exception("Missing IDD file version")
+    import ZODB
+    import transaction
+    # import sys
+    # import ZODB.FileStorage
 
-        version = self.idd.version
-        data_dir = 'data'
-        file_name_root = 'EnergyPlus_IDD_v{}.dat'
-        file_name = file_name_root.format(version)
-        idd_path = os.path.join(idfplus.idfmodel.APP_ROOT, data_dir, file_name)
+    print('received idd with keys: {}'.format(len(idd._classes.keys())))
+    if not idd.version:
+        raise Exception("Missing IDD file version")
 
-        storage = ZODB.FileStorage.FileStorage(idd_path)
-        db = ZODB.DB(storage)
-        connection = db.open()
-        root = connection.root
+    # sys.setrecursionlimit(50000)
+    version = idd.version
+    data_dir = 'data'
+    file_name_root = 'EnergyPlus_IDD_v{}.dat'
+    file_name = file_name_root.format(version)
+    idd_path = os.path.join(idfmodel.APP_ROOT, data_dir, file_name)
 
-        # database = shelve.open(idd_path)
-        # print('idd data type is: {}'.format(self.idd))
-        # database['idd'] = self.idd
-        # database['date_generated'] = dt.datetime.now()
-        # database.close()
+    # storage = ZODB.FileStorage.FileStorage(idd_path)
+    print('opening idd dat file: {}'.format(idd_path))
+    db = ZODB.DB(idd_path)
+    # connection = db.open()
+    root = db.open().root
 
-        root.idd = self.idd
-        root.date_generated = dt.datetime.now()
-        db.close()
-        return True
+    print('saving idd to root obj: {}'.format(type(idd)))
+    # database = shelve.open(idd_path)
+    # print('idd data type is: {}'.format(idd))
+    # database['idd'] = idd._classes
+    # database['date_generated'] = dt.datetime.now()
+    # database.close()
+
+    root.idd = idd
+    root.date_generated = dt.datetime.now()
+    print('committing transaction')
+    transaction.commit()
+    db.close()
+    return True
 
 
 #---------------------------------------------------------------------------
@@ -886,7 +766,7 @@ class IDFParser(Parser):
                     # Make sure there are values or return None
                     field_list = field_list  # or None
                     comment_list = comment_list  # or None
-                    group = self.idf._idd[obj_class].group
+                    group = self.idf._idd._classes[obj_class].group
 
                     # Search idd file for object name
                     # if obj_class in self.idd:
