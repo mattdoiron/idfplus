@@ -25,10 +25,10 @@ from __future__ import (print_function, division, with_statement, absolute_impor
 import shelve
 import os
 from collections import OrderedDict
-# from pint import UnitRegistry
+from pint import UnitRegistry
 import ZODB
-# import ZODB.FileStorage
 from persistent import Persistent
+from . import idfparse
 
 APP_ROOT = os.path.join(os.path.dirname(os.path.realpath(__file__)), '..')
 
@@ -353,7 +353,8 @@ class IDFFile(Persistent):
         Also sets some attributes of the file.
         :param file_path:
         """
-        from . import idfparse
+
+
         print("IDFFile file_path: {}".format(file_path))
         self.file_path = file_path
         parser = idfparse.IDFParser(self)
@@ -417,11 +418,13 @@ class IDFFile(Persistent):
         pass
 
 
-class IDFObject(list):
+class IDFObject(dict):
     """Represents objects in idf files.
 
     Contains a list of fields in the form:
-        [IDFField1, IDFField2, IDFField3]
+        {'A1': IDFField1,
+         'N1': IDFField2,
+         'A2': IDFField3}
 
     :attr str obj_class: Class type of object
     :attr str group: Group to which this object belongs
@@ -433,7 +436,7 @@ class IDFObject(list):
 
     #TODO This class is almost the same as IDDObject. It should subclass it.
 
-    def __init__(self, obj_class, group, idf_file, *args, **kwargs):
+    def __init__(self, idf, *args, **kwargs):
         """Use kwargs to prepopulate some values, then remove them from kwargs
         Also sets the idd file for use by this object.
 
@@ -447,28 +450,28 @@ class IDFObject(list):
         """
 
         # Set various attributes of the idf object
-        self._group = group
-        self._obj_class = obj_class
-        self._idd = idf_file.idd
-        self._incoming_links = []
-        self._outgoing_links = []
-        self._idf_file = idf_file
+        # self._idf = idf
+        # self._idd = idf.idd
+        self._incoming_links = list()
+        self._outgoing_links = list()
+        self._group = kwargs.pop('group', None)
+        self._obj_class = kwargs.pop('obj_class', None)
         self.comments = kwargs.pop('comments', None)
 
         # Call the parent class' init method
         super(IDFObject, self).__init__(*args, **kwargs)
 
-    def __repr__(self):
-        """Returns a string representation of the object in idf format"""
-        values = [str(val) for val in self.value()]
-        str_list = ','.join(values)
-        return self._obj_class + ',' + str_list + ';'
+    # def __repr__(self):
+    #     """Returns a string representation of the object in idf format"""
+    #     values = [str(val) for val in self.value()]
+    #     str_list = ','.join(values)
+    #     return self._obj_class + ',' + str_list + ';'
 
-    @property
-    def idd(self):
-        """Read-only property containing idd file
-        :rtype : IDDFile"""
-        return self._idd
+    # @property
+    # def idd(self):
+    #     """Read-only property containing idd file
+    #     :rtype : IDDFile"""
+    #     return self._idd
 
     @property
     def obj_class(self):
@@ -495,11 +498,11 @@ class IDFObject(list):
         """
         return self._outgoing_links
 
-    @property
-    def idf_file(self):
-        """Read-only property containing the outer class of this obj
-        :rtype : IDFFile"""
-        return self._idf_file
+    # @property
+    # def idf_file(self):
+    #     """Read-only property containing the outer class of this obj
+    #     :rtype : IDFFile"""
+    #     return self._idf_file
 
 #    def value(self, field):
 #        """Returns the value of the specified field.
@@ -577,37 +580,39 @@ class IDFField(object):
 
     # TODO This class is actually the same as IDDField. Merge them?
 
-    def __init__(self, key, value, outer, *args, **kwargs):
+    def __init__(self, outer, *args, **kwargs):
         """Initializes a new idf field
         :param str key:
         :param value:
         :param IDFObject outer:
         """
-        self._key = key
-        self._value = value
-        self._idf_file = outer._outer
-        idd = outer.idd
-        self._obj_class = outer.obj_class
-        self._units = idd[self._obj_class][key].units
-        self._ureg = idd._ureg
-        self._ip_units = idd[self._obj_class][key].ip_units
-        if not self._ip_units:
-            self._ip_units = idd.conversions[self._units]
+        self.key = kwargs.pop('key', None)
+        self.value = kwargs.pop('value', None)
+        self.tags = dict()
+        self.obj_class = outer.obj_class
+        self._ureg = outer.idd._ureg
+
+        # self._idf_file = outer._outer
+        # idd = outer.idd
+        # self._units = outer.idd[self._obj_class][key].units
+        # self._ip_units = outer.idd[self._obj_class][key].ip_units
+        # if not self._ip_units:
+        #     self._ip_units = outer.idd.conversions[self._units]
 
         # Call the parent class' init method
-        super(IDFField, self).__init__(*args, **kwargs)
+        super(IDFField, self).__init__()
 
-    def __repr__(self):
-        return self._idf_file.obj_class + ':' + self._key
+    # def __repr__(self):
+    #     return self._idf_file.obj_class + ':' + self._key
 
-    def value(self, ip=False):
-        """Returns the value of the field, optionally converted to IP units.
-        :param bool ip:
-        :returns: converted value
-        """
-        if ip:
-            quantity = self._value * self._ureg(self._units)
-            ip_quantity = quantity.to(self._ip_units)
-            return ip_quantity.magnitude
-        else:
-            return self._value
+    # def value(self, ip=False):
+    #     """Returns the value of the field, optionally converted to IP units.
+    #     :param bool ip:
+    #     :returns: converted value
+    #     """
+    #     if ip:
+    #         quantity = self._value * self._ureg(self._units)
+    #         ip_quantity = quantity.to(self._ip_units)
+    #         return ip_quantity.magnitude
+    #     else:
+    #         return self._value

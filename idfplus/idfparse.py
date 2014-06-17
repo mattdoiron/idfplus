@@ -24,8 +24,9 @@ from __future__ import (print_function, division, with_statement, absolute_impor
 
 import os
 # from collections import OrderedDict
-from . import idfmodel
+# from . import idfmodel
 # import idfplus.idfmodel
+from idfplus import idfmodel
 
 FIELD_TAGS = ['\\field',
              '\\note',
@@ -215,13 +216,10 @@ class Writer(object):
         :param options:
         """
 
-        import shelve
         print('Writing file: ' + idd.file_path)
 
         # how will this be written? shelve? ZODB?
         # probably just shelve...
-
-        import shelve
 
 
 # Write the idf file
@@ -684,7 +682,9 @@ class IDFParser(Parser):
         super(IDFParser, self).__init__(*args, **kwargs)
 
     def parse_idf(self):  # rename to loadIDF?
-        """Parse the provided idf file and return an IDFObject."""
+        """Parse the provided idf file and return an IDFObject.
+        :rtype : iterator
+        """
 
         global OPTIONS_LIST  # Avoid these?
 
@@ -695,30 +695,23 @@ class IDFParser(Parser):
         print('Parsing IDF file: {} ({} bytes)'.format(file_path, total_size))
 
         # Open the specified file in a safe way
-        with open(file_path, 'r') as idf_file:
+        with open(file_path, 'r') as idf:
 
             # Prepare some variables to store the results
-            #            idd = None
-            #            idf = self.idf
-            #            idf.file_path = file_path
-            field_list = []
-            comment_list = []
-            #            options = []
+            field_list = list()
+            comment_list = list()
+            comment_list_special = list()
             group = None
             end_object = False
-            version = None
+            idf_object = idfmodel.IDFObject(self.idf)
 
             # Cycle through each line in the file (yes, use while!)
             while True:
 
                 # Parse this line using readline (so last one is a blank)
-                line = idf_file.readline()
+                line = idf.readline()
                 total_read += len(line)
                 line_parsed = self.parse_line(line)
-
-                # Emit signal for progress bar
-                #                if self.msg:
-                #                    self.msg.msg.emit(total_read)
 
                 # Detect end of line character for use when re-writing file
                 if line.endswith('\r\n'):
@@ -734,14 +727,17 @@ class IDFParser(Parser):
                 # Clean the input line (get rid of tabs and left white spaces)
                 line_clean = line.expandtabs().lstrip()
 
-                # Check for special options (make separate function for this?)
-                if line_clean.startswith('!-Option'):
-                    match = [x for x in OPTIONS_LIST if x in line_clean]
-                    self.idf.options.extend(match)
+                # Check for special options
+                if line_parsed['options']:
+                    self.idf.options.extend(line_parsed['options'])
 
                 # If there are any comments save them
-                if line_parsed['comments'] is not None:
+                if line_parsed['comments']:
                     comment_list.append(line_parsed['comments'])
+
+                # Check for special comments and options
+                if line_parsed['comments_special']:
+                    comment_list_special.append(line_parsed['comments_special'])
 
                 # If there are any fields save them
                 if line_parsed['fields']:
@@ -751,43 +747,53 @@ class IDFParser(Parser):
                     if field_list[0] == 'Version':
                         version = field_list[1]
                         self.idf._version = version
-                        print('checking for idd')
                         print('idf version detected as: {}'.format(version))
+                        print('checking for idd')
                         if not self.idf._idd:
-                            print('no idd')
+                            print('no idd found')
                             self.idf._idd = self.idf.load_idd()
-                            print('idd loaded as version: {}'.format(self.idf._idd.version))
+                        print('idd loaded as version: {}'.format(self.idf._idd.version))
 
                 # If this is the end of an object save it
                 if end_object and empty_line:
+
                     # The first field is the object name
                     obj_class = field_list.pop(0)
 
-                    # Make sure there are values or return None
-                    field_list = field_list  # or None
-                    comment_list = comment_list  # or None
-                    group = self.idf._idd._classes[obj_class].group
+                    # Create IDFField objects for all fields
+                    for i, field in enumerate(field_list):
+                        idd_fields = self.idf._idd._classes[obj_class].items()
+                        new_field = idfmodel.IDFField(idf_object)
+                        new_field.key = idd_fields[i].key
+                        new_field.value = field
+                        new_field.tags = idd_fields[i].tags
+                        idf_object.update({field:new_field})
 
-                    # Search idd file for object name
-                    # if obj_class in self.idd:
-                    #     group = self.idd[obj_class]['group']
+                    # Save the parsed variables in the idf_object
+                    idf_object._obj_class = obj_class
+                    idf_object._group = group
+                    idf_object.comments_special = comment_list_special
+                    idf_object.comments = comment_list
+
+                    # Set the object's group from the idd file
+                    group = self.idf._idd._classes[obj_class].group
 
                     # If this is an IDF file, perform checks against IDD
                     # file here (mandatory fields, unique objects, etc)
 
-                    # Create a new idfObject from the parsed variables
-                    obj = idfmodel.IDFObject(obj_class, group,
-                                             self.idf, self.idf._idd,
-                                             comments=comment_list)
-                    obj.extend(field_list)
-
-                    # Save the new object as part of the IDF file
-                    self.idf.setdefault(obj_class, []).append(obj)
+                    # Save the new object to the IDF file (canNOT use setdefault)
+                    if obj_class in self.idf._classes:
+                        try:
+                            self.idf._classes[obj_class].append(idf_object)
+                        except AttributeError:
+                            self.idf._classes[obj_class] = [idf_object]
 
                     # Reset lists for next object
-                    field_list = []
-                    comment_list = []
+                    field_list = list()
+                    comment_list = list()
+                    comment_list_special = list()
                     end_object = False
+                    idf_object = idfmodel.IDFObject(self.idf)
 
                 # Detect end of file and break. Do it this way to be sure
                 # the last line can be processed AND identified as last!
