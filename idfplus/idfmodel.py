@@ -17,19 +17,17 @@ You should have received a copy of the GNU General Public License
 along with IDFPlus. If not, see <http://www.gnu.org/licenses/>.
 """
 
-# TODO don't use setdefault with ZODB?
-
 # Prepare for Python 3
 from __future__ import (print_function, division, with_statement, absolute_import)
 
-import shelve
+# System imports
 import os
+import ZODB
 from collections import OrderedDict
 from pint import UnitRegistry
-import ZODB
 from persistent import Persistent
-from . import idfparse
 
+# Constants
 APP_ROOT = os.path.join(os.path.dirname(os.path.realpath(__file__)), '..')
 
 class IDDFileDoesNotExist(Exception):
@@ -74,7 +72,7 @@ class IDDFile(Persistent):
         # compiled_idd_file_name = 'EnergyPlus_IDD_v{}.dat'
         data_dir = 'data'
         units_file = 'units.dat'
-        self._ureg = None #UnitRegistry(os.path.join(APP_ROOT, data_dir, units_file))
+        self._ureg = UnitRegistry(os.path.join(APP_ROOT, data_dir, units_file))
 
         # # Continue only if a version is specified, else a blank IDD file
         # if version:
@@ -353,8 +351,7 @@ class IDFFile(Persistent):
         Also sets some attributes of the file.
         :param file_path:
         """
-
-
+        from . import idfparse
         print("IDFFile file_path: {}".format(file_path))
         self.file_path = file_path
         parser = idfparse.IDFParser(self)

@@ -17,12 +17,13 @@ You should have received a copy of the GNU General Public License
 along with IDFPlus. If not, see <http://www.gnu.org/licenses/>.
 """
 
+# PySide imports
 from PySide import QtGui
 from PySide import QtCore
 
 
 class Settings(object):
-    '''Object to handle setting and getting settings or info about them.'''
+    """Object to handle setting and getting settings or info about them."""
 
     def __init__(self, parent):
         '''Create the settings object and set some of its own settings.'''
@@ -33,12 +34,12 @@ class Settings(object):
                                          "IDFPlus Editor",
                                          parent)
 
-    def readSettings(self):
-        '''Reads application settings and restores them.'''
+    def read_settings(self):
+        """Reads application settings and restores them."""
 
-        print("Reading settings from: {}".format(self.getPath()))
-#        print("file: {}".format(self.getFileName()))
-#        print("directory: {}".format(self.getDirName()))
+        print("Reading settings from: {}".format(self.get_path()))
+#        print("file: {}".format(self.get_file_name()))
+#        print("directory: {}".format(self.get_dir_name()))
         settings = self.settings
         parent = self.parent
 
@@ -63,8 +64,8 @@ class Settings(object):
 #        parent.restoreDockWidget(parent.infoView.parent())
 #        parent.restoreDockWidget(parent.commentView.parent())
 
-    def writeSettings(self):
-        '''Writes application settings to save them.'''
+    def write_settings(self):
+        """Writes application settings to save them."""
 
         print("Writing settings")
         parent = self.parent
@@ -85,17 +86,20 @@ class Settings(object):
 #        settings.setValue("geometry", parent.saveGeometry())
         settings.endGroup()
 
-    def showSettingsDialog(self):
-        '''Handles showing the settings dialog and setting its values.'''
+    def show_settings_dialog(self):
+        """Handles showing the settings dialog and setting its values."""
         pass
 
-    def getPath(self):
+    def get_path(self):
+        """get path"""
         return self.settings.fileName()
 
-    def getFileName(self):
+    def get_file_name(self):
+        """get file name"""
         import os
         return os.path.basename(self.settings.fileName())
 
-    def getDirName(self):
+    def get_dir_name(self):
+        """get dir name"""
         import os
         return os.path.dirname(self.settings.fileName())

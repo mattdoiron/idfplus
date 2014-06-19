@@ -20,20 +20,18 @@ along with IDFPlus. If not, see <http://www.gnu.org/licenses/>.
 # Prepare for Python 3
 from __future__ import (print_function, division, with_statement, absolute_import)
 
-# Standard library imports
-import sys
+# System imports
 import os
-#import shelve
 import platform
 
-# PySide import
+# PySide imports
 import PySide
 from PySide import QtGui
 from PySide import QtCore
 
-# Custom imports
+# Package imports
 from . import idfdelegates
-from . import idfobject as idfObj
+from . import idfobject
 from . import idfparse
 from . import idfsettings
 from . import idfmodel
@@ -57,7 +55,7 @@ class IDFPlus(QtGui.QMainWindow):
 
         # Load settings (call this second)
         self.settings = idfsettings.Settings(self)
-        self.settings.readSettings()
+        self.settings.read_settings()
 
         # Set some instance variables
         self.file_path = None
@@ -83,7 +81,7 @@ class IDFPlus(QtGui.QMainWindow):
     def closeEvent(self, event):
         """Called when the application is closed."""
         if self.ok_to_continue():
-            self.settings.writeSettings()
+            self.settings.write_settings()
             if self.idd:
                 self.idd.close()
             event.accept()
@@ -612,18 +610,18 @@ class IDFPlus(QtGui.QMainWindow):
 #        else:
 #            idfObjects = [{'fields':[None for i in iddPart['fields']]}]
 
-#        self.default_model = idfObj.IDFObjectTableModel(idfObjects, iddPart)
+#        self.default_model = idfobject.IDFObjectTableModel(idfObjects, iddPart)
 #        self.default_model.load()
-        self.default_model = idfObj.IDFObjectTableModel(obj_class,
+        self.default_model = idfobject.IDFObjectTableModel(obj_class,
                                                         self.idf,
                                                         self.idd)
         model = self.default_model
 
         # If objects are vertical, create transposed model
         if self.obj_orientation == QtCore.Qt.Vertical:
-            proxyModel = idfObj.TransposeProxyModel(self.default_model)
-#            proxyModel.setSourceModel(self.default_model)
-            model = proxyModel
+            proxy_model = idfobject.TransposeProxyModel(self.default_model)
+#            proxy_model.setSourceModel(self.default_model)
+            model = proxy_model
 #            table.horizontalHeader().sectionClicked.connect(model.sortTable)
 
         sortable = QtGui.QSortFilterProxyModel()
@@ -652,6 +650,7 @@ class IDFPlus(QtGui.QMainWindow):
         tree.clear()
         objects = self.idf
         group = ''
+        group_root = None
 
         for obj_class, obj in self.idd.iteritems():
             if group != obj.group:

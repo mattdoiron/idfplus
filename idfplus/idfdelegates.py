@@ -17,7 +17,9 @@ You should have received a copy of the GNU General Public License
 along with IDFPlus. If not, see <http://www.gnu.org/licenses/>.
 """
 
-from PySide import QtGui, QtCore
+# PySide imports
+from PySide import QtGui
+from PySide import QtCore
 
 
 class GenericDelegate(QtGui.QItemDelegate):

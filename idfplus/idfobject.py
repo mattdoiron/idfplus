@@ -17,12 +17,16 @@ You should have received a copy of the GNU General Public License
 along with IDFPlus. If not, see <http://www.gnu.org/licenses/>.
 """
 
+# System imports
 import shelve
 import os
 
-from PySide import QtGui, QtCore
+# PySide imports
+from PySide import QtGui
+from PySide import QtCore
 
-from idfmodel import IDFObject
+# Package imports
+from .idfmodel import IDFObject
 
 
 class IDFObjectTableModel(QtCore.QAbstractTableModel):
@@ -225,7 +229,7 @@ class IDDFile(object):
     def loadIDD(self):
         '''Loads the idd file of the appropriate version for use later.'''
 
-        idd_file = os.path.join(self.settings.getDirName(),
+        idd_file = os.path.join(self.settings.get_dir_name(),
                                 'data',
                                 'EnergyPlus_IDD_v') + self.version + '.dat'
 

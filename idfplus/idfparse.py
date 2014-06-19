@@ -17,17 +17,19 @@ You should have received a copy of the GNU General Public License
 along with IDFPlus. If not, see <http://www.gnu.org/licenses/>.
 """
 
-#from PySide.QtCore import QObject, Signal
-#from contextlib import closing
-
+# Prepare for Python 3
 from __future__ import (print_function, division, with_statement, absolute_import)
 
+# System imports
 import os
-# from collections import OrderedDict
-# from . import idfmodel
-# import idfplus.idfmodel
-from idfplus import idfmodel
+import datetime as dt
+import ZODB
+import transaction
 
+# Package imports
+from . import idfmodel
+
+# Constants
 FIELD_TAGS = ['\\field',
              '\\note',
              '\\required-field',
@@ -622,14 +624,6 @@ def save_idd(idd):
     :rtype : bool
     """
     print('saving idd')
-    # import shelve
-    import datetime as dt
-
-    import ZODB
-    import transaction
-    # import sys
-    # import ZODB.FileStorage
-
     print('received idd with keys: {}'.format(len(idd._classes.keys())))
     if not idd.version:
         raise Exception("Missing IDD file version")
@@ -688,7 +682,7 @@ class IDFParser(Parser):
 
         global OPTIONS_LIST  # Avoid these?
 
-        file_path = self.idf.file_path
+        file_path = self.idf.file_path  # TODO this will be None if blank idf used!
         total_size = os.path.getsize(file_path)
         total_read = 0.0
 
@@ -804,8 +798,6 @@ class IDFParser(Parser):
                 yield total_read
 
         print('Parsing IDF complete!')
-
-#        return True
 
 ## Parse this idd file
 #idd_file = 'Energy+.idd'
