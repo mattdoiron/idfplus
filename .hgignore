@@ -4,6 +4,7 @@ syntax: glob
 # Temp files
 *~
 *.idea
+*.lock
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
