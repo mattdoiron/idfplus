@@ -618,42 +618,42 @@ class IDDParser(Parser):
 
     #        return True
 
-def save_idd(idd):
-    """Shelves a copy of the IDD file object.
-    :raises : Exception
-    :rtype : bool
-    """
-    print('saving idd')
-    print('received idd with keys: {}'.format(len(idd._classes.keys())))
-    if not idd.version:
-        raise Exception("Missing IDD file version")
+    def save_idd(self, idd):
+        """Shelves a copy of the IDD file object.
+        :raises : Exception
+        :rtype : bool
+        """
+        print('saving idd')
+        print('received idd with keys: {}'.format(len(idd._classes.keys())))
+        if not idd.version:
+            raise Exception("Missing IDD file version")
 
-    # sys.setrecursionlimit(50000)
-    version = idd.version
-    data_dir = 'data'
-    file_name_root = 'EnergyPlus_IDD_v{}.dat'
-    file_name = file_name_root.format(version)
-    idd_path = os.path.join(idfmodel.APP_ROOT, data_dir, file_name)
+        # sys.setrecursionlimit(50000)
+        version = idd.version
+        data_dir = 'data'
+        file_name_root = 'EnergyPlus_IDD_v{}.dat'
+        file_name = file_name_root.format(version)
+        idd_path = os.path.join(idfmodel.APP_ROOT, data_dir, file_name)
 
-    # storage = ZODB.FileStorage.FileStorage(idd_path)
-    print('opening idd dat file: {}'.format(idd_path))
-    db = ZODB.DB(idd_path)
-    # connection = db.open()
-    root = db.open().root
+        # storage = ZODB.FileStorage.FileStorage(idd_path)
+        print('opening idd dat file: {}'.format(idd_path))
+        db = ZODB.DB(idd_path)
+        # connection = db.open()
+        root = db.open().root
 
-    print('saving idd to root obj: {}'.format(type(idd)))
-    # database = shelve.open(idd_path)
-    # print('idd data type is: {}'.format(idd))
-    # database['idd'] = idd._classes
-    # database['date_generated'] = dt.datetime.now()
-    # database.close()
+        print('saving idd to root obj: {}'.format(type(idd)))
+        # database = shelve.open(idd_path)
+        # print('idd data type is: {}'.format(idd))
+        # database['idd'] = idd._classes
+        # database['date_generated'] = dt.datetime.now()
+        # database.close()
 
-    root.idd = idd
-    root.date_generated = dt.datetime.now()
-    print('committing transaction')
-    transaction.commit()
-    db.close()
-    return True
+        root.idd = idd
+        root.date_generated = dt.datetime.now()
+        print('committing transaction')
+        transaction.commit()
+        db.close()
+        return True
 
 
 #---------------------------------------------------------------------------
@@ -669,8 +669,10 @@ class IDFParser(Parser):
 
         if idf is not None:
             self.idf = idf
+            self.idd = idf._idd
         else:
             self.idf = idfmodel.IDFFile()
+            self.idd = None
 
         # Call the parent class' init method
         super(IDFParser, self).__init__(*args, **kwargs)
@@ -746,6 +748,7 @@ class IDFParser(Parser):
                         if not self.idf._idd:
                             print('no idd found')
                             self.idf._idd = self.idf.load_idd()
+                            self.idd = self.idf._idd
                         print('idd loaded as version: {}'.format(self.idf._idd.version))
 
                 # If this is the end of an object save it
@@ -756,11 +759,18 @@ class IDFParser(Parser):
 
                     # Create IDFField objects for all fields
                     for i, field in enumerate(field_list):
-                        idd_fields = self.idf._idd._classes[obj_class].items()
+                        idd_fields = self.idd._classes[obj_class].items()
+                        if idd_fields:
+                            print(idd_fields[i])
+                            key = idd_fields[i].key
+                            tags = idd_fields[i].tags
+                        else:
+                            key = obj_class
+                            tags = dict()
                         new_field = idfmodel.IDFField(idf_object)
-                        new_field.key = idd_fields[i].key
+                        new_field.key = key
                         new_field.value = field
-                        new_field.tags = idd_fields[i].tags
+                        new_field.tags = tags
                         idf_object.update({field:new_field})
 
                     # Save the parsed variables in the idf_object
@@ -770,7 +780,7 @@ class IDFParser(Parser):
                     idf_object.comments = comment_list
 
                     # Set the object's group from the idd file
-                    group = self.idf._idd._classes[obj_class].group
+                    group = self.idd._classes[obj_class].group
 
                     # If this is an IDF file, perform checks against IDD
                     # file here (mandatory fields, unique objects, etc)
@@ -797,6 +807,8 @@ class IDFParser(Parser):
                 # yield the current progress for progress bars
                 yield total_read
 
+        # Save changes
+        transaction.commit()
         print('Parsing IDF complete!')
 
 ## Parse this idd file

@@ -23,6 +23,8 @@ from __future__ import (print_function, division, with_statement, absolute_impor
 # System imports
 import os
 import platform
+import ZODB
+import transaction
 
 # PySide imports
 import PySide
@@ -78,10 +80,16 @@ class IDFPlus(QtGui.QMainWindow):
         # Connect some slots and signals
         self.classTree.currentItemChanged.connect(self.iWasChanged)
 
+        # Open ZODB in-memory database
+        self.db_conn = ZODB.DB(None)
+        self.db = self.db_conn.open().root
+        self.db.files = list()
+
     def closeEvent(self, event):
         """Called when the application is closed."""
         if self.ok_to_continue():
             self.settings.write_settings()
+            self.db_conn.close()
             if self.idd:
                 self.idd.close()
             event.accept()
@@ -145,7 +153,7 @@ class IDFPlus(QtGui.QMainWindow):
             # print(progress)
             self.progressDialogIDD.setValue(progress)
 
-        result = idfparse.save_idd(idd)
+        result = parser.save_idd(idd)
 
         return result
 
@@ -180,8 +188,10 @@ class IDFPlus(QtGui.QMainWindow):
         try:
             print('Trying to load file: {}'.format(file_path))
             self.idf = idfmodel.IDFFile()
+            self.db.files.append(self.idf)
             for progress in self.idf.load_idf(file_path):
                 self.progressDialogIDF.setValue(progress)
+            transaction.commit()
             print('IDF version detected as: {}'.format(self.idf.version))
             self.idd = self.idf.idd
         except idfmodel.IDDFileDoesNotExist:
@@ -205,7 +215,7 @@ class IDFPlus(QtGui.QMainWindow):
         self.groups = self.idf.idd.groups
         self.load_tree_view()
         self.classTable.setModel(None)
-        self.commentView.setText(str(len(self.idf)))  # test only
+        self.commentView.setText(str(len(self.idf._classes)))  # test only
         self.dirty = False  # Move this into idfObjectContainer
         self.file_path = file_path
         self.add_recent_file(file_path)
@@ -476,7 +486,7 @@ class IDFPlus(QtGui.QMainWindow):
         self.setWindowModified(False)
 
         if self.file_path:
-            file_name = QtCore.QFileInfo(self.file_path).file_name()
+            file_name = QtCore.QFileInfo(self.file_path).fileName()
             shownName = file_name
         else:
             shownName = 'Untitled'
@@ -652,7 +662,7 @@ class IDFPlus(QtGui.QMainWindow):
         group = ''
         group_root = None
 
-        for obj_class, obj in self.idd.iteritems():
+        for obj_class, obj in self.idd._classes.iteritems():
             if group != obj.group:
 
                 group = obj.group
@@ -671,7 +681,7 @@ class IDFPlus(QtGui.QMainWindow):
                 tree.setFirstItemColumnSpanned(group_root, True)
                 tree.setRootIsDecorated(False)
 
-            obj_count = len(self.idd.get(obj_class, None)) or ''
+            obj_count = len(self.idd._classes.get(obj_class, None)) or ''
             child = QtGui.QTreeWidgetItem([obj_class, str(obj_count)])
             child.setTextAlignment(1, QtCore.Qt.AlignRight)
             group_root.addChild(child)

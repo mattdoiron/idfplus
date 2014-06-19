@@ -72,7 +72,7 @@ class IDDFile(Persistent):
         # compiled_idd_file_name = 'EnergyPlus_IDD_v{}.dat'
         data_dir = 'data'
         units_file = 'units.dat'
-        self._ureg = UnitRegistry(os.path.join(APP_ROOT, data_dir, units_file))
+        self._ureg = None #UnitRegistry(os.path.join(APP_ROOT, data_dir, units_file))
 
         # # Continue only if a version is specified, else a blank IDD file
         # if version:
@@ -113,7 +113,7 @@ class IDDFile(Persistent):
             #     raise IDDFileDoesNotExist("Can't find IDD file: {}".format(idd_file_path))
 
         # Call the parent class' init method
-        super(IDDFile, self).__init__(*args, **kwargs)
+        super(IDDFile, self).__init__()
 
     # def __setitem__(self, key, value, dict_setitem=dict.__setitem__):
     #     """Override the default __setitem__ to ensure that only certain
@@ -124,6 +124,10 @@ class IDDFile(Persistent):
     #         raise TypeError('Only items of type IDDObject can be added!')
     #
     #     super(IDDFile, self).__setitem__(key, value, dict_setitem)
+
+    def __getitem__(self, key):
+        """"""
+        return self._classes[key]
 
     def _set_version(self, version):
         """Method used to set the version of the IDD file. Can only
@@ -278,6 +282,8 @@ class IDFFile(Persistent):
         self.file_path = None
         self.options = []
 
+
+
         # # Load the idf file if specified, otherwise prepare a blank one
         # if file_path:
         #     from . import idfparse
@@ -294,7 +300,7 @@ class IDFFile(Persistent):
         # yield self
 
         # Call the parent class' init method
-        super(IDFFile, self).__init__(*args, **kwargs)
+        super(IDFFile, self).__init__()
 
     def __setitem__(self, key, value, dict_setitem=dict.__setitem__):
         """Override the default __setitem__ to ensure that only certain
@@ -308,6 +314,12 @@ class IDFFile(Persistent):
                 raise TypeError('Only items of type IDFObject can be added!')
 
         super(IDFFile, self).__setitem__(key, value, dict_setitem)
+
+    def __getitem__(self, key):
+        """"""
+        print(key)
+        print(self._classes.keys())
+        return self._classes[key]
 
     def load_idd(self):
         """Loads an idd file into the object instance variable.
@@ -587,7 +599,7 @@ class IDFField(object):
         self.value = kwargs.pop('value', None)
         self.tags = dict()
         self.obj_class = outer.obj_class
-        self._ureg = outer.idd._ureg
+        self._ureg = None #outer.idd._ureg
 
         # self._idf_file = outer._outer
         # idd = outer.idd
