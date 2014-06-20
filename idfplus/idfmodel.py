@@ -182,6 +182,7 @@ class IDDObject(OrderedDict):
         self._group = kwargs.pop('group', None)
         # self._outer = outer
         # self._idd = outer
+        self.tags = dict()  # TODO populate this during parsing (only fields done now)
         self.comments = kwargs.pop('comments', None)
         self.comments_special = kwargs.pop('comments_special', None)
 
@@ -357,8 +358,9 @@ class IDFFile(Persistent):
                 print('testing if loaded idd file has a version attribute')
                 test = root.idd.version
                 idd = root.idd
+                self._idd = idd
                 db.close()
-                return idd
+                return True
             except AttributeError:
                 print('no version attribute found!')
                 raise IDDFileDoesNotExist("Can't find IDD file: {}".format(idd_file_path))
@@ -618,6 +620,17 @@ class IDFField(object):
 
         # Call the parent class' init method
         super(IDFField, self).__init__()
+
+    @property
+    def field(self):
+        """
+        :rtype : str
+        :return : The name of the field from the idd file
+        """
+        if 'field' in self.tags:
+            return self.tags['field']
+        else:
+            return str()
 
     # def __repr__(self):
     #     return self._idf_file.obj_class + ':' + self._key

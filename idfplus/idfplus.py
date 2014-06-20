@@ -90,8 +90,8 @@ class IDFPlus(QtGui.QMainWindow):
         if self.ok_to_continue():
             self.settings.write_settings()
             self.db_conn.close()
-            if self.idd:
-                self.idd.close()
+            # if self.idd:
+            #     self.idd.close()
             event.accept()
         else:
             event.ignore()
@@ -622,9 +622,11 @@ class IDFPlus(QtGui.QMainWindow):
 
 #        self.default_model = idfobject.IDFObjectTableModel(idfObjects, iddPart)
 #        self.default_model.load()
+
+        print(self.idf._idd._classes['Version'].items())
+        # print(self.idf._classes.keys())
         self.default_model = idfobject.IDFObjectTableModel(obj_class,
-                                                        self.idf,
-                                                        self.idd)
+                                                           self.idf)
         model = self.default_model
 
         # If objects are vertical, create transposed model

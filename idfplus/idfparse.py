@@ -591,7 +591,8 @@ class IDDParser(Parser):
                         self.idd._groups.append(group)
 
                     # Save the new object as part of the IDD file
-                    self.idd._classes[obj_class] = idd_object
+                    if obj_class not in ['Lead Input', 'Simulation Data']:
+                        self.idd._classes[obj_class] = idd_object
 
                     # Reset variables for next object
                     field_list = list()
@@ -747,7 +748,7 @@ class IDFParser(Parser):
                         print('checking for idd')
                         if not self.idf._idd:
                             print('no idd found')
-                            self.idf._idd = self.idf.load_idd()
+                            self.idf.load_idd()
                             self.idd = self.idf._idd
                         print('idd loaded as version: {}'.format(self.idf._idd.version))
 

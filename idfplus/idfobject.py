@@ -34,13 +34,15 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
     displayed in the table.
     """
 
-    def __init__(self, obj_class, idf, idd):
+    def __init__(self, obj_class, idf):
         super(IDFObjectTableModel, self).__init__()
         self.obj_class = obj_class
         self.idf = idf
-        self.idd = idd
-        self.idf_objects = idf[obj_class]
-        self.idd_object = idd[obj_class]
+        self.idd = idf._idd
+        print('setting obj_class: {}'.format(obj_class))
+        self.idf_objects = idf._classes[obj_class]
+        self.idd_object = idf._idd._classes[obj_class]
+        print('loading idd object: {}'.format(self.idd_object))
         self.dirty = False
         self.getLabels()
 
@@ -78,9 +80,9 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
         elif role == QtCore.Qt.TextAlignmentRole:
             return QtCore.Qt.AlignLeft | QtCore.Qt.AlignVCenter
         elif role == QtCore.Qt.TextColorRole:
-            return QtCore.QColor(QtCore.Qt.black)
+            return QtGui.QColor(QtCore.Qt.black)
         elif role == QtCore.Qt.BackgroundColorRole:
-            return QtCore.QColor(250, 230, 250)
+            return QtGui.QColor(250, 230, 250)
         return data
 
     def headerData(self, section, orientation, role):
@@ -144,10 +146,14 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
         field_labels = []
         obj_count = len(self.idf_objects) + 1
         objID_lables = ['Obj{}'.format(i) for i in range(1, obj_count)]
-        for field in self.idd_object:
-            field_labels.append(field.field)
+        print(self.idd_object.items())
+        for key, val in self.idd_object:
+            print('field: {}'.format(val))
+            field_labels.append(val)
         self.objID_lables = objID_lables
         self.field_labels = field_labels
+        print(objID_lables)
+        print(field_labels)
 
 
 class TransposeProxyModel(QtGui.QAbstractProxyModel):

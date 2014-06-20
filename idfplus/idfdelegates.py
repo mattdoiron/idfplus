@@ -137,7 +137,7 @@ class GenericDelegate(QtGui.QItemDelegate):
                        '\\key']
 
         # Cycle through field tags (first one is object tags so ignore)
-        for i, tags in enumerate(idd_obj['field_tags'][1:]):
+        for i, tags in enumerate(idd_obj.tags):
 
             tag_list = []
             tag_count = 0
