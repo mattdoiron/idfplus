@@ -782,14 +782,16 @@ class IDFParser(Parser):
                     # Set the object's group from the idd file
                     group = self.idd._classes[obj_class].group
 
+                    # TODO validate IDF against IDD
                     # If this is an IDF file, perform checks against IDD
                     # file here (mandatory fields, unique objects, etc)
 
                     # Save the new object to the IDF file (canNOT use setdefault)
-                    if obj_class in self.idf._classes:
+                    # due to apparent incompatibility with ZODB
+                    if obj_class in self.idd._classes:
                         try:
                             self.idf._classes[obj_class].append(idf_object)
-                        except AttributeError:
+                        except (AttributeError, KeyError) as e:
                             self.idf._classes[obj_class] = [idf_object]
 
                     # Reset lists for next object
@@ -810,6 +812,7 @@ class IDFParser(Parser):
         # Save changes
         transaction.commit()
         print('Parsing IDF complete!')
+        # print(self.idf._classes.keys())
 
 ## Parse this idd file
 #idd_file = 'Energy+.idd'

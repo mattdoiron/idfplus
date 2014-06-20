@@ -206,7 +206,7 @@ class IDFPlus(QtGui.QMainWindow):
                                           "cancelled"),
                                           QtGui.QMessageBox.Ok)
                 message = ("Loading failed. Could not find "
-                          "matching IDD version.")
+                           "matching IDD version.")
                 self.update_status(message)
                 return False
             else:

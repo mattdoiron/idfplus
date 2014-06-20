@@ -26,6 +26,8 @@ import ZODB
 from collections import OrderedDict
 from pint import UnitRegistry
 from persistent import Persistent
+from persistent.list import PersistentList
+from persistent.mapping import PersistentMapping
 
 # Constants
 APP_ROOT = os.path.join(os.path.dirname(os.path.realpath(__file__)), '..')
@@ -281,8 +283,7 @@ class IDFFile(Persistent):
         self._eol_char = None
         self.file_path = None
         self.options = []
-
-
+        self._version = None
 
         # # Load the idf file if specified, otherwise prepare a blank one
         # if file_path:
@@ -317,9 +318,16 @@ class IDFFile(Persistent):
 
     def __getitem__(self, key):
         """"""
-        print(key)
-        print(self._classes.keys())
-        return self._classes[key]
+        # print(key)
+        # print(type(self))
+        # print(type(self._classes))
+        # print(self._classes.items())
+        # print(self.file_path)
+        # print(self._classes)
+        if key in self._classes:
+            return self._classes[key]
+        else:
+            return None
 
     def load_idd(self):
         """Loads an idd file into the object instance variable.

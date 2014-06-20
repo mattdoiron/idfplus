@@ -142,7 +142,7 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
 
     def getLabels(self):
         field_labels = []
-        obj_count = len(self.idfObjects) + 1
+        obj_count = len(self.idf_objects) + 1
         objID_lables = ['Obj{}'.format(i) for i in range(1, obj_count)]
         for field in self.idd_object:
             field_labels.append(field.field)
