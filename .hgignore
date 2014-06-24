@@ -5,6 +5,8 @@ syntax: glob
 *~
 *.idea
 *.lock
+*.index
+*.tmp
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

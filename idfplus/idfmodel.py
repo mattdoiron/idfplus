@@ -27,7 +27,10 @@ from collections import OrderedDict
 from pint import UnitRegistry
 from persistent import Persistent
 from persistent.list import PersistentList
+from persistent.dict import PersistentDict
 from persistent.mapping import PersistentMapping
+from odict.pyodict import _odict, _nil
+from BTrees.OOBTree import OOBTree
 
 # Constants
 APP_ROOT = os.path.join(os.path.dirname(os.path.realpath(__file__)), '..')
@@ -42,7 +45,159 @@ class VersionAlreadySet(Exception):
     pass
 
 
-class IDDFile(Persistent):
+class PODict(_odict, PersistentMapping):
+
+    def _dict_impl(self):
+        return PersistentMapping
+
+
+# class PODict(_odict, OOBTree):
+#
+#     def _dict_impl(self):
+#         return OOBTree
+#
+#     def _get_lh(self):
+#         try:
+#             return self['____lh']
+#         except KeyError:
+#             self['____lh'] = _nil
+#         return self['____lh']
+#
+#     def _set_lh(self, val):
+#         self['____lh'] = val
+#
+#     lh = property(_get_lh, _set_lh)
+#
+#     def _get_lt(self):
+#         try:
+#             return self['____lt']
+#         except KeyError:
+#             self['____lt'] = _nil
+#         return self['____lt']
+#
+#     def _set_lt(self, val):
+#         self['____lt'] = val
+#
+#     lt = property(_get_lt, _set_lt)
+#
+#     def __getitem__(self, key):
+#         if key.startswith('____'):
+#             return self._dict_impl().__getitem__(self, key)
+#         return _odict.__getitem__(self, key)
+#
+#     def __setitem__(self, key, val=None):
+#         if key.startswith('____'):
+#             # private attributes, no way to set persistent attributes on
+#             # OOBTree deriving class.
+#             print('private attribute fail {}'.format(key))
+#             self._dict_impl().__setitem__(self, key, val)
+#         else:
+#             # super(PODict, self).__setitem__(key, val)
+#             print('key: {}, val: {}'.format(key, val))
+#             _odict.__setitem__(self, key, val)
+#
+#     def __repr__(self):
+#         if self:
+#             pairs = ("(%r, %r)" % (k, v) for k, v in self.iteritems())
+#             return "OOBTodict([%s])" % ", ".join(pairs)
+#         else:
+#             return "OOBTodict()"
+
+
+# class PODict(OrderedDict):
+#     """Custom OrderedDict that ensures the 'changed' flag is set for ZODB
+#     persistence."""
+#
+#     def __init__(self):
+#         self._data = OrderedDict()
+#         super(PODict, self).__init__()
+#
+#     def __delitem__(self, key, dict_delitem=dict.__delitem__):
+#         self._data.__delitem__(key, dict_delitem)
+#         self._data._p_changed = True
+#         self._p_changed = True
+#
+#     def __getitem__(self, key):
+#         return self._data.__getitem__(key)
+#
+#     def __setitem__(self, key, value, dict_setitem=dict.__setitem__):
+#         self._data.__setitem__(key, value, dict_setitem)
+#         self._data._p_changed = True
+#         self._p_changed = True
+#
+#     # def __getattribute__(self, name):
+#     #     return self._data.__getattribute__(name)
+#     #
+#     # def __setattr__(self, name, value):
+#     #     return self._data.__setattr__(name, value)
+#
+#     def __contains__(self, key):
+#         return self._data.__contains__(key)
+#
+#     def __len__(self):
+#         return self._data.__len__()
+#
+#     def __iter__(self):
+#         return self._data.__iter__()
+#
+#     def __delattr__(self, name):
+#         return self._data.__delattr__(name)
+#
+#     def __repr__(self, _repr_running={}):
+#         return self._data.__repr__(_repr_running)
+#
+#     def __format__(self, *args, **kwargs):
+#         return self._data.__format__(*args, **kwargs)
+#
+#     def clear(self):
+#         self._data.clear()
+#         self._data._p_changed = True
+#         self._p_changed = True
+#
+#     def update(self, other=None, **kwargs):
+#         self._data.update(other, **kwargs)
+#         self._data._p_changed = True
+#         self._p_changed = True
+#
+#     def itervalues(self):
+#         return self._data.itervalues()
+#
+#     def iteritems(self):
+#         return self._data.iteritems()
+#
+#     def iterkeys(self):
+#         return self._data.iterkeys()
+#
+#     def setdefault(self, key, default=None):
+#         if not key in self._data:
+#             self._data._p_changed = True
+#             self._p_changed = True
+#         return self._data.setdefault(key, default)
+#
+#     def values(self):
+#         return self._data.values()
+#
+#     def keys(self):
+#         return self._data.keys()
+#
+#     def items(self):
+#         return self._data.items()
+#
+#     def get(self, key, default=None):
+#         return self._data.get(key, default)
+#
+#     def pop(self, key, default=OrderedDict._OrderedDict__marker):
+#         self._data._p_changed = True
+#         self._p_changed = True
+#         return self._data.pop(key, default)
+#
+#     def popitem(self, last=True):
+#         self._data._p_changed = True
+#         self._p_changed = True
+#         return self._data.popitem(last)
+
+
+class IDDFile(OrderedDict):
     """Primary object representing idd file and container for idd objects.
 
     Is an OrderedDict of IDDObjects with the class type as a
@@ -54,7 +209,7 @@ class IDDFile(Persistent):
     :attr list groups: List of groups to which classes can belong
     """
 
-    def __init__(self, version=None, *args, **kwargs):
+    def __init__(self, version=None, data=(), **kwargs):
         """Initializes the idd file
 
         :param str version: IDD file version
@@ -68,13 +223,13 @@ class IDDFile(Persistent):
         self._groups = list()
         self._conversions = list()
         self._version_set = False
-        self._classes = OrderedDict()
+        # self._data = OrderedDict()
         self._version = version
         self.options = list()
         # compiled_idd_file_name = 'EnergyPlus_IDD_v{}.dat'
         data_dir = 'data'
         units_file = 'units.dat'
-        self._ureg = None #UnitRegistry(os.path.join(APP_ROOT, data_dir, units_file))
+        self._ureg = UnitRegistry(os.path.join(APP_ROOT, data_dir, units_file))
 
         # # Continue only if a version is specified, else a blank IDD file
         # if version:
@@ -115,7 +270,7 @@ class IDDFile(Persistent):
             #     raise IDDFileDoesNotExist("Can't find IDD file: {}".format(idd_file_path))
 
         # Call the parent class' init method
-        super(IDDFile, self).__init__()
+        super(IDDFile, self).__init__(**kwargs)
 
     # def __setitem__(self, key, value, dict_setitem=dict.__setitem__):
     #     """Override the default __setitem__ to ensure that only certain
@@ -127,19 +282,15 @@ class IDDFile(Persistent):
     #
     #     super(IDDFile, self).__setitem__(key, value, dict_setitem)
 
-    def __getitem__(self, key):
-        """"""
-        return self._classes[key]
-
-    def _set_version(self, version):
-        """Method used to set the version of the IDD file. Can only
-        :param str version:
-        be set once for safety and sanity."""
-        if self._version_set is True:
-            raise VersionAlreadySet('Version can be set only once.')
-        else:
-            self._version = version
-            self._version_set = True
+    # def _set_version(self, version):
+    #     """Method used to set the version of the IDD file. Can only
+    #     :param str version:
+    #     be set once for safety and sanity."""
+    #     if self._version_set is True:
+    #         raise VersionAlreadySet('Version can be set only once.')
+    #     else:
+    #         self._version = version
+    #         self._version_set = True
 
     @property
     def version(self):
@@ -166,7 +317,7 @@ class IDDObject(OrderedDict):
          'A2': IDDField3}
     """
 
-    def __init__(self, outer, *args, **kwargs):
+    def __init__(self, outer, data=(), **kwargs):
         """Use kwargs to prepopulate some values, then remove them from kwargs
         Also sets the idd file for use by this object.
 
@@ -187,16 +338,16 @@ class IDDObject(OrderedDict):
         self.comments_special = kwargs.pop('comments_special', None)
 
         # Call the parent class' init method
-        super(IDDObject, self).__init__(*args, **kwargs)
+        super(IDDObject, self).__init__(**kwargs)
 
-    def __setitem__(self, key, value, dict_setitem=dict.__setitem__):
-        """Override the default __setitem__ to ensure that only certain
-        object types are allowed."""
-
-        if not isinstance(value, IDDField):
-            raise TypeError('Only items of type IDDField can be added!')
-
-        super(IDDObject, self).__setitem__(key, value, dict_setitem)
+    # def __setitem__(self, key, value):
+    #     """Override the default __setitem__ to ensure that only certain
+    #     object types are allowed."""
+    #
+    #     if not isinstance(value, IDDField):
+    #         raise TypeError('Only items of type IDDField can be added!')
+    #
+    #     super(IDDObject, self).__setitem__(key, value)
 
     @property
     def obj_class(self):
@@ -220,6 +371,7 @@ class IDDField(object):
     Examples of tags from are:
         required, field, type, minimum, etc.
     """
+
     #TODO Values should be Quantities from the pint python library.
     #TODO merge this class with IDFField?
 
@@ -254,7 +406,7 @@ class IDDField(object):
     #     return self._value # _ip_units
 
 
-class IDFFile(Persistent):
+class IDFFile(PODict):
     """Primary object representing idf file and container for idf objects.
 
     Contains an OrderedDict of lists of IDFObjects with the class type as a
@@ -269,7 +421,7 @@ class IDFFile(Persistent):
     :attr str file_path: full, absolute path to idf file
     """
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, data=(), **kwargs):
         """Initializes a new idf, blank or opens the given file_path
 
         :param str file_path:
@@ -280,10 +432,10 @@ class IDFFile(Persistent):
         # Various attributes of the idf file
         self._version_set = False
         self._idd = None
-        self._classes = OrderedDict()
+        # self._data = OrderedDict()
         self._eol_char = None
         self.file_path = None
-        self.options = []
+        self.options = PersistentList()
         self._version = None
 
         # # Load the idf file if specified, otherwise prepare a blank one
@@ -302,33 +454,33 @@ class IDFFile(Persistent):
         # yield self
 
         # Call the parent class' init method
-        super(IDFFile, self).__init__()
+        super(IDFFile, self).__init__(**kwargs)
 
-    def __setitem__(self, key, value, dict_setitem=dict.__setitem__):
-        """Override the default __setitem__ to ensure that only certain
-        object types are allowed."""
+    # def __setitem__(self, key, value, dict_setitem=dict.__setitem__):
+    #     """Override the default __setitem__ to ensure that only certain
+    #     object types are allowed."""
+    #
+    #     if not isinstance(value, list):
+    #         raise TypeError('Only lists of IDFObjects can be added!')
+    #
+    #     for val in value:
+    #         if not isinstance(val, IDFObject):
+    #             raise TypeError('Only items of type IDFObject can be added!')
+    #
+    #     super(IDFFile, self).__setitem__(key, value, dict_setitem)
 
-        if not isinstance(value, list):
-            raise TypeError('Only lists of IDFObjects can be added!')
-
-        for val in value:
-            if not isinstance(val, IDFObject):
-                raise TypeError('Only items of type IDFObject can be added!')
-
-        super(IDFFile, self).__setitem__(key, value, dict_setitem)
-
-    def __getitem__(self, key):
-        """"""
-        # print(key)
-        # print(type(self))
-        # print(type(self._classes))
-        # print(self._classes.items())
-        # print(self.file_path)
-        # print(self._classes)
-        if key in self._classes:
-            return self._classes[key]
-        else:
-            return None
+    # def __getitem__(self, key):
+    #     """"""
+    #     # print(key)
+    #     # print(type(self))
+    #     # print(type(self._classes))
+    #     # print(self._classes.items())
+    #     # print(self.file_path)
+    #     # print(self._classes)
+    #     if key in self._classes:
+    #         return self._classes[key]
+    #     else:
+    #         return None
 
     def load_idd(self):
         """Loads an idd file into the object instance variable.
@@ -359,7 +511,7 @@ class IDFFile(Persistent):
                 test = root.idd.version
                 idd = root.idd
                 self._idd = idd
-                db.close()
+                # db.close()
                 return True
             except AttributeError:
                 print('no version attribute found!')
@@ -381,14 +533,14 @@ class IDFFile(Persistent):
             # print(progress)
             yield progress
 
-    def _set_version(self, version):
-        """Method used to set the version of the IDF file. Can only
-        be set once for safety and sanity."""
-        if self._version_set is True:
-            raise VersionAlreadySet('Version can be set only once.')
-        else:
-            self._version = version
-            self._version_set = True
+    # def _set_version(self, version):
+    #     """Method used to set the version of the IDF file. Can only
+    #     be set once for safety and sanity."""
+    #     if self._version_set is True:
+    #         raise VersionAlreadySet('Version can be set only once.')
+    #     else:
+    #         self._version = version
+    #         self._version_set = True
 
     @property
     def version(self):
@@ -437,7 +589,7 @@ class IDFFile(Persistent):
         pass
 
 
-class IDFObject(dict):
+class IDFObject(PODict):
     """Represents objects in idf files.
 
     Contains a list of fields in the form:
@@ -455,7 +607,7 @@ class IDFObject(dict):
 
     #TODO This class is almost the same as IDDObject. It should subclass it.
 
-    def __init__(self, idf, *args, **kwargs):
+    def __init__(self, idf, data=(), **kwargs):
         """Use kwargs to prepopulate some values, then remove them from kwargs
         Also sets the idd file for use by this object.
 
@@ -471,14 +623,14 @@ class IDFObject(dict):
         # Set various attributes of the idf object
         # self._idf = idf
         # self._idd = idf.idd
-        self._incoming_links = list()
-        self._outgoing_links = list()
+        self._incoming_links = PersistentList()
+        self._outgoing_links = PersistentList()
         self._group = kwargs.pop('group', None)
         self._obj_class = kwargs.pop('obj_class', None)
         self.comments = kwargs.pop('comments', None)
 
         # Call the parent class' init method
-        super(IDFObject, self).__init__(*args, **kwargs)
+        super(IDFObject, self).__init__(**kwargs)
 
     # def __repr__(self):
     #     """Returns a string representation of the object in idf format"""
@@ -589,7 +741,7 @@ class IDFObject(dict):
         return True
 
 
-class IDFField(object):
+class IDFField(Persistent):
     """Basic component of the idf object classes.
 
     Simply a regular dict containing keys which are the names of various
@@ -607,7 +759,7 @@ class IDFField(object):
         """
         self.key = kwargs.pop('key', None)
         self.value = kwargs.pop('value', None)
-        self.tags = dict()
+        self.tags = PersistentDict()
         self.obj_class = outer.obj_class
         self._ureg = None #outer.idd._ureg
 

@@ -40,8 +40,8 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
         self.idf = idf
         self.idd = idf._idd
         print('setting obj_class: {}'.format(obj_class))
-        self.idf_objects = idf._classes[obj_class]
-        self.idd_object = idf._idd._classes[obj_class]
+        self.idf_objects = idf[obj_class]
+        self.idd_object = idf._idd[obj_class]
         print('loading idd object: {}'.format(self.idd_object))
         self.dirty = False
         self.getLabels()

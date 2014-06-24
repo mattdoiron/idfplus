@@ -22,8 +22,9 @@ from __future__ import (print_function, division, with_statement, absolute_impor
 
 # System imports
 import os
+import shelve
 import datetime as dt
-import ZODB
+# import ZODB
 import transaction
 
 # Package imports
@@ -471,9 +472,8 @@ class IDDParser(Parser):
         :rtype : generator
         :param file_path: 
         """
-        #TODO write parser for unit conversion comments!
-        #TODO rename to load_idd?
 
+        #TODO write parser for unit conversion comments!
         global COMMENT_DELIMITER_SPECIAL  # Avoid these...
 
         total_size = os.path.getsize(file_path)
@@ -578,6 +578,9 @@ class IDDParser(Parser):
                             new_field.tags = field_tag_list[i]
                         except IndexError:
                             new_field.tags = dict()
+                        # print('field: {}'.format(field))
+                        # print('new_field: {}'.format(new_field))
+                        # print('obj_class: {}'.format(obj_class))
                         idd_object.update({field:new_field})
 
                     # Save the parsed variables in the idd_object
@@ -592,7 +595,7 @@ class IDDParser(Parser):
 
                     # Save the new object as part of the IDD file
                     if obj_class not in ['Lead Input', 'Simulation Data']:
-                        self.idd._classes[obj_class] = idd_object
+                        self.idd[obj_class] = idd_object
 
                     # Reset variables for next object
                     field_list = list()
@@ -615,21 +618,22 @@ class IDDParser(Parser):
             self.idd._groups = group_list
             self.idd._tree_model = None
 
+        # Save changes
+        # transaction.commit()
         print('Parsing IDD complete!')
 
-    #        return True
-
-    def save_idd(self, idd):
+    @staticmethod
+    def save_idd(idd):
         """Shelves a copy of the IDD file object.
+        :param idd:
         :raises : Exception
         :rtype : bool
         """
         print('saving idd')
-        print('received idd with keys: {}'.format(len(idd._classes.keys())))
+        print('received idd with keys: {}'.format(len(idd.keys())))
         if not idd.version:
             raise Exception("Missing IDD file version")
 
-        # sys.setrecursionlimit(50000)
         version = idd.version
         data_dir = 'data'
         file_name_root = 'EnergyPlus_IDD_v{}.dat'
@@ -638,22 +642,22 @@ class IDDParser(Parser):
 
         # storage = ZODB.FileStorage.FileStorage(idd_path)
         print('opening idd dat file: {}'.format(idd_path))
-        db = ZODB.DB(idd_path)
+        # db = ZODB.DB(idd_path)
         # connection = db.open()
-        root = db.open().root
+        # root = db.open().root
 
         print('saving idd to root obj: {}'.format(type(idd)))
-        # database = shelve.open(idd_path)
-        # print('idd data type is: {}'.format(idd))
-        # database['idd'] = idd._classes
-        # database['date_generated'] = dt.datetime.now()
-        # database.close()
+        database = shelve.open(idd_path)
+        print('idd data type is: {}'.format(idd))
+        database['idd'] = idd
+        database['date_generated'] = dt.datetime.now()
+        database.close()
 
-        root.idd = idd
-        root.date_generated = dt.datetime.now()
+        # root.idd = idd
+        # root.date_generated = dt.datetime.now()
         print('committing transaction')
-        transaction.commit()
-        db.close()
+        # transaction.commit()
+        # db.close()
         return True
 
 
@@ -678,7 +682,7 @@ class IDFParser(Parser):
         # Call the parent class' init method
         super(IDFParser, self).__init__(*args, **kwargs)
 
-    def parse_idf(self):  # rename to loadIDF?
+    def parse_idf(self):
         """Parse the provided idf file and return an IDFObject.
         :rtype : iterator
         """
@@ -757,12 +761,16 @@ class IDFParser(Parser):
 
                     # The first field is the object name
                     obj_class = field_list.pop(0)
+                    # print('obj_class: {}'.format(obj_class))
+                    assert hasattr(self.idd[obj_class], '_p_changed')
+                    # idd_fields = self.idd[obj_class].items()
+                    # print('iddObject: {}'.format(self.idd[obj_class].comments))
+                    idd_fields = None
 
                     # Create IDFField objects for all fields
                     for i, field in enumerate(field_list):
-                        idd_fields = self.idd._classes[obj_class].items()
                         if idd_fields:
-                            print(idd_fields[i])
+                            # print(idd_fields[i])
                             key = idd_fields[i].key
                             tags = idd_fields[i].tags
                         else:
@@ -781,7 +789,8 @@ class IDFParser(Parser):
                     idf_object.comments = comment_list
 
                     # Set the object's group from the idd file
-                    group = self.idd._classes[obj_class].group
+                    # print('group test: {}'.format(self.idd[obj_class]._group))
+                    group = self.idd[obj_class]._group
 
                     # TODO validate IDF against IDD
                     # If this is an IDF file, perform checks against IDD
@@ -789,11 +798,11 @@ class IDFParser(Parser):
 
                     # Save the new object to the IDF file (canNOT use setdefault)
                     # due to apparent incompatibility with ZODB
-                    if obj_class in self.idd._classes:
+                    if obj_class in self.idd:
                         try:
-                            self.idf._classes[obj_class].append(idf_object)
+                            self.idf[obj_class].append(idf_object)
                         except (AttributeError, KeyError) as e:
-                            self.idf._classes[obj_class] = [idf_object]
+                            self.idf[obj_class] = [idf_object]
 
                     # Reset lists for next object
                     field_list = list()
@@ -813,7 +822,7 @@ class IDFParser(Parser):
         # Save changes
         transaction.commit()
         print('Parsing IDF complete!')
-        # print(self.idf._classes.keys())
+        # print(self.idf.keys())
 
 ## Parse this idd file
 #idd_file = 'Energy+.idd'
