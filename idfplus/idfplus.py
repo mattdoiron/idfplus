@@ -131,9 +131,8 @@ class IDFPlus(QtGui.QMainWindow):
             file_name, filt = file_dialog.getOpenFileName(self, dialog_name,
                                                         directory)
             if file_name:
-                result = self.process_idd_file(file_name)
-                if result is True:
-                    return True
+                return self.process_idd_file(file_name)
+        return False
 
     def process_idd_file(self, file_path):
         """Loads a given idd file and saves it.
@@ -156,12 +155,23 @@ class IDFPlus(QtGui.QMainWindow):
         idd = idfmodel.IDDFile()
         parser = idfparse.IDDParser(idd)
         for progress in parser.parse_idd(file_path):
-            # print(progress)
             self.progressDialogIDD.setValue(progress)
 
-        result = parser.save_idd(idd)
+        return parser.save_idd(idd)
 
-        return result
+    def load_idf(self, file_path):
+        print('Trying to load file: {}'.format(file_path))
+        from . import idfparse
+        idf = idfmodel.IDFFile()
+        self.files.update({0:idf})
+        idf_parser = idfparse.IDFParser(idf)
+
+        for progress in idf_parser.parse_idf(file_path):
+            self.progressDialogIDF.setValue(progress)
+
+        print('IDF version detected as: {}'.format(idf.version))
+        self.idf = idf
+        self.idd = idf.idd
 
     def load_file(self, file_path=None):
         """Loads a specified file or gets the file_path from the sender.
@@ -192,23 +202,11 @@ class IDFPlus(QtGui.QMainWindow):
 
         # Try to load the specified IDF file
         try:
-            print('Trying to load file: {}'.format(file_path))
-            idf = idfmodel.IDFFile()
-            # self.db.idf = self.idf
-            new_index = len(self.files)
-            self.files.update({0:idf})
-            # print('data: {}'.format(self.idf._data))
-            for progress in self.files[0].load_idf(file_path):
-                self.progressDialogIDF.setValue(progress)
-            transaction.commit()
-            print('IDF version detected as: {}'.format(self.idf.version))
-            self.idf = self.files[0]
-            self.idd = self.files[0].idd
+            self.load_idf(file_path)
         except idfmodel.IDDFileDoesNotExist:
 
             # Load IDD File for the version of this IDF file
-            result = self.find_idd_file()
-            if result is not True:
+            if not self.find_idd_file():
                 QtGui.QMessageBox.warning(self,
                                           "Application",
                                           ("Could not find IDD file of "
@@ -220,13 +218,13 @@ class IDFPlus(QtGui.QMainWindow):
                 self.update_status(message)
                 return False
             else:
-                self.load_file(file_path)
+                self.load_idf(file_path)
 
         self.groups = self.idf.idd.groups
         self.load_tree_view()
         self.classTable.setModel(None)
         self.commentView.setText(str(len(self.idf)))  # test only
-        self.dirty = False  # Move this into idfObjectContainer
+        self.dirty = False  # Move this into idfObjectContainer?
         self.file_path = file_path
         self.add_recent_file(file_path)
         message = "Loaded %s" % os.path.basename(file_path)

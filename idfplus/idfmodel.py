@@ -226,10 +226,11 @@ class IDDFile(OrderedDict):
         # self._data = OrderedDict()
         self._version = version
         self.options = list()
+        self.tags = dict()
         # compiled_idd_file_name = 'EnergyPlus_IDD_v{}.dat'
         data_dir = 'data'
         units_file = 'units.dat'
-        self._ureg = UnitRegistry(os.path.join(APP_ROOT, data_dir, units_file))
+        self._ureg = None #UnitRegistry(os.path.join(APP_ROOT, data_dir, units_file))
 
         # # Continue only if a version is specified, else a blank IDD file
         # if version:
@@ -317,7 +318,7 @@ class IDDObject(OrderedDict):
          'A2': IDDField3}
     """
 
-    def __init__(self, outer, data=(), **kwargs):
+    def __init__(self, outer, **kwargs):
         """Use kwargs to prepopulate some values, then remove them from kwargs
         Also sets the idd file for use by this object.
 
@@ -432,7 +433,6 @@ class IDFFile(PODict):
         # Various attributes of the idf file
         self._version_set = False
         self._idd = None
-        # self._data = OrderedDict()
         self._eol_char = None
         self.file_path = None
         self.options = PersistentList()
@@ -454,7 +454,7 @@ class IDFFile(PODict):
         # yield self
 
         # Call the parent class' init method
-        super(IDFFile, self).__init__(**kwargs)
+        super(IDFFile, self).__init__(data, **kwargs)
 
     # def __setitem__(self, key, value, dict_setitem=dict.__setitem__):
     #     """Override the default __setitem__ to ensure that only certain
@@ -482,43 +482,43 @@ class IDFFile(PODict):
     #     else:
     #         return None
 
-    def load_idd(self):
-        """Loads an idd file into the object instance variable.
-        Also sets some attributes of the file.
-        :rtype : bool
-        :param version:
-        :return: :raise IDDFileDoesNotExist:
-        """
-
-        idd_file_name = 'EnergyPlus_IDD_v{}.dat'.format(self.version)
-        data_dir = 'data'
-
-        # Create the full path to the idd file
-        idd_file_path = os.path.join(APP_ROOT, data_dir, idd_file_name)
-        print('checking for idd version: {}'.format(self.version))
-        print(idd_file_path)
-
-        # Check if the file name is a file and then open the idd file
-        if os.path.isfile(idd_file_path):
-            print('idd found, loading...')
-            # storage = ZODB.FileStorage.FileStorage(idd_file_path)
-            db = ZODB.DB(idd_file_path)
-            connection = db.open()
-            root = connection.root
-
-            try:
-                print('testing if loaded idd file has a version attribute')
-                test = root.idd.version
-                idd = root.idd
-                self._idd = idd
-                # db.close()
-                return True
-            except AttributeError:
-                print('no version attribute found!')
-                raise IDDFileDoesNotExist("Can't find IDD file: {}".format(idd_file_path))
-        else:
-            print('idd not found')
-            raise IDDFileDoesNotExist("Can't find IDD file: {}".format(idd_file_path))
+    # def load_idd(self):
+    #     """Loads an idd file into the object instance variable.
+    #     Also sets some attributes of the file.
+    #     :rtype : bool
+    #     :param version:
+    #     :return: :raise IDDFileDoesNotExist:
+    #     """
+    #
+    #     idd_file_name = 'EnergyPlus_IDD_v{}.dat'.format(self.version)
+    #     data_dir = 'data'
+    #
+    #     # Create the full path to the idd file
+    #     idd_file_path = os.path.join(APP_ROOT, data_dir, idd_file_name)
+    #     print('checking for idd version: {}'.format(self.version))
+    #     print(idd_file_path)
+    #
+    #     # Check if the file name is a file and then open the idd file
+    #     if os.path.isfile(idd_file_path):
+    #         print('idd found, loading...')
+    #         # storage = ZODB.FileStorage.FileStorage(idd_file_path)
+    #         db = ZODB.DB(idd_file_path)
+    #         connection = db.open()
+    #         root = connection.root
+    #
+    #         try:
+    #             print('testing if loaded idd file has a version attribute')
+    #             test = root.idd.version
+    #             idd = root.idd
+    #             self._idd = idd
+    #             # db.close()
+    #             return True
+    #         except AttributeError:
+    #             print('no version attribute found!')
+    #             raise IDDFileDoesNotExist("Can't find IDD file: {}".format(idd_file_path))
+    #     else:
+    #         print('idd not found')
+    #         raise IDDFileDoesNotExist("Can't find IDD file: {}".format(idd_file_path))
 
     def load_idf(self, file_path):
         """Parses and loads an idf file into the object instance variable.

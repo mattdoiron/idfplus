@@ -24,7 +24,6 @@ from __future__ import (print_function, division, with_statement, absolute_impor
 import os
 import shelve
 import datetime as dt
-# import ZODB
 import transaction
 
 # Package imports
@@ -640,25 +639,64 @@ class IDDParser(Parser):
         file_name = file_name_root.format(version)
         idd_path = os.path.join(idfmodel.APP_ROOT, data_dir, file_name)
 
-        # storage = ZODB.FileStorage.FileStorage(idd_path)
-        print('opening idd dat file: {}'.format(idd_path))
-        # db = ZODB.DB(idd_path)
-        # connection = db.open()
-        # root = db.open().root
+        try:
+            # storage = ZODB.FileStorage.FileStorage(idd_path)
+            print('opening idd dat file: {}'.format(idd_path))
+            # db = ZODB.DB(idd_path)
+            # connection = db.open()
+            # root = db.open().root
 
-        print('saving idd to root obj: {}'.format(type(idd)))
-        database = shelve.open(idd_path)
-        print('idd data type is: {}'.format(idd))
-        database['idd'] = idd
-        database['date_generated'] = dt.datetime.now()
-        database.close()
+            # print('saving idd to root obj: {}'.format(type(idd)))
+            database = shelve.open(idd_path)
+            print('idd data type is: {}'.format(idd))
+            database['idd'] = idd
+            database['date_generated'] = dt.datetime.now()
+            database.close()
 
-        # root.idd = idd
-        # root.date_generated = dt.datetime.now()
-        print('committing transaction')
-        # transaction.commit()
-        # db.close()
-        return True
+            # root.idd = idd
+            # root.date_generated = dt.datetime.now()
+            print('committing transaction')
+            # transaction.commit()
+            # db.close()
+            return True
+        except IOError as e:
+            return False
+
+    @staticmethod
+    def load_idd(version):
+        """Loads an idd file into the object instance variable.
+        Also sets some attributes of the file.
+        :rtype : IDDFile
+        :param version:
+        :return: :raise IDDFileDoesNotExist:
+        """
+
+        idd_file_name = 'EnergyPlus_IDD_v{}.dat'.format(version)
+        data_dir = 'data'
+
+        # Create the full path to the idd file
+        idd_path = os.path.join(idfmodel.APP_ROOT, data_dir, idd_file_name)
+
+        print('checking for idd version: {}'.format(version))
+        print(idd_path)
+
+        # Check if the file name is a file and then open the idd file
+        if os.path.isfile(idd_path):
+            print('idd found, loading...')
+            database = shelve.open(idd_path)
+            idd = database['idd']
+            date_generated = database['date_generated']
+            database.close()
+            try:
+                print('testing if loaded idd file has a version attribute')
+                test = idd.version
+                return idd
+            except AttributeError:
+                print('no version attribute found!')
+                raise idfmodel.IDDFileDoesNotExist("Can't find IDD file: {}".format(idd_path))
+        else:
+            print('idd not found')
+            raise idfmodel.IDDFileDoesNotExist("Can't find IDD file: {}".format(idd_path))
 
 
 #---------------------------------------------------------------------------
@@ -672,24 +710,25 @@ class IDFParser(Parser):
         :param kwargs:
         """
 
+        # Set idf if it's given
         if idf is not None:
             self.idf = idf
-            self.idd = idf._idd
         else:
             self.idf = idfmodel.IDFFile()
-            self.idd = None
+        self.idd = None
 
         # Call the parent class' init method
         super(IDFParser, self).__init__(*args, **kwargs)
 
-    def parse_idf(self):
+    def parse_idf(self, file_path):
         """Parse the provided idf file and return an IDFObject.
+        :param file_path:
         :rtype : iterator
         """
 
         global OPTIONS_LIST  # Avoid these?
 
-        file_path = self.idf.file_path  # TODO this will be None if blank idf used!
+        # file_path = self.idf.file_path  # TODO this will be None if blank idf used!
         total_size = os.path.getsize(file_path)
         total_read = 0.0
 
@@ -750,11 +789,12 @@ class IDFParser(Parser):
                         self.idf._version = version
                         print('idf version detected as: {}'.format(version))
                         print('checking for idd')
-                        if not self.idf._idd:
-                            print('no idd found')
-                            self.idf.load_idd()
-                            self.idd = self.idf._idd
-                        print('idd loaded as version: {}'.format(self.idf._idd.version))
+                        if not self.idd:
+                            print('no idd currently selected')
+                            idd_parser = IDDParser()
+                            idd = idd_parser.load_idd(version)
+                            self.idd = idd
+                        print('idd loaded as version: {}'.format(self.idd.version))
 
                 # If this is the end of an object save it
                 if end_object and empty_line:
@@ -762,7 +802,7 @@ class IDFParser(Parser):
                     # The first field is the object name
                     obj_class = field_list.pop(0)
                     # print('obj_class: {}'.format(obj_class))
-                    assert hasattr(self.idd[obj_class], '_p_changed')
+                    # assert hasattr(self.idd[obj_class], '_p_changed')
                     # idd_fields = self.idd[obj_class].items()
                     # print('iddObject: {}'.format(self.idd[obj_class].comments))
                     idd_fields = None
