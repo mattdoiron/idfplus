@@ -154,6 +154,7 @@ class IDFPlus(QtGui.QMainWindow):
 
         idd = idfmodel.IDDFile()
         parser = idfparse.IDDParser(idd)
+
         for progress in parser.parse_idd(file_path):
             self.progressDialogIDD.setValue(progress)
 
@@ -178,12 +179,14 @@ class IDFPlus(QtGui.QMainWindow):
         :rtype : bool
         :param file_path:
         """
-        print('loading file 1: {}'.format(file_path))
+
+        if file_path:
+            print('Loading file from dialog: {}'.format(file_path))
         if file_path is None:
             action = self.sender()
             if isinstance(action, QtGui.QAction):
                 file_path = action.data()
-                print('loading file 2: {}'.format(file_path))
+                print('Loading file from recent file menu: {}'.format(file_path))
                 if not self.ok_to_continue():
                     return False
             else:

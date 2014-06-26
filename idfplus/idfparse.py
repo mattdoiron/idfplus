@@ -595,6 +595,7 @@ class IDDParser(Parser):
                     # Save the new object as part of the IDD file
                     if obj_class not in ['Lead Input', 'Simulation Data']:
                         self.idd[obj_class] = idd_object
+                        # print('adding obj_class: {}'.format(obj_class))
 
                     # Reset variables for next object
                     field_list = list()
@@ -619,6 +620,8 @@ class IDDParser(Parser):
 
         # Save changes
         # transaction.commit()
+        # print(self.idd['Version'])
+        # print(self.idd['Building'])
         print('Parsing IDD complete!')
 
     @staticmethod
@@ -628,8 +631,8 @@ class IDDParser(Parser):
         :raises : Exception
         :rtype : bool
         """
-        print('saving idd')
-        print('received idd with keys: {}'.format(len(idd.keys())))
+        print('Saving idd...')
+        print('Received idd with {} keys'.format(len(idd.keys())))
         if not idd.version:
             raise Exception("Missing IDD file version")
 
@@ -641,26 +644,30 @@ class IDDParser(Parser):
 
         try:
             # storage = ZODB.FileStorage.FileStorage(idd_path)
-            print('opening idd dat file: {}'.format(idd_path))
+            print('Opening idd dat file: {}'.format(idd_path))
             # db = ZODB.DB(idd_path)
             # connection = db.open()
             # root = db.open().root
 
             # print('saving idd to root obj: {}'.format(type(idd)))
-            database = shelve.open(idd_path)
-            print('idd data type is: {}'.format(idd))
+            database = shelve.open(idd_path, protocol=2, writeback=True)
+            print('idd type is: {}'.format(type(idd)))
+            print('test 1 idd for keys: {}'.format(idd.keys()[:20]))
             database['idd'] = idd
             database['date_generated'] = dt.datetime.now()
             database.close()
 
             # root.idd = idd
             # root.date_generated = dt.datetime.now()
-            print('committing transaction')
+            print('Saving idd file to disk...')
             # transaction.commit()
             # db.close()
+            print('test 2 idd for keys: {}'.format(idd.keys()[:20]))
             return True
         except IOError as e:
             return False
+        except Exception as e:
+            print(e.message)
 
     @staticmethod
     def load_idd(version):
@@ -671,28 +678,31 @@ class IDDParser(Parser):
         :return: :raise IDDFileDoesNotExist:
         """
 
+        print("Loading idd file...")
         idd_file_name = 'EnergyPlus_IDD_v{}.dat'.format(version)
         data_dir = 'data'
 
         # Create the full path to the idd file
         idd_path = os.path.join(idfmodel.APP_ROOT, data_dir, idd_file_name)
 
-        print('checking for idd version: {}'.format(version))
+        print('Checking for idd version: {}'.format(version))
         print(idd_path)
 
         # Check if the file name is a file and then open the idd file
         if os.path.isfile(idd_path):
             print('idd found, loading...')
-            database = shelve.open(idd_path)
+            database = shelve.open(idd_path, flag='r')
             idd = database['idd']
             date_generated = database['date_generated']
             database.close()
             try:
-                print('testing if loaded idd file has a version attribute')
+                print('Testing if loaded idd file has a version attribute')
                 test = idd.version
+                print('Version found! (v{})'.format(idd.version))
+                print('test 3 idd for keys: {}'.format(idd.keys()[:20]))
                 return idd
             except AttributeError:
-                print('no version attribute found!')
+                print('No version attribute found!')
                 raise idfmodel.IDDFileDoesNotExist("Can't find IDD file: {}".format(idd_path))
         else:
             print('idd not found')
@@ -787,10 +797,10 @@ class IDFParser(Parser):
                     if field_list[0] == 'Version':
                         version = field_list[1]
                         self.idf._version = version
-                        print('idf version detected as: {}'.format(version))
-                        print('checking for idd')
+                        print('idf detected as version: {}'.format(version))
+                        print('Checking for idd...')
                         if not self.idd:
-                            print('no idd currently selected')
+                            print('No idd currently selected!')
                             idd_parser = IDDParser()
                             idd = idd_parser.load_idd(version)
                             self.idd = idd
@@ -803,9 +813,9 @@ class IDFParser(Parser):
                     obj_class = field_list.pop(0)
                     # print('obj_class: {}'.format(obj_class))
                     # assert hasattr(self.idd[obj_class], '_p_changed')
-                    # idd_fields = self.idd[obj_class].items()
+                    idd_fields = self.idd[obj_class].items()
                     # print('iddObject: {}'.format(self.idd[obj_class].comments))
-                    idd_fields = None
+                    # idd_fields = None
 
                     # Create IDFField objects for all fields
                     for i, field in enumerate(field_list):
@@ -830,6 +840,8 @@ class IDFParser(Parser):
 
                     # Set the object's group from the idd file
                     # print('group test: {}'.format(self.idd[obj_class]._group))
+                    print('Checking for idf object group for class: {}'.format(obj_class))
+                    print('idd keys: {}'.format(self.idd.keys()[:20]))
                     group = self.idd[obj_class]._group
 
                     # TODO validate IDF against IDD
