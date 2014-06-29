@@ -177,6 +177,7 @@ class IDFPlus(QtGui.QMainWindow):
         print('IDF version detected as: {}'.format(idf.version))
         self.idf = idf
         self.idd = idf.idd
+        # print('idd version after load: {}'.format(idf))
 
     def load_file(self, file_path=None):
         """Loads a specified file or gets the file_path from the sender.
@@ -227,7 +228,7 @@ class IDFPlus(QtGui.QMainWindow):
             else:
                 self.load_idf(file_path)
 
-        self.groups = self.idf.idd.groups
+        self.groups = self.idd.groups
         self.load_tree_view()
         self.classTable.setModel(None)
         self.commentView.setText(str(len(self.idf)))  # test only
@@ -638,7 +639,7 @@ class IDFPlus(QtGui.QMainWindow):
 #        self.default_model = idfobject.IDFObjectTableModel(idfObjects, iddPart)
 #        self.default_model.load()
 
-        print(self.idf._idd['Version'].items())
+        print(self.idf._idd['Version'][0].value)
         # print(self.idf.keys())
         self.default_model = idfobject.IDFObjectTableModel(obj_class,
                                                            self.idf)

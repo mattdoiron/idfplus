@@ -146,10 +146,10 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
         field_labels = []
         obj_count = len(self.idf_objects) + 1
         objID_lables = ['Obj{}'.format(i) for i in range(1, obj_count)]
-        print(self.idd_object.items())
-        for key, val in self.idd_object:
-            print('field: {}'.format(val))
-            field_labels.append(val)
+        # print(self.idd_object.items())
+        for obj in self.idd_object:
+            print('field: {}'.format(obj.value))
+            field_labels.append(obj.value)
         self.objID_lables = objID_lables
         self.field_labels = field_labels
         print(objID_lables)

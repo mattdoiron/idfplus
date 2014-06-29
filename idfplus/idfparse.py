@@ -618,7 +618,8 @@ class IDDParser(Parser):
                             new_field.tags = field_tag_list[i]
                         except IndexError:
                             new_field.tags = dict()
-                        idd_object.update({field:new_field})
+                        idd_object.append(new_field)
+                        # idd_object.update({field:new_field})
 
                     # Save the parsed variables in the idd_object
                     idd_object._obj_class = obj_class
@@ -839,6 +840,7 @@ class IDFParser(Parser):
                             print('No idd currently selected!')
                             idd_parser = IDDParser()
                             idd = idd_parser.load_idd(version)
+                            self.idf._idd = idd
                             self.idd = idd
                         print('idd loaded as version: {}'.format(self.idd.version))
 
@@ -849,7 +851,8 @@ class IDFParser(Parser):
                     obj_class = field_list.pop(0)
                     # print('obj_class: {}'.format(obj_class))
                     # assert hasattr(self.idd[obj_class], '_p_changed')
-                    idd_fields = self.idd[obj_class].items()
+                    idd_fields = self.idd[obj_class]
+                    # print('idd_fields: {}'.format(idd_fields))
                     # print('iddObject: {}'.format(self.idd[obj_class].comments))
                     # idd_fields = None
 
@@ -866,7 +869,8 @@ class IDFParser(Parser):
                         new_field.key = key
                         new_field.value = field
                         new_field.tags = tags
-                        idf_object.update({field:new_field})
+                        idf_object.append(new_field)
+                        # idf_object.update({field:new_field})
 
                     # Save the parsed variables in the idf_object
                     idf_object._obj_class = obj_class
@@ -876,8 +880,8 @@ class IDFParser(Parser):
 
                     # Set the object's group from the idd file
                     # print('group test: {}'.format(self.idd[obj_class]._group))
-                    print('Checking for idf object group for class: {}'.format(obj_class))
-                    print('idd keys: {}'.format(self.idd.keys()[:20]))
+                    # print('Checking for idf object group for class: {}'.format(obj_class))
+                    # print('idd keys: {}'.format(self.idd.keys()[:20]))
                     group = self.idd[obj_class]._group
 
                     # TODO validate IDF against IDD

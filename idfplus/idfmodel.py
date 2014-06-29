@@ -309,13 +309,11 @@ class IDDFile(PODict):
         return self._conversions
 
 
-class IDDObject(PODict):
+class IDDObject(list):
     """Represents objects in idd files.
 
-    Contains an OrderedDict of fields in the form:
-        {'A1': IDDField1,
-         'N1': IDDField2,
-         'A2': IDDField3}
+    Contains a list of fields in the form:
+        [IDDField1, IDDField2, IDDField3}
     """
 
     def __init__(self, outer, data=(), **kwargs):
@@ -589,13 +587,11 @@ class IDFFile(PODict):
         pass
 
 
-class IDFObject(PODict):
+class IDFObject(PersistentList):
     """Represents objects in idf files.
 
     Contains a list of fields in the form:
-        {'A1': IDFField1,
-         'N1': IDFField2,
-         'A2': IDFField3}
+        [IDFField1, IDFField2, IDFField3]
 
     :attr str obj_class: Class type of object
     :attr str group: Group to which this object belongs
