@@ -26,6 +26,7 @@ import platform
 from BTrees.OOBTree import OOBTree
 import ZODB
 import transaction
+import tempfile
 
 # PySide imports
 import PySide
@@ -83,7 +84,8 @@ class IDFPlus(QtGui.QMainWindow):
 
         # In-memory ZODB databases don't support undo! Use an on-disk cache
         idf_cache_path = os.path.join(idfmodel.APP_ROOT, 'data', 'cache')
-        self.db_conn = ZODB.DB(idf_cache_path)
+        self.tmp = tempfile.NamedTemporaryFile(prefix='idfplus_cache_',suffix='.tmp')
+        self.db_conn = ZODB.DB(self.tmp.name)
         self.db = self.db_conn.open().root
 
         # Create a place to store all open files
@@ -98,6 +100,7 @@ class IDFPlus(QtGui.QMainWindow):
             self.db_conn.close()
             # if self.idd:
             #     self.idd.close()
+            self.tmp.close()
             event.accept()
         else:
             event.ignore()
@@ -154,11 +157,12 @@ class IDFPlus(QtGui.QMainWindow):
 
         idd = idfmodel.IDDFile()
         parser = idfparse.IDDParser(idd)
+        # parser.init_db()
 
         for progress in parser.parse_idd(file_path):
             self.progressDialogIDD.setValue(progress)
 
-        return parser.save_idd(idd)
+        return True #parser.save_idd(idd)
 
     def load_idf(self, file_path):
         print('Trying to load file: {}'.format(file_path))

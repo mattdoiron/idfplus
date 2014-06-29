@@ -197,7 +197,7 @@ class PODict(_odict, PersistentMapping):
 #         return self._data.popitem(last)
 
 
-class IDDFile(OrderedDict):
+class IDDFile(PODict):
     """Primary object representing idd file and container for idd objects.
 
     Is an OrderedDict of IDDObjects with the class type as a
@@ -271,7 +271,7 @@ class IDDFile(OrderedDict):
             #     raise IDDFileDoesNotExist("Can't find IDD file: {}".format(idd_file_path))
 
         # Call the parent class' init method
-        super(IDDFile, self).__init__(**kwargs)
+        super(IDDFile, self).__init__(data, **kwargs)
 
     # def __setitem__(self, key, value, dict_setitem=dict.__setitem__):
     #     """Override the default __setitem__ to ensure that only certain
@@ -309,7 +309,7 @@ class IDDFile(OrderedDict):
         return self._conversions
 
 
-class IDDObject(OrderedDict):
+class IDDObject(PODict):
     """Represents objects in idd files.
 
     Contains an OrderedDict of fields in the form:
@@ -318,7 +318,7 @@ class IDDObject(OrderedDict):
          'A2': IDDField3}
     """
 
-    def __init__(self, outer, **kwargs):
+    def __init__(self, outer, data=(), **kwargs):
         """Use kwargs to prepopulate some values, then remove them from kwargs
         Also sets the idd file for use by this object.
 
@@ -339,7 +339,7 @@ class IDDObject(OrderedDict):
         self.comments_special = kwargs.pop('comments_special', None)
 
         # Call the parent class' init method
-        super(IDDObject, self).__init__(**kwargs)
+        super(IDDObject, self).__init__(data, **kwargs)
 
     # def __setitem__(self, key, value):
     #     """Override the default __setitem__ to ensure that only certain

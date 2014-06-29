@@ -25,6 +25,7 @@ import os
 import shelve
 import datetime as dt
 import transaction
+import ZODB
 
 # Package imports
 from . import idfmodel
@@ -466,6 +467,42 @@ class IDDParser(Parser):
         # Call the parent class' init method
         super(IDDParser, self).__init__(*args, **kwargs)
 
+    @staticmethod
+    def init_db(idd):
+        """Initializes a shelve database and saves the idd file to it.
+        :param idd:
+        :return Shelve Database:
+        """
+
+        data_dir = 'data'
+        version = 'IDDTEMP'
+        file_name_root = 'EnergyPlus_IDD_v{}.dat'
+        file_name = file_name_root.format(version)
+        idd_path = os.path.join(idfmodel.APP_ROOT, data_dir, file_name)
+
+        try:
+            print('Opening idd dat file: {}'.format(idd_path))
+            database = shelve.open(idd_path, protocol=2, writeback=True)
+            print('idd type is: {}'.format(type(idd)))
+            database['idd'] = idd
+            database['date_generated'] = dt.datetime.now()
+            return database
+        except IOError as e:
+            return False
+        except Exception as e:
+            print(e.message)
+
+    @staticmethod
+    def rename_idd(version):
+        """Renames the idd once the version is known."""
+
+        print('Renaming temp idd file.')
+        file_name_root = 'EnergyPlus_IDD_v{}.dat'
+        file_name = file_name_root.format(version)
+        new = os.path.join(idfmodel.APP_ROOT, 'data', file_name)
+        old = new.replace(version, 'IDDTEMP')
+        os.rename(old, new)
+
     def parse_idd(self, file_path):
         """Parse the provided idd (or idf) file
         :rtype : generator
@@ -480,6 +517,10 @@ class IDDParser(Parser):
 
         print('Parsing IDD file: {} ({} bytes)'.format(file_path, total_size))
 
+        # Create an on-disk database in which to store the new idd
+        db = self.init_db(self.idd)
+        idd = db['idd']
+
         # Open the specified file in a safe way
         with open(file_path, 'r') as idd_file:
 
@@ -489,13 +530,12 @@ class IDDParser(Parser):
             comment_list_special = list()
             field_tag_list = list()
             field_tag_dict = dict()
-            options = list()
+            version = None
             group = None
             group_list = list()
             conversions = list()
             end_object = False
-            version = None
-            idd_object = idfmodel.IDDObject(self.idd)
+            idd_object = idfmodel.IDDObject(idd)
 
             # Cycle through each line in the file (yes, use while!)
             while True:
@@ -507,9 +547,9 @@ class IDDParser(Parser):
 
                 # Detect end of line character for use when re-writing file
                 if line.endswith('\r\n'):
-                    self.idd._eol_char = '\r\n'
+                    idd._eol_char = '\r\n'
                 else:
-                    self.idd._eol_char = '\n'
+                    idd._eol_char = '\n'
 
                 # If previous line was not the end of an object check this one
                 if end_object is False:
@@ -518,7 +558,7 @@ class IDDParser(Parser):
 
                 # Check for special options
                 if line_parsed['options']:
-                    self.idd.options.extend(line_parsed['options'])
+                    idd.options.extend(line_parsed['options'])
 
                 # If there are any comments save them
                 if line_parsed['comments']:
@@ -528,7 +568,8 @@ class IDDParser(Parser):
                     if 'IDD_Version' in line_parsed['comments']:
                         version_raw = line_parsed['comments'].split()[1].strip()
                         version = '.'.join(version_raw.split('.')[0:2])
-                        self.idd._version = version
+                        idd._version = version
+                        print('Found idd version in idd file: '.format(db['idd']._version))
 
                 # Check for special comments and options
                 if line_parsed['comments_special']:
@@ -577,9 +618,6 @@ class IDDParser(Parser):
                             new_field.tags = field_tag_list[i]
                         except IndexError:
                             new_field.tags = dict()
-                        # print('field: {}'.format(field))
-                        # print('new_field: {}'.format(new_field))
-                        # print('obj_class: {}'.format(obj_class))
                         idd_object.update({field:new_field})
 
                     # Save the parsed variables in the idd_object
@@ -589,13 +627,12 @@ class IDDParser(Parser):
                     idd_object.comments = comment_list
 
                     # Add the group to the idd's list if it isn't already there
-                    if group not in self.idd._groups:
-                        self.idd._groups.append(group)
+                    if group not in idd._groups:
+                        idd._groups.append(group)
 
                     # Save the new object as part of the IDD file
                     if obj_class not in ['Lead Input', 'Simulation Data']:
-                        self.idd[obj_class] = idd_object
-                        # print('adding obj_class: {}'.format(obj_class))
+                        idd[obj_class] = idd_object
 
                     # Reset variables for next object
                     field_list = list()
@@ -604,7 +641,7 @@ class IDDParser(Parser):
                     field_tag_list = list()
                     field_tag_dict = dict()
                     end_object = False
-                    idd_object = idfmodel.IDDObject(self.idd)
+                    idd_object = idfmodel.IDDObject(idd)
 
                 # Detect end of file and break. Do it this way to be sure
                 # the last line can be processed AND identified as last!
@@ -614,14 +651,13 @@ class IDDParser(Parser):
                 # Yield the current progress for progress bars
                 yield total_read
 
-            self.idd._conversions = conversions
-            self.idd._groups = group_list
-            self.idd._tree_model = None
+            idd._conversions = conversions
+            idd._groups = group_list
+            idd._tree_model = None
 
-        # Save changes
-        # transaction.commit()
-        # print(self.idd['Version'])
-        # print(self.idd['Building'])
+        # Save changes and rename temp idd file because we now know the version
+        db.close()
+        self.rename_idd(version)
         print('Parsing IDD complete!')
 
     @staticmethod
@@ -699,7 +735,7 @@ class IDDParser(Parser):
                 print('Testing if loaded idd file has a version attribute')
                 test = idd.version
                 print('Version found! (v{})'.format(idd.version))
-                print('test 3 idd for keys: {}'.format(idd.keys()[:20]))
+                print('test 3 idd for keys: {}'.format(idd.keys()[:5]))
                 return idd
             except AttributeError:
                 print('No version attribute found!')
