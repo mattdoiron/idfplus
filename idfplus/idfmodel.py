@@ -518,18 +518,18 @@ class IDFFile(PODict):
     #         print('idd not found')
     #         raise IDDFileDoesNotExist("Can't find IDD file: {}".format(idd_file_path))
 
-    def load_idf(self, file_path):
-        """Parses and loads an idf file into the object instance variable.
-        Also sets some attributes of the file.
-        :param file_path:
-        """
-        from . import idfparse
-        print("IDFFile file_path: {}".format(file_path))
-        self.file_path = file_path
-        parser = idfparse.IDFParser(self)
-        for progress in parser.parse_idf():
-            # print(progress)
-            yield progress
+    # def load_idf(self, file_path):
+    #     """Parses and loads an idf file into the object instance variable.
+    #     Also sets some attributes of the file.
+    #     :param file_path:
+    #     """
+    #     from . import idfparse
+    #     print("IDFFile file_path: {}".format(file_path))
+    #     self.file_path = file_path
+    #     parser = idfparse.IDFParser(self)
+    #     for progress in parser.parse_idf():
+    #         # print(progress)
+    #         yield progress
 
     # def _set_version(self, version):
     #     """Method used to set the version of the IDF file. Can only

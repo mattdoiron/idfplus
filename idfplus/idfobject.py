@@ -42,7 +42,7 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
         print('setting obj_class: {}'.format(obj_class))
         self.idf_objects = idf[obj_class]
         self.idd_object = idf._idd[obj_class]
-        print('loading idd object: {}'.format(self.idd_object))
+        # print('loading idd object: {}'.format(self.idd_object))
         self.dirty = False
         self.getLabels()
 
@@ -70,7 +70,8 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
         # Detect the role being request and return the correct data
         if role == QtCore.Qt.DisplayRole or role == QtCore.Qt.EditRole:
             try:
-                data = self.idf_objects[row][column]
+                data = self.idf_objects[row][column].value
+                # print('data: {}'.format(data))
             except IndexError:
                 return None
         elif role == QtCore.Qt.ToolTipRole:
@@ -113,7 +114,7 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
             row = index.row()
             column = index.column()
             try:
-                self.idf_objects[row][column] = value
+                self.idf_objects[row][column].value = value
                 self.dirty = True
                 self.dataChanged.emit(index, index)
                 return True
@@ -147,17 +148,18 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
         obj_count = len(self.idf_objects) + 1
         objID_lables = ['Obj{}'.format(i) for i in range(1, obj_count)]
         # print(self.idd_object.items())
-        for obj in self.idd_object:
-            print('field: {}'.format(obj.value))
-            field_labels.append(obj.value)
+        for field in self.idd_object:
+            print('idd_obj type: {}'.format(type(field)))
+            print('field: {}'.format(field.tags))
+            field_labels.append(field.tags['field'])
         self.objID_lables = objID_lables
         self.field_labels = field_labels
-        print(objID_lables)
-        print(field_labels)
+        # print(objID_lables)
+        # print(field_labels)
 
 
 class TransposeProxyModel(QtGui.QAbstractProxyModel):
-    '''Translates columns to rows or vice versa'''
+    """Translates columns to rows or vice versa"""
 
     def __init__(self, source_model, parent=None):
         super(TransposeProxyModel, self).__init__(parent)
@@ -219,30 +221,30 @@ class TransposeProxyModel(QtGui.QAbstractProxyModel):
         return self.sourceModel().headerData(section, new_orientation, role)
 
 
-class IDDFile(object):
-    '''Object to handle all interaction with idd files.'''
-
-    def __init__(self, parent, version):
-
-        if not version or not parent:
-            raise ValueError("Missing version number when defining IDD.")
-
-        self.parent = parent
-        self.version = version
-        self.idd = None
-        self.settings = parent.settings
-
-    def loadIDD(self):
-        '''Loads the idd file of the appropriate version for use later.'''
-
-        idd_file = os.path.join(self.settings.get_dir_name(),
-                                'data',
-                                'EnergyPlus_IDD_v') + self.version + '.dat'
-
-        try:
-            print('Loading IDD file: {}'.format(idd_file))
-            self.idd = shelve.open(idd_file)
-            return True
-        except Exception as e:
-            print("Can't open file: {} ({})".format(idd_file, e))
-            return False
+# class IDDFile(object):
+#     """Object to handle all interaction with idd files."""
+#
+#     def __init__(self, parent, version):
+#
+#         if not version or not parent:
+#             raise ValueError("Missing version number when defining IDD.")
+#
+#         self.parent = parent
+#         self.version = version
+#         self.idd = None
+#         self.settings = parent.settings
+#
+#     def loadIDD(self):
+#         '''Loads the idd file of the appropriate version for use later.'''
+#
+#         idd_file = os.path.join(self.settings.get_dir_name(),
+#                                 'data',
+#                                 'EnergyPlus_IDD_v') + self.version + '.dat'
+#
+#         try:
+#             print('Loading IDD file: {}'.format(idd_file))
+#             self.idd = shelve.open(idd_file)
+#             return True
+#         except Exception as e:
+#             print("Can't open file: {} ({})".format(idd_file, e))
+#             return False

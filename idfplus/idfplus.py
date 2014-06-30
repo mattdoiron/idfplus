@@ -66,7 +66,7 @@ class IDFPlus(QtGui.QMainWindow):
         self.idd = None
         self.idf = None
         self.groups = None
-        self.full_tree = True
+        self.fullTree = True
         self.dirty = False
         self.obj_orientation = QtCore.Qt.Vertical
         self.current_obj_class = None
@@ -84,7 +84,7 @@ class IDFPlus(QtGui.QMainWindow):
 
         # In-memory ZODB databases don't support undo! Use an on-disk cache
         idf_cache_path = os.path.join(idfmodel.APP_ROOT, 'data', 'cache')
-        self.tmp = tempfile.NamedTemporaryFile(prefix='idfplus_cache_',suffix='.tmp')
+        self.tmp = tempfile.NamedTemporaryFile(prefix='idfplus_cache_', delete=True)
         self.db_conn = ZODB.DB(self.tmp.name)
         self.db = self.db_conn.open().root
 
@@ -101,6 +101,8 @@ class IDFPlus(QtGui.QMainWindow):
             # if self.idd:
             #     self.idd.close()
             self.tmp.close()
+            for extension in ['.lock', '.index', '.tmp']:
+                os.remove(self.tmp.name + extension)
             event.accept()
         else:
             event.ignore()
@@ -627,8 +629,9 @@ class IDFPlus(QtGui.QMainWindow):
         table = self.classTable
         self.current_obj_class = obj_class
 
-#        if not obj_class:
-#            return
+        # print('obj class found? : {}'.format(self.idf.get(obj_class, None)))
+        # if not self.idf.get(obj_class, None):
+        #     return False
 
 #        iddPart = self.idd['idd'][name][0]
 #        if name in self.idf:
@@ -639,7 +642,7 @@ class IDFPlus(QtGui.QMainWindow):
 #        self.default_model = idfobject.IDFObjectTableModel(idfObjects, iddPart)
 #        self.default_model.load()
 
-        print(self.idf._idd['Version'][0].value)
+        # print(self.idf._idd['Version'][0].value)
         # print(self.idf.keys())
         self.default_model = idfobject.IDFObjectTableModel(obj_class,
                                                            self.idf)
@@ -676,7 +679,7 @@ class IDFPlus(QtGui.QMainWindow):
         """Loads the tree of class type names."""
         tree = self.classTree
         tree.clear()
-        objects = self.idf
+        # objects = self.idf
         group = ''
         group_root = None
 
@@ -699,7 +702,13 @@ class IDFPlus(QtGui.QMainWindow):
                 tree.setFirstItemColumnSpanned(group_root, True)
                 tree.setRootIsDecorated(False)
 
-            obj_count = len(self.idd.get(obj_class, None)) or ''
+            objs = self.idf.get(obj_class, None)
+            obj_count = len(objs or []) or ''
+            # if objs:
+            #     obj_count = len(objs)
+            # else:
+            #     obj_count = ''
+
             child = QtGui.QTreeWidgetItem([obj_class, str(obj_count)])
             child.setTextAlignment(1, QtCore.Qt.AlignRight)
             group_root.addChild(child)
@@ -731,7 +740,7 @@ class IDFPlus(QtGui.QMainWindow):
         for key in dictionary:
             for obj in dictionary[key]:
                 for val in obj:
-                    if searchFor in val:
+                    if searchFor in val.value:
                         return key
         return None
 
@@ -741,10 +750,10 @@ class IDFPlus(QtGui.QMainWindow):
 
     def iWasChanged(self, current, previous):
         """Test call to slot"""
-        if current is None:
+        if (current or current.parent()) is None:
             return
-        if current.parent() is None:
-            return
+        # if current.parent() is None:
+        #     return
         self.load_table_view(current.text(0))
 
     def create_ui(self):

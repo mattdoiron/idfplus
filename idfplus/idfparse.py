@@ -31,7 +31,7 @@ import ZODB
 from . import idfmodel
 
 # Constants
-FIELD_TAGS = ['\\field',
+tags = ['\\field',
              '\\note',
              '\\required-field',
              '\\begin-extensible',
@@ -366,11 +366,11 @@ class Parser(object):
         :param line_in: 
         """
 
-        global FIELD_TAGS
+        global tags
         tag_result = dict()
 
         # Create a list containing any tags found in line_in
-        match = [x for x in FIELD_TAGS if x in line_in]
+        match = [x for x in tags if x in line_in]
 
         # If there are any matches, save the first one
         if match:
@@ -385,7 +385,7 @@ class Parser(object):
                 value = True
 
             # Save results
-            tag_result = dict(tag=match[0],
+            tag_result = dict(tag=match[0].strip('\\'),
                               value=value)
 
         # Return results
@@ -437,7 +437,7 @@ class Parser(object):
                     comments=comments,
                     comments_special=comments_special,
                     options=options,
-                    field_tags=tags,
+                    tags=tags,
                     end_object=end_object,
                     empty_line=empty_line)
 
@@ -528,8 +528,10 @@ class IDDParser(Parser):
             field_list = list()
             comment_list = list()
             comment_list_special = list()
-            field_tag_list = list()
-            field_tag_dict = dict()
+            tag_list = list()
+            tag_dict = dict()
+            obj_tag_list = list()
+            obj_tag_dict = dict()
             version = None
             group = None
             group_list = list()
@@ -581,25 +583,48 @@ class IDDParser(Parser):
 
                 # Check for the end of an object before checking for new tags
                 if (end_object and empty_line) or line_parsed['fields']:
-                    if field_tag_dict:
-                        field_tag_list.append(field_tag_dict.copy())
-                        field_tag_dict = dict()
+                    if tag_dict:
+                        tag_list.append(tag_dict)
+                        tag_dict = dict()
+                    if obj_tag_dict:
+                        obj_tag_list.append(obj_tag_dict)
+                        obj_tag_dict = dict()
 
                 # If there are any field tags for this object save them
-                if line_parsed['field_tags']:
-                    tag = line_parsed['field_tags']['tag']
-                    value = line_parsed['field_tags']['value']
+                if line_parsed['tags']:
+                    tag = line_parsed['tags']['tag']
+                    value = line_parsed['tags']['value']
+                    # print('tag: {}, val: {}'.format(tag, value))
 
-                    # If this tag is already present, try to append its value
-                    if tag in field_tag_dict:
-                        try:
-                            field_tag_dict[tag].append(value)
-                        except AttributeError:
-                            field_tag_dict[tag] = [field_tag_dict[tag], value]
+                    # If there are tags, but no fields then these are object-level tags
+                    if len(field_list) <= 1:
+                        # print('found object-level tag')
+                        if tag in obj_tag_dict:
+                            try:
+                                obj_tag_dict[tag].append(value)
+                            except AttributeError:
+                                obj_tag_dict[tag] = [obj_tag_dict[tag], value]
+                        else:
+                            # Otherwise simply add it
+                            obj_tag_dict[tag] = value
+                        print('obj lvl: tag: {}, value: {}'.format(tag, value))
+                    else:
+                        # If this tag is already present, try to append its value
+                        # print('found field-level tag')
+                        if tag in tag_dict:
+                            try:
+                                tag_dict[tag].append(value)
+                            except AttributeError:
+                                tag_dict[tag] = [tag_dict[tag], value]
+                        else:
+                            # Otherwise simply add it
+                            tag_dict[tag] = value
+                        print('field lvl: tag: {}, value: {}'.format(tag, value))
 
                     # Check for the special group tag
-                    if line_parsed['field_tags']['tag'] == '\\group':
-                        group = line_parsed['field_tags']['value']
+                    if line_parsed['tags']['tag'] == 'group':
+                        # print('found group tag: {}'.format(line_parsed['tags']['value']))
+                        group = line_parsed['tags']['value']
                         if group not in group_list:
                             group_list.append(group)
 
@@ -615,10 +640,13 @@ class IDDParser(Parser):
                         new_field.key = field
                         new_field.value = None
                         try:
-                            new_field.tags = field_tag_list[i]
+                            # print('field_tag_list: {}'.format(field_tag_list))
+                            new_field.tags = tag_list[i]
                         except IndexError:
                             new_field.tags = dict()
+                        # print('new_field.tags: {}'.format(new_field.tags))
                         idd_object.append(new_field)
+                        # print('setting field tags: {}'.format(new_field.tags))
                         # idd_object.update({field:new_field})
 
                     # Save the parsed variables in the idd_object
@@ -626,6 +654,8 @@ class IDDParser(Parser):
                     idd_object._group = group
                     idd_object.comments_special = comment_list_special
                     idd_object.comments = comment_list
+                    idd_object.tags = obj_tag_list
+                    # print('setting object tags: {}'.format(idd_object.tags))
 
                     # Add the group to the idd's list if it isn't already there
                     if group not in idd._groups:
@@ -639,8 +669,10 @@ class IDDParser(Parser):
                     field_list = list()
                     comment_list = list()
                     comment_list_special = list()
-                    field_tag_list = list()
-                    field_tag_dict = dict()
+                    tag_list = list()
+                    tag_dict = dict()
+                    obj_tag_list = list()
+                    obj_tag_dict = dict()
                     end_object = False
                     idd_object = idfmodel.IDDObject(idd)
 
@@ -842,19 +874,23 @@ class IDFParser(Parser):
                             idd = idd_parser.load_idd(version)
                             self.idf._idd = idd
                             self.idd = idd
+
+                            # Use the list of object classes from the idd to populate
+                            # the idf file's object classes. This must be done early
+                            # so that all objects added later are added to properly
+                            # ordered classes.
+                            self.idf.update((k, []) for k, v in idd.iteritems())
+
                         print('idd loaded as version: {}'.format(self.idd.version))
 
                 # If this is the end of an object save it
                 if end_object and empty_line:
 
-                    # The first field is the object name
+                    # The first field is the object class name
                     obj_class = field_list.pop(0)
-                    # print('obj_class: {}'.format(obj_class))
-                    # assert hasattr(self.idd[obj_class], '_p_changed')
+
+                    # The fields to use are defined in the idd file
                     idd_fields = self.idd[obj_class]
-                    # print('idd_fields: {}'.format(idd_fields))
-                    # print('iddObject: {}'.format(self.idd[obj_class].comments))
-                    # idd_fields = None
 
                     # Create IDFField objects for all fields
                     for i, field in enumerate(field_list):

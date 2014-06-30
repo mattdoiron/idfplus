@@ -127,17 +127,17 @@ class GenericDelegate(QtGui.QItemDelegate):
         #       field, note, units, ip-units, required-field, key(s)
 
         # List of tags that would go in a combobox
-        comboFields = ['\\minimum',
-                       '\\minimum>',
-                       '\\maximum',
-                       '\\maximum<',
-                       '\\default',
-                       '\\autosizeable',
-                       '\\autocalculatable',
-                       '\\key']
+        comboFields = ['minimum',
+                       'minimum>',
+                       'maximum',
+                       'maximum<',
+                       'default',
+                       'autosizeable',
+                       'autocalculatable',
+                       'key']
 
         # Cycle through field tags (first one is object tags so ignore)
-        for i, tags in enumerate(idd_obj.tags):
+        for i, fields in enumerate(idd_obj):
 
             tag_list = []
             tag_count = 0
@@ -146,12 +146,13 @@ class GenericDelegate(QtGui.QItemDelegate):
             # Create a list of tags which would go in a combo box
             # There is a better way to do this - idd objects should be
             # actual python objects/dictionaries!
-            for tag in tags:
-                if tag['tag'] in comboFields:
-                    tag_list.append(tag['tag'])
-                    tag_count += 1
-                if tag['tag'] == '\\type':
-                    field_type = tag['value']
+            matches = set(comboFields).intersection(set(fields.tags))
+
+            for key, val in matches:
+                tag_list.append(key)
+                tag_count += 1
+                if key == 'type':
+                    field_type = val
 
             # If there are choices then use the choiceDelegate
             if tag_count > 0:
@@ -250,14 +251,14 @@ class ChoiceDelegate(QtGui.QItemDelegate):
         super(ChoiceDelegate, self).__init__(parent)
 #        self.model = model
         self.field = field
-        self.comboFields = ['\\minimum',
-                            '\\minimum>',
-                            '\\maximum',
-                            '\\maximum<',
-                            '\\default',
-                            '\\autosizeable',
-                            '\\autocalculatable',
-                            '\\key']
+        self.comboFields = ['minimum',
+                            'minimum>',
+                            'maximum',
+                            'maximum<',
+                            'default',
+                            'autosizeable',
+                            'autocalculatable',
+                            'key']
 
     def imActivated(self, index):
 #        self.combo.showPopup()
