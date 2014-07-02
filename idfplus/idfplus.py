@@ -34,11 +34,11 @@ from PySide import QtGui
 from PySide import QtCore
 
 # Package imports
-from . import idfdelegates
-from . import idfobject
-from . import idfparse
+from . import delegates
+from . import tablemodel
+from . import parser
 from . import idfsettings
-from . import idfmodel
+from . import datamodel
 
 # Resource imports
 from . import icons_qr  # Used for icons (in text format)
@@ -83,7 +83,7 @@ class IDFPlus(QtGui.QMainWindow):
         self.classTree.currentItemChanged.connect(self.iWasChanged)
 
         # In-memory ZODB databases don't support undo! Use an on-disk cache
-        idf_cache_path = os.path.join(idfmodel.APP_ROOT, 'data', 'cache')
+        idf_cache_path = os.path.join(datamodel.APP_ROOT, 'data', 'cache')
         self.tmp = tempfile.NamedTemporaryFile(prefix='idfplus_cache_', delete=True)
         self.db_conn = ZODB.DB(self.tmp.name)
         self.db = self.db_conn.open().root
@@ -157,21 +157,21 @@ class IDFPlus(QtGui.QMainWindow):
         self.progressDialogIDD.show()
         self.statusBar().showMessage(message, 5000)
 
-        idd = idfmodel.IDDFile()
-        parser = idfparse.IDDParser(idd)
+        idd = datamodel.IDDFile()
+        idd_parser = parser.IDDParser(idd)
         # parser.init_db()
 
-        for progress in parser.parse_idd(file_path):
+        for progress in idd_parser.parse_idd(file_path):
             self.progressDialogIDD.setValue(progress)
 
         return True #parser.save_idd(idd)
 
     def load_idf(self, file_path):
         print('Trying to load file: {}'.format(file_path))
-        from . import idfparse
-        idf = idfmodel.IDFFile()
+        from . import parser
+        idf = datamodel.IDFFile()
         self.files.update({0:idf})
-        idf_parser = idfparse.IDFParser(idf)
+        idf_parser = parser.IDFParser(idf)
 
         for progress in idf_parser.parse_idf(file_path):
             self.progressDialogIDF.setValue(progress)
@@ -213,7 +213,7 @@ class IDFPlus(QtGui.QMainWindow):
         # Try to load the specified IDF file
         try:
             self.load_idf(file_path)
-        except idfmodel.IDDFileDoesNotExist:
+        except datamodel.IDDFileDoesNotExist:
 
             # Load IDD File for the version of this IDF file
             if not self.find_idd_file():
@@ -234,7 +234,7 @@ class IDFPlus(QtGui.QMainWindow):
         self.load_tree_view()
         self.classTable.setModel(None)
         self.commentView.setText(str(len(self.idf)))  # test only
-        self.dirty = False  # Move this into idfObjectContainer?
+        self.dirty = False  # Move this into tablemodelContainer?
         self.file_path = file_path
         self.add_recent_file(file_path)
         message = "Loaded %s" % os.path.basename(file_path)
@@ -264,7 +264,7 @@ class IDFPlus(QtGui.QMainWindow):
         if not self.file_path or not self.idf:
             return False
         file_name = self.file_path
-        writer = idfparse.Writer()
+        writer = parser.Writer()
         if writer.write_idf(file_name, None, self.idf):
             self.set_current_file(file_name)
             self.add_recent_file(file_name)
@@ -636,13 +636,13 @@ class IDFPlus(QtGui.QMainWindow):
 
         # print(self.idf._idd['Version'][0].value)
         # print(self.idf.keys())
-        self.default_model = idfobject.IDFObjectTableModel(obj_class,
+        self.default_model = tablemodel.IDFObjectTableModel(obj_class,
                                                            self.idf)
         model = self.default_model
 
         # If objects are vertical, create transposed model
         if self.obj_orientation == QtCore.Qt.Vertical:
-            proxy_model = idfobject.TransposeProxyModel(self.default_model)
+            proxy_model = tablemodel.TransposeProxyModel(self.default_model)
            # proxy_model.setSourceModel(self.default_model)
             model = proxy_model
            # table.horizontalHeader().sectionClicked.connect(model.sortTable)
@@ -662,10 +662,10 @@ class IDFPlus(QtGui.QMainWindow):
         # table.resizeColumnsToContents()
 
         # Create generic delegates for table cells
-        delegates = idfdelegates.GenericDelegate(obj_class,
+        mydelegates = delegates.GenericDelegate(obj_class,
                                                  self.idd,
                                                  self.obj_orientation)
-        table.setItemDelegate(delegates)
+        table.setItemDelegate(mydelegates)
 
         self.infoView.setText(self.idd[self.current_obj_class].get_info)
 
