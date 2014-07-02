@@ -136,8 +136,8 @@ class GenericDelegate(QtGui.QItemDelegate):
                        'autocalculatable',
                        'key']
 
-        # Cycle through field tags (first one is object tags so ignore)
-        for i, fields in enumerate(idd_obj):
+        # Cycle through field tags
+        for i, field in enumerate(idd_obj):
 
             tag_list = []
             tag_count = 0
@@ -146,34 +146,38 @@ class GenericDelegate(QtGui.QItemDelegate):
             # Create a list of tags which would go in a combo box
             # There is a better way to do this - idd objects should be
             # actual python objects/dictionaries!
-            matches = set(comboFields).intersection(set(fields.tags))
+            matches = set(comboFields).intersection(set(field.tags))
 
-            for key, val in matches:
+            for key in matches:
                 tag_list.append(key)
                 tag_count += 1
                 if key == 'type':
-                    field_type = val
+                    field_type = field.tags[key]
 
             # If there are choices then use the choiceDelegate
             if tag_count > 0:
-                self.insertDelegate(i, ChoiceDelegate(tags))
+                self.insertDelegate(i, ChoiceDelegate(field))
             else:
                 # Otherwise check the type field
+                min = field.tags.get('minimum', 0)
+                max = field.tags.get('maximum', 100)
+                min_inc = field.tags.get('minimum>', min)
+                max_inc = field.tags.get('maximum<', max)
                 if field_type == 'integer':
-                    self.insertDelegate(i, IntegerDelegate(tags))
+                    self.insertDelegate(i, IntegerDelegate(field, min_inc, max_inc))
                 elif field_type == 'real':
-                    self.insertDelegate(i, RealDelegate(tags))
+                    self.insertDelegate(i, RealDelegate(field, min_inc, max_inc))
                 elif field_type == 'alpha':
-                    self.insertDelegate(i, AlphaDelegate(tags))
+                    self.insertDelegate(i, AlphaDelegate(field))
                 else:
-                    # The type filed is not always present so check fieldname
-                    fieldName = idd_obj['fields'][i - 1]
-                    if fieldName.startswith('A'):
-                        self.insertDelegate(i, AlphaDelegate(tags))
-                    elif fieldName.startswith('N'):
-                        self.insertDelegate(i, RealDelegate(tags))
+                    # The type field is not always present so check fieldname
+                    idd_field = idd_obj[i - 1]
+                    if idd_field.key.startswith('A'):
+                        self.insertDelegate(i, AlphaDelegate(field))
+                    elif idd_field.key.startswith('N'):
+                        self.insertDelegate(i, RealDelegate(field, min_inc, max_inc))
                     else:
-                        self.insertDelegate(i, AlphaDelegate(tags))
+                        self.insertDelegate(i, AlphaDelegate(field))
 
 
 class IntegerDelegate(QtGui.QItemDelegate):
@@ -251,10 +255,10 @@ class ChoiceDelegate(QtGui.QItemDelegate):
         super(ChoiceDelegate, self).__init__(parent)
 #        self.model = model
         self.field = field
-        self.comboFields = ['minimum',
-                            'minimum>',
-                            'maximum',
+        self.comboFields = ['minimum>',
+                            'minimum',
                             'maximum<',
+                            'maximum',
                             'default',
                             'autosizeable',
                             'autocalculatable',
@@ -277,15 +281,27 @@ class ChoiceDelegate(QtGui.QItemDelegate):
         model = QtGui.QStandardItemModel()
         tag_list = []
 
-        for tag in self.field:
-            if tag['tag'] in self.comboFields:
-                value_item = QtGui.QStandardItem(tag['value'])
-                tag_item = QtGui.QStandardItem(tag['tag'].strip('\\'))
-                if tag['tag'] == '\\default':
-                    model.insertRow(0, [value_item, tag_item])
+        # print('tags: {}'.format(self.field.tags))
+        for tag, value in self.field.tags.iteritems():
+            if tag in self.comboFields:
+                # value_item = QtGui.QStandardItem(val)
+                # tag_item = QtGui.QStandardItem(tag)
+                # print('tag: {}'.format(tag))
+                if tag == 'default':
+                    model.insertRow(0, [QtGui.QStandardItem(value),
+                                        QtGui.QStandardItem(tag)])
                 else:
-                    model.appendRow([value_item, tag_item])
-                tag_list.append(tag['tag'])
+                    # Need to check if it's a list...is there a better way?
+                    # Could make them all lists...would be annoying.
+                    if type(value) is list:
+                        for val in value:
+                            # print('value: {}'.format(val))
+                            model.appendRow([QtGui.QStandardItem(val),
+                                             QtGui.QStandardItem(tag)])
+                    else:
+                        model.appendRow([QtGui.QStandardItem(value),
+                                         QtGui.QStandardItem(tag)])
+                tag_list.append(tag)
 
 #        print 'found tags: {}'.format(tag_list)
         myitem = model.findItems('current', column=1)

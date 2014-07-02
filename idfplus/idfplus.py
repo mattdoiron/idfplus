@@ -134,7 +134,7 @@ class IDFPlus(QtGui.QMainWindow):
             file_dialog = QtGui.QFileDialog()
             file_dialog.setFileMode(QtGui.QFileDialog.Directory)
             file_name, filt = file_dialog.getOpenFileName(self, dialog_name,
-                                                        directory)
+                                                          directory)
             if file_name:
                 return self.process_idd_file(file_name)
         return False
@@ -626,21 +626,13 @@ class IDFPlus(QtGui.QMainWindow):
         """Loads the table of objects for the specified class name.
         :param obj_class:
         """
+
+        # Filter out groups
+        if obj_class not in self.idd:
+            return
+
         table = self.classTable
         self.current_obj_class = obj_class
-
-        # print('obj class found? : {}'.format(self.idf.get(obj_class, None)))
-        # if not self.idf.get(obj_class, None):
-        #     return False
-
-#        iddPart = self.idd['idd'][name][0]
-#        if name in self.idf:
-#            idfObjects = self.idf[name]
-#        else:
-#            idfObjects = [{'fields':[None for i in iddPart['fields']]}]
-
-#        self.default_model = idfobject.IDFObjectTableModel(idfObjects, iddPart)
-#        self.default_model.load()
 
         # print(self.idf._idd['Version'][0].value)
         # print(self.idf.keys())
@@ -651,9 +643,9 @@ class IDFPlus(QtGui.QMainWindow):
         # If objects are vertical, create transposed model
         if self.obj_orientation == QtCore.Qt.Vertical:
             proxy_model = idfobject.TransposeProxyModel(self.default_model)
-#            proxy_model.setSourceModel(self.default_model)
+           # proxy_model.setSourceModel(self.default_model)
             model = proxy_model
-#            table.horizontalHeader().sectionClicked.connect(model.sortTable)
+           # table.horizontalHeader().sectionClicked.connect(model.sortTable)
 
         sortable = QtGui.QSortFilterProxyModel()
         sortable.setDynamicSortFilter(True)
@@ -663,11 +655,11 @@ class IDFPlus(QtGui.QMainWindow):
         # Assign model to table and set some variables
         table.setModel(sortable)
 
-#        font = QtGui.QFont("Arial", 10)
-#        table.setFont(font)
-#        table.setSortingEnabled(True)
-#        table.setWordWrap(True)
-#        table.resizeColumnsToContents()
+        # font = QtGui.QFont("Arial", 10)
+        # table.setFont(font)
+        # table.setSortingEnabled(True)
+        # table.setWordWrap(True)
+        # table.resizeColumnsToContents()
 
         # Create generic delegates for table cells
         delegates = idfdelegates.GenericDelegate(obj_class,
@@ -675,11 +667,12 @@ class IDFPlus(QtGui.QMainWindow):
                                                  self.obj_orientation)
         table.setItemDelegate(delegates)
 
+        self.infoView.setText(self.idd[self.current_obj_class].get_info)
+
     def load_tree_view(self):
         """Loads the tree of class type names."""
         tree = self.classTree
         tree.clear()
-        # objects = self.idf
         group = ''
         group_root = None
 
@@ -724,13 +717,13 @@ class IDFPlus(QtGui.QMainWindow):
         """Transposes the table"""
         if self.obj_orientation == QtCore.Qt.Horizontal:
             self.obj_orientation = QtCore.Qt.Vertical
-            print('Setting object orientation to: Vertical')
+            # print('Setting object orientation to: Vertical')
         else:
             self.obj_orientation = QtCore.Qt.Horizontal
-            print('Setting object orientation to: Horizontal')
+            # print('Setting object orientation to: Horizontal')
 #        self.classTable.obj_orientation = self.obj_orientation
         self.load_table_view(self.current_obj_class)
-        print(self.search(self.idf, 'Holiday'))
+        # print(self.search(self.idf, 'Holiday'))
 
     def search(self, dictionary, searchFor):
         """Brute force search trial

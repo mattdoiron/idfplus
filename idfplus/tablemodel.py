@@ -35,16 +35,16 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
     """
 
     def __init__(self, obj_class, idf):
-        super(IDFObjectTableModel, self).__init__()
         self.obj_class = obj_class
         self.idf = idf
         self.idd = idf._idd
-        print('setting obj_class: {}'.format(obj_class))
-        self.idf_objects = idf[obj_class]
-        self.idd_object = idf._idd[obj_class]
+        # print('setting obj_class: {}'.format(obj_class))
+        self.idf_objects = idf.get(obj_class, [])
+        self.idd_object = idf._idd.get(obj_class)
         # print('loading idd object: {}'.format(self.idd_object))
         self.dirty = False
         self.getLabels()
+        super(IDFObjectTableModel, self).__init__()
 
     def flags(self, index):
         if not index.isValid():
@@ -149,9 +149,9 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
         objID_lables = ['Obj{}'.format(i) for i in range(1, obj_count)]
         # print(self.idd_object.items())
         for field in self.idd_object:
-            print('idd_obj type: {}'.format(type(field)))
-            print('field: {}'.format(field.tags))
-            field_labels.append(field.tags['field'])
+            # print('idd_obj type: {}'.format(type(field)))
+            # print('field: {}'.format(field.tags))
+            field_labels.append(field.tags.get('field'))
         self.objID_lables = objID_lables
         self.field_labels = field_labels
         # print(objID_lables)

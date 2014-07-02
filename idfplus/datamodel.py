@@ -362,6 +362,28 @@ class IDDObject(list):
         """
         return self._group
 
+    @property
+    def get_info(self):
+        """Read-only property returning a collection of comments/notes about the obj"""
+
+        memo = self.tags.get('memo')
+        if type(memo) is list:
+            info = ' '.join(self.tags.get('memo', ''))
+        else:
+            info = memo
+
+        unique = 'Yes' if 'unique-object' in self.tags else 'No'
+        required = 'Yes' if 'required-object' in self.tags else 'No'
+        obsolete = 'Yes' if 'obsolete' in self.tags else 'No'
+        min_fields = self.tags.get('min-fields', '0')
+
+        info += '\n\nUnique: {}'.format(unique)
+        info += '\nRequired: {}'.format(required)
+        info += '' if int(min_fields) <= 0 else '\nMinimum Fields: {}'.format(min_fields)
+        info += '' if obsolete == 'No' else '\nObject Obsolete: {}'.format(obsolete)
+
+        return info
+
 
 class IDDField(object):
     """Basic component of the idd object classes.

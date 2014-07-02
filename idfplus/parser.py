@@ -25,41 +25,41 @@ import os
 import shelve
 import datetime as dt
 import transaction
-import ZODB
+# import ZODB
 
 # Package imports
 from . import idfmodel
 
 # Constants
-tags = ['\\field',
-             '\\note',
-             '\\required-field',
-             '\\begin-extensible',
-             '\\units',
-             '\\ip-units',
-             '\\unitsBasedOnField',
-             '\\minimum',
-             '\\minimum>',
-             '\\maximum',
-             '\\maximum<',
-             '\\default',
-             '\\deprecated',
-             '\\autosizeable',
-             '\\autocalculatable',
-             '\\type',
-             '\\retaincase',
-             '\\key',
-             '\\object-list',
-             '\\reference',
-             '\\memo',
-             '\\unique-object',
-             '\\required-object',
-             '\\min-fields',
-             '\\obsolete',
-             '\\extensible:',
-             '\\begin-extensible',
-             '\\format',
-             '\\group']
+TAG_LIST = ['\\field',
+            '\\note',
+            '\\required-field',
+            '\\begin-extensible',
+            '\\units',
+            '\\ip-units',
+            '\\unitsBasedOnField',
+            '\\minimum>',
+            '\\minimum',
+            '\\maximum<',
+            '\\maximum',
+            '\\default',
+            '\\deprecated',
+            '\\autosizeable',
+            '\\autocalculatable',
+            '\\type',
+            '\\retaincase',
+            '\\key',
+            '\\object-list',
+            '\\reference',
+            '\\memo',
+            '\\unique-object',
+            '\\required-object',
+            '\\min-fields',
+            '\\obsolete',
+            '\\extensible:',
+            '\\begin-extensible',
+            '\\format',
+            '\\group']
 
 OPTIONS_LIST = ['OriginalOrderTop', 'UseSpecialFormat']
 
@@ -366,11 +366,11 @@ class Parser(object):
         :param line_in: 
         """
 
-        global tags
+        global TAG_LIST
         tag_result = dict()
 
         # Create a list containing any tags found in line_in
-        match = [x for x in tags if x in line_in]
+        match = [x for x in TAG_LIST if x in line_in]
 
         # If there are any matches, save the first one
         if match:
@@ -530,7 +530,7 @@ class IDDParser(Parser):
             comment_list_special = list()
             tag_list = list()
             tag_dict = dict()
-            obj_tag_list = list()
+            # obj_tag_list = list()
             obj_tag_dict = dict()
             version = None
             group = None
@@ -587,8 +587,8 @@ class IDDParser(Parser):
                         tag_list.append(tag_dict)
                         tag_dict = dict()
                     if obj_tag_dict:
-                        obj_tag_list.append(obj_tag_dict)
-                        obj_tag_dict = dict()
+                        obj_tag_dict.update(obj_tag_dict)
+                        # obj_tag_dict = dict()
 
                 # If there are any field tags for this object save them
                 if line_parsed['tags']:
@@ -607,7 +607,7 @@ class IDDParser(Parser):
                         else:
                             # Otherwise simply add it
                             obj_tag_dict[tag] = value
-                        print('obj lvl: tag: {}, value: {}'.format(tag, value))
+                        # print('obj lvl: tag: {}, value: {}'.format(tag, value))
                     else:
                         # If this tag is already present, try to append its value
                         # print('found field-level tag')
@@ -619,7 +619,7 @@ class IDDParser(Parser):
                         else:
                             # Otherwise simply add it
                             tag_dict[tag] = value
-                        print('field lvl: tag: {}, value: {}'.format(tag, value))
+                        # print('field lvl: tag: {}, value: {}'.format(tag, value))
 
                     # Check for the special group tag
                     if line_parsed['tags']['tag'] == 'group':
@@ -654,7 +654,7 @@ class IDDParser(Parser):
                     idd_object._group = group
                     idd_object.comments_special = comment_list_special
                     idd_object.comments = comment_list
-                    idd_object.tags = obj_tag_list
+                    idd_object.tags = obj_tag_dict
                     # print('setting object tags: {}'.format(idd_object.tags))
 
                     # Add the group to the idd's list if it isn't already there
@@ -671,7 +671,7 @@ class IDDParser(Parser):
                     comment_list_special = list()
                     tag_list = list()
                     tag_dict = dict()
-                    obj_tag_list = list()
+                    # obj_tag_list = list()
                     obj_tag_dict = dict()
                     end_object = False
                     idd_object = idfmodel.IDDObject(idd)

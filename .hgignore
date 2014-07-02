@@ -7,6 +7,7 @@ syntax: glob
 *.lock
 *.index
 *.tmp
+*.dat
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
