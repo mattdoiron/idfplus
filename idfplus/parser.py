@@ -28,7 +28,7 @@ import transaction
 # import ZODB
 
 # Package imports
-from . import idfmodel
+from . import datamodel
 
 # Constants
 TAG_LIST = ['\\field',
@@ -462,7 +462,7 @@ class IDDParser(Parser):
             self.idd = idd
         else:
             print('no custom idd received by parser. using blank')
-            self.idd = idfmodel.IDDFile()
+            self.idd = datamodel.IDDFile()
 
         # Call the parent class' init method
         super(IDDParser, self).__init__(*args, **kwargs)
@@ -478,7 +478,7 @@ class IDDParser(Parser):
         version = 'IDDTEMP'
         file_name_root = 'EnergyPlus_IDD_v{}.dat'
         file_name = file_name_root.format(version)
-        idd_path = os.path.join(idfmodel.APP_ROOT, data_dir, file_name)
+        idd_path = os.path.join(datamodel.APP_ROOT, data_dir, file_name)
 
         try:
             print('Opening idd dat file: {}'.format(idd_path))
@@ -499,7 +499,7 @@ class IDDParser(Parser):
         print('Renaming temp idd file.')
         file_name_root = 'EnergyPlus_IDD_v{}.dat'
         file_name = file_name_root.format(version)
-        new = os.path.join(idfmodel.APP_ROOT, 'data', file_name)
+        new = os.path.join(datamodel.APP_ROOT, 'data', file_name)
         old = new.replace(version, 'IDDTEMP')
         os.rename(old, new)
 
@@ -537,7 +537,7 @@ class IDDParser(Parser):
             group_list = list()
             conversions = list()
             end_object = False
-            idd_object = idfmodel.IDDObject(idd)
+            idd_object = datamodel.IDDObject(idd)
 
             # Cycle through each line in the file (yes, use while!)
             while True:
@@ -636,7 +636,7 @@ class IDDParser(Parser):
 
                     # Create IDDField objects for all fields
                     for i, field in enumerate(field_list):
-                        new_field = idfmodel.IDDField(idd_object)
+                        new_field = datamodel.IDDField(idd_object)
                         new_field.key = field
                         new_field.value = None
                         try:
@@ -674,7 +674,7 @@ class IDDParser(Parser):
                     # obj_tag_list = list()
                     obj_tag_dict = dict()
                     end_object = False
-                    idd_object = idfmodel.IDDObject(idd)
+                    idd_object = datamodel.IDDObject(idd)
 
                 # Detect end of file and break. Do it this way to be sure
                 # the last line can be processed AND identified as last!
@@ -709,7 +709,7 @@ class IDDParser(Parser):
         data_dir = 'data'
         file_name_root = 'EnergyPlus_IDD_v{}.dat'
         file_name = file_name_root.format(version)
-        idd_path = os.path.join(idfmodel.APP_ROOT, data_dir, file_name)
+        idd_path = os.path.join(datamodel.APP_ROOT, data_dir, file_name)
 
         try:
             # storage = ZODB.FileStorage.FileStorage(idd_path)
@@ -752,7 +752,7 @@ class IDDParser(Parser):
         data_dir = 'data'
 
         # Create the full path to the idd file
-        idd_path = os.path.join(idfmodel.APP_ROOT, data_dir, idd_file_name)
+        idd_path = os.path.join(datamodel.APP_ROOT, data_dir, idd_file_name)
 
         print('Checking for idd version: {}'.format(version))
         print(idd_path)
@@ -772,10 +772,10 @@ class IDDParser(Parser):
                 return idd
             except AttributeError:
                 print('No version attribute found!')
-                raise idfmodel.IDDFileDoesNotExist("Can't find IDD file: {}".format(idd_path))
+                raise datamodel.IDDFileDoesNotExist("Can't find IDD file: {}".format(idd_path))
         else:
             print('idd not found')
-            raise idfmodel.IDDFileDoesNotExist("Can't find IDD file: {}".format(idd_path))
+            raise datamodel.IDDFileDoesNotExist("Can't find IDD file: {}".format(idd_path))
 
 
 #---------------------------------------------------------------------------
@@ -793,7 +793,7 @@ class IDFParser(Parser):
         if idf is not None:
             self.idf = idf
         else:
-            self.idf = idfmodel.IDFFile()
+            self.idf = datamodel.IDFFile()
         self.idd = None
 
         # Call the parent class' init method
@@ -822,7 +822,7 @@ class IDFParser(Parser):
             comment_list_special = list()
             group = None
             end_object = False
-            idf_object = idfmodel.IDFObject(self.idf)
+            idf_object = datamodel.IDFObject(self.idf)
 
             # Cycle through each line in the file (yes, use while!)
             while True:
@@ -901,7 +901,7 @@ class IDFParser(Parser):
                         else:
                             key = obj_class
                             tags = dict()
-                        new_field = idfmodel.IDFField(idf_object)
+                        new_field = datamodel.IDFField(idf_object)
                         new_field.key = key
                         new_field.value = field
                         new_field.tags = tags
@@ -937,7 +937,7 @@ class IDFParser(Parser):
                     comment_list = list()
                     comment_list_special = list()
                     end_object = False
-                    idf_object = idfmodel.IDFObject(self.idf)
+                    idf_object = datamodel.IDFObject(self.idf)
 
                 # Detect end of file and break. Do it this way to be sure
                 # the last line can be processed AND identified as last!
@@ -948,6 +948,7 @@ class IDFParser(Parser):
                 yield total_read
 
         # Save changes
+        transaction.get().note('Load file')
         transaction.commit()
         print('Parsing IDF complete!')
         # print(self.idf.keys())

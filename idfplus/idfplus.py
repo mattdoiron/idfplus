@@ -24,7 +24,8 @@ from __future__ import (print_function, division, with_statement, absolute_impor
 import os
 import platform
 from BTrees.OOBTree import OOBTree
-import ZODB
+from ZODB import FileStorage
+from ZODB import DB
 import transaction
 import tempfile
 
@@ -83,23 +84,24 @@ class IDFPlus(QtGui.QMainWindow):
         self.classTree.currentItemChanged.connect(self.iWasChanged)
 
         # In-memory ZODB databases don't support undo! Use an on-disk cache
-        idf_cache_path = os.path.join(datamodel.APP_ROOT, 'data', 'cache')
+        # idf_cache_path = os.path.join(datamodel.APP_ROOT, 'data', 'cache')
         self.tmp = tempfile.NamedTemporaryFile(prefix='idfplus_cache_', delete=True)
-        self.db_conn = ZODB.DB(self.tmp.name)
-        self.db = self.db_conn.open().root
+        self.db = MyZODB(self.tmp.name)
+
+        # self.db_conn = DB(self.tmp.name)
+        # self.db = self.db_conn.open().root
 
         # Create a place to store all open files
-        self.db.files = OOBTree()
-        self.files = self.db.files
+        self.db.dbroot.files = OOBTree()
+        self.files = self.db.dbroot.files
         self.idd = OOBTree()
+        # self.transaction = self.db.transaction
 
     def closeEvent(self, event):
         """Called when the application is closed."""
         if self.ok_to_continue():
             self.settings.write_settings()
-            self.db_conn.close()
-            # if self.idd:
-            #     self.idd.close()
+            self.db.close()
             self.tmp.close()
             for extension in ['.lock', '.index', '.tmp']:
                 os.remove(self.tmp.name + extension)
@@ -180,6 +182,7 @@ class IDFPlus(QtGui.QMainWindow):
         self.idf = idf
         self.idd = idf.idd
         # print('idd version after load: {}'.format(idf))
+        print('type of file container: {}'.format(type(self.files)))
 
     def load_file(self, file_path=None):
         """Loads a specified file or gets the file_path from the sender.
@@ -279,11 +282,26 @@ class IDFPlus(QtGui.QMainWindow):
 
     def undo(self):
         """Called by the undo action. Not yet implemented"""
-        pass
+
+        print('calling undo')
+        import sys
+        no_initial = lambda tx: True if tx['description'] not in ['initial database creation'] else False
+        undo_log = self.db.db.undoLog(0, sys.maxint, no_initial)
+
+        self.db.db.undo(undo_log[0]['id'])
+        transaction.get().note('Undo change')
+        transaction.commit()
+        self.db.connection.sync()
+        self.load_table_view(self.current_obj_class)
+
 
     def redo(self):
         """Called by the redo action. Not yet implemented"""
-        pass
+        import sys
+        import pprint
+        no_initial = lambda tx: True if tx['description'] not in ['initial database creation'] else False
+        undo_log = self.db.db.undoLog(0, sys.maxint, no_initial)
+        pprint.pprint(undo_log)
 
     def about(self):
         """Called by the about action."""
@@ -865,6 +883,23 @@ class IDFPlus(QtGui.QMainWindow):
 #            if index.isValid():
 #                self.edit(index)
 #        QtGui.QTableView.mousePressEvent(self, event)
+
+
+class MyZODB(object):
+    """Wrapper for ZODB connection"""
+
+    def __init__(self, path):
+        # import transaction
+        # self.transaction = transaction
+        self.storage = FileStorage.FileStorage(path)
+        self.db = DB(self.storage)
+        self.connection = self.db.open()
+        self.dbroot = self.connection.root
+
+    def close(self):
+        self.connection.close()
+        self.db.close()
+        self.storage.close()
 
 
 class Communicate(QtCore.QObject):

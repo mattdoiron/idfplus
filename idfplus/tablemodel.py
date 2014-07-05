@@ -20,13 +20,14 @@ along with IDFPlus. If not, see <http://www.gnu.org/licenses/>.
 # System imports
 import shelve
 import os
+import transaction
 
 # PySide imports
 from PySide import QtGui
 from PySide import QtCore
 
 # Package imports
-from .idfmodel import IDFObject
+from .datamodel import IDFObject
 
 
 class IDFObjectTableModel(QtCore.QAbstractTableModel):
@@ -117,6 +118,8 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
                 self.idf_objects[row][column].value = value
                 self.dirty = True
                 self.dataChanged.emit(index, index)
+                transaction.get().note('Modify field')
+                transaction.commit()
                 return True
             except IndexError:
                 return False
