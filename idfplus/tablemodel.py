@@ -132,6 +132,8 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
             new_obj = IDFObject(self.idf, obj_class=self.obj_class)
             self.idf_objects.insert(position + row, new_obj)
         self.getLabels()
+        transaction.get().note('Insert object')
+        transaction.commit()
         self.endInsertRows()
         self.dirty = True
         self.dataChanged.emit(QtCore.QModelIndex(), QtCore.QModelIndex())
@@ -144,9 +146,14 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
                              position,
                              position - 1 + rows)
         start = position
-        end = position + rows + 1
+        end = position + rows
         del self.idf_objects[start:end]
         self.getLabels()
+        if rows > 1:
+            transaction.get().note('Remove multiple objects')
+        else:
+            transaction.get().note('Remove object')
+        transaction.commit()
         self.endRemoveRows()
         self.dirty = True
         self.dataChanged.emit(QtCore.QModelIndex(), QtCore.QModelIndex())
@@ -155,6 +162,7 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
     def insertColumns(self, position, cols=None, index=QtCore.QModelIndex()):
         if cols is None:
             cols = 1
+
         self.beginInsertColumns(QtCore.QModelIndex(),
                                 position,
                                 position - 1 + cols)
@@ -163,7 +171,11 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
             # self.idf_objects.insert(position + col, new_obj)
             print('inserting col: {}'.format(col))
             self.idf_objects.append(new_obj)
+
+        # Update state
         self.getLabels()
+        transaction.get().note('Insert object')
+        transaction.commit()
         self.endInsertColumns()
         self.dirty = True
         self.dataChanged.emit(QtCore.QModelIndex(), QtCore.QModelIndex())
@@ -172,13 +184,21 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
     def removeColumns(self, position, cols=None, index=QtCore.QModelIndex()):
         if cols is None:
             cols = 1
+
         self.beginRemoveColumns(QtCore.QModelIndex(),
                                 position,
                                 position - 1 + cols)
         start = position
-        end = position + cols + 1
+        end = position + cols
         del self.idf_objects[start:end]
+
+        # Update state
         self.getLabels()
+        if cols > 1:
+            transaction.get().note('Remove multiple objects')
+        else:
+            transaction.get().note('Remove object')
+        transaction.commit()
         self.endRemoveColumns()
         self.dirty = True
         self.dataChanged.emit(QtCore.QModelIndex(), QtCore.QModelIndex())

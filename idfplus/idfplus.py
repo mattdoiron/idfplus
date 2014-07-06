@@ -608,6 +608,7 @@ class IDFPlus(QtGui.QMainWindow):
         super(IDFPlus, self).setVisible(visible)
 
     def newObject(self):
+        #TODO change from insertColumns/Rows to insertObject in IDFFile class?
         if self.obj_orientation == QtCore.Qt.Vertical:
             model = self.classTable.model().sourceModel()
             position = model.columnCount(QtCore.QModelIndex())
@@ -623,19 +624,22 @@ class IDFPlus(QtGui.QMainWindow):
         pass
 
     def deleteObject(self):
-        # TODO allow deleting more than one at a time
+        #TODO change from removeColumns/Rows to removeObject in IDFFile class?
         selected = self.classTable.selectionModel()
         indexes = selected.selectedIndexes()
-        # count = len(indexes)
+
+        # Make a set to find unique columns
+        index_set = set([index.column() for index in indexes])
+        count = len(list(index_set))
 
         if self.obj_orientation == QtCore.Qt.Vertical:
             model = self.classTable.model().sourceModel()
             position = indexes[0].column()
-            model.removeColumns(position, 1)
+            model.removeColumns(position, count)
         else:
             model = self.classTable.model()
             position = indexes[0].row()
-            model.removeRows(position, 1)
+            model.removeRows(position, count)
 
         print('obj deleted')
 
