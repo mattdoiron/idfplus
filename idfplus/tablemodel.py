@@ -96,17 +96,14 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
             if orientation == QtCore.Qt.Horizontal:
                 return self.field_labels[section]
             if orientation == QtCore.Qt.Vertical:
-                return self.objID_lables[section]
+                return self.objID_labels[section]
         return None
 
     def rowCount(self, index):
         return len(self.idf_objects)
 
     def columnCount(self, index):
-        if len(self.idf_objects) > 0:
-            return len(self.idf_objects[0])
-        else:
-            return 0
+        return len(self.idf_objects[0])
 
     def setData(self, index, value, role):
         if not index.isValid():
@@ -125,61 +122,100 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
                 return False
         return False
 
-    def insertRows(self, position, rows=1, index=QtCore.QModelIndex()):
+    def insertRows(self, position, rows=None, index=QtCore.QModelIndex()):
+        if rows is None:
+            rows = 1
         self.beginInsertRows(QtCore.QModelIndex(),
                              position,
-                             position + rows - 1)
+                             position - 1 + rows)
         for row in range(rows):
-            new_obj = IDFObject(self.obj_class, self.idf, self.idd)
+            new_obj = IDFObject(self.idf, obj_class=self.obj_class)
             self.idf_objects.insert(position + row, new_obj)
+        self.getLabels()
         self.endInsertRows()
         self.dirty = True
+        self.dataChanged.emit(QtCore.QModelIndex(), QtCore.QModelIndex())
         return True
 
-    def removeRows(self, position, rows=1, index=QtCore.QModelIndex()):
+    def removeRows(self, position, rows=None, index=QtCore.QModelIndex()):
+        if rows is None:
+            rows = 1
         self.beginRemoveRows(QtCore.QModelIndex(),
                              position,
-                             position + rows - 1)
-        self.idf_objects = self.idf_objects[:position] + \
-                           self.idf_objects[position + rows:]
+                             position - 1 + rows)
+        start = position
+        end = position + rows + 1
+        del self.idf_objects[start:end]
+        self.getLabels()
         self.endRemoveRows()
         self.dirty = True
+        self.dataChanged.emit(QtCore.QModelIndex(), QtCore.QModelIndex())
+        return True
+
+    def insertColumns(self, position, cols=None, index=QtCore.QModelIndex()):
+        if cols is None:
+            cols = 1
+        self.beginInsertColumns(QtCore.QModelIndex(),
+                                position,
+                                position - 1 + cols)
+        for col in range(cols):
+            new_obj = IDFObject(self.idf, obj_class=self.obj_class)
+            # self.idf_objects.insert(position + col, new_obj)
+            print('inserting col: {}'.format(col))
+            self.idf_objects.append(new_obj)
+        self.getLabels()
+        self.endInsertColumns()
+        self.dirty = True
+        self.dataChanged.emit(QtCore.QModelIndex(), QtCore.QModelIndex())
+        return True
+
+    def removeColumns(self, position, cols=None, index=QtCore.QModelIndex()):
+        if cols is None:
+            cols = 1
+        self.beginRemoveColumns(QtCore.QModelIndex(),
+                                position,
+                                position - 1 + cols)
+        start = position
+        end = position + cols + 1
+        del self.idf_objects[start:end]
+        self.getLabels()
+        self.endRemoveColumns()
+        self.dirty = True
+        self.dataChanged.emit(QtCore.QModelIndex(), QtCore.QModelIndex())
         return True
 
     def getLabels(self):
         field_labels = []
-        obj_count = len(self.idf_objects) + 1
-        objID_lables = ['Obj{}'.format(i) for i in range(1, obj_count)]
-        # print(self.idd_object.items())
+        obj_count = len(self.idf_objects)
+        objID_labels = ['Obj{}'.format(i) for i in range(1, obj_count + 1)]
+
         for field in self.idd_object:
-            # print('idd_obj type: {}'.format(type(field)))
-            # print('field: {}'.format(field.tags))
             field_labels.append(field.tags.get('field'))
-        self.objID_lables = objID_lables
+
+        self.objID_labels = objID_labels
         self.field_labels = field_labels
-        # print(objID_lables)
-        # print(field_labels)
 
 
 class TransposeProxyModel(QtGui.QAbstractProxyModel):
     """Translates columns to rows or vice versa"""
 
-    def __init__(self, source_model, parent=None):
-        super(TransposeProxyModel, self).__init__(parent)
-        self.source_model = source_model
-        self.setSourceModel(self.source_model)
+    # def __init__(self, parent=None):
+    #     super(TransposeProxyModel, self).__init__(parent)
+    #     # self.source_model = source_model
+    #     # self.setSourceModel(source_model)
 
     def setSourceModel(self, source):
         super(TransposeProxyModel, self).setSourceModel(source)
 
-        # connect signals
+        # Connect signals
         self.sourceModel().columnsAboutToBeInserted.connect(self.columnsAboutToBeInserted.emit)
         self.sourceModel().columnsInserted.connect(self.columnsInserted.emit)
         self.sourceModel().columnsAboutToBeRemoved.connect(self.columnsAboutToBeRemoved.emit)
         self.sourceModel().columnsRemoved.connect(self.columnsRemoved.emit)
-#        self.sourceModel().rowsInserted.connect(self._rowsInserted)
-#        self.sourceModel().rowsRemoved.connect(self._rowsRemoved)
-#        self.sourceModel().dataChanged.connect(self._dataChanged)
+        # self.sourceModel().rowsInserted.connect(self._rowsInserted)
+        # self.sourceModel().rowsRemoved.connect(self._rowsRemoved)
+        # self.sourceModel().dataChanged.connect(self.dataChanged)
+        # self.sourceModel().sort.connect(self.sort)
 
     def mapFromSource(self, sourceIndex):
         if not sourceIndex.isValid():
@@ -196,22 +232,16 @@ class TransposeProxyModel(QtGui.QAbstractProxyModel):
                                               QtCore.QModelIndex())
 
     def index(self, row, col, parent):
-        return self.createIndex(row, col)
+        return self.createIndex(row, col, QtCore.QModelIndex())
 
     def parent(self, index):
         return QtCore.QModelIndex()
 
     def rowCount(self, parent):
-        if self.sourceModel():
-            return self.sourceModel().columnCount(QtCore.QModelIndex())
-        else:
-            return 0
+        return self.sourceModel().columnCount(QtCore.QModelIndex())
 
     def columnCount(self, parent):
-        if self.sourceModel():
-            return self.sourceModel().rowCount(QtCore.QModelIndex())
-        else:
-            return 0
+        return self.sourceModel().rowCount(QtCore.QModelIndex())
 
     def data(self, index, role):
         return self.sourceModel().data(self.mapToSource(index), role)
@@ -223,31 +253,36 @@ class TransposeProxyModel(QtGui.QAbstractProxyModel):
             new_orientation = QtCore.Qt.Horizontal
         return self.sourceModel().headerData(section, new_orientation, role)
 
+    def insertRows(self, position, rows):
+        print('proxy inserting rows')
+        return self.sourceModel().insertRows(position, rows)
 
-# class IDDFile(object):
-#     """Object to handle all interaction with idd files."""
-#
-#     def __init__(self, parent, version):
-#
-#         if not version or not parent:
-#             raise ValueError("Missing version number when defining IDD.")
-#
-#         self.parent = parent
-#         self.version = version
-#         self.idd = None
-#         self.settings = parent.settings
-#
-#     def loadIDD(self):
-#         '''Loads the idd file of the appropriate version for use later.'''
-#
-#         idd_file = os.path.join(self.settings.get_dir_name(),
-#                                 'data',
-#                                 'EnergyPlus_IDD_v') + self.version + '.dat'
-#
-#         try:
-#             print('Loading IDD file: {}'.format(idd_file))
-#             self.idd = shelve.open(idd_file)
-#             return True
-#         except Exception as e:
-#             print("Can't open file: {} ({})".format(idd_file, e))
-#             return False
+    def insertColumns(self, position, cols):
+        print('proxy inserting cols')
+        return self.sourceModel().insertColumns(position, cols)
+
+    def removeRows(self, position, rows):
+        print('proxy removing rows')
+        return self.sourceModel().removeRows(position, rows)
+
+    def removeColumns(self, position, cols):
+        print('proxy removing cols')
+        return self.sourceModel().removeColumns(position, cols)
+
+class SortFilterProxyModel(QtGui.QSortFilterProxyModel):
+
+    def setSourceModel(self, source):
+        super(SortFilterProxyModel, self).setSourceModel(source)
+
+        # connect signals
+        # self.sourceModel().rowsAboutToBeInserted.connect(self.rowsAboutToBeInserted.emit)
+        # self.sourceModel().rowsInserted.connect(self.rowsInserted.emit)
+        # self.sourceModel().rowsAboutToBeRemoved.connect(self.rowsAboutToBeRemoved.emit)
+        # self.sourceModel().rowsRemoved.connect(self.rowsRemoved.emit)
+        # self.sourceModel().columnsAboutToBeInserted.connect(self.columnsAboutToBeInserted.emit)
+        # self.sourceModel().columnsInserted.connect(self.columnsInserted.emit)
+        # self.sourceModel().columnsAboutToBeRemoved.connect(self.columnsAboutToBeRemoved.emit)
+        # self.sourceModel().columnsRemoved.connect(self.columnsRemoved.emit)
+        # self.sourceModel().rowsInserted.connect(self._rowsInserted)
+        # self.sourceModel().rowsRemoved.connect(self._rowsRemoved)
+        # self.sourceModel().dataChanged.connect(self.dataChanged)

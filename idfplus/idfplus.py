@@ -292,7 +292,10 @@ class IDFPlus(QtGui.QMainWindow):
         transaction.get().note('Undo change')
         transaction.commit()
         self.db.connection.sync()
-        self.load_table_view(self.current_obj_class)
+
+        # Let the table model know that something has changed
+        self.classTable.model().dataChanged.emit(QtCore.QModelIndex(), QtCore.QModelIndex())
+        # self.load_table_view(self.current_obj_class)
 
 
     def redo(self):
@@ -393,12 +396,18 @@ class IDFPlus(QtGui.QMainWindow):
                 statusTip="Duplicate the current Object.",
                 triggered=self.duplicateObject)
 
+        self.delObjAct = QtGui.QAction("Del Obj", self,
+#                shortcut=QtGui.QKeySequence('Ctrl+t'),
+                statusTip="Delete the current Object.",
+                triggered=self.deleteObject)
+
         self.cutAct.setEnabled(False)
         self.copyAct.setEnabled(False)
         self.pasteAct.setEnabled(False)
         self.transposeAct.setEnabled(False)
         self.newObjAct.setEnabled(False)
         self.dupObjAct.setEnabled(False)
+        # self.delObjAct.setEnabled(False)
 
     def create_menus(self):
         """Create all required items for menus."""
@@ -417,6 +426,7 @@ class IDFPlus(QtGui.QMainWindow):
         self.editMenu.addSeparator()
         self.editMenu.addAction(self.newObjAct)
         self.editMenu.addAction(self.dupObjAct)
+        self.editMenu.addAction(self.delObjAct)
         self.editMenu.addAction(self.cutAct)
         self.editMenu.addAction(self.copyAct)
         self.editMenu.addAction(self.pasteAct)
@@ -476,6 +486,7 @@ class IDFPlus(QtGui.QMainWindow):
         self.editToolBar.setObjectName('editToolbar')
         self.editToolBar.addAction(self.newObjAct)
         self.editToolBar.addAction(self.dupObjAct)
+        self.editToolBar.addAction(self.delObjAct)
         self.editToolBar.addAction(self.cutAct)
         self.editToolBar.addAction(self.copyAct)
         self.editToolBar.addAction(self.pasteAct)
@@ -597,10 +608,36 @@ class IDFPlus(QtGui.QMainWindow):
         super(IDFPlus, self).setVisible(visible)
 
     def newObject(self):
-        pass
+        if self.obj_orientation == QtCore.Qt.Vertical:
+            model = self.classTable.model().sourceModel()
+            position = model.columnCount(QtCore.QModelIndex())
+            model.insertColumns(position, 1)
+        else:
+            model = self.classTable.model()
+            position = model.rowCount(QtCore.QModelIndex())
+            model.insertRows(position, 1)
+
+        print('new obj added')
 
     def duplicateObject(self):
         pass
+
+    def deleteObject(self):
+        # TODO allow deleting more than one at a time
+        selected = self.classTable.selectionModel()
+        indexes = selected.selectedIndexes()
+        # count = len(indexes)
+
+        if self.obj_orientation == QtCore.Qt.Vertical:
+            model = self.classTable.model().sourceModel()
+            position = indexes[0].column()
+            model.removeColumns(position, 1)
+        else:
+            model = self.classTable.model()
+            position = indexes[0].row()
+            model.removeRows(position, 1)
+
+        print('obj deleted')
 
     def toggle_full_tree(self):
         """Called to toggle the full class tree or a partial tree."""
@@ -633,58 +670,46 @@ class IDFPlus(QtGui.QMainWindow):
         self.move((screen.width() - size.width()) / 2,
                   (screen.height() - size.height()) / 2)
 
-#    def timerEvent(self, event):
-#        if self.step >= 100:
-#            self.timer.stop()
-#            return
-#        self.step = self.step + 1
-#        self.pbar.setValue(self.step)
-
     def load_table_view(self, obj_class):
         """Loads the table of objects for the specified class name.
         :param obj_class:
         """
 
-        # Filter out groups
+        # Filter out group headers
         if obj_class not in self.idd:
             return
 
+        # Save some variables
         table = self.classTable
         self.current_obj_class = obj_class
 
-        # print(self.idf._idd['Version'][0].value)
-        # print(self.idf.keys())
+        # Create the default table model
         self.default_model = tablemodel.IDFObjectTableModel(obj_class,
-                                                           self.idf)
-        model = self.default_model
+                                                       self.idf)
 
         # If objects are vertical, create transposed model
         if self.obj_orientation == QtCore.Qt.Vertical:
-            proxy_model = tablemodel.TransposeProxyModel(self.default_model)
-           # proxy_model.setSourceModel(self.default_model)
-            model = proxy_model
-           # table.horizontalHeader().sectionClicked.connect(model.sortTable)
+            model = tablemodel.TransposeProxyModel(self.default_model)
+            model.setSourceModel(self.default_model)
+        else:
+            model = self.default_model
 
-        sortable = QtGui.QSortFilterProxyModel()
-        sortable.setDynamicSortFilter(True)
+        # Create additional proxy for sorting and filtering
+        sortable = tablemodel.SortFilterProxyModel()
         sortable.setSourceModel(model)
-        table.setSortingEnabled(True)
+        # sortable.setDynamicSortFilter(True)  # Needed?
 
-        # Assign model to table and set some variables
+        # Assign model to table and set some variables (enable sorting FIRST)
+        table.setSortingEnabled(True)
         table.setModel(sortable)
 
-        # font = QtGui.QFont("Arial", 10)
-        # table.setFont(font)
-        # table.setSortingEnabled(True)
-        # table.setWordWrap(True)
-        # table.resizeColumnsToContents()
-
         # Create generic delegates for table cells
-        mydelegates = delegates.GenericDelegate(obj_class,
+        my_delegates = delegates.GenericDelegate(obj_class,
                                                  self.idd,
                                                  self.obj_orientation)
-        table.setItemDelegate(mydelegates)
+        table.setItemDelegate(my_delegates)
 
+        self.newObjAct.setEnabled(True)
         self.infoView.setText(self.idd[self.current_obj_class].get_info)
 
     def load_tree_view(self):
@@ -767,6 +792,10 @@ class IDFPlus(QtGui.QMainWindow):
         #     return
         self.load_table_view(current.text(0))
 
+    def iWasChanged2(self, current, previous):
+        """Test call to slot"""
+        print('test iwaschanged2')
+
     def create_ui(self):
         """Setup main UI elements, dock widgets, UI-related elements, etc. """
 
@@ -776,7 +805,7 @@ class IDFPlus(QtGui.QMainWindow):
         classTable.setObjectName("classTable")
         classTable.setAlternatingRowColors(True)
         classTable.setFrameShape(QtGui.QFrame.StyledPanel)
-        font = QtGui.QFont("Arial", 10)
+        font = QtGui.QFont("Arial", 9)
         classTable.setFont(font)
         classTable.setWordWrap(True)
         classTable.horizontalHeader().setMovable(True)
@@ -796,6 +825,7 @@ class IDFPlus(QtGui.QMainWindow):
         header = QtGui.QTreeWidgetItem(['Object Class', 'Count'])
         header.setFirstColumnSpanned(True)
         classTree.setHeaderItem(header)
+        classTree.setFont(font)
         classTree.header().resizeSection(0, 200)
         classTree.header().resizeSection(1, 10)
 #        classTree.header().setResizeMode(QtGui.QHeaderView.ResizeToContents)
