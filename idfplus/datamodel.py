@@ -793,6 +793,9 @@ class IDFField(Persistent):
         # Call the parent class' init method
         super(IDFField, self).__init__()
 
+    def __repr__(self):
+        return self.value
+
     @property
     def field(self):
         """

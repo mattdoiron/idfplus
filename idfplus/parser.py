@@ -156,14 +156,19 @@ class Writer(object):
         pass
 
     @staticmethod
-    def write_idf(idf, idd, options):
+    def write_idf(idf):
         """Write an IDF from the specified idfObject
         :param idf: :type IDFObject
         :param idd: :type IDDObject
         :param options: :type list: List of options
         """
 
-        print('Writing file: ' + idf.file_path + '_test')
+        idd = idf._idd
+        options = idf.options
+        eol_char = idf._eol_char
+        test_file_name = idf.file_path + '_test'
+
+        print('Writing file: {}'.format(test_file_name))
 
         # Check for special options
         use_special_format = False
@@ -173,19 +178,19 @@ class Writer(object):
 
         # Open file and write
         try:
-            with open(idf.file_path + '_test', 'w') as file:
+            with open(test_file_name, 'w') as file:
                 for obj_class, obj_list in idf.iteritems():
 
                     for obj in obj_list:
                         # Write special comments if there are any
-                        if obj['comments_special'] is not None:
-                            for comment in obj['comments_special']:
-                                file.write("!-{}\n".format(comment))
+                        # if obj['comments_special'] is not None:
+                        # for comment in obj.tags.get('comments_special', []):
+                        #     file.write("!-{}{}".format(comment, eol_char))
 
                         # Write comments if there are any
-                        if obj['comments'] is not None:
-                            for comment in obj['comments']:
-                                file.write("!{}\n".format(comment))
+                        # if obj['comments'] is not None:
+                        for comment in obj.comments:
+                            file.write("!{}".format(comment))
 
                         # Some objects are on one line and some fields are grouped!
                         # If enabled, check IDD file for special formatting instructions
@@ -196,16 +201,21 @@ class Writer(object):
                         file.write("  {},\n".format(obj_class))
 
                         # Write the fields
-                        if obj['fields']:
-                            field_count = len(obj['fields'])
-                            for i, field in enumerate(obj['fields']):
-                                if i == field_count - 1:
-                                    file.write("    {};\n".format(field))
-                                else:
-                                    file.write("    {},\n".format(field))
+                        # if obj['fields']:
+                        field_count = len(obj)
+                        for i, field in enumerate(obj):
+                            field_note = idd[obj_class][i].tags.get('field', None)
+                            if field_note:
+                                note = ' !-{}'.format(field_note)
+                            else:
+                                note = ''
+                            if i == field_count - 1:
+                                file.write("    {};{}\n".format(field.value, note))
+                            else:
+                                file.write("    {},{}\n".format(field.value, note))
 
                         # Add newline at the end of the object
-                        file.write("\n")
+                        file.write(eol_char)
 
             print('File written!')
             return True
@@ -213,17 +223,17 @@ class Writer(object):
             print('File not written! Exception!' + str(e.strerror))
             return False
 
-    @staticmethod
-    def write_idd(idd, options):
-        """Write an IDD from the specified iddObject
-        :param idd:
-        :param options:
-        """
-
-        print('Writing file: ' + idd.file_path)
-
-        # how will this be written? shelve? ZODB?
-        # probably just shelve...
+    # @staticmethod
+    # def write_idd(idd, options):
+    #     """Write an IDD from the specified iddObject
+    #     :param idd:
+    #     :param options:
+    #     """
+    #
+    #     print('Writing file: ' + idd.file_path)
+    #
+    #     # how will this be written? shelve? ZODB?
+    #     # probably just shelve...
 
 
 # Write the idf file
@@ -810,6 +820,7 @@ class IDFParser(Parser):
         global OPTIONS_LIST  # Avoid these?
 
         # file_path = self.idf.file_path  # TODO this will be None if blank idf used!
+        self.idf.file_path = file_path
         total_size = os.path.getsize(file_path)
         total_read = 0.0
 

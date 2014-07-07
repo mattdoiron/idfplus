@@ -257,7 +257,7 @@ class IDFPlus(QtGui.QMainWindow):
             return False
         file_name = self.file_path
         writer = parser.Writer()
-        if writer.write_idf(file_name, None, self.idf):
+        if writer.write_idf(self.idf):
             self.set_current_file(file_name)
             self.add_recent_file(file_name)
             self.statusBar().showMessage("File saved", 2000)
