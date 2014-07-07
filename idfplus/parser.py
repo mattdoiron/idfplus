@@ -29,6 +29,7 @@ import transaction
 
 # Package imports
 from . import datamodel
+from .datamodel import IDDFileDoesNotExist
 
 # Constants
 TAG_LIST = ['\\field',
@@ -766,16 +767,17 @@ class IDDParser(Parser):
             database.close()
             try:
                 print('Testing if loaded idd file has a version attribute')
-                test = idd.version
                 print('Version found! (v{})'.format(idd.version))
                 print('test 3 idd for keys: {}'.format(idd.keys()[:5]))
                 return idd
             except AttributeError:
                 print('No version attribute found!')
-                raise datamodel.IDDFileDoesNotExist("Can't find IDD file: {}".format(idd_path))
+                raise IDDFileDoesNotExist("Can't find version attribute in IDD file.",
+                                          version)
         else:
             print('idd not found')
-            raise datamodel.IDDFileDoesNotExist("Can't find IDD file: {}".format(idd_path))
+            raise IDDFileDoesNotExist("Can't find IDD file: {}".format(idd_path),
+                                      version)
 
 
 #---------------------------------------------------------------------------

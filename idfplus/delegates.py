@@ -29,7 +29,6 @@ class GenericDelegate(QtGui.QItemDelegate):
         super(GenericDelegate, self).__init__(parent)
         self.obj_class = obj_class
         self.idd = idd
-#        self.idd_object = idd[obj_class]
         self.delegates = {}
         self.obj_orientation = obj_orientation
         self.assignDelegates(idd[obj_class])
@@ -321,18 +320,18 @@ class ChoiceDelegate(QtGui.QItemDelegate):
         tableView.setAutoScroll(False)
         tableView.resizeColumnsToContents()
         tableView.resizeRowsToContents()
-#        tableView.setContentsMargins(0,0,0,0)
+        tableView.setContentsMargins(0,0,0,0)
 #        tableView.setSortingEnabled(True)
         tableView.verticalHeader().setVisible(False)
         tableView.horizontalHeader().setVisible(False)
         tableView.setMinimumWidth(tableView.horizontalHeader().length())
         tableView.setFrameShape(QtGui.QFrame.NoFrame)
-#        tableView.setFrame(False)
 
         # Table AND combo get same model (table first!)
         combo.setModel(model)
         combo.setView(tableView)
-#        combo.setContentsMargins(0,0,0,0)
+        combo.setFrame(False)
+        combo.setContentsMargins(0,0,0,0)
 #        combo.showPopup()
         return combo
 

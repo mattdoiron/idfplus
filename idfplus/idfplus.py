@@ -71,7 +71,7 @@ class IDFPlus(QtGui.QMainWindow):
         self.dirty = False
         self.obj_orientation = QtCore.Qt.Vertical
         self.current_obj_class = None
-        self.com = Communicate()
+        # self.com = Communicate()
 
         # Create main application elements
         self.create_actions()
@@ -84,27 +84,18 @@ class IDFPlus(QtGui.QMainWindow):
         self.classTree.currentItemChanged.connect(self.iWasChanged)
 
         # In-memory ZODB databases don't support undo! Use an on-disk cache
-        # idf_cache_path = os.path.join(datamodel.APP_ROOT, 'data', 'cache')
-        self.tmp = tempfile.NamedTemporaryFile(prefix='idfplus_cache_', delete=True)
-        self.db = MyZODB(self.tmp.name)
-
-        # self.db_conn = DB(self.tmp.name)
-        # self.db = self.db_conn.open().root
+        self.db = MyZODB()
 
         # Create a place to store all open files
         self.db.dbroot.files = OOBTree()
         self.files = self.db.dbroot.files
         self.idd = OOBTree()
-        # self.transaction = self.db.transaction
 
     def closeEvent(self, event):
         """Called when the application is closed."""
         if self.ok_to_continue():
             self.settings.write_settings()
             self.db.close()
-            self.tmp.close()
-            for extension in ['.lock', '.index', '.tmp']:
-                os.remove(self.tmp.name + extension)
             event.accept()
         else:
             event.ignore()
@@ -153,6 +144,7 @@ class IDFPlus(QtGui.QMainWindow):
                                                        total_size, self)
         message = "Loading {}...".format(file_path)
         self.progressDialogIDD.setLabelText(message)
+        self.progressDialogIDD.setWindowTitle('Loading IDD File')
         self.progressDialogIDD.setWindowModality(QtCore.Qt.WindowModal)
         self.progressDialogIDD.setMinimumDuration(500)
         self.progressDialogIDD.setCancelButton(None)
@@ -161,7 +153,6 @@ class IDFPlus(QtGui.QMainWindow):
 
         idd = datamodel.IDDFile()
         idd_parser = parser.IDDParser(idd)
-        # parser.init_db()
 
         for progress in idd_parser.parse_idd(file_path):
             self.progressDialogIDD.setValue(progress)
@@ -170,7 +161,7 @@ class IDFPlus(QtGui.QMainWindow):
 
     def load_idf(self, file_path):
         print('Trying to load file: {}'.format(file_path))
-        from . import parser
+
         idf = datamodel.IDFFile()
         self.files.update({0:idf})
         idf_parser = parser.IDFParser(idf)
@@ -181,8 +172,6 @@ class IDFPlus(QtGui.QMainWindow):
         print('IDF version detected as: {}'.format(idf.version))
         self.idf = idf
         self.idd = idf.idd
-        # print('idd version after load: {}'.format(idf))
-        print('type of file container: {}'.format(type(self.files)))
 
     def load_file(self, file_path=None):
         """Loads a specified file or gets the file_path from the sender.
@@ -207,6 +196,7 @@ class IDFPlus(QtGui.QMainWindow):
                                                        total_size, self)
         message = "Loading {}...".format(file_path)
         self.progressDialogIDF.setLabelText(message)
+        self.progressDialogIDF.setWindowTitle('Loading IDF File')
         self.progressDialogIDF.setWindowModality(QtCore.Qt.WindowModal)
         self.progressDialogIDF.setMinimumDuration(500)
         self.progressDialogIDF.setCancelButton(None)
@@ -216,18 +206,17 @@ class IDFPlus(QtGui.QMainWindow):
         # Try to load the specified IDF file
         try:
             self.load_idf(file_path)
-        except datamodel.IDDFileDoesNotExist:
+        except datamodel.IDDFileDoesNotExist as e:
 
             # Load IDD File for the version of this IDF file
             if not self.find_idd_file():
-                QtGui.QMessageBox.warning(self,
-                                          "Application",
-                                          ("Could not find IDD file of "
-                                          "appropriate version!\nLoading "
-                                          "cancelled"),
+                QtGui.QMessageBox.warning(self, "Processing IDD File Failed",
+                                          ("{}\n\nVersion Required: {}\n\nLoading "
+                                          "cancelled!".format(e.message, e.version)),
                                           QtGui.QMessageBox.Ok)
                 message = ("Loading failed. Could not find "
-                           "matching IDD version.")
+                           "matching IDD file for version {}.".format(e.version))
+                self.progressDialogIDF.cancel()
                 self.update_status(message)
                 return False
             else:
@@ -285,17 +274,22 @@ class IDFPlus(QtGui.QMainWindow):
 
         print('calling undo')
         import sys
-        no_initial = lambda tx: True if tx['description'] not in ['initial database creation'] else False
+        no_initial = lambda tx: True if tx['description'] not in ['initial database creation','Load file'] else False
         undo_log = self.db.db.undoLog(0, sys.maxint, no_initial)
 
+        if len(undo_log) <= 0:
+            print('nothing to undo!')
+            return
+
         self.db.db.undo(undo_log[0]['id'])
-        transaction.get().note('Undo change')
+        transaction.get().note('Undo {}'.format(undo_log[0]['description']))
         transaction.commit()
         self.db.connection.sync()
 
         # Let the table model know that something has changed
         self.classTable.model().dataChanged.emit(QtCore.QModelIndex(), QtCore.QModelIndex())
         # self.load_table_view(self.current_obj_class)
+        print('undo complete')
 
 
     def redo(self):
@@ -305,6 +299,7 @@ class IDFPlus(QtGui.QMainWindow):
         no_initial = lambda tx: True if tx['description'] not in ['initial database creation'] else False
         undo_log = self.db.db.undoLog(0, sys.maxint, no_initial)
         pprint.pprint(undo_log)
+        self.commentView.setText('undo log: {}'.format(undo_log))
 
     def about(self):
         """Called by the about action."""
@@ -397,7 +392,7 @@ class IDFPlus(QtGui.QMainWindow):
                 triggered=self.duplicateObject)
 
         self.delObjAct = QtGui.QAction("Del Obj", self,
-#                shortcut=QtGui.QKeySequence('Ctrl+t'),
+               # shortcut=QtGui.QKeySequence('Del'),
                 statusTip="Delete the current Object.",
                 triggered=self.deleteObject)
 
@@ -407,7 +402,7 @@ class IDFPlus(QtGui.QMainWindow):
         self.transposeAct.setEnabled(False)
         self.newObjAct.setEnabled(False)
         self.dupObjAct.setEnabled(False)
-        # self.delObjAct.setEnabled(False)
+        self.delObjAct.setEnabled(False)
 
     def create_menus(self):
         """Create all required items for menus."""
@@ -627,9 +622,14 @@ class IDFPlus(QtGui.QMainWindow):
         #TODO change from removeColumns/Rows to removeObject in IDFFile class?
         selected = self.classTable.selectionModel()
         indexes = selected.selectedIndexes()
+        if len(indexes) <= 0:
+            return
 
         # Make a set to find unique columns
-        index_set = set([index.column() for index in indexes])
+        if self.obj_orientation == QtCore.Qt.Vertical:
+            index_set = set([index.column() for index in indexes])
+        else:
+            index_set = set([index.row() for index in indexes])
         count = len(list(index_set))
 
         if self.obj_orientation == QtCore.Qt.Vertical:
@@ -641,7 +641,7 @@ class IDFPlus(QtGui.QMainWindow):
             position = indexes[0].row()
             model.removeRows(position, count)
 
-        print('obj deleted')
+        print('obj deleted: pos {}, count {}'.format(position, count))
 
     def toggle_full_tree(self):
         """Called to toggle the full class tree or a partial tree."""
@@ -714,10 +714,17 @@ class IDFPlus(QtGui.QMainWindow):
         table.setItemDelegate(my_delegates)
 
         self.newObjAct.setEnabled(True)
+        self.delObjAct.setEnabled(True)
+        self.transposeAct.setEnabled(True)
         self.infoView.setText(self.idd[self.current_obj_class].get_info)
 
     def load_tree_view(self):
         """Loads the tree of class type names."""
+        #TODO modify this to use a custom datamodel linking to the same
+        # IDFFile object, but interpreting it differently. This way when
+        # the object counts change, they will automatically update. Would
+        # this method also be faster?
+
         tree = self.classTree
         tree.clear()
         group = ''
@@ -744,10 +751,6 @@ class IDFPlus(QtGui.QMainWindow):
 
             objs = self.idf.get(obj_class, None)
             obj_count = len(objs or []) or ''
-            # if objs:
-            #     obj_count = len(objs)
-            # else:
-            #     obj_count = ''
 
             child = QtGui.QTreeWidgetItem([obj_class, str(obj_count)])
             child.setTextAlignment(1, QtCore.Qt.AlignRight)
@@ -758,7 +761,6 @@ class IDFPlus(QtGui.QMainWindow):
 #        left.itemActivated.connect(self.iWasClicked)
 #        left.currentItemChanged.connect(self.iWasChanged)
 #        left.itemPressed.connect(self.iWasClicked)
-        self.transposeAct.setEnabled(True)
 
     def transpose_table(self):
         """Transposes the table"""
@@ -803,8 +805,7 @@ class IDFPlus(QtGui.QMainWindow):
     def create_ui(self):
         """Setup main UI elements, dock widgets, UI-related elements, etc. """
 
-        # Class Objects Table widget
-#        mainView = QtGui.QWidget(self)
+        # Object class table widget
         classTable = QtGui.QTableView(self)
         classTable.setObjectName("classTable")
         classTable.setAlternatingRowColors(True)
@@ -814,14 +815,9 @@ class IDFPlus(QtGui.QMainWindow):
         classTable.setWordWrap(True)
         classTable.horizontalHeader().setMovable(True)
         classTable.resizeColumnsToContents()
-#        layout = QtGui.QVBoxLayout(self)
-#        layout.addWidget(self.editToolBar)
-#        layout.addWidget(classTable)
-#        mainView.setLayout(layout)
-#        self.mainView = mainView
-#        self.layout = layout
+        classTable.resizeRowsToContents()
 
-        # Class name tree widget
+        # Object class tree widget
         classTreeDockWidget = QtGui.QDockWidget("Object Classes and Counts", self)
         classTreeDockWidget.setObjectName("classTreeDockWidget")
         classTreeDockWidget.setAllowedAreas(QtCore.Qt.AllDockWidgetAreas)
@@ -830,11 +826,14 @@ class IDFPlus(QtGui.QMainWindow):
         header.setFirstColumnSpanned(True)
         classTree.setHeaderItem(header)
         classTree.setFont(font)
-        classTree.header().resizeSection(0, 200)
-        classTree.header().resizeSection(1, 10)
-#        classTree.header().setResizeMode(QtGui.QHeaderView.ResizeToContents)
+        # classTree.header().setResizeMode(QtGui.QHeaderView.ResizeToContents)
         classTree.setAlternatingRowColors(True)
         classTreeDockWidget.setWidget(classTree)
+        classTree.setColumnWidth(0, 280)
+        classTree.setColumnWidth(1, 10)
+        # print(classTree.columnCount())
+        classTree.header().resizeSection(0, 280)
+        classTree.header().resizeSection(1, 10)
 
         # Comments widget
         commentDockWidget = QtGui.QDockWidget("Comments", self)
@@ -863,7 +862,7 @@ class IDFPlus(QtGui.QMainWindow):
         self.setCorner(QtCore.Qt.BottomRightCorner,
                        QtCore.Qt.RightDockWidgetArea)
 
-        # Assign main widget and dockwidgets to QMainWindow
+        # Assign main widget and dock widgets to QMainWindow
         self.setCentralWidget(classTable)
         self.addDockWidget(QtCore.Qt.LeftDockWidgetArea, classTreeDockWidget)
         self.addDockWidget(QtCore.Qt.RightDockWidgetArea, commentDockWidget)
@@ -885,7 +884,7 @@ class IDFPlus(QtGui.QMainWindow):
         self.setUnifiedTitleAndToolBarOnMac(True)
         self.setWindowTitle('IDFPlus Editor')
         self.statusBar().showMessage('Status: Ready')
-        self.setWindowIcon(QtGui.QIcon(':/eplussm.gif'))
+        self.setWindowIcon(QtGui.QIcon(':/images/eplussm.gif'))
 
     def create_tray_menu(self):
         """Creates an icon and menu for the system tray"""
@@ -922,40 +921,28 @@ class IDFPlus(QtGui.QMainWindow):
 class MyZODB(object):
     """Wrapper for ZODB connection"""
 
-    def __init__(self, path):
-        # import transaction
-        # self.transaction = transaction
-        self.storage = FileStorage.FileStorage(path)
+    def __init__(self):
+        import transaction
+        self.transaction = transaction
+        self.tmp = tempfile.NamedTemporaryFile(prefix='idfplus_cache_', delete=True)
+        self.storage = FileStorage.FileStorage(self.tmp.name)
         self.db = DB(self.storage)
         self.connection = self.db.open()
         self.dbroot = self.connection.root
 
     def close(self):
+        """Closes connections/files and cleans up."""
+        import os
+        self.transaction.commit()
         self.connection.close()
         self.db.close()
         self.storage.close()
+        self.tmp.close()
+        for extension in ['.lock', '.index', '.tmp']:
+            os.remove(self.tmp.name + extension)
 
 
-class Communicate(QtCore.QObject):
-    """Class used to communicate with other objects in the application"""
-
-    msg = QtCore.Signal(int)
-
-
-# def main():
-#     """Main function to start the program."""
+# class Communicate(QtCore.QObject):
+#     """Class used to communicate with other objects in the application"""
 #
-#     app = QtGui.QApplication(sys.argv)
-# #    app.setStyle(QtGui.QStyleFactory.create('Cleanlooks'))
-# #    app.setOrganizationName("IDF Plus Inc.")
-# #    app.setOrganizationDomain("idfplus.com")
-# #    app.setApplicationName("IDFPlus Editor")
-#
-#     idf_plus = IDFPlus()
-#     idf_plus.show()
-#
-#     sys.exit(app.exec_())
-#
-#
-# if __name__ == '__main__':
-#     main()
+#     msg = QtCore.Signal(int)

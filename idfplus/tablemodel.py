@@ -41,7 +41,7 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
         self.idd = idf._idd
         # print('setting obj_class: {}'.format(obj_class))
         self.idf_objects = idf.get(obj_class, [])
-        self.idd_object = idf._idd.get(obj_class)
+        self.idd_object = idf._idd.get(obj_class, [])
         # print('loading idd object: {}'.format(self.idd_object))
         self.dirty = False
         self.getLabels()
@@ -72,27 +72,36 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
         if role == QtCore.Qt.DisplayRole or role == QtCore.Qt.EditRole:
             try:
                 data = self.idf_objects[row][column].value
-                # print('data: {}'.format(data))
             except IndexError:
                 return None
         elif role == QtCore.Qt.ToolTipRole:
             data = "tooltip test"
         elif role == QtCore.Qt.DecorationRole:
             pass
+        elif role == QtCore.Qt.StatusTipRole:
+            pass
         elif role == QtCore.Qt.TextAlignmentRole:
-            return QtCore.Qt.AlignLeft | QtCore.Qt.AlignVCenter
-        elif role == QtCore.Qt.TextColorRole:
-            return QtGui.QColor(QtCore.Qt.black)
+            return int(QtCore.Qt.AlignLeft | QtCore.Qt.AlignVCenter)
+        elif role == QtCore.Qt.TextColorRole or role == QtCore.Qt.ForegroundRole:
+            # return QtGui.QColor(QtCore.Qt.black)
+            pass
         elif role == QtCore.Qt.BackgroundColorRole:
-            return QtGui.QColor(250, 230, 250)
+            #TODO Colour cells differently depending on things like if they are required
+            # return QtGui.QColor(250, 250, 250)
+            pass
         return data
 
-    def headerData(self, section, orientation, role):
+    def headerData(self, section, orientation, role, old_orientation=None):
         if role == QtCore.Qt.TextAlignmentRole:
-            if orientation == QtCore.Qt.Horizontal:
-                return QtCore.Qt.AlignLeft | QtCore.Qt.AlignVCenter
-            return QtCore.Qt.AlignRight | QtCore.Qt.AlignVCenter
-        if role == QtCore.Qt.DisplayRole:
+            if old_orientation is None:
+                if orientation == QtCore.Qt.Vertical:
+                    return int(QtCore.Qt.AlignRight | QtCore.Qt.AlignVCenter)
+                return int(QtCore.Qt.AlignLeft | QtCore.Qt.AlignVCenter)
+            else:
+                if orientation == QtCore.Qt.Vertical:
+                    return int(QtCore.Qt.AlignLeft | QtCore.Qt.AlignVCenter)
+                return int(QtCore.Qt.AlignRight | QtCore.Qt.AlignVCenter)
+        elif role == QtCore.Qt.DisplayRole or role == QtCore.Qt.ToolTipRole:
             if orientation == QtCore.Qt.Horizontal:
                 return self.field_labels[section]
             if orientation == QtCore.Qt.Vertical:
@@ -103,7 +112,7 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
         return len(self.idf_objects)
 
     def columnCount(self, index):
-        return len(self.idf_objects[0])
+        return len(self.idd_object)
 
     def setData(self, index, value, role):
         if not index.isValid():
@@ -271,7 +280,7 @@ class TransposeProxyModel(QtGui.QAbstractProxyModel):
             new_orientation = QtCore.Qt.Vertical
         else:
             new_orientation = QtCore.Qt.Horizontal
-        return self.sourceModel().headerData(section, new_orientation, role)
+        return self.sourceModel().headerData(section, new_orientation, role, orientation)
 
     def insertRows(self, position, rows):
         print('proxy inserting rows')

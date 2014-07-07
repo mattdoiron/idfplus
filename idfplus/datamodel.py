@@ -37,7 +37,9 @@ APP_ROOT = os.path.join(os.path.dirname(os.path.realpath(__file__)), '..')
 
 class IDDFileDoesNotExist(Exception):
     """Exception called when no IDD file is found."""
-    pass
+    def __init__(self, message, version):
+        self.message = message
+        self.version = version
 
 
 class VersionAlreadySet(Exception):
