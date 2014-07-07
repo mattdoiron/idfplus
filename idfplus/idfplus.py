@@ -431,6 +431,7 @@ class IDFPlus(QtGui.QMainWindow):
         self.viewMenu.addAction(self.classTree.parent().toggleViewAction())
         self.viewMenu.addAction(self.infoView.parent().toggleViewAction())
         self.viewMenu.addAction(self.commentView.parent().toggleViewAction())
+        self.viewMenu.addAction(self.debugView.parent().toggleViewAction())
         self.viewMenu.addSeparator()
         self.viewMenu.addAction(self.fileToolBar.toggleViewAction())
         self.viewMenu.addAction(self.editToolBar.toggleViewAction())
@@ -851,6 +852,14 @@ class IDFPlus(QtGui.QMainWindow):
         infoView.setFrameShape(QtGui.QFrame.StyledPanel)
         infoDockWidget.setWidget(infoView)
 
+        # Logging and debugging widget
+        debugDockWidget = QtGui.QDockWidget("Debug", self)
+        debugDockWidget.setObjectName("debugDockWidget")
+        debugDockWidget.setAllowedAreas(QtCore.Qt.AllDockWidgetAreas)
+        debugView = QtGui.QTextEdit(debugDockWidget)
+        debugView.setFrameShape(QtGui.QFrame.StyledPanel)
+        debugDockWidget.setWidget(debugView)
+
         # Define corner docking behaviour
         self.setDockNestingEnabled(True)
         self.setCorner(QtCore.Qt.TopLeftCorner,
@@ -867,17 +876,20 @@ class IDFPlus(QtGui.QMainWindow):
         self.addDockWidget(QtCore.Qt.LeftDockWidgetArea, classTreeDockWidget)
         self.addDockWidget(QtCore.Qt.RightDockWidgetArea, commentDockWidget)
         self.addDockWidget(QtCore.Qt.RightDockWidgetArea, infoDockWidget)
+        self.addDockWidget(QtCore.Qt.RightDockWidgetArea, debugDockWidget)
 
         # Store widgets for access by other objects
         self.classTable = classTable
         self.commentView = commentView
         self.infoView = infoView
         self.classTree = classTree
+        self.debugView = debugView
 
         # Store docks for access by other objects
         self.commentDockWidget = commentDockWidget
         self.infoDockWidget = infoDockWidget
         self.classTreeDockWidget = classTreeDockWidget
+        self.debugDockWidget = debugDockWidget
 
         # Perform other UI-related initialization tasks
         self.center()
