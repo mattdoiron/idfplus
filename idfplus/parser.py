@@ -18,7 +18,7 @@ along with IDFPlus. If not, see <http://www.gnu.org/licenses/>.
 """
 
 # Prepare for Python 3
-from __future__ import (print_function, division, with_statement, absolute_import)
+from __future__ import (print_function, division, absolute_import)
 
 # System imports
 import os
@@ -26,6 +26,7 @@ import shelve
 import datetime as dt
 import transaction
 # import ZODB
+from persistent.list import PersistentList
 
 # Package imports
 from . import datamodel
@@ -892,7 +893,7 @@ class IDFParser(Parser):
                             # the idf file's object classes. This must be done early
                             # so that all objects added later are added to properly
                             # ordered classes.
-                            self.idf.update((k, []) for k, v in idd.iteritems())
+                            self.idf.update((k, PersistentList()) for k, v in idd.iteritems())
 
                         print('idd loaded as version: {}'.format(self.idd.version))
 

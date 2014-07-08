@@ -18,7 +18,7 @@ along with IDFPlus. If not, see <http://www.gnu.org/licenses/>.
 """
 
 # Prepare for Python 3
-from __future__ import (print_function, division, with_statement, absolute_import)
+from __future__ import (print_function, division, absolute_import)
 
 # System imports
 import os
@@ -281,14 +281,22 @@ class IDFPlus(QtGui.QMainWindow):
             print('nothing to undo!')
             return
 
+        # self.classTable.model().layoutAboutToBeChanged.emit()
+
         self.db.db.undo(undo_log[0]['id'])
         transaction.get().note('Undo {}'.format(undo_log[0]['description']))
         transaction.commit()
         self.db.connection.sync()
 
-        # Let the table model know that something has changed
-        self.classTable.model().dataChanged.emit(QtCore.QModelIndex(), QtCore.QModelIndex())
-        # self.load_table_view(self.current_obj_class)
+        # Let the table model know that something has changed. For now, the whole
+        # table must be reloaded because undo could do any number of things, all which
+        # need different update operations (like insert rows, remove columns, etc).
+        # self.classTable.model().dataChanged.emit(QtCore.QModelIndex(), QtCore.QModelIndex())
+        self.load_table_view(self.current_obj_class)
+
+        # self.classTable.model().dataChanged.emit(QtCore.QModelIndex(), QtCore.QModelIndex())
+        # self.classTable.model().layoutChanged.emit()
+
         print('undo complete')
 
 
@@ -617,7 +625,10 @@ class IDFPlus(QtGui.QMainWindow):
         print('new obj added')
 
     def duplicateObject(self):
-        pass
+        print('duplicate object called')
+
+    def moveObject(self):
+        print('move object called')
 
     def deleteObject(self):
         #TODO change from removeColumns/Rows to removeObject in IDFFile class?

@@ -18,7 +18,7 @@ along with IDFPlus. If not, see <http://www.gnu.org/licenses/>.
 """
 
 # Prepare for Python 3
-from __future__ import (print_function, division, with_statement, absolute_import)
+from __future__ import (print_function, division, absolute_import)
 
 # System imports
 import os
@@ -31,6 +31,9 @@ from persistent.dict import PersistentDict
 from persistent.mapping import PersistentMapping
 from odict.pyodict import _odict, _nil
 from BTrees.OOBTree import OOBTree
+
+# Investigate as replacement for large lists
+# https://pypi.python.org/pypi/blist
 
 # Constants
 APP_ROOT = os.path.join(os.path.dirname(os.path.realpath(__file__)), '..')
