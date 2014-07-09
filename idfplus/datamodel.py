@@ -763,6 +763,19 @@ class IDFObject(PersistentList):
             self._outgoing_links.remove(link)
         return True
 
+    def set_defaults(self, idd):
+        """Populates the field with its defaults"""
+
+        # print('setting defaults')
+        idd_objects = idd.get(self.obj_class)
+        for i, field in enumerate(idd_objects):
+            default = field.tags.get('default', '')
+            try:
+                self[i].value = default
+            except IndexError:
+                self.append(IDFField(self, value=default))
+            # print('default set: {}'.format(self[i]))
+
 
 class IDFField(Persistent):
     """Basic component of the idf object classes.
@@ -797,7 +810,7 @@ class IDFField(Persistent):
         super(IDFField, self).__init__()
 
     def __repr__(self):
-        return self.value
+        return self.value or ''
 
     @property
     def field(self):

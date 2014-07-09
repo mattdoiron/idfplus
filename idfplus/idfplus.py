@@ -45,6 +45,18 @@ from . import datamodel
 from . import icons_qr  # Used for icons (in text format)
 from . import misc_icons_qr  # Used for icons (in text format)
 
+# Setup logging
+#TODO not working?
+import logging
+log = logging.getLogger(__name__)
+log.setLevel(logging.INFO)
+handler = logging.FileHandler('hello.log')
+handler.setLevel(logging.INFO)
+formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+handler.setFormatter(formatter)
+log.addHandler(handler)
+log.info('test of logging')
+
 # Global variables
 __version__ = '0.0.1'
 
@@ -613,13 +625,33 @@ class IDFPlus(QtGui.QMainWindow):
 
     def newObject(self):
         #TODO change from insertColumns/Rows to insertObject in IDFFile class?
+        selected = self.classTable.selectionModel()
+        indexes = selected.selectedIndexes()
+
+        # Detect orientation, then make a set to find unique columns/rows
         if self.obj_orientation == QtCore.Qt.Vertical:
+            index_set = set([index.column() for index in indexes])
+            index_list = list(index_set)
             model = self.classTable.model().sourceModel()
-            position = model.columnCount(QtCore.QModelIndex())
+
+            if len(indexes) <= 0:
+                # No selection, so add to end of object list
+                position = model.columnCount(QtCore.QModelIndex())
+            else:
+                # Selection made so insert at end of selection
+                position = index_list[-1] + 1
+
             model.insertColumns(position, 1)
         else:
+            index_set = set([index.row() for index in indexes])
+            index_list = list(index_set)
             model = self.classTable.model()
-            position = model.rowCount(QtCore.QModelIndex())
+
+            if len(indexes) <= 0:
+                position = model.rowCount(QtCore.QModelIndex())
+            else:
+                position = index_list[-1] + 1
+
             model.insertRows(position, 1)
 
         print('new obj added')
@@ -627,8 +659,20 @@ class IDFPlus(QtGui.QMainWindow):
     def duplicateObject(self):
         print('duplicate object called')
 
-    def moveObject(self):
+    def moveObject(self, position, source, destination):
+        """Moves (reorders) objects."""
+        if self.obj_orientation == QtCore.Qt.Vertical:
+            model = self.classTable.model().sourceModel()
+            model.moveRows(self, position, source, destination)
+        else:
+            model = self.classTable.model()
+            model.moveColumns(self, position, source, destination)
+
         print('move object called')
+
+    def copyObject(self):
+        """Copies object(s) to the system clipboard for pasting to other programs."""
+        print('copy object called')
 
     def deleteObject(self):
         #TODO change from removeColumns/Rows to removeObject in IDFFile class?
@@ -637,7 +681,7 @@ class IDFPlus(QtGui.QMainWindow):
         if len(indexes) <= 0:
             return
 
-        # Make a set to find unique columns
+        # Make a set to find unique columns/rows
         if self.obj_orientation == QtCore.Qt.Vertical:
             index_set = set([index.column() for index in indexes])
         else:
@@ -778,13 +822,16 @@ class IDFPlus(QtGui.QMainWindow):
         """Transposes the table"""
         if self.obj_orientation == QtCore.Qt.Horizontal:
             self.obj_orientation = QtCore.Qt.Vertical
-            # print('Setting object orientation to: Vertical')
+            self.classTable.horizontalHeader().setMovable(True)
+            self.classTable.verticalHeader().setMovable(False)
+            log.info('Setting object orientation to vertical.')
         else:
             self.obj_orientation = QtCore.Qt.Horizontal
+            self.classTable.horizontalHeader().setMovable(False)
+            self.classTable.verticalHeader().setMovable(True)
             # print('Setting object orientation to: Horizontal')
-#        self.classTable.obj_orientation = self.obj_orientation
+
         self.load_table_view(self.current_obj_class)
-        # print(self.search(self.idf, 'Holiday'))
 
     def search(self, dictionary, searchFor):
         """Brute force search trial
@@ -826,8 +873,12 @@ class IDFPlus(QtGui.QMainWindow):
         classTable.setFont(font)
         classTable.setWordWrap(True)
         classTable.horizontalHeader().setMovable(True)
+        classTable.verticalHeader().setMovable(False)
         classTable.resizeColumnsToContents()
         classTable.resizeRowsToContents()
+        # classTable.columnMoved.connect(self.iWasChanged2)
+        classTable.horizontalHeader().sectionMoved.connect(self.moveObject)
+        classTable.verticalHeader().sectionMoved.connect(self.moveObject)
 
         # Object class tree widget
         classTreeDockWidget = QtGui.QDockWidget("Object Classes and Counts", self)

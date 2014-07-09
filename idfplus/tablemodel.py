@@ -140,12 +140,17 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
     def insertRows(self, position, rows=None, index=QtCore.QModelIndex()):
         if rows is None:
             rows = 1
+
         self.beginInsertRows(QtCore.QModelIndex(),
                              position,
                              position - 1 + rows)
+
         for row in range(rows):
             new_obj = IDFObject(self.idf, obj_class=self.obj_class)
+            new_obj.set_defaults(self.idd)
             self.idf_objects.insert(position + row, new_obj)
+
+        # Update state
         self.getLabels()
         transaction.get().note('Insert object')
         transaction.commit()
@@ -166,6 +171,7 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
         # self.idf_objects[start:end] = []
         del self.idf_objects[start:end]
 
+        # Update state
         self.getLabels()
         if rows > 1:
             transaction.get().note('Remove multiple objects')
@@ -186,7 +192,15 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
                            index)
 
         # move code goes here - note implemented yet
+        to_move = self.idf_objects[position:position + rows]
+        self.idf_objects.insert(index, to_move)
 
+        if position >= index:
+            del self.idf_objects[position + rows:position + rows + rows]
+        else:
+            del self.idf_objects[position:position + rows]
+
+        # Update state
         self.getLabels()
         if rows > 1:
             transaction.get().note('Move multiple objects')
@@ -205,11 +219,11 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
         self.beginInsertColumns(QtCore.QModelIndex(),
                                 position,
                                 position - 1 + cols)
+
         for col in range(cols):
             new_obj = IDFObject(self.idf, obj_class=self.obj_class)
-            # self.idf_objects.insert(position + col, new_obj)
-            print('inserting col: {}'.format(col))
-            self.idf_objects.append(new_obj)
+            new_obj.set_defaults(self.idd)
+            self.idf_objects.insert(position + col, new_obj)
 
         # Update state
         self.getLabels()
