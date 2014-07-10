@@ -368,13 +368,13 @@ class IDFPlus(QtGui.QMainWindow):
 
         self.copyAct = QtGui.QAction(QtGui.QIcon(':/images/copy.png'),
                 "&Copy", self, shortcut=QtGui.QKeySequence.Copy,
-                statusTip="Copy the current selection's contents to the clipboard")
-#                triggered=self.textEdit.copy)
+                statusTip="Copy the current selection's contents to the clipboard",
+                triggered=self.copySelected)
 
         self.pasteAct = QtGui.QAction(QtGui.QIcon(':/images/paste.png'),
                 "&Paste", self, shortcut=QtGui.QKeySequence.Paste,
-                statusTip="Paste the clipboard's contents into the current selection")
-#                triggered=self.textEdit.paste)
+                statusTip="Paste the clipboard's contents into the current selection",
+                triggered=self.pasteSelected)
 
         self.undoAct = QtGui.QAction("&Undo", self,
                 shortcut=QtGui.QKeySequence.Undo,
@@ -417,8 +417,8 @@ class IDFPlus(QtGui.QMainWindow):
                 triggered=self.deleteObject)
 
         self.cutAct.setEnabled(False)
-        self.copyAct.setEnabled(False)
-        self.pasteAct.setEnabled(False)
+        # self.copyAct.setEnabled(False)
+        # self.pasteAct.setEnabled(False)
         self.transposeAct.setEnabled(False)
         self.newObjAct.setEnabled(False)
         self.dupObjAct.setEnabled(False)
@@ -518,6 +518,8 @@ class IDFPlus(QtGui.QMainWindow):
         QtGui.QShortcut(QtGui.QKeySequence('Ctrl+v'),self).activated.connect(self._handle_paste)
         QtGui.QShortcut(QtGui.QKeySequence('Ctrl+d'),self).activated.connect(self.copy_test)
         QtGui.QShortcut(QtGui.QKeySequence('Ctrl+l'),self).activated.connect(self.toggle_full_tree)
+
+        self.clipboard = QtGui.QApplication.clipboard()
 
 #    def createAction(self, text, slot=None, shortcut=None, icon=None,
 #                     tip=None, checkable=False, signal="triggered()"):
@@ -671,8 +673,57 @@ class IDFPlus(QtGui.QMainWindow):
         print('move object called')
 
     def copyObject(self):
-        """Copies object(s) to the system clipboard for pasting to other programs."""
+        """Copies object(s) to the clipboard for pasting to other programs."""
         print('copy object called')
+
+    def copySelected(self):
+        """Copies the selected cells to the clipboard for pasting to other programs."""
+        print('copy selected called')
+
+        selection_model = self.classTable.selectionModel()
+        indexes = selection_model.selectedIndexes()
+        selection = selection_model.selection()
+
+        for item in selection:
+            print('item')
+
+        print('number selected: {}'.format(selection.count()))
+
+        to_copy_list = [i.data() for i in indexes]
+        print(to_copy_list)
+
+        to_copy = '\n'.join(to_copy_list)
+
+        print(to_copy)
+
+        # mimeData = self.clipboard.mimeData()
+        mode = QtGui.QClipboard.Clipboard
+        self.clipboard.clear(mode=mode)
+        self.clipboard.setText(to_copy, mode=mode)
+
+        # if self.clipboard.mimeData().hasHtml():
+        #     self.clipboard.setText(mimeData.html(), mode=mode)
+        #     self.clipboard.setTextFormat(QtCore.Qt.RichText)
+        # else:
+        #     self.clipboard.setText(mimeData.text(), mode=mode)
+        #     self.clipboard.setTextFormat(QtCore.Qt.PlainText)
+
+        # self.infoView.setText()
+        print('copy selected called')
+
+    def pasteSelected(self):
+        print('paste selected called')
+        # clipboard = QtGui.QApplication.clipboard()
+        # mimeData = clipboard.mimeData()
+        self.infoView.setPlainText(self.clipboard.mimeData().text())
+
+        # if mimeData.hasHtml():
+        #     self.infoView.setText(mimeData.html())
+        # else:
+        #     self.infoView.setPlainText(mimeData.text())
+
+        # self.infoView.setText()
+        print('paste selected called')
 
     def deleteObject(self):
         #TODO change from removeColumns/Rows to removeObject in IDFFile class?
@@ -876,7 +927,8 @@ class IDFPlus(QtGui.QMainWindow):
         classTable.verticalHeader().setMovable(False)
         classTable.resizeColumnsToContents()
         classTable.resizeRowsToContents()
-        # classTable.columnMoved.connect(self.iWasChanged2)
+        classTable.setSelectionMode(QtGui.QAbstractItemView.ExtendedSelection)
+        # classTable.columnMoved.connect(self.moveObject)
         classTable.horizontalHeader().sectionMoved.connect(self.moveObject)
         classTable.verticalHeader().sectionMoved.connect(self.moveObject)
 
