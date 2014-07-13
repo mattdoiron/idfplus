@@ -30,6 +30,7 @@ from PySide import QtCore
 # Constants
 APP_ROOT = os.path.join(os.path.dirname(os.path.realpath(__file__)), '..')
 LOG_LEVEL = 'DEBUG'
+DEFAULT_COLUMN_WIDTH = 120
 
 class Settings(object):
     """Object to handle setting and getting settings or info about them."""
@@ -66,6 +67,11 @@ class Settings(object):
         parent.recentFiles = list(settings.value("recent_files", ['']))
         settings.endGroup()
 
+        settings.beginGroup("ClassTable")
+        global DEFAULT_COLUMN_WIDTH
+        DEFAULT_COLUMN_WIDTH = settings.value("default_column_width", 120)
+        settings.endGroup()
+
         parent.resize(size)
         parent.move(position)
         parent.restoreState(state)
@@ -95,6 +101,10 @@ class Settings(object):
         settings.setValue("pos", parent.pos())
         settings.setValue("state", parent.saveState())
 #        settings.setValue("geometry", parent.saveGeometry())
+        settings.endGroup()
+
+        settings.beginGroup("ClassTable")
+        settings.setValue("default_column_width", 120)
         settings.endGroup()
 
     def show_settings_dialog(self):

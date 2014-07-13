@@ -674,16 +674,22 @@ class IDFPlus(QtGui.QMainWindow):
         """Copies the selected cells to the clipboard for pasting to other programs."""
         print('copySelected call started')
 
-        selection_model = self.classTable.selectionModel()
-        indexes = selection_model.selectedIndexes()
 
-        selection = selection_model.selection().first()
+        # selection_model = self.classTable.selectionModel()
+        # indexes = selection_model.selectedIndexes()
+        indexes = self.classTable.selectedIndexes()
+
+        # selection = selection_model.selection().first()
         # selection_indexes = selection.indexes() # crashes!
 
-        width = selection.width()
-        height = selection.height()
+        if self.obj_orientation == QtCore.Qt.Vertical:
+            first = indexes[0].column()
+            last = indexes[-1].column()
+        else:
+            first = indexes[0].row()
+            last = indexes[-1].row()
 
-        print('selection size: width: {} height: {}'.format(width, height))
+        print('selection size: first: {} last: {}'.format(first, last))
 
         # for item in selection_indexes:
         #     print('item: {}'.format(item.data()))
@@ -691,10 +697,22 @@ class IDFPlus(QtGui.QMainWindow):
         # print('items: {}'.format(selection_indexes))
         # print('number selected: {}'.format(selection.count()))
 
-        to_copy_list = [i.data() for i in indexes]
-        # print(to_copy_list)
+        to_copy_list = [i.data() for i in indexes if i.column() == first]
+        print(to_copy_list)
 
-        to_copy = '\n'.join(to_copy_list)
+        to_copy = ''
+        for i in indexes:
+            to_copy += i.data()
+            to_copy += '\n'
+
+            if self.obj_orientation == QtCore.Qt.Vertical:
+                if i.column() == last:
+                    to_copy += '\t'
+            else:
+                if i.row() == last:
+                    to_copy += '\t'
+
+        # to_copy = '\n'.join(to_copy_list)
 
         print(to_copy)
 
@@ -925,11 +943,21 @@ class IDFPlus(QtGui.QMainWindow):
         classTable.setFrameShape(QtGui.QFrame.StyledPanel)
         font = QtGui.QFont("Arial", 9)
         classTable.setFont(font)
+        fm = classTable.fontMetrics()
         classTable.setWordWrap(True)
+
         classTable.horizontalHeader().setMovable(True)
         classTable.verticalHeader().setMovable(False)
-        classTable.resizeColumnsToContents()
-        classTable.resizeRowsToContents()
+        # classTable.horizontalHeader().setContentsMargins(0, 0, 0, 0)
+        # classTable.verticalHeader().setContentsMargins(0, 0, 0, 0)
+        classTable.horizontalHeader().setResizeMode(QtGui.QHeaderView.Interactive)
+        classTable.verticalHeader().setResizeMode(QtGui.QHeaderView.Interactive)
+        classTable.horizontalHeader().setDefaultSectionSize(c.DEFAULT_COLUMN_WIDTH)
+        classTable.verticalHeader().setDefaultSectionSize(fm.height() + 5)
+        # classTable.setStyleSheet("QTableView {padding: 0px; border: 0px;} ")
+
+        # classTable.resizeColumnsToContents()
+        # classTable.resizeRowsToContents()
         classTable.setSelectionMode(QtGui.QAbstractItemView.ContiguousSelection)
         # classTable.columnMoved.connect(self.moveObject)
         classTable.horizontalHeader().sectionMoved.connect(self.moveObject)
@@ -978,6 +1006,8 @@ class IDFPlus(QtGui.QMainWindow):
         logView.setReadOnly(True)
         logView.ensureCursorVisible()
         logDockWidget.setWidget(logView)
+
+        # TODO should only start this when the log viewer window is visible?
         self.start_log_watcher()
 
         # Define corner docking behaviour
@@ -1058,11 +1088,17 @@ class IDFPlus(QtGui.QMainWindow):
         self.logView.centerCursor()
 
     def start_log_watcher(self):
-
         self.watcher = QtCore.QFileSystemWatcher()
         log_path = os.path.join(c.APP_ROOT, 'data', 'logs', 'idfplus.log')
         self.watcher.addPath(log_path)
         self.watcher.fileChanged.connect(self.update_log_viewer)
+
+    def getRowOrCol(self, index):
+        #TODO use this throughout?
+        if self.obj_orientation == QtCore.Qt.Horizontal:
+            return index.column()
+        if self.obj_orientation == QtCore.Qt.Vertical:
+            return index.row()
 
 
 #class MyTableView(QtGui.QTableView):

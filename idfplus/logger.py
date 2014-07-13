@@ -44,6 +44,7 @@ def setup_logging(_level, name):
     # Setup handler and formatter
     log_file = os.path.join(idfsettings.APP_ROOT, 'data', 'logs', 'idfplus.log')
     handler = logging.handlers.RotatingFileHandler(log_file,
+                                                   mode='w',
                                                    maxBytes=2000000,
                                                    backupCount=5)
     handler.setLevel(level)

@@ -767,9 +767,10 @@ class IDDParser(Parser):
             date_generated = database['date_generated']
             database.close()
             try:
-                log.debug('Testing if loaded idd file has a version attribute')
-                log.debug('Version found! (v{})'.format(idd.version))
-                log.debug('test 3 idd for keys: {}'.format(idd.keys()[:5]))
+                # log.debug('Testing if loaded idd file has a version attribute')
+                # log.debug('Version found! (v{})'.format(idd.version))
+                # log.debug('test 3 idd for keys: {}'.format(idd.keys()[:5]))
+                assert idd.version is not None
                 return idd
             except AttributeError:
                 log.debug('No version attribute found!')

@@ -24,6 +24,13 @@ from __future__ import (print_function, division, absolute_import)
 from PySide import QtGui
 from PySide import QtCore
 
+# Package imports
+from . import idfsettings as c
+from . import logger
+
+# Global variables
+log = logger.setup_logging(c.LOG_LEVEL, __name__)
+
 
 class GenericDelegate(QtGui.QItemDelegate):
     '''Template delegate for the table view.'''
@@ -79,47 +86,14 @@ class GenericDelegate(QtGui.QItemDelegate):
         else:
             QtGui.QItemDelegate.setModelData(self, editor, model, index)
 
-#    def paint(self, painter, option, index):
-#        if index.column() == DESCRIPTION:
-#            text = index.model().data(index).toString()
-#            palette = QApplication.palette()
-#            document = QTextDocument()
-#            document.setDefaultFont(option.font)
-#            if option.state & QStyle.State_Selected:
-#                document.setHtml(QString("<font color=%1>%2</font>") \
-#                        .arg(palette.highlightedText().color().name()) \
-#                        .arg(text))
-#            else:
-#                document.setHtml(text)
-#            color = palette.highlight().color() \
-#                if option.state & QStyle.State_Selected \
-#                else QColor(index.model().data(index,
-#                            Qt.BackgroundColorRole))
-#            painter.save()
-#            painter.fillRect(option.rect, color)
-#            painter.translate(option.rect.x(), option.rect.y())
-#            document.drawContents(painter)
-#            painter.restore()
-#        else:
-#            QItemDelegate.paint(self, painter, option, index)
-
-#    def sizeHint(self, option, index):
-#        fm = option.fontMetrics
-#        if index.column() == TEU:
-#            return QSize(fm.width("9,999,999"), fm.height())
-#        if index.column() == DESCRIPTION:
-#            text = index.model().data(index).toString()
-#            document = QTextDocument()
-#            document.setDefaultFont(option.font)
-#            document.setHtml(text)
-#            return QSize(document.idealWidth() + 5, fm.height())
-#        return QItemDelegate.sizeHint(self, option, index)
-
-#    def commitAndCloseEditor(self):
-#        editor = self.sender()
-#        if isinstance(editor, (QTextEdit, QLineEdit)):
-#            self.emit(SIGNAL("commitData(QWidget*)"), editor)
-#            self.emit(SIGNAL("closeEditor(QWidget*)"), editor)
+    # def sizeHint(self, option, index):
+    #     fm = option.fontMetrics()
+    #     delegate = self.delegates.get(self.getRowOrCol(index))
+    #     if delegate is not None:
+    #         return QtCore.QSize(c.DEFAULT_COLUMN_WIDTH, fm.height() + 2)
+    #         # return delegate.sizeHint(option, index)
+    #     else:
+    #         return QtGui.QItemDelegate.sizeHint(self, option, index)
 
     def assignDelegates(self, idd_obj):
         # Cycle through table and assign delegates as needed
@@ -250,6 +224,16 @@ class AlphaDelegate(QtGui.QItemDelegate):
     def setModelData(self, editor, model, index):
         model.setData(index, editor.text(), QtCore.Qt.EditRole)
 
+    # def sizeHint(self, option, index):
+    #     fm = option.fontMetrics
+    #     # log.debug('size hint called')
+    #     # print('size hint called')
+    #     delegate = self.delegates.get(self.getRowOrCol(index))
+    #     if delegate is not None:
+    #         # return QtCore.QSize(fm.width("9,999,999,999"), fm.height())
+    #         return delegate.sizeHint(self, option, index)
+    #     else:
+    #         return QtGui.QItemDelegate.sizeHint(self, option, index)
 
 class ChoiceDelegate(QtGui.QItemDelegate):
 
