@@ -38,28 +38,17 @@ from PySide import QtCore
 from . import delegates
 from . import tablemodel
 from . import parser
-from . import idfsettings
+from . import idfsettings as c
 from . import datamodel
+from . import logger
 
 # Resource imports
 from . import icons_qr  # Used for icons (in text format)
 from . import misc_icons_qr  # Used for icons (in text format)
 
-# Setup logging
-#TODO not working?
-import logging
-log = logging.getLogger(__name__)
-log.setLevel(logging.INFO)
-handler = logging.FileHandler('hello.log')
-handler.setLevel(logging.INFO)
-formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-handler.setFormatter(formatter)
-log.addHandler(handler)
-log.info('test of logging')
-
 # Global variables
 __version__ = '0.0.1'
-
+log = logger.setup_logging(c.LOG_LEVEL, __name__)
 
 class IDFPlus(QtGui.QMainWindow):
     """Main GUI window for IDFPlus program."""
@@ -71,7 +60,7 @@ class IDFPlus(QtGui.QMainWindow):
         self.create_ui()
 
         # Load settings (call this second)
-        self.settings = idfsettings.Settings(self)
+        self.settings = c.Settings(self)
         self.settings.read_settings()
 
         # Set some instance variables
@@ -84,6 +73,7 @@ class IDFPlus(QtGui.QMainWindow):
         self.obj_orientation = QtCore.Qt.Vertical
         self.current_obj_class = None
         # self.com = Communicate()
+        self.clipboard = QtGui.QApplication.instance().clipboard()
 
         # Create main application elements
         self.create_actions()
@@ -108,6 +98,8 @@ class IDFPlus(QtGui.QMainWindow):
         if self.ok_to_continue():
             self.settings.write_settings()
             self.db.close()
+            log.info('Shutting down IDFPlus')
+            del self.watcher
             event.accept()
         else:
             event.ignore()
@@ -192,11 +184,13 @@ class IDFPlus(QtGui.QMainWindow):
         """
 
         if file_path:
+            log.debug('Loading file from dialog: {}'.format(file_path))
             print('Loading file from dialog: {}'.format(file_path))
         if file_path is None:
             action = self.sender()
             if isinstance(action, QtGui.QAction):
                 file_path = action.data()
+                log.debug('Loading file from recent file menu: {}'.format(file_path))
                 print('Loading file from recent file menu: {}'.format(file_path))
                 if not self.ok_to_continue():
                     return False
@@ -451,7 +445,7 @@ class IDFPlus(QtGui.QMainWindow):
         self.viewMenu.addAction(self.classTree.parent().toggleViewAction())
         self.viewMenu.addAction(self.infoView.parent().toggleViewAction())
         self.viewMenu.addAction(self.commentView.parent().toggleViewAction())
-        self.viewMenu.addAction(self.debugView.parent().toggleViewAction())
+        self.viewMenu.addAction(self.logView.parent().toggleViewAction())
         self.viewMenu.addSeparator()
         self.viewMenu.addAction(self.fileToolBar.toggleViewAction())
         self.viewMenu.addAction(self.editToolBar.toggleViewAction())
@@ -519,7 +513,7 @@ class IDFPlus(QtGui.QMainWindow):
         QtGui.QShortcut(QtGui.QKeySequence('Ctrl+d'),self).activated.connect(self.copy_test)
         QtGui.QShortcut(QtGui.QKeySequence('Ctrl+l'),self).activated.connect(self.toggle_full_tree)
 
-        self.clipboard = QtGui.QApplication.clipboard()
+
 
 #    def createAction(self, text, slot=None, shortcut=None, icon=None,
 #                     tip=None, checkable=False, signal="triggered()"):
@@ -682,24 +676,27 @@ class IDFPlus(QtGui.QMainWindow):
 
         selection_model = self.classTable.selectionModel()
         indexes = selection_model.selectedIndexes()
-        selection = selection_model.selection()
+        # selection = selection_model.selection().first()
+        # selection_indexes = selection.indexes()
 
-        for item in selection:
-            print('item')
+        # for item in selection_indexes:
+        #     print('item: {}'.format(item.data()))
+        # print('items: {}'.format(selection_indexes))
 
-        print('number selected: {}'.format(selection.count()))
+
+        # print('number selected: {}'.format(selection.count()))
 
         to_copy_list = [i.data() for i in indexes]
-        print(to_copy_list)
+        # print(to_copy_list)
 
         to_copy = '\n'.join(to_copy_list)
 
-        print(to_copy)
+        # print(to_copy)
 
         # mimeData = self.clipboard.mimeData()
         mode = QtGui.QClipboard.Clipboard
-        self.clipboard.clear(mode=mode)
-        self.clipboard.setText(to_copy, mode=mode)
+        self.clipboard.clear(mode)
+        self.clipboard.setText(to_copy, mode)
 
         # if self.clipboard.mimeData().hasHtml():
         #     self.clipboard.setText(mimeData.html(), mode=mode)
@@ -940,6 +937,7 @@ class IDFPlus(QtGui.QMainWindow):
         header = QtGui.QTreeWidgetItem(['Object Class', 'Count'])
         header.setFirstColumnSpanned(True)
         classTree.setHeaderItem(header)
+        classTree.setUniformRowHeights(True)
         classTree.setFont(font)
         # classTree.header().setResizeMode(QtGui.QHeaderView.ResizeToContents)
         classTree.setAlternatingRowColors(True)
@@ -967,12 +965,15 @@ class IDFPlus(QtGui.QMainWindow):
         infoDockWidget.setWidget(infoView)
 
         # Logging and debugging widget
-        debugDockWidget = QtGui.QDockWidget("Debug", self)
-        debugDockWidget.setObjectName("debugDockWidget")
-        debugDockWidget.setAllowedAreas(QtCore.Qt.AllDockWidgetAreas)
-        debugView = QtGui.QTextEdit(debugDockWidget)
-        debugView.setFrameShape(QtGui.QFrame.StyledPanel)
-        debugDockWidget.setWidget(debugView)
+        logDockWidget = QtGui.QDockWidget("Log Viewer", self)
+        logDockWidget.setObjectName("logDockWidget")
+        logDockWidget.setAllowedAreas(QtCore.Qt.AllDockWidgetAreas)
+        logView = QtGui.QPlainTextEdit(logDockWidget)
+        logView.setLineWrapMode(QtGui.QPlainTextEdit.NoWrap)
+        logView.setReadOnly(True)
+        logView.ensureCursorVisible()
+        logDockWidget.setWidget(logView)
+        self.start_log_watcher()
 
         # Define corner docking behaviour
         self.setDockNestingEnabled(True)
@@ -990,20 +991,20 @@ class IDFPlus(QtGui.QMainWindow):
         self.addDockWidget(QtCore.Qt.LeftDockWidgetArea, classTreeDockWidget)
         self.addDockWidget(QtCore.Qt.RightDockWidgetArea, commentDockWidget)
         self.addDockWidget(QtCore.Qt.RightDockWidgetArea, infoDockWidget)
-        self.addDockWidget(QtCore.Qt.RightDockWidgetArea, debugDockWidget)
+        self.addDockWidget(QtCore.Qt.RightDockWidgetArea, logDockWidget)
 
         # Store widgets for access by other objects
         self.classTable = classTable
         self.commentView = commentView
         self.infoView = infoView
         self.classTree = classTree
-        self.debugView = debugView
+        self.logView = logView
 
         # Store docks for access by other objects
         self.commentDockWidget = commentDockWidget
         self.infoDockWidget = infoDockWidget
         self.classTreeDockWidget = classTreeDockWidget
-        self.debugDockWidget = debugDockWidget
+        self.logDockWidget = logDockWidget
 
         # Perform other UI-related initialization tasks
         self.center()
@@ -1011,6 +1012,20 @@ class IDFPlus(QtGui.QMainWindow):
         self.setWindowTitle('IDFPlus Editor')
         self.statusBar().showMessage('Status: Ready')
         self.setWindowIcon(QtGui.QIcon(':/images/eplussm.gif'))
+
+        testLabel = QtGui.QLabel('test label')
+        testLabel.setAlignment(QtCore.Qt.AlignCenter)
+        testLabel.setMinimumSize(testLabel.sizeHint())
+
+        testLabel1 = QtGui.QLabel('test label 123')
+        testLabel1.setAlignment(QtCore.Qt.AlignCenter)
+        testLabel1.setMinimumSize(testLabel1.sizeHint())
+
+        self.statusBar().addWidget(testLabel)
+        self.statusBar().addWidget(testLabel1)
+
+        testLabel.setText('this is some text')
+        testLabel1.setText('some more text')
 
     def create_tray_menu(self):
         """Creates an icon and menu for the system tray"""
@@ -1030,6 +1045,21 @@ class IDFPlus(QtGui.QMainWindow):
         self.trayIcon.setToolTip('IDFPlus')
         self.trayIcon.show()
 
+    def update_log_viewer(self, changed_path):
+        with open(changed_path) as f:
+            text=f.read()
+            self.logView.clear()
+            self.logView.insertPlainText(text)
+        self.logView.centerCursor()
+
+    def start_log_watcher(self):
+
+        self.watcher = QtCore.QFileSystemWatcher()
+        log_path = os.path.join(c.APP_ROOT, 'data', 'logs', 'idfplus.log')
+        self.watcher.addPath(log_path)
+        self.watcher.fileChanged.connect(self.update_log_viewer)
+
+
 #class MyTableView(QtGui.QTableView):
 #    '''Subclass of QTableView used to override mousePressEvent'''
 #    def __init__(self):
@@ -1048,6 +1078,7 @@ class MyZODB(object):
     """Wrapper for ZODB connection"""
 
     def __init__(self):
+        log.info('Setting up database...')
         import transaction
         self.transaction = transaction
         self.tmp = tempfile.NamedTemporaryFile(prefix='idfplus_cache_', delete=True)
@@ -1058,6 +1089,7 @@ class MyZODB(object):
 
     def close(self):
         """Closes connections/files and cleans up."""
+        log.info('Closing database...')
         import os
         self.transaction.commit()
         self.connection.close()
@@ -1072,3 +1104,4 @@ class MyZODB(object):
 #     """Class used to communicate with other objects in the application"""
 #
 #     msg = QtCore.Signal(int)
+

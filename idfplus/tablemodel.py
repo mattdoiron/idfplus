@@ -21,8 +21,6 @@ along with IDFPlus. If not, see <http://www.gnu.org/licenses/>.
 from __future__ import (print_function, division, absolute_import)
 
 # System imports
-import shelve
-import os
 import transaction
 from persistent.list import PersistentList
 

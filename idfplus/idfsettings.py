@@ -20,9 +20,16 @@ along with IDFPlus. If not, see <http://www.gnu.org/licenses/>.
 # Prepare for Python 3
 from __future__ import (print_function, division, absolute_import)
 
+# System imports
+import os
+
 # PySide imports
 from PySide import QtGui
 from PySide import QtCore
+
+# Constants
+APP_ROOT = os.path.join(os.path.dirname(os.path.realpath(__file__)), '..')
+LOG_LEVEL = 'DEBUG'
 
 
 class Settings(object):

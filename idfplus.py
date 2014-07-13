@@ -24,16 +24,20 @@ import sys
 from PySide.QtGui import QApplication
 
 # Local imports
+from idfplus import logger
 from idfplus.idfplus import IDFPlus
+from idfplus import idfsettings as s
+
+# Setup logging
+log = logger.setup_logging(s.LOG_LEVEL, 'IDFPlus')
+
 
 def main():
     """Main function to start the program."""
 
-    app = QApplication(sys.argv)
-#    app.setStyle(QtGui.QStyleFactory.create('Cleanlooks'))
-#    app.setOrganizationName("IDF Plus Inc.")
-#    app.setOrganizationDomain("idfplus.com")
-#    app.setApplicationName("IDFPlus Editor")
+    app = QApplication.instance()
+    if app is None:
+        app = QApplication(sys.argv)
 
     idf_plus_window = IDFPlus()
     idf_plus_window.show()
@@ -42,4 +46,5 @@ def main():
 
 
 if __name__ == '__main__':
+    log.info('Launching IDFPlus')
     main()

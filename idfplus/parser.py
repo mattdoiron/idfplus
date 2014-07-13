@@ -25,14 +25,19 @@ import os
 import shelve
 import datetime as dt
 import transaction
-# import ZODB
 from persistent.list import PersistentList
 
 # Package imports
 from . import datamodel
+from . import logger
 from .datamodel import IDDFileDoesNotExist
 
 # Constants
+from . import idfsettings as c
+
+OPTIONS_LIST = ['OriginalOrderTop', 'UseSpecialFormat']
+COMMENT_DELIMITER_GENERAL = '!'
+COMMENT_DELIMITER_SPECIAL = '!-'
 TAG_LIST = ['\\field',
             '\\note',
             '\\required-field',
@@ -63,11 +68,8 @@ TAG_LIST = ['\\field',
             '\\format',
             '\\group']
 
-OPTIONS_LIST = ['OriginalOrderTop', 'UseSpecialFormat']
-
-# field_tag_delimiter = '\\'
-COMMENT_DELIMITER_GENERAL = '!'
-COMMENT_DELIMITER_SPECIAL = '!-'
+# Setup logging
+log = logger.setup_logging(c.LOG_LEVEL, __name__)
 
 #test_line1 = '0.0,15.2,3.0;  !- X,Y,Z ==> Vertex 4 {m} '
 #test_line2 = '0.0,15.2,3.0 ;  !test '
@@ -825,6 +827,7 @@ class IDFParser(Parser):
         total_size = os.path.getsize(file_path)
         total_read = 0.0
 
+        log.info('Parsing IDF file: {} ({} bytes)'.format(file_path, total_size))
         print('Parsing IDF file: {} ({} bytes)'.format(file_path, total_size))
 
         # Open the specified file in a safe way
