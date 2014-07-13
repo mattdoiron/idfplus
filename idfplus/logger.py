@@ -43,7 +43,9 @@ def setup_logging(_level, name):
 
     # Setup handler and formatter
     log_file = os.path.join(idfsettings.APP_ROOT, 'data', 'logs', 'idfplus.log')
-    handler = logging.handlers.RotatingFileHandler(log_file)
+    handler = logging.handlers.RotatingFileHandler(log_file,
+                                                   maxBytes=2000000,
+                                                   backupCount=5)
     handler.setLevel(level)
     format_ = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
     formatter = logging.Formatter(format_)

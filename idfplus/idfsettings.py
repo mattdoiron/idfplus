@@ -31,12 +31,13 @@ from PySide import QtCore
 APP_ROOT = os.path.join(os.path.dirname(os.path.realpath(__file__)), '..')
 LOG_LEVEL = 'DEBUG'
 
-
 class Settings(object):
     """Object to handle setting and getting settings or info about them."""
 
     def __init__(self, parent):
         '''Create the settings object and set some of its own settings.'''
+        from . import logger
+        self.log = logger.setup_logging(LOG_LEVEL, __name__)
         self.parent = parent
         self.settings = QtCore.QSettings(QtCore.QSettings.IniFormat,
                                          QtCore.QSettings.UserScope,
@@ -47,7 +48,7 @@ class Settings(object):
     def read_settings(self):
         """Reads application settings and restores them."""
 
-        print("Reading settings from: {}".format(self.get_path()))
+        self.log.info('Reading settings')
 #        print("file: {}".format(self.get_file_name()))
 #        print("directory: {}".format(self.get_dir_name()))
         settings = self.settings
@@ -77,7 +78,7 @@ class Settings(object):
     def write_settings(self):
         """Writes application settings to save them."""
 
-        print("Writing settings")
+        self.log.info('Writing settings')
         parent = self.parent
         settings = self.settings
 

@@ -98,8 +98,8 @@ class IDFPlus(QtGui.QMainWindow):
         if self.ok_to_continue():
             self.settings.write_settings()
             self.db.close()
-            log.info('Shutting down IDFPlus')
             del self.watcher
+            log.info('Shutting down IDFPlus')
             event.accept()
         else:
             event.ignore()
@@ -124,7 +124,7 @@ class IDFPlus(QtGui.QMainWindow):
 
     def find_idd_file(self):
         """Called to open an idd file location."""
-        print('find idd file was called')
+        # print('find idd file was called')
         if self.ok_to_continue():
             directory = os.path.dirname(self.file_path) if self.file_path else "."
             dialog_name = 'Open EnergyPlus Installation Directory'
@@ -141,7 +141,7 @@ class IDFPlus(QtGui.QMainWindow):
         :rtype : bool
         :param str file_path:
         """
-        print('processing idd file')
+        log.debug('Processing IDD file')
 
         total_size = os.path.getsize(file_path)
         self.progressDialogIDD = QtGui.QProgressDialog("Loading IDD File", "", 0,
@@ -164,7 +164,7 @@ class IDFPlus(QtGui.QMainWindow):
         return True #parser.save_idd(idd)
 
     def load_idf(self, file_path):
-        print('Trying to load file: {}'.format(file_path))
+        log.info('Trying to load file: {}'.format(file_path))
 
         idf = datamodel.IDFFile()
         self.files.update({0:idf})
@@ -173,7 +173,8 @@ class IDFPlus(QtGui.QMainWindow):
         for progress in idf_parser.parse_idf(file_path):
             self.progressDialogIDF.setValue(progress)
 
-        print('IDF version detected as: {}'.format(idf.version))
+        log.info('IDF version detected as: {}'.format(idf.version))
+
         self.idf = idf
         self.idd = idf.idd
 
@@ -183,15 +184,14 @@ class IDFPlus(QtGui.QMainWindow):
         :param file_path:
         """
 
+        log.info('Loading file: {}'.format(file_path))
         if file_path:
             log.debug('Loading file from dialog: {}'.format(file_path))
-            print('Loading file from dialog: {}'.format(file_path))
         if file_path is None:
             action = self.sender()
             if isinstance(action, QtGui.QAction):
                 file_path = action.data()
                 log.debug('Loading file from recent file menu: {}'.format(file_path))
-                print('Loading file from recent file menu: {}'.format(file_path))
                 if not self.ok_to_continue():
                     return False
             else:
@@ -509,7 +509,7 @@ class IDFPlus(QtGui.QMainWindow):
 
     def create_shortcuts(self):
         """Creates keyboard shortcuts."""
-        QtGui.QShortcut(QtGui.QKeySequence('Ctrl+v'),self).activated.connect(self._handle_paste)
+        # QtGui.QShortcut(QtGui.QKeySequence('Ctrl+v'),self).activated.connect(self._handle_paste)
         QtGui.QShortcut(QtGui.QKeySequence('Ctrl+d'),self).activated.connect(self.copy_test)
         QtGui.QShortcut(QtGui.QKeySequence('Ctrl+l'),self).activated.connect(self.toggle_full_tree)
 
@@ -672,18 +672,23 @@ class IDFPlus(QtGui.QMainWindow):
 
     def copySelected(self):
         """Copies the selected cells to the clipboard for pasting to other programs."""
-        print('copy selected called')
+        print('copySelected call started')
 
         selection_model = self.classTable.selectionModel()
         indexes = selection_model.selectedIndexes()
-        # selection = selection_model.selection().first()
-        # selection_indexes = selection.indexes()
+
+        selection = selection_model.selection().first()
+        # selection_indexes = selection.indexes() # crashes!
+
+        width = selection.width()
+        height = selection.height()
+
+        print('selection size: width: {} height: {}'.format(width, height))
 
         # for item in selection_indexes:
         #     print('item: {}'.format(item.data()))
+
         # print('items: {}'.format(selection_indexes))
-
-
         # print('number selected: {}'.format(selection.count()))
 
         to_copy_list = [i.data() for i in indexes]
@@ -691,7 +696,7 @@ class IDFPlus(QtGui.QMainWindow):
 
         to_copy = '\n'.join(to_copy_list)
 
-        # print(to_copy)
+        print(to_copy)
 
         # mimeData = self.clipboard.mimeData()
         mode = QtGui.QClipboard.Clipboard
@@ -706,7 +711,7 @@ class IDFPlus(QtGui.QMainWindow):
         #     self.clipboard.setTextFormat(QtCore.Qt.PlainText)
 
         # self.infoView.setText()
-        print('copy selected called')
+        print('copySelected call ended')
 
     def pasteSelected(self):
         print('paste selected called')
@@ -912,6 +917,7 @@ class IDFPlus(QtGui.QMainWindow):
     def create_ui(self):
         """Setup main UI elements, dock widgets, UI-related elements, etc. """
 
+        log.debug('Loading UI')
         # Object class table widget
         classTable = QtGui.QTableView(self)
         classTable.setObjectName("classTable")
@@ -924,7 +930,7 @@ class IDFPlus(QtGui.QMainWindow):
         classTable.verticalHeader().setMovable(False)
         classTable.resizeColumnsToContents()
         classTable.resizeRowsToContents()
-        classTable.setSelectionMode(QtGui.QAbstractItemView.ExtendedSelection)
+        classTable.setSelectionMode(QtGui.QAbstractItemView.ContiguousSelection)
         # classTable.columnMoved.connect(self.moveObject)
         classTable.horizontalHeader().sectionMoved.connect(self.moveObject)
         classTable.verticalHeader().sectionMoved.connect(self.moveObject)
@@ -944,7 +950,6 @@ class IDFPlus(QtGui.QMainWindow):
         classTreeDockWidget.setWidget(classTree)
         classTree.setColumnWidth(0, 280)
         classTree.setColumnWidth(1, 10)
-        # print(classTree.columnCount())
         classTree.header().resizeSection(0, 280)
         classTree.header().resizeSection(1, 10)
 

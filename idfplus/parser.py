@@ -171,13 +171,13 @@ class Writer(object):
         eol_char = idf._eol_char
         test_file_name = idf.file_path + '_test'
 
-        print('Writing file: {}'.format(test_file_name))
+        log.info('Saving file: {}'.format(test_file_name))
 
         # Check for special options
         use_special_format = False
         if 'UseSpecialFormat' in options:
             use_special_format = True
-            print('Special formatting requested, but not yet implemented.')
+            log.debug('Special formatting requested, but not yet implemented.')
 
         # Open file and write
         try:
@@ -220,23 +220,11 @@ class Writer(object):
                         # Add newline at the end of the object
                         file.write(eol_char)
 
-            print('File written!')
+            log.info('File written!')
             return True
         except IOError as e:
-            print('File not written! Exception!' + str(e.strerror))
+            log.debug('File not written! Exception!' + str(e.strerror))
             return False
-
-    # @staticmethod
-    # def write_idd(idd, options):
-    #     """Write an IDD from the specified iddObject
-    #     :param idd:
-    #     :param options:
-    #     """
-    #
-    #     print('Writing file: ' + idd.file_path)
-    #
-    #     # how will this be written? shelve? ZODB?
-    #     # probably just shelve...
 
 
 # Write the idf file
@@ -472,10 +460,10 @@ class IDDParser(Parser):
         """
 
         if idd is not None:
-            print('custom idd received by parser')
+            log.debug('custom idd received by parser')
             self.idd = idd
         else:
-            print('no custom idd received by parser. using blank')
+            log.debug('no custom idd received by parser. using blank')
             self.idd = datamodel.IDDFile()
 
         # Call the parent class' init method
@@ -495,9 +483,9 @@ class IDDParser(Parser):
         idd_path = os.path.join(datamodel.APP_ROOT, data_dir, file_name)
 
         try:
-            print('Opening idd dat file: {}'.format(idd_path))
+            log.debug('Opening idd dat file: {}'.format(idd_path))
             database = shelve.open(idd_path, protocol=2, writeback=True)
-            print('idd type is: {}'.format(type(idd)))
+            log.debug('idd type is: {}'.format(type(idd)))
             database['idd'] = idd
             database['date_generated'] = dt.datetime.now()
             return database
@@ -510,7 +498,7 @@ class IDDParser(Parser):
     def rename_idd(version):
         """Renames the idd once the version is known."""
 
-        print('Renaming temp idd file.')
+        log.debug('Renaming temp idd file.')
         file_name_root = 'EnergyPlus_IDD_v{}.dat'
         file_name = file_name_root.format(version)
         new = os.path.join(datamodel.APP_ROOT, 'data', file_name)
@@ -529,7 +517,7 @@ class IDDParser(Parser):
         total_size = os.path.getsize(file_path)
         total_read = 0.0
 
-        print('Parsing IDD file: {} ({} bytes)'.format(file_path, total_size))
+        log.info('Parsing IDD file: {} ({} bytes)'.format(file_path, total_size))
 
         # Create an on-disk database in which to store the new idd
         db = self.init_db(self.idd)
@@ -585,7 +573,7 @@ class IDDParser(Parser):
                         version_raw = line_parsed['comments'].split()[1].strip()
                         version = '.'.join(version_raw.split('.')[0:2])
                         idd._version = version
-                        print('Found idd version in idd file: '.format(db['idd']._version))
+                        log.debug('Found idd version in idd file: '.format(db['idd']._version))
 
                 # Check for special comments and options
                 if line_parsed['comments_special']:
@@ -705,7 +693,7 @@ class IDDParser(Parser):
         # Save changes and rename temp idd file because we now know the version
         db.close()
         self.rename_idd(version)
-        print('Parsing IDD complete!')
+        log.info('Parsing IDD complete!')
 
     @staticmethod
     def save_idd(idd):
@@ -714,8 +702,8 @@ class IDDParser(Parser):
         :raises : Exception
         :rtype : bool
         """
-        print('Saving idd...')
-        print('Received idd with {} keys'.format(len(idd.keys())))
+        log.debug('Saving idd...')
+        log.debug('Received idd with {} keys'.format(len(idd.keys())))
         if not idd.version:
             raise Exception("Missing IDD file version")
 
@@ -727,30 +715,30 @@ class IDDParser(Parser):
 
         try:
             # storage = ZODB.FileStorage.FileStorage(idd_path)
-            print('Opening idd dat file: {}'.format(idd_path))
+            log.debug('Opening idd dat file: {}'.format(idd_path))
             # db = ZODB.DB(idd_path)
             # connection = db.open()
             # root = db.open().root
 
             # print('saving idd to root obj: {}'.format(type(idd)))
             database = shelve.open(idd_path, protocol=2, writeback=True)
-            print('idd type is: {}'.format(type(idd)))
-            print('test 1 idd for keys: {}'.format(idd.keys()[:20]))
+            log.debug('idd type is: {}'.format(type(idd)))
+            log.debug('test 1 idd for keys: {}'.format(idd.keys()[:20]))
             database['idd'] = idd
             database['date_generated'] = dt.datetime.now()
             database.close()
 
             # root.idd = idd
             # root.date_generated = dt.datetime.now()
-            print('Saving idd file to disk...')
+            log.debug('Saving idd file to disk...')
             # transaction.commit()
             # db.close()
-            print('test 2 idd for keys: {}'.format(idd.keys()[:20]))
+            log.debug('test 2 idd for keys: {}'.format(idd.keys()[:20]))
             return True
         except IOError as e:
             return False
         except Exception as e:
-            print(e.message)
+            log.debug(e.message)
 
     @staticmethod
     def load_idd(version):
@@ -761,34 +749,34 @@ class IDDParser(Parser):
         :return: :raise IDDFileDoesNotExist:
         """
 
-        print("Loading idd file...")
+        log.info("Loading idd file")
         idd_file_name = 'EnergyPlus_IDD_v{}.dat'.format(version)
         data_dir = 'data'
 
         # Create the full path to the idd file
         idd_path = os.path.join(datamodel.APP_ROOT, data_dir, idd_file_name)
 
-        print('Checking for idd version: {}'.format(version))
-        print(idd_path)
+        log.debug('Checking for idd version: {}'.format(version))
+        log.debug(idd_path)
 
         # Check if the file name is a file and then open the idd file
         if os.path.isfile(idd_path):
-            print('idd found, loading...')
+            log.debug('idd found, loading...')
             database = shelve.open(idd_path, flag='r')
             idd = database['idd']
             date_generated = database['date_generated']
             database.close()
             try:
-                print('Testing if loaded idd file has a version attribute')
-                print('Version found! (v{})'.format(idd.version))
-                print('test 3 idd for keys: {}'.format(idd.keys()[:5]))
+                log.debug('Testing if loaded idd file has a version attribute')
+                log.debug('Version found! (v{})'.format(idd.version))
+                log.debug('test 3 idd for keys: {}'.format(idd.keys()[:5]))
                 return idd
             except AttributeError:
-                print('No version attribute found!')
+                log.debug('No version attribute found!')
                 raise IDDFileDoesNotExist("Can't find version attribute in IDD file.",
                                           version)
         else:
-            print('idd not found')
+            log.debug('idd not found')
             raise IDDFileDoesNotExist("Can't find IDD file: {}".format(idd_path),
                                       version)
 
@@ -828,7 +816,7 @@ class IDFParser(Parser):
         total_read = 0.0
 
         log.info('Parsing IDF file: {} ({} bytes)'.format(file_path, total_size))
-        print('Parsing IDF file: {} ({} bytes)'.format(file_path, total_size))
+        # print('Parsing IDF file: {} ({} bytes)'.format(file_path, total_size))
 
         # Open the specified file in a safe way
         with open(file_path, 'r') as idf:
@@ -883,10 +871,10 @@ class IDFParser(Parser):
                     if field_list[0] == 'Version':
                         version = field_list[1]
                         self.idf._version = version
-                        print('idf detected as version: {}'.format(version))
-                        print('Checking for idd...')
+                        log.debug('idf detected as version: {}'.format(version))
+                        log.debug('Checking for idd...')
                         if not self.idd:
-                            print('No idd currently selected!')
+                            log.debug('No idd currently selected!')
                             idd_parser = IDDParser()
                             idd = idd_parser.load_idd(version)
                             self.idf._idd = idd
@@ -898,7 +886,7 @@ class IDFParser(Parser):
                             # ordered classes.
                             self.idf.update((k, PersistentList()) for k, v in idd.iteritems())
 
-                        print('idd loaded as version: {}'.format(self.idd.version))
+                        log.debug('idd loaded as version: {}'.format(self.idd.version))
 
                 # If this is the end of an object save it
                 if end_object and empty_line:
@@ -967,16 +955,5 @@ class IDFParser(Parser):
         # Save changes
         transaction.get().note('Load file')
         transaction.commit()
-        print('Parsing IDF complete!')
+        log.info('Parsing IDF complete!')
         # print(self.idf.keys())
-
-## Parse this idd file
-#idd_file = 'Energy+.idd'
-#idf_file = 'RefBldgLargeOfficeNew2004_Chicago.idf'
-#idf_file2 = '5ZoneBoilerOutsideAirReset.idf'
-#idf_file3 = 'ChicagoSM.idf'
-#object_count, eol_char, options, groups, objects = parse_idd(idf_file2)
-##writeIDF('testoutput.idf', options, objects)
-#import json
-#encoded = json.dumps(objects)
-#obj = json.loads(encoded)

@@ -22,15 +22,15 @@ from __future__ import (print_function, division, absolute_import)
 
 # System imports
 import os
-import ZODB
-from collections import OrderedDict
-from pint import UnitRegistry
+# import ZODB
+# from collections import OrderedDict
+# from pint import UnitRegistry
 from persistent import Persistent
 from persistent.list import PersistentList
 from persistent.dict import PersistentDict
 from persistent.mapping import PersistentMapping
 from odict.pyodict import _odict, _nil
-from BTrees.OOBTree import OOBTree
+# from BTrees.OOBTree import OOBTree
 
 # Investigate as replacement for large lists
 # https://pypi.python.org/pypi/blist
