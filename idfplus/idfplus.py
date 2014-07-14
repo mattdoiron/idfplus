@@ -531,6 +531,13 @@ class IDFPlus(QtGui.QMainWindow):
 #            action.setCheckable(True)
 #        return action
 #
+    def create_context_menu(self, pos):
+        menu = QtGui.QMenu()
+        openAction = menu.addAction("Test 1")
+        deleAction = menu.addAction("Clear")
+        renaAction = menu.addAction("Test 2")
+        self.classTable.setContextMenuPolicy()
+
     def addActions(self, target, actions):
         """Helper to add actions or a separator easily."""
         for action in actions:
@@ -675,12 +682,35 @@ class IDFPlus(QtGui.QMainWindow):
         print('copySelected call started')
 
 
-        # selection_model = self.classTable.selectionModel()
+        selection_model = self.classTable.selectionModel()
         # indexes = selection_model.selectedIndexes()
         indexes = self.classTable.selectedIndexes()
 
         # selection = selection_model.selection().first()
+        # print('row count: {}'.format(selection.rowCount()))
         # selection_indexes = selection.indexes() # crashes!
+
+    # for (int i = 0; i < range.rowCount(); ++i) {
+    #     if (i > 0)
+    #         str += "\n";
+    #     for (int j = 0; j < range.columnCount(); ++j) {
+    #         if (j > 0)
+    #             str += "\t";
+    #         str += formula(range.topRow() + i, range.leftColumn() + j);
+    #     }
+    # }
+
+
+        item = self.classTable.createIndex(1, 1, QtCore.QModelIndex())
+        print('item test: {}'.format(item.data()))
+        # to_copy_str = ''
+        # for i in range(row_count):
+        #     if i > 0:
+        #         to_copy_str += '\n'
+        #     for j in column_count:
+        #         if j > 0:
+        #             to_copy_str += '\t'
+        #         str +=
 
         if self.obj_orientation == QtCore.Qt.Vertical:
             first = indexes[0].column()
@@ -688,38 +718,49 @@ class IDFPlus(QtGui.QMainWindow):
         else:
             first = indexes[0].row()
             last = indexes[-1].row()
+        count = last - first + 1
 
         print('selection size: first: {} last: {}'.format(first, last))
 
-        # for item in selection_indexes:
-        #     print('item: {}'.format(item.data()))
+        for item in selection:
+            print('item: {}'.format(item.data()))
 
         # print('items: {}'.format(selection_indexes))
         # print('number selected: {}'.format(selection.count()))
 
-        to_copy_list = [i.data() for i in indexes if i.column() == first]
-        print(to_copy_list)
+        # cells = ''
+        # rows = []
+        # print('selected rows: {}'.format(selection_model.selectedRows()))
+        # for i in xrange(first, count + 1):
+        #     print('looking for ')
+        #     # if i == last:
+        #     #     rows += cells + '\n'
+        #     # cells += indexes[i].data() + '\t'
+        #     row = [i.data() for i in indexes if i.column() == i]
+        #     print('row: {}'.format(row))
+        #     rows.append(row)
+        # print('rows: {}'.format(rows))
 
-        to_copy = ''
-        for i in indexes:
-            to_copy += i.data()
-            to_copy += '\n'
-
-            if self.obj_orientation == QtCore.Qt.Vertical:
-                if i.column() == last:
-                    to_copy += '\t'
-            else:
-                if i.row() == last:
-                    to_copy += '\t'
-
-        # to_copy = '\n'.join(to_copy_list)
-
-        print(to_copy)
+        # to_copy = ''
+        # for i in indexes:
+        #     to_copy += i.data()
+        #     to_copy += '\n'
+        #
+        #     if self.obj_orientation == QtCore.Qt.Vertical:
+        #         if i.column() == last:
+        #             to_copy += '\t'
+        #     else:
+        #         if i.row() == last:
+        #             to_copy += '\t'
+        #
+        # # to_copy = '\n'.join(to_copy_list)
+        #
+        # print(to_copy)
 
         # mimeData = self.clipboard.mimeData()
         mode = QtGui.QClipboard.Clipboard
         self.clipboard.clear(mode)
-        self.clipboard.setText(to_copy, mode)
+        self.clipboard.setText(cells, mode)
 
         # if self.clipboard.mimeData().hasHtml():
         #     self.clipboard.setText(mimeData.html(), mode=mode)
@@ -945,7 +986,8 @@ class IDFPlus(QtGui.QMainWindow):
         classTable.setFont(font)
         fm = classTable.fontMetrics()
         classTable.setWordWrap(True)
-
+        classTable.setEditTriggers(QtGui.QAbstractItemView.EditKeyPressed |
+                                   QtGui.QAbstractItemView.DoubleClicked)
         classTable.horizontalHeader().setMovable(True)
         classTable.verticalHeader().setMovable(False)
         # classTable.horizontalHeader().setContentsMargins(0, 0, 0, 0)

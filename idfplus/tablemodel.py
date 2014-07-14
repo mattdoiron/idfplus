@@ -75,7 +75,7 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
         # Detect the role being request and return the correct data
         if role == QtCore.Qt.DisplayRole or role == QtCore.Qt.EditRole:
             try:
-                data = self.idf_objects[row][column].value
+                data = self.idf_objects[row][column].value or ''
             except IndexError:
                 return None
         elif role == QtCore.Qt.ToolTipRole:
@@ -119,6 +119,7 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
         return len(self.idd_object)
 
     def setData(self, index, value, role):
+        print('setting value in tablemodel to: {}'.format(value))
         if not index.isValid():
             return False
         if role == QtCore.Qt.EditRole:
@@ -126,6 +127,7 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
             column = index.column()
             try:
                 self.idf_objects[row][column].value = value
+                # print('setting value in tablemodel to: {}'.format(value))
                 self.dirty = True
                 self.dataChanged.emit(index, index)
                 transaction.get().note('Modify field')
@@ -363,6 +365,12 @@ class TransposeProxyModel(QtGui.QAbstractProxyModel):
     def removeColumns(self, position, cols):
         print('proxy removing cols')
         return self.sourceModel().removeColumns(position, cols)
+
+    def setData(self, index_, value, role):
+        print('setData called in transpose proxy model')
+        index = self.mapToSource(index_)
+        return self.sourceModel().setData(index, value, role)
+
 
 class SortFilterProxyModel(QtGui.QSortFilterProxyModel):
 
