@@ -769,12 +769,11 @@ class IDFObject(PersistentList):
         # print('setting defaults')
         idd_objects = idd.get(self.obj_class)
         for i, field in enumerate(idd_objects):
-            default = field.tags.get('default', '')
+            default = field.tags.get('default', None)
             try:
                 self[i].value = default
             except IndexError:
                 self.append(IDFField(self, value=default))
-            # print('default set: {}'.format(self[i]))
 
 
 class IDFField(Persistent):
@@ -809,8 +808,8 @@ class IDFField(Persistent):
         # Call the parent class' init method
         super(IDFField, self).__init__()
 
-    def __repr__(self):
-        return self.value or ''
+    # def __repr__(self):
+    #     return self.value or str()
 
     @property
     def field(self):

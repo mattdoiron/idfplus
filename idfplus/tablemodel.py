@@ -29,7 +29,7 @@ from PySide import QtGui
 from PySide import QtCore
 
 # Package imports
-from .datamodel import IDFObject
+from .datamodel import (IDFObject, IDFField)
 
 
 class IDFObjectTableModel(QtCore.QAbstractTableModel):
@@ -41,12 +41,8 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
         self.obj_class = obj_class
         self.idf = idf
         self.idd = idf._idd
-        # print('setting obj_class: {}'.format(obj_class))
         self.idf_objects = idf.get(obj_class, PersistentList())
         self.idd_object = idf._idd.get(obj_class, PersistentList())
-        # print('loading idd object: {}'.format(self.idd_object))
-        # print('idf type: {}'.format(type(idf)))
-        # print('idf_objects type: {}'.format(type(self.idf_objects)))
         self.dirty = False
         self.getLabels()
         super(IDFObjectTableModel, self).__init__()
@@ -75,23 +71,21 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
         # Detect the role being request and return the correct data
         if role == QtCore.Qt.DisplayRole or role == QtCore.Qt.EditRole:
             try:
-                data = self.idf_objects[row][column].value or ''
-            except IndexError:
-                return None
+                data = self.idf_objects[row][column].value
+            except (AttributeError, IndexError):
+                data = None
         elif role == QtCore.Qt.ToolTipRole:
-            data = "tooltip test"
+            data = self.idd_object.tags.get('units', '')
         elif role == QtCore.Qt.DecorationRole:
             pass
         elif role == QtCore.Qt.StatusTipRole:
-            pass
+            data = self.idd_object.tags.get('units', '')
         elif role == QtCore.Qt.TextAlignmentRole:
-            return int(QtCore.Qt.AlignLeft | QtCore.Qt.AlignVCenter)
+            data = int(QtCore.Qt.AlignLeft | QtCore.Qt.AlignVCenter)
         elif role == QtCore.Qt.TextColorRole or role == QtCore.Qt.ForegroundRole:
-            # return QtGui.QColor(QtCore.Qt.black)
             pass
         elif role == QtCore.Qt.BackgroundColorRole:
             #TODO Colour cells differently depending on things like if they are required
-            # return QtGui.QColor(250, 250, 250)
             pass
         return data
 
@@ -119,7 +113,6 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
         return len(self.idd_object)
 
     def setData(self, index, value, role):
-        print('setting value in tablemodel to: {}'.format(value))
         if not index.isValid():
             return False
         if role == QtCore.Qt.EditRole:
@@ -127,14 +120,17 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
             column = index.column()
             try:
                 self.idf_objects[row][column].value = value
-                # print('setting value in tablemodel to: {}'.format(value))
-                self.dirty = True
-                self.dataChanged.emit(index, index)
-                transaction.get().note('Modify field')
-                transaction.commit()
-                return True
+            except AttributeError:
+                new_field = IDFField(self.idf_objects[row])
+                new_field.value = value
+                self.idf_objects[row][column] = new_field
             except IndexError:
                 return False
+            self.dirty = True
+            self.dataChanged.emit(index, index)
+            transaction.get().note('Modify field')
+            transaction.commit()
+            return True
         return False
 
     def insertRows(self, position, rows=None, index=QtCore.QModelIndex()):
@@ -351,25 +347,16 @@ class TransposeProxyModel(QtGui.QAbstractProxyModel):
         return self.sourceModel().headerData(section, new_orientation, role, orientation)
 
     def insertRows(self, position, rows):
-        print('proxy inserting rows')
         return self.sourceModel().insertRows(position, rows)
 
     def insertColumns(self, position, cols):
-        print('proxy inserting cols')
         return self.sourceModel().insertColumns(position, cols)
 
     def removeRows(self, position, rows):
-        print('proxy removing rows')
         return self.sourceModel().removeRows(position, rows)
 
     def removeColumns(self, position, cols):
-        print('proxy removing cols')
         return self.sourceModel().removeColumns(position, cols)
-
-    def setData(self, index_, value, role):
-        print('setData called in transpose proxy model')
-        index = self.mapToSource(index_)
-        return self.sourceModel().setData(index, value, role)
 
 
 class SortFilterProxyModel(QtGui.QSortFilterProxyModel):

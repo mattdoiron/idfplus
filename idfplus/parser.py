@@ -480,7 +480,7 @@ class IDDParser(Parser):
         version = 'IDDTEMP'
         file_name_root = 'EnergyPlus_IDD_v{}.dat'
         file_name = file_name_root.format(version)
-        idd_path = os.path.join(datamodel.APP_ROOT, data_dir, file_name)
+        idd_path = os.path.join(c.APP_ROOT, data_dir, file_name)
 
         try:
             log.debug('Opening idd dat file: {}'.format(idd_path))
@@ -501,7 +501,7 @@ class IDDParser(Parser):
         log.debug('Renaming temp idd file.')
         file_name_root = 'EnergyPlus_IDD_v{}.dat'
         file_name = file_name_root.format(version)
-        new = os.path.join(datamodel.APP_ROOT, 'data', file_name)
+        new = os.path.join(c.APP_ROOT, 'data', file_name)
         old = new.replace(version, 'IDDTEMP')
         os.rename(old, new)
 
@@ -711,7 +711,7 @@ class IDDParser(Parser):
         data_dir = 'data'
         file_name_root = 'EnergyPlus_IDD_v{}.dat'
         file_name = file_name_root.format(version)
-        idd_path = os.path.join(datamodel.APP_ROOT, data_dir, file_name)
+        idd_path = os.path.join(c.APP_ROOT, data_dir, file_name)
 
         try:
             # storage = ZODB.FileStorage.FileStorage(idd_path)
@@ -754,7 +754,7 @@ class IDDParser(Parser):
         data_dir = 'data'
 
         # Create the full path to the idd file
-        idd_path = os.path.join(datamodel.APP_ROOT, data_dir, idd_file_name)
+        idd_path = os.path.join(c.APP_ROOT, data_dir, idd_file_name)
 
         log.debug('Checking for idd version: {}'.format(version))
         log.debug(idd_path)
@@ -809,15 +809,10 @@ class IDFParser(Parser):
         :rtype : iterator
         """
 
-        global OPTIONS_LIST  # Avoid these?
-
-        # file_path = self.idf.file_path  # TODO this will be None if blank idf used!
         self.idf.file_path = file_path
         total_size = os.path.getsize(file_path)
-        total_read = 0.0
-
+        total_read = 0
         log.info('Parsing IDF file: {} ({} bytes)'.format(file_path, total_size))
-        # print('Parsing IDF file: {} ({} bytes)'.format(file_path, total_size))
 
         # Open the specified file in a safe way
         with open(file_path, 'r') as idf:
@@ -912,7 +907,6 @@ class IDFParser(Parser):
                         new_field.value = field
                         new_field.tags = tags
                         idf_object.append(new_field)
-                        # idf_object.update({field:new_field})
 
                     # Save the parsed variables in the idf_object
                     idf_object._obj_class = obj_class
@@ -921,9 +915,6 @@ class IDFParser(Parser):
                     idf_object.comments = comment_list
 
                     # Set the object's group from the idd file
-                    # print('group test: {}'.format(self.idd[obj_class]._group))
-                    # print('Checking for idf object group for class: {}'.format(obj_class))
-                    # print('idd keys: {}'.format(self.idd.keys()[:20]))
                     group = self.idd[obj_class]._group
 
                     # TODO validate IDF against IDD
@@ -933,6 +924,14 @@ class IDFParser(Parser):
                     # Save the new object to the IDF file (canNOT use setdefault)
                     # due to apparent incompatibility with ZODB
                     if obj_class in self.idd:
+
+                        # Pad length of object to pre-allocate list size
+                        length = len(idf_object)
+                        max_length = len(self.idd[obj_class])
+                        padding = (max_length - length) * [None]
+                        idf_object.extend(padding)
+
+                        # Add the object
                         try:
                             self.idf[obj_class].append(idf_object)
                         except (AttributeError, KeyError) as e:
@@ -957,4 +956,3 @@ class IDFParser(Parser):
         transaction.get().note('Load file')
         transaction.commit()
         log.info('Parsing IDF complete!')
-        # print(self.idf.keys())

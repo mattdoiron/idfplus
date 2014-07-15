@@ -987,7 +987,9 @@ class IDFPlus(QtGui.QMainWindow):
         fm = classTable.fontMetrics()
         classTable.setWordWrap(True)
         classTable.setEditTriggers(QtGui.QAbstractItemView.EditKeyPressed |
-                                   QtGui.QAbstractItemView.DoubleClicked)
+                                   QtGui.QAbstractItemView.DoubleClicked |
+                                   QtGui.QAbstractItemView.AnyKeyPressed |
+                                   QtGui.QAbstractItemView.SelectedClicked)
         classTable.horizontalHeader().setMovable(True)
         classTable.verticalHeader().setMovable(False)
         # classTable.horizontalHeader().setContentsMargins(0, 0, 0, 0)

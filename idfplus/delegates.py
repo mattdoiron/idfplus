@@ -81,13 +81,10 @@ class GenericDelegate(QtGui.QItemDelegate):
 
     def setModelData(self, editor, model, index):
         delegate = self.delegates.get(self.getRowOrCol(index))
-        # if delegate is not None:
-        return delegate.setModelData(editor, model, index)
-        # else:
-        #     QtGui.QItemDelegate.setModelData(self, editor, model, index)
-        # print('delegate type: {}'.format(delegate.__class__))
-        # print('editor data: {}'.format(editor.currentText()))
-        # print('model data: {}'.format(model.data(index)))
+        if delegate is not None:
+            return delegate.setModelData(editor, model, index)
+        else:
+            QtGui.QItemDelegate.setModelData(self, editor, model, index)
 
     # def sizeHint(self, option, index):
     #     fm = option.fontMetrics()
@@ -104,6 +101,9 @@ class GenericDelegate(QtGui.QItemDelegate):
 
         # Other fields to be passed to the delegate include:
         #       field, note, units, ip-units, required-field, key(s)
+
+        #TODO all delegates should be choice delegates if they have comboFields
+        #tags in them!
 
         # List of tags that would go in a combobox
         comboFields = ['minimum',
@@ -123,8 +123,6 @@ class GenericDelegate(QtGui.QItemDelegate):
             field_type = ''
 
             # Create a list of tags which would go in a combo box
-            # There is a better way to do this - idd objects should be
-            # actual python objects/dictionaries!
             matches = set(comboFields).intersection(set(field.tags))
 
             for key in matches:
@@ -137,27 +135,26 @@ class GenericDelegate(QtGui.QItemDelegate):
             if tag_count > 0:
                 self.insertDelegate(i, ChoiceDelegate(field, data_type=field_type))
             else:
-                self.insertDelegate(i, AlphaDelegate(field))
-                # # Otherwise check the type field
-                # min = field.tags.get('minimum', 0)
-                # max = field.tags.get('maximum', 100)
-                # min_inc = field.tags.get('minimum>', min)
-                # max_inc = field.tags.get('maximum<', max)
-                # if field_type == 'integer':
-                #     self.insertDelegate(i, IntegerDelegate(field, min_inc, max_inc))
-                # elif field_type == 'real':
-                #     self.insertDelegate(i, RealDelegate(field, min_inc, max_inc))
-                # elif field_type == 'alpha':
-                #     self.insertDelegate(i, AlphaDelegate(field))
-                # else:
-                #     # The type field is not always present so check fieldname
-                #     idd_field = idd_obj[i - 1]
-                #     if idd_field.key.startswith('A'):
-                #         self.insertDelegate(i, AlphaDelegate(field))
-                #     elif idd_field.key.startswith('N'):
-                #         self.insertDelegate(i, RealDelegate(field, min_inc, max_inc))
-                #     else:
-                #         self.insertDelegate(i, AlphaDelegate(field))
+                # Otherwise check the type field
+                min = field.tags.get('minimum', 0)
+                max = field.tags.get('maximum', 100)
+                min_inc = field.tags.get('minimum>', min)
+                max_inc = field.tags.get('maximum<', max)
+                if field_type == 'integer':
+                    self.insertDelegate(i, IntegerDelegate(field, min_inc, max_inc))
+                elif field_type == 'real':
+                    self.insertDelegate(i, RealDelegate(field, min_inc, max_inc))
+                elif field_type == 'alpha':
+                    self.insertDelegate(i, AlphaDelegate(field))
+                else:
+                    # The type field is not always present so check fieldname
+                    idd_field = idd_obj[i - 1]
+                    if idd_field.key.startswith('A'):
+                        self.insertDelegate(i, AlphaDelegate(field))
+                    elif idd_field.key.startswith('N'):
+                        self.insertDelegate(i, RealDelegate(field, min_inc, max_inc))
+                    else:
+                        self.insertDelegate(i, AlphaDelegate(field))
 
 
 class IntegerDelegate(QtGui.QItemDelegate):
@@ -173,6 +170,7 @@ class IntegerDelegate(QtGui.QItemDelegate):
         spinbox = QtGui.QSpinBox(parent)
         spinbox.setRange(self.minimum, self.maximum)
         spinbox.setAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignVCenter)
+        spinbox.setStyleSheet("QSpinBox { qproperty-frame: false; }")
         return spinbox
 
     def setEditorData(self, editor, index):
@@ -197,6 +195,7 @@ class RealDelegate(QtGui.QItemDelegate):
 
     def createEditor(self, parent, option, index):
         lineedit = QtGui.QLineEdit(parent)
+        lineedit.setStyleSheet("QLineEdit { qproperty-frame: false; }")
         validator = QtGui.QDoubleValidator(self)
         validator.setRange(self.minimum, self.maximum, self.decimals)
         validator.setNotation(QtGui.QDoubleValidator.Notation.StandardNotation)
@@ -219,7 +218,7 @@ class AlphaDelegate(QtGui.QItemDelegate):
     def createEditor(self, parent, option, index):
         lineedit = QtGui.QLineEdit(parent)
         lineedit.setFrame(False)
-        lineedit.setStyleSheet("QLineEdit { qproperty-frame: false }")
+        lineedit.setStyleSheet("QLineEdit { qproperty-frame: false; }")
         return lineedit
 
     def setEditorData(self, editor, index):
@@ -305,7 +304,7 @@ class ChoiceDelegate(QtGui.QItemDelegate):
         tableView.resizeColumnsToContents()
         tableView.resizeRowsToContents()
         # tableView.setContentsMargins(0,0,0,0)
-        # tableView.setStyleSheet("QTableView { border: 0px;}")
+        # tableView.setStyleSheet("QTableView { qproperty-frame: false;}")
         tableView.verticalHeader().setVisible(False)
         tableView.horizontalHeader().setVisible(False)
         tableView.setMinimumWidth(tableView.horizontalHeader().length())
@@ -327,9 +326,6 @@ class ChoiceDelegate(QtGui.QItemDelegate):
             editor.setCurrentIndex(comboIndex)
 
     def setModelData(self, editor, model, index):
-        print('choiceDelegate setModelData called')
-        # print('model type: {}'.format(type(model)))
-        # print('source model type: {}'.format(type(model.sourceModel())))
         model.setData(index, editor.currentText(), QtCore.Qt.EditRole)
 
 
