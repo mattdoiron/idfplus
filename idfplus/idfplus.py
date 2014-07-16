@@ -74,6 +74,7 @@ class IDFPlus(QtGui.QMainWindow):
         self.current_obj_class = None
         # self.com = Communicate()
         self.clipboard = QtGui.QApplication.instance().clipboard()
+        self.obj_clipboard = []
 
         # Create main application elements
         self.create_actions()
@@ -357,16 +358,16 @@ class IDFPlus(QtGui.QMainWindow):
 
         self.cutAct = QtGui.QAction(QtGui.QIcon(':/images/cut.png'), "Cu&t",
                 self, shortcut=QtGui.QKeySequence.Cut,
-                statusTip="Cut the current selection's contents to the clipboard")
-#                triggered=self.textEdit.cut)
+                statusTip="Cut the current selection's contents to the clipboard",
+                triggered=self.cutObject)
 
         self.copyAct = QtGui.QAction(QtGui.QIcon(':/images/copy.png'),
-                "&Copy", self, shortcut=QtGui.QKeySequence.Copy,
+                "&Copy", self, shortcut=QtGui.QKeySequence('Ctrl+Shift+c'),
                 statusTip="Copy the current selection's contents to the clipboard",
                 triggered=self.copySelected)
 
         self.pasteAct = QtGui.QAction(QtGui.QIcon(':/images/paste.png'),
-                "&Paste", self, shortcut=QtGui.QKeySequence.Paste,
+                "&Paste", self, shortcut=QtGui.QKeySequence('Ctrl+Shift+v'),
                 statusTip="Paste the clipboard's contents into the current selection",
                 triggered=self.pasteSelected)
 
@@ -400,23 +401,35 @@ class IDFPlus(QtGui.QMainWindow):
                 statusTip="Create a new object in the current class.",
                 triggered=self.newObject)
 
+        self.copyObjAct = QtGui.QAction(QtGui.QIcon(':/images/copy.png'),
+                            "Copy Obj", self,
+                            shortcut=QtGui.QKeySequence.Copy,
+                            statusTip="Copy the current Object(s).",
+                            triggered=self.copyObject)
+
+        self.pasteObjAct = QtGui.QAction(QtGui.QIcon(':/images/paste.png'),
+                            "Paste Obj", self,
+                             shortcut=QtGui.QKeySequence.Paste,
+                             statusTip="Paste the currently copies Object(s).",
+                             triggered=self.pasteObject)
+
         self.dupObjAct = QtGui.QAction("Dup Obj", self,
-#                shortcut=QtGui.QKeySequence('Ctrl+t'),
-                statusTip="Duplicate the current Object.",
+                shortcut=QtGui.QKeySequence('Ctrl+d'),
+                statusTip="Duplicate the current Object(s).",
                 triggered=self.duplicateObject)
 
         self.delObjAct = QtGui.QAction("Del Obj", self,
-               # shortcut=QtGui.QKeySequence('Del'),
-                statusTip="Delete the current Object.",
+                shortcut=QtGui.QKeySequence('Del'),
+                statusTip="Delete the current Object(s).",
                 triggered=self.deleteObject)
 
-        self.cutAct.setEnabled(False)
+        # self.cutAct.setEnabled(False)
         # self.copyAct.setEnabled(False)
         # self.pasteAct.setEnabled(False)
         self.transposeAct.setEnabled(False)
-        self.newObjAct.setEnabled(False)
-        self.dupObjAct.setEnabled(False)
-        self.delObjAct.setEnabled(False)
+        # self.newObjAct.setEnabled(False)
+        # self.dupObjAct.setEnabled(False)
+        # self.delObjAct.setEnabled(False)
 
     def create_menus(self):
         """Create all required items for menus."""
@@ -438,7 +451,9 @@ class IDFPlus(QtGui.QMainWindow):
         self.editMenu.addAction(self.delObjAct)
         self.editMenu.addAction(self.cutAct)
         self.editMenu.addAction(self.copyAct)
+        self.editMenu.addAction(self.copyObjAct)
         self.editMenu.addAction(self.pasteAct)
+        self.editMenu.addAction(self.pasteObjAct)
 
         # View Menu
         self.viewMenu = self.menuBar().addMenu("&View")
@@ -449,6 +464,7 @@ class IDFPlus(QtGui.QMainWindow):
         self.viewMenu.addSeparator()
         self.viewMenu.addAction(self.fileToolBar.toggleViewAction())
         self.viewMenu.addAction(self.editToolBar.toggleViewAction())
+        self.viewMenu.addAction(self.viewToolBar.toggleViewAction())
         self.viewMenu.addSeparator()
         self.viewMenu.addAction(self.transposeAct)
 
@@ -498,8 +514,8 @@ class IDFPlus(QtGui.QMainWindow):
         self.editToolBar.addAction(self.dupObjAct)
         self.editToolBar.addAction(self.delObjAct)
         self.editToolBar.addAction(self.cutAct)
-        self.editToolBar.addAction(self.copyAct)
-        self.editToolBar.addAction(self.pasteAct)
+        self.editToolBar.addAction(self.copyObjAct)
+        self.editToolBar.addAction(self.pasteObjAct)
         self.editToolBar.setToolButtonStyle(QtCore.Qt.ToolButtonTextBesideIcon)
 
         self.viewToolBar = self.addToolBar("View Toolbar")
@@ -628,8 +644,7 @@ class IDFPlus(QtGui.QMainWindow):
 
     def newObject(self):
         #TODO change from insertColumns/Rows to insertObject in IDFFile class?
-        selected = self.classTable.selectionModel()
-        indexes = selected.selectedIndexes()
+        indexes = self.classTable.selectedIndexes()
 
         # Detect orientation, then make a set to find unique columns/rows
         if self.obj_orientation == QtCore.Qt.Vertical:
@@ -660,138 +675,157 @@ class IDFPlus(QtGui.QMainWindow):
         print('new obj added')
 
     def duplicateObject(self):
-        print('duplicate object called')
+
+        #TODO allow duplicating next to the selection or at end of list?
+
+        # Copy the selected object(s)
+        if not self.copyObject():
+            return False
+
+        # Paste appropriately
+        if self.obj_orientation == QtCore.Qt.Vertical:
+            model = self.classTable.model().sourceModel()
+            position = model.columnCount(QtCore.QModelIndex())
+            model.addColumns(position, self.obj_clipboard)
+        else:
+            model = self.classTable.model()
+            position = model.rowCount(QtCore.QModelIndex())
+            model.addRows(position, self.obj_clipboard)
 
     def moveObject(self, position, source, destination):
         """Moves (reorders) objects."""
+        #FIXME should be position, cols, dest? not source?
         if self.obj_orientation == QtCore.Qt.Vertical:
             model = self.classTable.model().sourceModel()
-            model.moveRows(self, position, source, destination)
+            model.moveColumns(position, source, destination)
         else:
             model = self.classTable.model()
-            model.moveColumns(self, position, source, destination)
-
-        print('move object called')
+            model.moveRows(position, source, destination)
 
     def copyObject(self):
         """Copies object(s) to the clipboard for pasting to other programs."""
-        print('copy object called')
+
+        indexes = self.classTable.selectedIndexes()
+        if len(indexes) <= 0:
+            return False
+
+        # Make a set to find unique columns/rows
+        if self.obj_orientation == QtCore.Qt.Vertical:
+            index_set = set([index.column() for index in indexes])
+        else:
+            index_set = set([index.row() for index in indexes])
+        count = len(list(index_set))
+        start = list(index_set)[0]
+        end = start + count
+
+        if self.obj_orientation == QtCore.Qt.Vertical:
+            self.obj_clipboard = self.idf[self.current_obj_class][start:end]
+        else:
+            self.obj_clipboard = self.idf[self.current_obj_class][start:end]
 
     def copySelected(self):
         """Copies the selected cells to the clipboard for pasting to other programs."""
-        print('copySelected call started')
 
-
-        selection_model = self.classTable.selectionModel()
-        # indexes = selection_model.selectedIndexes()
+        # Find the selection and it's last row
         indexes = self.classTable.selectedIndexes()
+        if len(indexes) <= 0:
+            return False
+        last = indexes[-1].row()
 
-        # selection = selection_model.selection().first()
-        # print('row count: {}'.format(selection.rowCount()))
-        # selection_indexes = selection.indexes() # crashes!
+        # Iterate through indexes saving the columns
+        range_to_copy = []
+        col = []
+        for i in indexes:
+            col.append(i.data() or '')
+            if i.row() == last:
+                range_to_copy.append(col)
+                col = []
 
-    # for (int i = 0; i < range.rowCount(); ++i) {
-    #     if (i > 0)
-    #         str += "\n";
-    #     for (int j = 0; j < range.columnCount(); ++j) {
-    #         if (j > 0)
-    #             str += "\t";
-    #         str += formula(range.topRow() + i, range.leftColumn() + j);
-    #     }
-    # }
+        # Qt seems to always traverses by column so transpose rows/cols here
+        range_copied = zip(*range_to_copy)
 
+        # Convert to text for clipboard
+        text_copied = ''
+        for row in range_copied:
+            text_copied += '\t'.join(row)
+            text_copied += '\n'
 
-        item = self.classTable.createIndex(1, 1, QtCore.QModelIndex())
-        print('item test: {}'.format(item.data()))
-        # to_copy_str = ''
-        # for i in range(row_count):
-        #     if i > 0:
-        #         to_copy_str += '\n'
-        #     for j in column_count:
-        #         if j > 0:
-        #             to_copy_str += '\t'
-        #         str +=
-
-        if self.obj_orientation == QtCore.Qt.Vertical:
-            first = indexes[0].column()
-            last = indexes[-1].column()
-        else:
-            first = indexes[0].row()
-            last = indexes[-1].row()
-        count = last - first + 1
-
-        print('selection size: first: {} last: {}'.format(first, last))
-
-        for item in selection:
-            print('item: {}'.format(item.data()))
-
-        # print('items: {}'.format(selection_indexes))
-        # print('number selected: {}'.format(selection.count()))
-
-        # cells = ''
-        # rows = []
-        # print('selected rows: {}'.format(selection_model.selectedRows()))
-        # for i in xrange(first, count + 1):
-        #     print('looking for ')
-        #     # if i == last:
-        #     #     rows += cells + '\n'
-        #     # cells += indexes[i].data() + '\t'
-        #     row = [i.data() for i in indexes if i.column() == i]
-        #     print('row: {}'.format(row))
-        #     rows.append(row)
-        # print('rows: {}'.format(rows))
-
-        # to_copy = ''
-        # for i in indexes:
-        #     to_copy += i.data()
-        #     to_copy += '\n'
-        #
-        #     if self.obj_orientation == QtCore.Qt.Vertical:
-        #         if i.column() == last:
-        #             to_copy += '\t'
-        #     else:
-        #         if i.row() == last:
-        #             to_copy += '\t'
-        #
-        # # to_copy = '\n'.join(to_copy_list)
-        #
-        # print(to_copy)
-
-        # mimeData = self.clipboard.mimeData()
+        # Save converted text to the clipboard
         mode = QtGui.QClipboard.Clipboard
-        self.clipboard.clear(mode)
-        self.clipboard.setText(cells, mode)
-
-        # if self.clipboard.mimeData().hasHtml():
-        #     self.clipboard.setText(mimeData.html(), mode=mode)
-        #     self.clipboard.setTextFormat(QtCore.Qt.RichText)
-        # else:
-        #     self.clipboard.setText(mimeData.text(), mode=mode)
-        #     self.clipboard.setTextFormat(QtCore.Qt.PlainText)
-
-        # self.infoView.setText()
-        print('copySelected call ended')
+        self.clipboard.setText(text_copied, mode)
 
     def pasteSelected(self):
-        print('paste selected called')
-        # clipboard = QtGui.QApplication.clipboard()
-        # mimeData = clipboard.mimeData()
-        self.infoView.setPlainText(self.clipboard.mimeData().text())
+        """Pastes clipboard into cells starting at selected cell."""
 
-        # if mimeData.hasHtml():
-        #     self.infoView.setText(mimeData.html())
-        # else:
-        #     self.infoView.setPlainText(mimeData.text())
+        #TODO no field validation is done when it's pasted like this.
+        # Is that ok?
 
-        # self.infoView.setText()
-        print('paste selected called')
+        # Find the selected cell at which to start pasting
+        indexes = self.classTable.selectedIndexes()
+        if len(indexes) <= 0:
+            return False
+        start_col = indexes[0].column()
+        start_row = indexes[0].row()
+
+        # Get clipboard data if it's text
+        mimeData = self.clipboard.mimeData()
+        if mimeData.hasText():
+            raw_text = mimeData.text()
+        else:
+            return False
+
+        # Iterate through text, splitting into rows
+        table_model = self.classTable.model()
+        rows = raw_text.split('\n')
+        for i, row in enumerate(rows[:-1]):
+            cols = row.split('\t')
+            for j, col in enumerate(cols):
+
+                # Save cols and rows to data model
+                index = table_model.index(start_row + i,
+                                          start_col + j,
+                                          QtCore.QModelIndex())
+                table_model.setData(index, col, QtCore.Qt.EditRole)
+                table_model.dataChanged.emit(index, index)
+
+    def pasteObject(self):
+        """Pastes the currently copies object(s)."""
+        indexes = self.classTable.selectedIndexes()
+        if len(indexes) <= 0:
+            return False
+
+        # Detect orientation, then make a set to find unique columns/rows
+        if self.obj_orientation == QtCore.Qt.Vertical:
+            index_set = set([index.column() for index in indexes])
+            index_list = list(index_set)
+            model = self.classTable.model().sourceModel()
+
+            if len(indexes) <= 0:
+                # No selection, so add to end of object list
+                position = model.columnCount(QtCore.QModelIndex())
+            else:
+                # Selection made so insert at end of selection
+                position = index_list[-1] + 1
+
+            model.addColumns(position, self.obj_clipboard)
+        else:
+            index_set = set([index.row() for index in indexes])
+            index_list = list(index_set)
+            model = self.classTable.model()
+
+            if len(indexes) <= 0:
+                position = model.rowCount(QtCore.QModelIndex())
+            else:
+                position = index_list[-1] + 1
+
+            model.addRows(position, self.obj_clipboard)
 
     def deleteObject(self):
+
         #TODO change from removeColumns/Rows to removeObject in IDFFile class?
-        selected = self.classTable.selectionModel()
-        indexes = selected.selectedIndexes()
+        indexes = self.classTable.selectedIndexes()
         if len(indexes) <= 0:
-            return
+            return False
 
         # Make a set to find unique columns/rows
         if self.obj_orientation == QtCore.Qt.Vertical:
@@ -809,7 +843,13 @@ class IDFPlus(QtGui.QMainWindow):
             position = indexes[0].row()
             model.removeRows(position, count)
 
-        print('obj deleted: pos {}, count {}'.format(position, count))
+    def cutObject(self):
+
+        # Copy object then delete it
+        if not self.copyObject():
+            return False
+        if not self.deleteObject():
+            return False
 
     def toggle_full_tree(self):
         """Called to toggle the full class tree or a partial tree."""

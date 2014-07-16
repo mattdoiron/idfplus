@@ -187,9 +187,8 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
                            QtCore.QModelIndex(),
                            index)
 
-        # move code goes here - note implemented yet
         to_move = self.idf_objects[position:position + rows]
-        self.idf_objects.insert(index, to_move)
+        self.idf_objects[index:index] = to_move
 
         if position >= index:
             del self.idf_objects[position + rows:position + rows + rows]
@@ -264,7 +263,13 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
                               QtCore.QModelIndex(),
                               index)
 
-        # move code goes here - note implemented yet
+        to_move = self.idf_objects[position:position + cols]
+        self.idf_objects[index:index] = to_move
+
+        if position >= index:
+            del self.idf_objects[position + cols:position + cols + cols]
+        else:
+            del self.idf_objects[position:position + cols]
 
         self.getLabels()
         if cols > 1:
@@ -276,6 +281,36 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
         self.dirty = True
         self.dataChanged.emit(QtCore.QModelIndex(), QtCore.QModelIndex())
         return True
+
+    def addColumns(self, position, objects):
+
+        self.beginInsertColumns(QtCore.QModelIndex(),
+                                position,
+                                position - 1 + len(objects))
+        self.idf_objects[position:position] = objects
+        self.getLabels()
+        if len(objects) > 1:
+            transaction.get().note('Add multiple objects')
+        else:
+            transaction.get().note('Add object')
+        transaction.commit()
+        self.dataChanged.emit(QtCore.QModelIndex(), QtCore.QModelIndex())
+        self.endInsertColumns()
+
+    def addRows(self, position, objects):
+
+        self.beginInsertRows(QtCore.QModelIndex(),
+                                position,
+                                position - 1 + len(objects))
+        self.idf_objects[position:position] = objects
+        self.getLabels()
+        if len(objects) > 1:
+            transaction.get().note('Add multiple objects')
+        else:
+            transaction.get().note('Add object')
+        transaction.commit()
+        self.dataChanged.emit(QtCore.QModelIndex(), QtCore.QModelIndex())
+        self.endInsertRows()
 
     def getLabels(self):
         field_labels = []
@@ -358,11 +393,34 @@ class TransposeProxyModel(QtGui.QAbstractProxyModel):
     def removeColumns(self, position, cols):
         return self.sourceModel().removeColumns(position, cols)
 
+    def addRows(self, position, objects):
+        return self.sourceModel().addRows(position, objects)
+
+    def addColumns(self, position, objects):
+        return self.sourceModel().addColumns(position, objects)
+
+    def moveRows(self, position, rows, index):
+        return self.sourceModel().moveRows(position, rows, index)
+
+    def moveColumns(self, position, rows, index):
+        return self.sourceModel().moveColumns(position, cols, index)
 
 class SortFilterProxyModel(QtGui.QSortFilterProxyModel):
 
     def setSourceModel(self, source):
         super(SortFilterProxyModel, self).setSourceModel(source)
+
+    def addRows(self, position, objects):
+        return self.sourceModel().addRows(position, objects)
+
+    def addColumns(self, position, objects):
+        return self.sourceModel().addColumns(position, objects)
+
+    def moveRows(self, position, rows, index):
+        return self.sourceModel().moveRows(position, rows, index)
+
+    def moveColumns(self, position, rows, index):
+        return self.sourceModel().moveColumns(position, cols, index)
 
         # connect signals
         # self.sourceModel().rowsAboutToBeInserted.connect(self.rowsAboutToBeInserted.emit)
