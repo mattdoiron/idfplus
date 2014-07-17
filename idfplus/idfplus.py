@@ -30,7 +30,6 @@ import transaction
 import tempfile
 
 # PySide imports
-import PySide
 from PySide import QtGui
 from PySide import QtCore
 
@@ -84,7 +83,7 @@ class IDFPlus(QtGui.QMainWindow):
         self.create_tray_menu()
 
         # Connect some slots and signals
-        self.classTree.currentItemChanged.connect(self.iWasChanged)
+        self.classTree.currentItemChanged.connect(self.classSelected)
 
         # In-memory ZODB databases don't support undo! Use an on-disk cache
         self.db = MyZODB()
@@ -318,9 +317,7 @@ class IDFPlus(QtGui.QMainWindow):
 
     def about(self):
         """Called by the about action."""
-#        QtGui.QMessageBox.about(self, "About Application",
-#                "<b>IDFPlus</b> is an improved IDF file editor with enhanced "
-#                "features and capabilities.")
+        import PySide
 
         QtGui.QMessageBox.about(self, "About IDFPlus",
                 """<b>IDFPlus</b> v{0}
@@ -521,15 +518,16 @@ class IDFPlus(QtGui.QMainWindow):
         self.viewToolBar = self.addToolBar("View Toolbar")
         self.viewToolBar.setObjectName('viewToolBar')
         self.viewToolBar.addAction(self.transposeAct)
+        filterBox = QtGui.QLineEdit()
+        filterBox.setMaxLength(120)
+        goButton = QtGui.QPushButton('Filter')
+        self.viewToolBar.addWidget(filterBox)
+        self.viewToolBar.addWidget(goButton)
         self.viewToolBar.setToolButtonStyle(QtCore.Qt.ToolButtonTextBesideIcon)
 
     def create_shortcuts(self):
         """Creates keyboard shortcuts."""
-        # QtGui.QShortcut(QtGui.QKeySequence('Ctrl+v'),self).activated.connect(self._handle_paste)
-        QtGui.QShortcut(QtGui.QKeySequence('Ctrl+d'),self).activated.connect(self.copy_test)
         QtGui.QShortcut(QtGui.QKeySequence('Ctrl+l'),self).activated.connect(self.toggle_full_tree)
-
-
 
 #    def createAction(self, text, slot=None, shortcut=None, icon=None,
 #                     tip=None, checkable=False, signal="triggered()"):
@@ -624,15 +622,6 @@ class IDFPlus(QtGui.QMainWindow):
             self.setWindowTitle("IDFPlus Editor[*]")
             self.setWindowModified(self.dirty)
 
-    def copy_test(self):
-        """Testing for copy and paste."""
-#        index = self.mainView.bottomright.currentIndex()
-        selected = self.classTable.selectionModel()
-#        self.mainView.topright.setText(str(index.row()))
-#        self.mainView.topright.setText(str(selected.selectedRows()))
-        print(str(selected.selectedIndexes()))
-#        print str(selected.selectedColumns())
-
     def setVisible(self, visible):
         """Integrates system tray with minimize/maximize.
         :param visible:
@@ -677,6 +666,7 @@ class IDFPlus(QtGui.QMainWindow):
     def duplicateObject(self):
 
         #TODO allow duplicating next to the selection or at end of list?
+        # how would the user specify which one?
 
         # Copy the selected object(s)
         if not self.copyObject():
@@ -692,19 +682,18 @@ class IDFPlus(QtGui.QMainWindow):
             position = model.rowCount(QtCore.QModelIndex())
             model.addRows(position, self.obj_clipboard)
 
-    def moveObject(self, position, source, destination):
-        """Moves (reorders) objects."""
-        #FIXME should be position, cols, dest? not source?
-        if self.obj_orientation == QtCore.Qt.Vertical:
-            model = self.classTable.model().sourceModel()
-            model.moveColumns(position, source, destination)
-        else:
-            model = self.classTable.model()
-            model.moveRows(position, source, destination)
+    # def moveObject(self, position, source, destination):
+    #
+    #     """Moves (reorders) objects."""
+    #     if self.obj_orientation == QtCore.Qt.Vertical:
+    #         model = self.classTable.model().sourceModel()
+    #         model.moveColumns(position, source, destination)
+    #     else:
+    #         model = self.classTable.model()
+    #         model.moveRows(position, source, destination)
 
     def copyObject(self):
         """Copies object(s) to the clipboard for pasting to other programs."""
-
         indexes = self.classTable.selectedIndexes()
         if len(indexes) <= 0:
             return False
@@ -722,6 +711,7 @@ class IDFPlus(QtGui.QMainWindow):
             self.obj_clipboard = self.idf[self.current_obj_class][start:end]
         else:
             self.obj_clipboard = self.idf[self.current_obj_class][start:end]
+        return True
 
     def copySelected(self):
         """Copies the selected cells to the clipboard for pasting to other programs."""
@@ -753,6 +743,7 @@ class IDFPlus(QtGui.QMainWindow):
         # Save converted text to the clipboard
         mode = QtGui.QClipboard.Clipboard
         self.clipboard.setText(text_copied, mode)
+        return True
 
     def pasteSelected(self):
         """Pastes clipboard into cells starting at selected cell."""
@@ -842,6 +833,7 @@ class IDFPlus(QtGui.QMainWindow):
             model = self.classTable.model()
             position = indexes[0].row()
             model.removeRows(position, count)
+        return True
 
     def cutObject(self):
 
@@ -865,15 +857,6 @@ class IDFPlus(QtGui.QMainWindow):
             if obj is not None and count == '' and not disabled and not spanned:
                 item.value().setHidden(not self.fullTree)
         tree.scrollTo(current)
-
-    def _handle_paste(self):
-        """Testing for copy and paste."""
-        clipboard_text = QtGui.QApplication.instance().clipboard().text()
-#        item = QtGui.QTableWidgetItem()
-#        item.setText(clipboard_text)
-#        self.tv.setItem(0, 0, item)
-        print(clipboard_text)
-        self.infoView.setText(clipboard_text)
 
     def center(self):
         """Called to center the window on the screen on startup."""
@@ -974,13 +957,13 @@ class IDFPlus(QtGui.QMainWindow):
         """Transposes the table"""
         if self.obj_orientation == QtCore.Qt.Horizontal:
             self.obj_orientation = QtCore.Qt.Vertical
-            self.classTable.horizontalHeader().setMovable(True)
-            self.classTable.verticalHeader().setMovable(False)
+            # self.classTable.horizontalHeader().setMovable(True)
+            # self.classTable.verticalHeader().setMovable(False)
             log.info('Setting object orientation to vertical.')
         else:
             self.obj_orientation = QtCore.Qt.Horizontal
-            self.classTable.horizontalHeader().setMovable(False)
-            self.classTable.verticalHeader().setMovable(True)
+            # self.classTable.horizontalHeader().setMovable(False)
+            # self.classTable.verticalHeader().setMovable(True)
             # print('Setting object orientation to: Horizontal')
 
         self.load_table_view(self.current_obj_class)
@@ -997,21 +980,11 @@ class IDFPlus(QtGui.QMainWindow):
                         return key
         return None
 
-    def testSignal(self, myint):
-        """Test signal"""
-        self.progressDialog.setValue(myint)
-
-    def iWasChanged(self, current, previous):
+    def classSelected(self, current, previous):
         """Test call to slot"""
         if (current or current.parent()) is None:
             return
-        # if current.parent() is None:
-        #     return
         self.load_table_view(current.text(0))
-
-    def iWasChanged2(self, current, previous):
-        """Test call to slot"""
-        print('test iwaschanged2')
 
     def create_ui(self):
         """Setup main UI elements, dock widgets, UI-related elements, etc. """
@@ -1030,8 +1003,8 @@ class IDFPlus(QtGui.QMainWindow):
                                    QtGui.QAbstractItemView.DoubleClicked |
                                    QtGui.QAbstractItemView.AnyKeyPressed |
                                    QtGui.QAbstractItemView.SelectedClicked)
-        classTable.horizontalHeader().setMovable(True)
-        classTable.verticalHeader().setMovable(False)
+        # classTable.horizontalHeader().setMovable(True)
+        # classTable.verticalHeader().setMovable(False)
         # classTable.horizontalHeader().setContentsMargins(0, 0, 0, 0)
         # classTable.verticalHeader().setContentsMargins(0, 0, 0, 0)
         classTable.horizontalHeader().setResizeMode(QtGui.QHeaderView.Interactive)
@@ -1043,9 +1016,10 @@ class IDFPlus(QtGui.QMainWindow):
         # classTable.resizeColumnsToContents()
         # classTable.resizeRowsToContents()
         classTable.setSelectionMode(QtGui.QAbstractItemView.ContiguousSelection)
-        # classTable.columnMoved.connect(self.moveObject)
-        classTable.horizontalHeader().sectionMoved.connect(self.moveObject)
-        classTable.verticalHeader().sectionMoved.connect(self.moveObject)
+
+        # These are currently broken
+        # classTable.horizontalHeader().sectionMoved.connect(self.moveObject)
+        # classTable.verticalHeader().sectionMoved.connect(self.moveObject)
 
         # Object class tree widget
         classTreeDockWidget = QtGui.QDockWidget("Object Classes and Counts", self)
