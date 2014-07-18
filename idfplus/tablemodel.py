@@ -403,9 +403,20 @@ class TransposeProxyModel(QtGui.QAbstractProxyModel):
         return self.sourceModel().moveColumns(position, source, destination)
 
 class SortFilterProxyModel(QtGui.QSortFilterProxyModel):
+    """Proxy layer to sort and filter"""
 
-    def setSourceModel(self, source):
-        super(SortFilterProxyModel, self).setSourceModel(source)
+    #TODO should I swap order in which sort and transpose are layered?
+    # tried but wouldn't work? Things don't flow between the layers properly?
+
+    def __init__(self, obj_orientation, *args, **kwargs):
+        super(SortFilterProxyModel, self).__init__(*args, **kwargs)
+
+        self.obj_orientation = obj_orientation
+        syntax = QtCore.QRegExp.PatternSyntax(QtCore.QRegExp.Wildcard)
+        caseSensitivity = QtCore.Qt.CaseInsensitive
+
+        self.setFilterRegExp(QtCore.QRegExp('', caseSensitivity, syntax))
+        self.setFilterCaseSensitivity(caseSensitivity)
 
     def addRows(self, position, objects):
         return self.sourceModel().addRows(position, objects)
@@ -419,15 +430,37 @@ class SortFilterProxyModel(QtGui.QSortFilterProxyModel):
     def moveColumns(self, position, source, destination):
         return self.sourceModel().moveColumns(position, source, destination)
 
-        # connect signals
-        # self.sourceModel().rowsAboutToBeInserted.connect(self.rowsAboutToBeInserted.emit)
-        # self.sourceModel().rowsInserted.connect(self.rowsInserted.emit)
-        # self.sourceModel().rowsAboutToBeRemoved.connect(self.rowsAboutToBeRemoved.emit)
-        # self.sourceModel().rowsRemoved.connect(self.rowsRemoved.emit)
-        # self.sourceModel().columnsAboutToBeInserted.connect(self.columnsAboutToBeInserted.emit)
-        # self.sourceModel().columnsInserted.connect(self.columnsInserted.emit)
-        # self.sourceModel().columnsAboutToBeRemoved.connect(self.columnsAboutToBeRemoved.emit)
-        # self.sourceModel().columnsRemoved.connect(self.columnsRemoved.emit)
-        # self.sourceModel().rowsInserted.connect(self._rowsInserted)
-        # self.sourceModel().rowsRemoved.connect(self._rowsRemoved)
-        # self.sourceModel().dataChanged.connect(self.dataChanged)
+    def filterAcceptsColumn(self, col, parent):
+
+        if self.obj_orientation == QtCore.Qt.Horizontal:
+            return True
+
+        model = self.sourceModel()
+        row_count = model.rowCount(col)
+        regExp = self.filterRegExp()
+
+        for row in range(row_count):
+            data = model.index(row, col, parent).data()
+            if data:
+                # if pattern in data:
+                if regExp.indexIn(data) != -1:
+                    return True
+
+        return False
+
+    def filterAcceptsRow(self, row, parent):
+
+        if self.obj_orientation == QtCore.Qt.Vertical:
+            return True
+
+        model = self.sourceModel()
+        column_count = model.columnCount(row)
+        regExp = self.filterRegExp()
+
+        for col in range(column_count):
+            data = model.index(row, col, parent).data()
+            if data:
+                if regExp.indexIn(data) != -1:
+                    return True
+
+        return False

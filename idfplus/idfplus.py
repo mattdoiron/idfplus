@@ -461,7 +461,8 @@ class IDFPlus(QtGui.QMainWindow):
         self.viewMenu.addSeparator()
         self.viewMenu.addAction(self.fileToolBar.toggleViewAction())
         self.viewMenu.addAction(self.editToolBar.toggleViewAction())
-        self.viewMenu.addAction(self.viewToolBar.toggleViewAction())
+        # self.viewMenu.addAction(self.viewToolBar.toggleViewAction())
+        self.viewMenu.addAction(self.filterToolBar.toggleViewAction())
         self.viewMenu.addSeparator()
         self.viewMenu.addAction(self.transposeAct)
 
@@ -515,15 +516,29 @@ class IDFPlus(QtGui.QMainWindow):
         self.editToolBar.addAction(self.pasteObjAct)
         self.editToolBar.setToolButtonStyle(QtCore.Qt.ToolButtonTextBesideIcon)
 
-        self.viewToolBar = self.addToolBar("View Toolbar")
-        self.viewToolBar.setObjectName('viewToolBar')
-        self.viewToolBar.addAction(self.transposeAct)
-        filterBox = QtGui.QLineEdit()
-        filterBox.setMaxLength(120)
-        goButton = QtGui.QPushButton('Filter')
-        self.viewToolBar.addWidget(filterBox)
-        self.viewToolBar.addWidget(goButton)
-        self.viewToolBar.setToolButtonStyle(QtCore.Qt.ToolButtonTextBesideIcon)
+        # self.viewToolBar = self.addToolBar("View Toolbar")
+        # self.viewToolBar.setObjectName('viewToolBar')
+        # self.viewToolBar.addAction(self.transposeAct)
+        # self.viewToolBar.setToolButtonStyle(QtCore.Qt.ToolButtonTextBesideIcon)
+
+        self.filterToolBar = self.addToolBar("Filter Toolbar")
+        self.filterToolBar.setObjectName('filterToolBar')
+        self.filterBox = QtGui.QLineEdit()
+        self.filterBox.setMaximumWidth(160)
+        self.filterBox.setFixedWidth(160)
+        filterLabel = QtGui.QLabel("Filter Obj:", self)
+        filterLabel.setBuddy(self.filterBox)
+        self.filterToolBar.addWidget(filterLabel)
+        self.filterBox.textChanged.connect(self.filterRegExpChanged)
+        clearFilterButton = QtGui.QPushButton('Clear Filter')
+        clearFilterButton.clicked.connect(self.clearFilterClicked)
+        self.filterToolBar.addWidget(self.filterBox)
+        self.filterToolBar.addWidget(clearFilterButton)
+        self.caseSensitivity = QtGui.QCheckBox('Case Sensitive')
+        self.caseSensitivity.stateChanged.connect(self.caseSensitivityChanged)
+        self.filterToolBar.addWidget(self.caseSensitivity)
+        self.filterToolBar.addSeparator()
+        self.filterToolBar.addAction(self.transposeAct)
 
     def create_shortcuts(self):
         """Creates keyboard shortcuts."""
@@ -548,7 +563,7 @@ class IDFPlus(QtGui.QMainWindow):
     def create_context_menu(self, pos):
         menu = QtGui.QMenu()
         openAction = menu.addAction("Test 1")
-        deleAction = menu.addAction("Clear")
+        delAction = menu.addAction("Clear")
         renaAction = menu.addAction("Test 2")
         self.classTable.setContextMenuPolicy()
 
@@ -559,6 +574,24 @@ class IDFPlus(QtGui.QMainWindow):
                 target.addSeparator()
             else:
                 target.addAction(action)
+
+    def filterRegExpChanged(self):
+        pattern = self.filterBox.text()
+        self.classTable.model().setFilterRegExp(pattern)
+        self.classTable.model().invalidate()
+        # self.classTable.dataChanged.emit(QtCore.QModelIndex(), QtCore.QModelIndex())
+
+    def clearFilterClicked(self):
+        self.filterBox.clear()
+        self.filterRegExpChanged()
+
+    def caseSensitivityChanged(self):
+        if self.caseSensitivity.isChecked() == True:
+            sensitivity = QtCore.Qt.CaseSensitive
+        else:
+            sensitivity = QtCore.Qt.CaseInsensitive
+        self.classTable.model().setFilterCaseSensitivity(sensitivity)
+        self.filterRegExpChanged()
 
     def set_current_file(self, file_name):
         """Sets the current file globaly and updates title, statusbar, etc."""
@@ -880,7 +913,7 @@ class IDFPlus(QtGui.QMainWindow):
 
         # Create the default table model
         self.default_model = tablemodel.IDFObjectTableModel(obj_class,
-                                                       self.idf)
+                                                            self.idf)
 
         # If objects are vertical, create transposed model
         if self.obj_orientation == QtCore.Qt.Vertical:
@@ -890,9 +923,8 @@ class IDFPlus(QtGui.QMainWindow):
             model = self.default_model
 
         # Create additional proxy for sorting and filtering
-        sortable = tablemodel.SortFilterProxyModel()
+        sortable = tablemodel.SortFilterProxyModel(self.obj_orientation)
         sortable.setSourceModel(model)
-        # sortable.setDynamicSortFilter(True)  # Needed?
 
         # Assign model to table and set some variables (enable sorting FIRST)
         table.setSortingEnabled(True)
@@ -957,11 +989,13 @@ class IDFPlus(QtGui.QMainWindow):
         """Transposes the table"""
         if self.obj_orientation == QtCore.Qt.Horizontal:
             self.obj_orientation = QtCore.Qt.Vertical
+            self.classTable.model().obj_orientation = QtCore.Qt.Vertical
             # self.classTable.horizontalHeader().setMovable(True)
             # self.classTable.verticalHeader().setMovable(False)
-            log.info('Setting object orientation to vertical.')
+            # log.info('Setting object orientation to vertical.')
         else:
             self.obj_orientation = QtCore.Qt.Horizontal
+            self.classTable.model().obj_orientation = QtCore.Qt.Horizontal
             # self.classTable.horizontalHeader().setMovable(False)
             # self.classTable.verticalHeader().setMovable(True)
             # print('Setting object orientation to: Horizontal')
