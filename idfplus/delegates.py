@@ -243,8 +243,9 @@ class ChoiceDelegate(QtGui.QItemDelegate):
 
     def __init__(self, field, parent=None, data_type=None):
         super(ChoiceDelegate, self).__init__(parent)
-#        self.model = model
+
         self.field = field
+        self.model = QtGui.QStandardItemModel()
         self.comboFields = ['minimum>',
                             'minimum',
                             'maximum<',
@@ -260,63 +261,59 @@ class ChoiceDelegate(QtGui.QItemDelegate):
         pass
 
     def createEditor(self, parent, option, index):
-        combo = QtGui.QComboBox(parent)
-        combo.setFrame(False)
-        combo.setEditable(True)
-        combo.editTextChanged.connect(self.imActivated)
-        combo.setStyleSheet("QComboBox { border: 0px; }")
-
-        model = QtGui.QStandardItemModel()
-        tag_list = []
+        self.comboBox = QtGui.QComboBox(parent)
+        self.comboBox.setEditable(True)
+        self.comboBox.editTextChanged.connect(self.imActivated)
+        self.comboBox.setStyleSheet("QComboBox { border: 0px; }")
+        self.comboBox.setFrame(False)
 
         for tag, value in self.field.tags.iteritems():
             if tag in self.comboFields:
                 if tag == 'default':
-                    model.insertRow(0, [QtGui.QStandardItem(value),
-                                        QtGui.QStandardItem(tag)])
+                    self.model.insertRow(0, [QtGui.QStandardItem(value),
+                                             QtGui.QStandardItem(tag)])
+                elif tag == 'object-list':
+                    #Retrieve object list and use it to populate the dropdown
+                    pass
                 else:
                     # Need to check if it's a list...is there a better way?
                     # Could make them all lists...would be annoying.
                     if type(value) is list:
                         for val in value:
-                            model.appendRow([QtGui.QStandardItem(val),
-                                             QtGui.QStandardItem(tag)])
+                            self.model.appendRow([QtGui.QStandardItem(val),
+                                                  QtGui.QStandardItem(tag)])
                     else:
-                        model.appendRow([QtGui.QStandardItem(value),
-                                         QtGui.QStandardItem(tag)])
-                tag_list.append(tag)
+                        self.model.appendRow([QtGui.QStandardItem(value),
+                                              QtGui.QStandardItem(tag)])
 
-        myitem = model.findItems('current', column=1)
+        myitem = self.model.findItems('current', column=1)
         if len(myitem) > 0:
-            model.removeRow(myitem[0].row())
+            self.model.removeRow(myitem[0].row())
 
         value = index.data(QtCore.Qt.DisplayRole)
         current_item = QtGui.QStandardItem('current')
         value_item = QtGui.QStandardItem(value)
-        model.insertRow(0, [value_item, current_item])
+        self.model.insertRow(0, [value_item, current_item])
 
-        tableView = QtGui.QTableView(parent)
-        tableView.setModel(model)
-        tableView.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAsNeeded)
-        tableView.setSelectionMode(QtGui.QAbstractItemView.SingleSelection)
-        tableView.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
-        tableView.setAutoScroll(False)
-        tableView.resizeColumnsToContents()
-        tableView.resizeRowsToContents()
-        # tableView.setContentsMargins(0,0,0,0)
-        # tableView.setStyleSheet("QTableView { qproperty-frame: false;}")
-        tableView.verticalHeader().setVisible(False)
-        tableView.horizontalHeader().setVisible(False)
-        tableView.setMinimumWidth(tableView.horizontalHeader().length())
-        tableView.setFrameShape(QtGui.QFrame.NoFrame)
+        self.tableView = QtGui.QTableView(self.comboBox)
+        self.tableView.setModel(self.model)
+        self.tableView.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAsNeeded)
+        self.tableView.setSelectionMode(QtGui.QAbstractItemView.SingleSelection)
+        self.tableView.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
+        self.tableView.verticalHeader().setVisible(False)
+        self.tableView.horizontalHeader().setVisible(False)
+        self.tableView.setAutoScroll(False)
+
+        self.tableView.resizeColumnsToContents()
+        self.tableView.resizeRowsToContents()
+        self.tableView.setMinimumWidth(self.tableView.horizontalHeader().length())
+        self.tableView.setFrameShape(QtGui.QFrame.NoFrame)
 
         # Table AND combo get same model (table first!)
-        combo.setModel(model)
-        combo.setView(tableView)
-        combo.setFrame(False)
-        # combo.setContentsMargins(0,0,0,0)
-#        combo.showPopup()
-        return combo
+        self.comboBox.setModel(self.model)
+        self.comboBox.setView(self.tableView)
+
+        return self.comboBox
 
     def setEditorData(self, editor, index):
 #        editor.showPopup()

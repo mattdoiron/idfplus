@@ -577,6 +577,8 @@ class IDFPlus(QtGui.QMainWindow):
 
     def filterRegExpChanged(self):
         pattern = self.filterBox.text()
+        if len(pattern) < 3:
+            pattern = ''
         self.classTable.model().setFilterRegExp(pattern)
         self.classTable.model().invalidate()
         # self.classTable.dataChanged.emit(QtCore.QModelIndex(), QtCore.QModelIndex())
@@ -594,7 +596,7 @@ class IDFPlus(QtGui.QMainWindow):
         self.filterRegExpChanged()
 
     def set_current_file(self, file_name):
-        """Sets the current file globaly and updates title, statusbar, etc."""
+        """Sets the current file globally and updates title, statusbar, etc."""
         self.file_path = file_name
         self.setWindowModified(False)
 
