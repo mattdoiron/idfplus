@@ -182,6 +182,12 @@ class Writer(object):
         # Open file and write
         try:
             with open(test_file_name, 'w') as file:
+
+                file.write("!-Generator IDFPlus v0.0.1\n")
+                file.write("!-Option\n")
+                file.write("!-NOTE: All comments with '!-' are ignored by the IDFEditor and are generated automatically.\n")
+                file.write("!-      Use '!' comments if they need to be retained when using the IDFEditor.\n")
+
                 for obj_class, obj_list in idf.iteritems():
 
                     for obj in obj_list:
@@ -207,15 +213,24 @@ class Writer(object):
                         # if obj['fields']:
                         field_count = len(obj)
                         for i, field in enumerate(obj):
+
                             field_note = idd[obj_class][i].tags.get('field', None)
                             if field_note:
-                                note = ' !-{}'.format(field_note)
+                                note = '  !- {}'.format(field_note)
                             else:
                                 note = ''
+
                             if i == field_count - 1:
-                                file.write("    {};{}\n".format(field.value, note))
+                                sep = ';'
                             else:
-                                file.write("    {},{}\n".format(field.value, note))
+                                sep = ','
+
+                            if field:
+                                value = (field.value or '') + sep
+                            else:
+                                value = sep
+                            line = "    {!s:23}{}\n".format(value, note)
+                            file.write(line)
 
                         # Add newline at the end of the object
                         file.write(eol_char)
@@ -844,9 +859,6 @@ class IDFParser(Parser):
                     end_object = line_parsed['end_object']
                 empty_line = line_parsed['empty_line']
 
-                # Clean the input line (get rid of tabs and left white spaces)
-                line_clean = line.expandtabs().lstrip()
-
                 # Check for special options
                 if line_parsed['options']:
                     self.idf.options.extend(line_parsed['options'])
@@ -864,7 +876,7 @@ class IDFParser(Parser):
                     field_list.extend(line_parsed['fields'])
 
                     # Detect idf file version and use it to select idd file
-                    if field_list[0] == 'Version':
+                    if field_list[0] == 'Version' and len(field_list) > 1:
                         version = field_list[1]
                         self.idf._version = version
                         log.debug('idf detected as version: {}'.format(version))
@@ -878,10 +890,9 @@ class IDFParser(Parser):
 
                             # Use the list of object classes from the idd to populate
                             # the idf file's object classes. This must be done early
-                            # so that all objects added later are added to properly
-                            # ordered classes.
+                            # so that all objects added later are saved in the proper
+                            # order.
                             self.idf.update((k, PersistentList()) for k, v in idd.iteritems())
-
                         log.debug('idd loaded as version: {}'.format(self.idd.version))
 
                 # If this is the end of an object save it
@@ -925,11 +936,12 @@ class IDFParser(Parser):
                     # due to apparent incompatibility with ZODB
                     if obj_class in self.idd:
 
-                        # Pad length of object to pre-allocate list size
-                        length = len(idf_object)
-                        max_length = len(self.idd[obj_class])
-                        padding = (max_length - length) * [None]
-                        idf_object.extend(padding)
+                        # Should not need this now. It also messes up file writing
+                        # # Pad length of object to pre-allocate list size
+                        # length = len(idf_object)
+                        # max_length = len(self.idd[obj_class])
+                        # padding = (max_length - length) * [None]
+                        # idf_object.extend(padding)
 
                         # Add the object
                         try:

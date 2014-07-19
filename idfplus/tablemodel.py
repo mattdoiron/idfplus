@@ -118,14 +118,30 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
         if role == QtCore.Qt.EditRole:
             row = index.row()
             column = index.column()
+
+            # Try to assign the value
             try:
                 self.idf_objects[row][column].value = value
-            except AttributeError:
+            except (AttributeError, IndexError):
+                # An invalid index could mean that we're trying to assign a value
+                # to a field that has not yet been 'allocated'. Check for max
+                # allowable fields
+                max_field_count = len(self.idd.get(self.obj_class, []))
+                current_field_count = len(self.idf_objects[row])
+
+                # If within limits allowed, allocate additional field 'slots'
+                if index.column() < max_field_count:
+                    extra_field_count = index.column() - current_field_count + 1
+                    extra_fields = extra_field_count*[None]
+                    self.idf_objects[row].extend(extra_fields)
+                else:
+                    return False
+
+                # Create a new field object, give it a value and save it
                 new_field = IDFField(self.idf_objects[row])
                 new_field.value = value
                 self.idf_objects[row][column] = new_field
-            except IndexError:
-                return False
+
             self.dirty = True
             self.dataChanged.emit(index, index)
             transaction.get().note('Modify field')
