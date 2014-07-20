@@ -310,7 +310,7 @@ class IDFPlus(QtGui.QMainWindow):
         """Called by the redo action. Not yet implemented"""
         import sys
         import pprint
-        no_initial = lambda tx: True if tx['description'] not in ['initial database creation'] else False
+        no_initial = lambda tx: True if tx['description'] not in ['initial database creation','Load file'] else False
         undo_log = self.db.db.undoLog(0, sys.maxint, no_initial)
         pprint.pprint(undo_log)
         self.commentView.setText('undo log: {}'.format(undo_log))
@@ -323,7 +323,7 @@ class IDFPlus(QtGui.QMainWindow):
                 """<b>IDFPlus</b> v{0}
                 <p>Copyright &copy; 2014 No Name Ltd.
                 All rights reserved.
-                <p>This is an improved IDF file editor with enhanced featues
+                <p>This is an improved IDF file editor with enhanced features
                 and capabilities.
                 <p>Python {1} - Qt {2} - PyQt {3} on {4}""".format(
                 __version__, platform.python_version(),
@@ -1140,7 +1140,7 @@ class IDFPlus(QtGui.QMainWindow):
         self.setUnifiedTitleAndToolBarOnMac(True)
         self.setWindowTitle('IDFPlus Editor')
         self.statusBar().showMessage('Status: Ready')
-        self.setWindowIcon(QtGui.QIcon(':/images/eplussm.gif'))
+        self.setWindowIcon(QtGui.QIcon(':/eplussm.gif'))
 
         testLabel = QtGui.QLabel('test label')
         testLabel.setAlignment(QtCore.Qt.AlignCenter)
@@ -1170,7 +1170,7 @@ class IDFPlus(QtGui.QMainWindow):
         # System tray itself
         self.trayIcon = QtGui.QSystemTrayIcon(self)
         self.trayIcon.setContextMenu(self.trayIconMenu)
-        self.trayIcon.setIcon(QtGui.QIcon(':/eplussm.gif'))
+        self.trayIcon.setIcon(QtGui.QIcon(':/images/eplussm.gif'))
         self.trayIcon.setToolTip('IDFPlus')
         self.trayIcon.show()
 

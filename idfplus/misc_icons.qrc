@@ -1,4 +1,5 @@
-<!DOCTYPE RCC><RCC version="1.0">
+<!DOCTYPE RCC>
+<RCC version="1.0">
     <qresource>
         <file alias="eplussm.gif">images/eplussm.gif</file>
         <file alias="filenew.png">images/filenew.png</file>
