@@ -31,6 +31,7 @@ from PySide import QtCore
 APP_ROOT = os.path.join(os.path.dirname(os.path.realpath(__file__)), '..')
 LOG_LEVEL = 'DEBUG'
 DEFAULT_COLUMN_WIDTH = 120
+FILE_ENCODING = 'latin_1'
 
 class Settings(object):
     """Object to handle setting and getting settings or info about them."""
@@ -72,6 +73,11 @@ class Settings(object):
         DEFAULT_COLUMN_WIDTH = settings.value("default_column_width", 120)
         settings.endGroup()
 
+        settings.beginGroup("Global")
+        global FILE_ENCODING
+        FILE_ENCODING = settings.value("file_encoding", 'latin_1')
+        settings.endGroup()
+
         parent.resize(size)
         parent.move(position)
         parent.restoreState(state)
@@ -105,6 +111,10 @@ class Settings(object):
 
         settings.beginGroup("ClassTable")
         settings.setValue("default_column_width", 120)
+        settings.endGroup()
+
+        settings.beginGroup("Global")
+        settings.setValue("file_encoding", 'latin_1')
         settings.endGroup()
 
     def show_settings_dialog(self):

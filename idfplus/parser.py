@@ -25,6 +25,7 @@ import os
 import shelve
 import datetime as dt
 import transaction
+import codecs
 from persistent.list import PersistentList
 
 # Package imports
@@ -35,6 +36,7 @@ from .datamodel import IDDFileDoesNotExist
 # Constants
 from . import idfsettings as c
 
+FILE_ENCODING = 'latin_1'
 OPTIONS_LIST = ['OriginalOrderTop', 'UseSpecialFormat']
 COMMENT_DELIMITER_GENERAL = '!'
 COMMENT_DELIMITER_SPECIAL = '!-'
@@ -169,9 +171,9 @@ class Writer(object):
         idd = idf._idd
         options = idf.options
         eol_char = idf._eol_char
-        test_file_name = idf.file_path + '_test'
+        file_path = idf.file_path + '_test' # just for testing, don't overwrite!
 
-        log.info('Saving file: {}'.format(test_file_name))
+        log.info('Saving file: {}'.format(file_path))
 
         # Check for special options
         use_special_format = False
@@ -181,12 +183,14 @@ class Writer(object):
 
         # Open file and write
         try:
-            with open(test_file_name, 'w') as file:
+            with codecs.open(file_path, 'w',
+                             encoding=FILE_ENCODING,
+                             errors='backslashreplace') as file:
 
-                file.write("!-Generator IDFPlus v0.0.1\n")
-                file.write("!-Option\n")
-                file.write("!-NOTE: All comments with '!-' are ignored by the IDFEditor and are generated automatically.\n")
-                file.write("!-      Use '!' comments if they need to be retained when using the IDFEditor.\n")
+                file.write("!-Generator IDFPlus v0.0.1{}".format(eol_char))
+                file.write("!-Option{}".format(eol_char))
+                file.write("!-NOTE: All comments with '!-' are ignored by the IDFEditor and are generated automatically.{}".format(eol_char))
+                file.write("!-      Use '!' comments if they need to be retained when using the IDFEditor.{}".format(eol_char))
 
                 for obj_class, obj_list in idf.iteritems():
 
@@ -197,9 +201,11 @@ class Writer(object):
                         #     file.write("!-{}{}".format(comment, eol_char))
 
                         # Write comments if there are any
-                        # if obj['comments'] is not None:
                         for comment in obj.comments:
-                            file.write("!{}".format(comment))
+
+                            # Don't use '.format' here due to potential incorrect
+                            # encodings introduced by user
+                            file.write("!"+comment)
 
                         # Some objects are on one line and some fields are grouped!
                         # If enabled, check IDD file for special formatting instructions
@@ -207,7 +213,7 @@ class Writer(object):
                             pass
 
                         # Write the object name
-                        file.write("  {},\n".format(obj_class))
+                        file.write("  {},{}".format(obj_class, eol_char))
 
                         # Write the fields
                         # if obj['fields']:
@@ -229,7 +235,7 @@ class Writer(object):
                                 value = (field.value or '') + sep
                             else:
                                 value = sep
-                            line = "    {!s:23}{}\n".format(value, note)
+                            line = "    {!s:23}{}{}".format(value, note, eol_char)
                             file.write(line)
 
                         # Add newline at the end of the object
@@ -539,7 +545,9 @@ class IDDParser(Parser):
         idd = db['idd']
 
         # Open the specified file in a safe way
-        with open(file_path, 'r') as idd_file:
+        with codecs.open(file_path, 'r',
+                         encoding=FILE_ENCODING,
+                         errors='backslashreplace') as idd_file:
 
             # Prepare some variables to store the results
             field_list = list()
@@ -777,7 +785,7 @@ class IDDParser(Parser):
         # Check if the file name is a file and then open the idd file
         if os.path.isfile(idd_path):
             log.debug('idd found, loading...')
-            database = shelve.open(idd_path, flag='r')
+            database = shelve.open(idd_path, flag='r', protocol=2)
             idd = database['idd']
             date_generated = database['date_generated']
             database.close()
@@ -830,7 +838,9 @@ class IDFParser(Parser):
         log.info('Parsing IDF file: {} ({} bytes)'.format(file_path, total_size))
 
         # Open the specified file in a safe way
-        with open(file_path, 'r') as idf:
+        with codecs.open(file_path, 'r',
+                         encoding=FILE_ENCODING,
+                         errors='backslashreplace') as idf:
 
             # Prepare some variables to store the results
             field_list = list()
@@ -849,10 +859,13 @@ class IDFParser(Parser):
                 line_parsed = self.parse_line(line)
 
                 # Detect end of line character for use when re-writing file
-                if line.endswith('\r\n'):
-                    self.idf._eol_char = '\r\n'
-                else:
-                    self.idf._eol_char = '\n'
+                if not self.idf._eol_char:
+                    if line.endswith('\r\n'):
+                        self.idf._eol_char = '\r\n'
+                        log.debug('Windows line endings detected.')
+                    else:
+                        self.idf._eol_char = '\n'
+                        log.debug('Unix line endings detected.')
 
                 # If previous line was not the end of an object check this one
                 if end_object is False:
