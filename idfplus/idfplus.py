@@ -607,11 +607,11 @@ class IDFPlus(QtGui.QMainWindow):
         :param message:
         """
         self.statusBar().showMessage(message, 5000)
+        if self.idd:
+            self.versionLabel.setText('EnergyPlus IDD v{}'.format(self.idd.version))
         if self.file_path is not None:
             basename = os.path.basename(self.file_path)
             self.setWindowTitle("IDFPlus Editor - %s[*]" % basename)
-#        elif not self.image.isNull():
-#            self.setWindowTitle("IDFPlus Editor - Unnamed[*]")
         else:
             self.setWindowTitle("IDFPlus Editor[*]")
             self.setWindowModified(self.dirty)
@@ -1077,22 +1077,16 @@ class IDFPlus(QtGui.QMainWindow):
         self.center()
         self.setUnifiedTitleAndToolBarOnMac(True)
         self.setWindowTitle('IDFPlus Editor')
-        self.statusBar().showMessage('Status: Ready')
         self.setWindowIcon(QtGui.QIcon(':/eplussm.gif'))
 
-        testLabel = QtGui.QLabel('test label')
-        testLabel.setAlignment(QtCore.Qt.AlignCenter)
-        testLabel.setMinimumSize(testLabel.sizeHint())
-
-        testLabel1 = QtGui.QLabel('test label 123')
-        testLabel1.setAlignment(QtCore.Qt.AlignCenter)
-        testLabel1.setMinimumSize(testLabel1.sizeHint())
-
-        self.statusBar().addWidget(testLabel)
-        self.statusBar().addWidget(testLabel1)
-
-        testLabel.setText('this is some text')
-        testLabel1.setText('some more text')
+        # Status bar setup
+        self.statusBar().showMessage('Status: Ready')
+        self.statusBar().setSizeGripEnabled(True)
+        self.versionLabel = QtGui.QLabel()
+        self.versionLabel.setAlignment(QtCore.Qt.AlignCenter)
+        self.versionLabel.setMinimumSize(self.versionLabel.sizeHint())
+        self.versionLabel.setFrameStyle(QtGui.QFrame.StyledPanel | QtGui.QFrame.Sunken)
+        self.statusBar().addPermanentWidget(self.versionLabel)
 
     def create_tray_menu(self):
         """Creates an icon and menu for the system tray"""
