@@ -22,6 +22,7 @@ from __future__ import (print_function, division, absolute_import)
 
 # System imports
 import os
+import sys
 import platform
 from BTrees.OOBTree import OOBTree
 from ZODB import FileStorage
@@ -275,46 +276,6 @@ class IDFPlus(QtGui.QMainWindow):
 #                                      "Cannot write file %s." % (file_path))
 #            return False
 
-    def undo(self):
-        """Called by the undo action. Not yet implemented"""
-
-        print('calling undo')
-        import sys
-        no_initial = lambda tx: True if tx['description'] not in ['initial database creation','Load file'] else False
-        undo_log = self.db.db.undoLog(0, sys.maxint, no_initial)
-
-        if len(undo_log) <= 0:
-            print('nothing to undo!')
-            return
-
-        # self.classTable.model().layoutAboutToBeChanged.emit()
-
-        self.db.db.undo(undo_log[0]['id'])
-        transaction.get().note('Undo {}'.format(undo_log[0]['description']))
-        transaction.commit()
-        self.db.connection.sync()
-
-        # Let the table model know that something has changed. For now, the whole
-        # table must be reloaded because undo could do any number of things, all which
-        # need different update operations (like insert rows, remove columns, etc).
-        # self.classTable.model().dataChanged.emit(QtCore.QModelIndex(), QtCore.QModelIndex())
-        self.load_table_view(self.current_obj_class)
-
-        # self.classTable.model().dataChanged.emit(QtCore.QModelIndex(), QtCore.QModelIndex())
-        # self.classTable.model().layoutChanged.emit()
-
-        print('undo complete')
-
-
-    def redo(self):
-        """Called by the redo action. Not yet implemented"""
-        import sys
-        import pprint
-        no_initial = lambda tx: True if tx['description'] not in ['initial database creation','Load file'] else False
-        undo_log = self.db.db.undoLog(0, sys.maxint, no_initial)
-        pprint.pprint(undo_log)
-        self.commentView.setText('undo log: {}'.format(undo_log))
-
     def about(self):
         """Called by the about action."""
         import PySide
@@ -368,14 +329,6 @@ class IDFPlus(QtGui.QMainWindow):
                 statusTip="Paste the clipboard's contents into the current selection",
                 triggered=self.pasteSelected)
 
-        self.undoAct = QtGui.QAction("&Undo", self,
-                shortcut=QtGui.QKeySequence.Undo,
-                statusTip="Undo the last operation", triggered=self.undo)
-
-        self.redoAct = QtGui.QAction("&Redo", self,
-                shortcut=QtGui.QKeySequence.Redo,
-                statusTip="Redo the last operation", triggered=self.redo)
-
         self.aboutAct = QtGui.QAction("&About", self,
                 statusTip="Show the application's About box",
                 triggered=self.about)
@@ -420,6 +373,11 @@ class IDFPlus(QtGui.QMainWindow):
                 statusTip="Delete the current Object(s).",
                 triggered=self.deleteObject)
 
+        # self.editFieldAct = QtGui.QAction("Edit Field", self,
+        #         shortcut=QtGui.QKeySequence('Enter'),
+        #         statusTip="Edit the currently focused field.",
+        #         triggered=self.editField)
+
         # self.cutAct.setEnabled(False)
         # self.copyAct.setEnabled(False)
         # self.pasteAct.setEnabled(False)
@@ -440,8 +398,8 @@ class IDFPlus(QtGui.QMainWindow):
 
         # Edit Menu
         self.editMenu = self.menuBar().addMenu("&Edit")
-        self.editMenu.addAction(self.undoAct)
-        self.editMenu.addAction(self.redoAct)
+        self.editMenu.addAction(self.undo_stack.createUndoAction(self.undo_stack))
+        self.editMenu.addAction(self.undo_stack.createRedoAction(self.undo_stack))
         self.editMenu.addSeparator()
         self.editMenu.addAction(self.newObjAct)
         self.editMenu.addAction(self.dupObjAct)
@@ -458,6 +416,7 @@ class IDFPlus(QtGui.QMainWindow):
         self.viewMenu.addAction(self.infoView.parent().toggleViewAction())
         self.viewMenu.addAction(self.commentView.parent().toggleViewAction())
         self.viewMenu.addAction(self.logView.parent().toggleViewAction())
+        self.viewMenu.addAction(self.undoView.parent().toggleViewAction())
         self.viewMenu.addSeparator()
         self.viewMenu.addAction(self.fileToolBar.toggleViewAction())
         self.viewMenu.addAction(self.editToolBar.toggleViewAction())
@@ -667,36 +626,13 @@ class IDFPlus(QtGui.QMainWindow):
         super(IDFPlus, self).setVisible(visible)
 
     def newObject(self):
-        #TODO change from insertColumns/Rows to insertObject in IDFFile class?
+
+        # Get the currently-selected indexes
         indexes = self.classTable.selectedIndexes()
 
-        # Detect orientation, then make a set to find unique columns/rows
-        if self.obj_orientation == QtCore.Qt.Vertical:
-            index_set = set([index.column() for index in indexes])
-            index_list = list(index_set)
-            model = self.classTable.model().sourceModel()
-
-            if len(indexes) <= 0:
-                # No selection, so add to end of object list
-                position = model.columnCount(QtCore.QModelIndex())
-            else:
-                # Selection made so insert at end of selection
-                position = index_list[-1] + 1
-
-            model.insertColumns(position, 1)
-        else:
-            index_set = set([index.row() for index in indexes])
-            index_list = list(index_set)
-            model = self.classTable.model()
-
-            if len(indexes) <= 0:
-                position = model.rowCount(QtCore.QModelIndex())
-            else:
-                position = index_list[-1] + 1
-
-            model.insertRows(position, 1)
-
-        print('new obj added')
+        # Create undo command and push it to the undo stack
+        newobj = NewObjectCmd(indexes, self)
+        self.undo_stack.push(newobj)
 
     def duplicateObject(self):
 
@@ -848,27 +784,14 @@ class IDFPlus(QtGui.QMainWindow):
 
     def deleteObject(self):
 
-        #TODO change from removeColumns/Rows to removeObject in IDFFile class?
+        # Get the currently-selected indexes
         indexes = self.classTable.selectedIndexes()
         if len(indexes) <= 0:
             return False
 
-        # Make a set to find unique columns/rows
-        if self.obj_orientation == QtCore.Qt.Vertical:
-            index_set = set([index.column() for index in indexes])
-        else:
-            index_set = set([index.row() for index in indexes])
-        count = len(list(index_set))
-
-        if self.obj_orientation == QtCore.Qt.Vertical:
-            model = self.classTable.model().sourceModel()
-            position = indexes[0].column()
-            model.removeColumns(position, count)
-        else:
-            model = self.classTable.model()
-            position = indexes[0].row()
-            model.removeRows(position, count)
-        return True
+        # Create undo command and push it to the undo stack
+        delObj = DeleteObjectCmd(indexes, self)
+        self.undo_stack.push(delObj)
 
     def cutObject(self):
 
@@ -1026,6 +949,11 @@ class IDFPlus(QtGui.QMainWindow):
         """Setup main UI elements, dock widgets, UI-related elements, etc. """
 
         log.debug('Loading UI')
+
+        # Undo Stack
+        self.undo_stack = QtGui.QUndoStack(self)
+        self.undo_stack.setUndoLimit(100)
+
         # Object class table widget
         classTable = QtGui.QTableView(self)
         classTable.setObjectName("classTable")
@@ -1101,6 +1029,13 @@ class IDFPlus(QtGui.QMainWindow):
         logView.ensureCursorVisible()
         logDockWidget.setWidget(logView)
 
+        # Undo view widget
+        undoDockWidget = QtGui.QDockWidget("Undo History", self)
+        undoDockWidget.setObjectName("undoDockWidget")
+        undoDockWidget.setAllowedAreas(QtCore.Qt.AllDockWidgetAreas)
+        undoView = QtGui.QUndoView(self.undo_stack)
+        undoDockWidget.setWidget(undoView)
+
         # TODO should only start this when the log viewer window is visible?
         self.start_log_watcher()
 
@@ -1121,6 +1056,7 @@ class IDFPlus(QtGui.QMainWindow):
         self.addDockWidget(QtCore.Qt.RightDockWidgetArea, commentDockWidget)
         self.addDockWidget(QtCore.Qt.RightDockWidgetArea, infoDockWidget)
         self.addDockWidget(QtCore.Qt.RightDockWidgetArea, logDockWidget)
+        self.addDockWidget(QtCore.Qt.RightDockWidgetArea, undoDockWidget)
 
         # Store widgets for access by other objects
         self.classTable = classTable
@@ -1128,12 +1064,14 @@ class IDFPlus(QtGui.QMainWindow):
         self.infoView = infoView
         self.classTree = classTree
         self.logView = logView
+        self.undoView = undoView
 
         # Store docks for access by other objects
         self.commentDockWidget = commentDockWidget
         self.infoDockWidget = infoDockWidget
         self.classTreeDockWidget = classTreeDockWidget
         self.logDockWidget = logDockWidget
+        self.undoDockWidget = undoDockWidget
 
         # Perform other UI-related initialization tasks
         self.center()
@@ -1233,6 +1171,112 @@ class MyZODB(object):
         self.tmp.close()
         for extension in ['.lock', '.index', '.tmp']:
             os.remove(self.tmp.name + extension)
+
+
+class NewObjectCmd(QtGui.QUndoCommand):
+    #TODO change from insertColumns/Rows to insertObject in IDFFile class?
+    #FIXME new object is broken for certain class types like Meter:Custom
+
+    def __init__(self, indexes, parent, **kwargs):
+        super(NewObjectCmd, self).__init__(**kwargs)
+        self.indexes = indexes
+        self.parent = parent
+        self.position = None
+        self.setText('Create object')
+
+    def undo(self, *args, **kwargs):
+        self.parent.db.db.undo(self.tx_id)
+        transaction.get().note('Creation of New object undone')
+        transaction.commit()
+
+        # Let the table model know that something has changed. For now, the whole
+        # table must be reloaded because undo could do any number of things, all which
+        # need different update operations (like insert rows, remove columns, etc).
+        self.parent.load_table_view(self.parent.current_obj_class)
+
+    def redo(self, *args, **kwargs):
+        indexes = self.indexes
+        parent = self.parent
+
+        # Detect orientation, then make a set to find unique columns/rows
+        if parent.obj_orientation == QtCore.Qt.Vertical:
+            index_set = set([index.column() for index in indexes])
+            index_list = list(index_set)
+            model = parent.classTable.model().sourceModel()
+
+            if len(indexes) <= 0:
+                # No selection, so add to end of object list
+                position = model.columnCount(QtCore.QModelIndex())
+            else:
+                # Selection made so insert at end of selection
+                position = index_list[-1] + 1
+
+            model.insertColumns(position, 1)
+            self.position = position
+        else:
+            index_set = set([index.row() for index in indexes])
+            index_list = list(index_set)
+            model = parent.classTable.model()
+
+            if len(indexes) <= 0:
+                position = model.rowCount(QtCore.QModelIndex())
+            else:
+                position = index_list[-1] + 1
+
+            model.insertRows(position, 1)
+            self.position = position
+
+        # At this point there was a transaction completed. Save it's id for later undos
+        no_initial = lambda tx: True if tx['description'] not in ['initial database creation','Load file'] else False
+        undo_log = parent.db.db.undoLog(0, sys.maxint, no_initial)
+        self.tx_id = undo_log[0]['id']
+
+
+class DeleteObjectCmd(QtGui.QUndoCommand):
+    #TODO change from removeColumns/Rows to removeObject in IDFFile class?
+
+    def __init__(self, indexes, parent, **kwargs):
+        super(DeleteObjectCmd, self).__init__(**kwargs)
+        self.indexes = indexes
+        self.parent = parent
+        self.position = None
+        self.tx_id = None
+        self.setText('Delete object')
+
+    def undo(self, *args, **kwargs):
+        self.parent.db.db.undo(self.tx_id)
+        transaction.get().note('Undeleted object')
+        transaction.commit()
+
+        # Let the table model know that something has changed. For now, the whole
+        # table must be reloaded because undo could do any number of things, all which
+        # need different update operations (like insert rows, remove columns, etc).
+        self.parent.load_table_view(self.parent.current_obj_class)
+
+    def redo(self, *args, **kwargs):
+        indexes = self.indexes
+        parent = self.parent
+
+        # Make a set to find unique columns/rows
+        if parent.obj_orientation == QtCore.Qt.Vertical:
+            index_set = set([index.column() for index in indexes])
+        else:
+            index_set = set([index.row() for index in indexes])
+        count = len(list(index_set))
+
+        if parent.obj_orientation == QtCore.Qt.Vertical:
+            model = parent.classTable.model().sourceModel()
+            position = indexes[0].column()
+            model.removeColumns(position, count)
+        else:
+            model = parent.classTable.model()
+            position = indexes[0].row()
+            model.removeRows(position, count)
+
+        # At this point there was a transaction completed. Save it's id for later undos
+        no_initial = lambda tx: True if tx['description'] not in ['initial database creation','Load file'] else False
+        undo_log = parent.db.db.undoLog(0, sys.maxint, no_initial)
+        self.tx_id = undo_log[0]['id']
 
 
 # class Communicate(QtCore.QObject):
