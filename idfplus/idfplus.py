@@ -385,6 +385,12 @@ class IDFPlus(QtGui.QMainWindow):
                 statusTip="Go back to the previous object.",
                 triggered=self.navBack)
 
+        self.undoAct = self.undo_stack.createUndoAction(self.undo_stack)
+        self.undoAct.setShortcut(QtGui.QKeySequence.Undo)
+
+        self.redoAct = self.undo_stack.createRedoAction(self.undo_stack)
+        self.redoAct.setShortcut(QtGui.QKeySequence.Redo)
+
         # self.editFieldAct = QtGui.QAction("Edit Field", self,
         #         shortcut=QtGui.QKeySequence('Enter'),
         #         statusTip="Edit the currently focused field.",
@@ -410,8 +416,8 @@ class IDFPlus(QtGui.QMainWindow):
 
         # Edit Menu
         self.editMenu = self.menuBar().addMenu("&Edit")
-        self.editMenu.addAction(self.undo_stack.createUndoAction(self.undo_stack))
-        self.editMenu.addAction(self.undo_stack.createRedoAction(self.undo_stack))
+        self.editMenu.addAction(self.undoAct)
+        self.editMenu.addAction(self.redoAct)
         self.editMenu.addSeparator()
         self.editMenu.addAction(self.newObjAct)
         self.editMenu.addAction(self.dupObjAct)
@@ -655,27 +661,34 @@ class IDFPlus(QtGui.QMainWindow):
         indexes = self.classTable.selectedIndexes()
 
         # Create undo command and push it to the undo stack
-        newobj = NewObjectCmd(indexes, self)
+        newobj = NewObjectCmd(self, indexes)
         self.undo_stack.push(newobj)
 
     def duplicateObject(self):
 
-        #TODO allow duplicating next to the selection or at end of list?
-        # how would the user specify which one?
+        # Get the currently-selected indexes
+        indexes = self.classTable.selectedIndexes()
 
-        # Copy the selected object(s)
-        if not self.copyObject():
-            return False
+        # Create undo command and push it to the undo stack
+        cmd = DuplicateObjectCmd(self, indexes)
+        self.undo_stack.push(cmd)
 
-        # Paste appropriately
-        if self.obj_orientation == QtCore.Qt.Vertical:
-            model = self.classTable.model().sourceModel()
-            position = model.columnCount(QtCore.QModelIndex())
-            model.addColumns(position, self.obj_clipboard)
-        else:
-            model = self.classTable.model()
-            position = model.rowCount(QtCore.QModelIndex())
-            model.addRows(position, self.obj_clipboard)
+        # #TODO allow duplicating next to the selection or at end of list?
+        # # how would the user specify which one?
+        #
+        # # Copy the selected object(s)
+        # if not self.copyObject() or len(self.obj_clipboard) == 0:
+        #     return False
+        #
+        # # Paste appropriately
+        # if self.obj_orientation == QtCore.Qt.Vertical:
+        #     model = self.classTable.model().sourceModel()
+        #     position = model.columnCount(QtCore.QModelIndex())
+        #     model.insertColumns(position, self.obj_clipboard)
+        # else:
+        #     model = self.classTable.model()
+        #     position = model.rowCount(QtCore.QModelIndex())
+        #     model.insertRows(position, self.obj_clipboard)
 
     # def moveObject(self, position, source, destination):
     #
@@ -808,13 +821,13 @@ class IDFPlus(QtGui.QMainWindow):
 
     def deleteObject(self):
 
-        # Get the currently-selected indexes
+        # Get the currently-selected indexes and proceed only if there are any
         indexes = self.classTable.selectedIndexes()
         if len(indexes) <= 0:
             return False
 
         # Create undo command and push it to the undo stack
-        delObj = DeleteObjectCmd(indexes, self)
+        delObj = DeleteObjectCmd(self, indexes)
         self.undo_stack.push(delObj)
 
     def cutObject(self):
@@ -851,6 +864,7 @@ class IDFPlus(QtGui.QMainWindow):
         """Loads the table of objects for the specified class name.
         :param obj_class:
         """
+        #TODO instantiate TransposeProxyModel and IDFObjectTableModel elsewhere?
 
         # Filter out group headers
         if obj_class not in self.idd:
@@ -875,7 +889,7 @@ class IDFPlus(QtGui.QMainWindow):
         sortable = tablemodel.SortFilterProxyModel(self.obj_orientation)
         sortable.setSourceModel(model)
 
-        # Assign model to table and set some variables (enable sorting FIRST)
+        # Assign model to table (enable sorting FIRST)
         table.setSortingEnabled(True)
         table.setModel(sortable)
 
@@ -885,6 +899,7 @@ class IDFPlus(QtGui.QMainWindow):
                                                  self.obj_orientation)
         table.setItemDelegate(my_delegates)
 
+        # Now that there is a class selected, enable some actions
         self.newObjAct.setEnabled(True)
         self.delObjAct.setEnabled(True)
         self.transposeAct.setEnabled(True)
@@ -1194,20 +1209,19 @@ class MyZODB(object):
             os.remove(self.tmp.name + extension)
 
 
-class NewObjectCmd(QtGui.QUndoCommand):
-    #TODO change from insertColumns/Rows to insertObject in IDFFile class?
-    #FIXME new object is broken for certain class types like Meter:Custom
+class ObjectCmd(QtGui.QUndoCommand):
+    """Base class to be inherited by all classes needing QUndoCommand features"""
+    #TODO: Move this an all commands to a module
 
-    def __init__(self, indexes, parent, **kwargs):
-        super(NewObjectCmd, self).__init__(**kwargs)
+    def __init__(self, parent, indexes, **kwargs):
+        super(ObjectCmd, self).__init__(**kwargs)
         self.indexes = indexes
         self.parent = parent
-        self.position = None
-        self.setText('Create object')
+        self.tx_id = None
 
     def undo(self, *args, **kwargs):
+        # Call the undo function
         self.parent.db.db.undo(self.tx_id)
-        transaction.get().note('Creation of New object undone')
         transaction.commit()
 
         # Let the table model know that something has changed. For now, the whole
@@ -1216,10 +1230,22 @@ class NewObjectCmd(QtGui.QUndoCommand):
         self.parent.load_table_view(self.parent.current_obj_class)
 
     def redo(self, *args, **kwargs):
+        # At this point there was a transaction completed. Save it's id for later undos
+        no_initial = lambda tx: True if tx['description'] not in ['initial database creation','Load file'] else False
+        undo_log = self.parent.db.db.undoLog(0, sys.maxint, no_initial)
+        self.tx_id = undo_log[0]['id']
+
+
+class NewObjectCmd(ObjectCmd):
+    #TODO: Change from insertColumns/Rows to insertObject in IDFFile class?
+
+    def redo(self, *args, **kwargs):
+        self.setText('Create object')
         indexes = self.indexes
         parent = self.parent
 
         # Detect orientation, then make a set to find unique columns/rows
+        #TODO: Shouldn't need to detect orientation this way. Proxy model should do that.
         if parent.obj_orientation == QtCore.Qt.Vertical:
             index_set = set([index.column() for index in indexes])
             index_list = list(index_set)
@@ -1232,7 +1258,7 @@ class NewObjectCmd(QtGui.QUndoCommand):
                 # Selection made so insert at end of selection
                 position = index_list[-1] + 1
 
-            model.insertColumns(position, 1)
+            model.insertColumns(position, None)
             self.position = position
         else:
             index_set = set([index.row() for index in indexes])
@@ -1244,37 +1270,17 @@ class NewObjectCmd(QtGui.QUndoCommand):
             else:
                 position = index_list[-1] + 1
 
-            model.insertRows(position, 1)
+            model.insertRows(position, None)
             self.position = position
 
-        # At this point there was a transaction completed. Save it's id for later undos
-        no_initial = lambda tx: True if tx['description'] not in ['initial database creation','Load file'] else False
-        undo_log = parent.db.db.undoLog(0, sys.maxint, no_initial)
-        self.tx_id = undo_log[0]['id']
+        super(NewObjectCmd, self).redo(*args, **kwargs)
 
 
-class DeleteObjectCmd(QtGui.QUndoCommand):
+class DeleteObjectCmd(ObjectCmd):
     #TODO change from removeColumns/Rows to removeObject in IDFFile class?
 
-    def __init__(self, indexes, parent, **kwargs):
-        super(DeleteObjectCmd, self).__init__(**kwargs)
-        self.indexes = indexes
-        self.parent = parent
-        self.position = None
-        self.tx_id = None
-        self.setText('Delete object')
-
-    def undo(self, *args, **kwargs):
-        self.parent.db.db.undo(self.tx_id)
-        transaction.get().note('Undeleted object')
-        transaction.commit()
-
-        # Let the table model know that something has changed. For now, the whole
-        # table must be reloaded because undo could do any number of things, all which
-        # need different update operations (like insert rows, remove columns, etc).
-        self.parent.load_table_view(self.parent.current_obj_class)
-
     def redo(self, *args, **kwargs):
+        self.setText('Delete object')
         indexes = self.indexes
         parent = self.parent
 
@@ -1294,14 +1300,33 @@ class DeleteObjectCmd(QtGui.QUndoCommand):
             position = indexes[0].row()
             model.removeRows(position, count)
 
-        # At this point there was a transaction completed. Save it's id for later undos
-        no_initial = lambda tx: True if tx['description'] not in ['initial database creation','Load file'] else False
-        undo_log = parent.db.db.undoLog(0, sys.maxint, no_initial)
-        self.tx_id = undo_log[0]['id']
+        super(DeleteObjectCmd, self).redo(*args, **kwargs)
 
 
-# class Communicate(QtCore.QObject):
-#     """Class used to communicate with other objects in the application"""
-#
-#     msg = QtCore.Signal(int)
+class DuplicateObjectCmd(ObjectCmd):
+    #TODO: Change from insertColumns/Rows to insertObject in IDFFile class?
 
+    def redo(self, *args, **kwargs):
+        self.setText('Duplicate object')
+        indexes = self.indexes
+        parent = self.parent
+
+        # Copy the selected object(s)
+        if not parent.copyObject() or len(parent.obj_clipboard) == 0:
+            return False
+
+        # Paste appropriately
+        if parent.obj_orientation == QtCore.Qt.Vertical:
+            index_set = set([index.column() for index in indexes])
+            index_list = list(index_set)
+            model = parent.classTable.model().sourceModel()
+            position = index_list[-1] + 1
+            model.insertColumns(position, parent.obj_clipboard)
+        else:
+            index_set = set([index.row() for index in indexes])
+            index_list = list(index_set)
+            model = parent.classTable.model()
+            position = index_list[-1] + 1
+            model.insertRows(position, parent.obj_clipboard)
+
+        super(DuplicateObjectCmd, self).redo(*args, **kwargs)

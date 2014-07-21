@@ -773,7 +773,10 @@ class IDFObject(PersistentList):
             try:
                 self[i].value = default
             except IndexError:
-                self.append(IDFField(self, value=default))
+                if default is None:
+                    self.append(default)
+                else:
+                    self.append(IDFField(self, value=default))
 
 
 class IDFField(Persistent):

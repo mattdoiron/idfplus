@@ -71,9 +71,14 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
         # Detect the role being request and return the correct data
         if role == QtCore.Qt.DisplayRole or role == QtCore.Qt.EditRole:
             try:
-                data = self.idf_objects[row][column].value
+                data = self.idf_objects[row][column].value or ''
             except (AttributeError, IndexError):
-                data = None
+                data = ''
+
+            # If a row is completely empty, it won't display at all so fudge it
+            #FIXME: Should be able to make it display even empty rows!
+            if not data:
+                data = ' '
         elif role == QtCore.Qt.ToolTipRole:
             data = self.idd_object.tags.get('units', '')
         elif role == QtCore.Qt.DecorationRole:
@@ -149,26 +154,34 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
             return True
         return False
 
-    def insertRows(self, position, rows=None, index=QtCore.QModelIndex()):
-        if rows is None:
-            rows = 1
+    def insertRows(self, position, objects=None):
+
+        # If there are no objects to add, make new blank ones
+        if objects is None:
+            new_obj = IDFObject(self.idf, obj_class=self.obj_class)
+            new_obj.set_defaults(self.idd)
+            obj_to_insert = [new_obj]
+            count = 1
+        else:
+            obj_to_insert = objects
+            count = len(objects)
 
         self.beginInsertRows(QtCore.QModelIndex(),
                              position,
-                             position - 1 + rows)
+                             position - 1 + count)
 
-        for row in range(rows):
-            new_obj = IDFObject(self.idf, obj_class=self.obj_class)
-            new_obj.set_defaults(self.idd)
-            self.idf_objects.insert(position + row, new_obj)
+        # Insert the new object(s)
+        self.idf_objects[position:position] = obj_to_insert
 
         # Update state
         self.getLabels()
-        transaction.get().note('Insert object')
+        if count > 1:
+            transaction.get().note('Insert multiple objects')
+        else:
+            transaction.get().note('Insert object')
         transaction.commit()
-        self.endInsertRows()
-        self.dirty = True
         self.dataChanged.emit(QtCore.QModelIndex(), QtCore.QModelIndex())
+        self.endInsertRows()
         return True
 
     def removeRows(self, position, rows=None, index=QtCore.QModelIndex()):
@@ -221,26 +234,34 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
     #     self.dataChanged.emit(QtCore.QModelIndex(), QtCore.QModelIndex())
     #     return True
 
-    def insertColumns(self, position, cols=None, index=QtCore.QModelIndex()):
-        if cols is None:
-            cols = 1
+    def insertColumns(self, position, objects=None):
+
+        # If there are no objects to add, make new blank ones
+        if objects is None:
+            new_obj = IDFObject(self.idf, obj_class=self.obj_class)
+            new_obj.set_defaults(self.idd)
+            obj_to_insert = [new_obj]
+            count = 1
+        else:
+            obj_to_insert = objects
+            count = len(objects)
 
         self.beginInsertColumns(QtCore.QModelIndex(),
                                 position,
-                                position - 1 + cols)
+                                position - 1 + count)
 
-        for col in range(cols):
-            new_obj = IDFObject(self.idf, obj_class=self.obj_class)
-            new_obj.set_defaults(self.idd)
-            self.idf_objects.insert(position + col, new_obj)
+        # Insert the new object(s)
+        self.idf_objects[position:position] = obj_to_insert
 
         # Update state
         self.getLabels()
-        transaction.get().note('Insert object')
+        if count > 1:
+            transaction.get().note('Insert multiple objects')
+        else:
+            transaction.get().note('Insert object')
         transaction.commit()
-        self.endInsertColumns()
-        self.dirty = True
         self.dataChanged.emit(QtCore.QModelIndex(), QtCore.QModelIndex())
+        self.endInsertColumns()
         return True
 
     def removeColumns(self, position, cols=None, index=QtCore.QModelIndex()):
@@ -295,35 +316,35 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
     #     self.dataChanged.emit(QtCore.QModelIndex(), QtCore.QModelIndex())
     #     return True
 
-    def addColumns(self, position, objects):
+    # def addColumns(self, position, objects):
+    #
+    #     self.beginInsertColumns(QtCore.QModelIndex(),
+    #                             position,
+    #                             position - 1 + len(objects))
+    #     self.idf_objects[position:position] = objects
+    #     self.getLabels()
+    #     if len(objects) > 1:
+    #         transaction.get().note('Add multiple objects')
+    #     else:
+    #         transaction.get().note('Add object')
+    #     transaction.commit()
+    #     self.dataChanged.emit(QtCore.QModelIndex(), QtCore.QModelIndex())
+    #     self.endInsertColumns()
 
-        self.beginInsertColumns(QtCore.QModelIndex(),
-                                position,
-                                position - 1 + len(objects))
-        self.idf_objects[position:position] = objects
-        self.getLabels()
-        if len(objects) > 1:
-            transaction.get().note('Add multiple objects')
-        else:
-            transaction.get().note('Add object')
-        transaction.commit()
-        self.dataChanged.emit(QtCore.QModelIndex(), QtCore.QModelIndex())
-        self.endInsertColumns()
-
-    def addRows(self, position, objects):
-
-        self.beginInsertRows(QtCore.QModelIndex(),
-                                position,
-                                position - 1 + len(objects))
-        self.idf_objects[position:position] = objects
-        self.getLabels()
-        if len(objects) > 1:
-            transaction.get().note('Add multiple objects')
-        else:
-            transaction.get().note('Add object')
-        transaction.commit()
-        self.dataChanged.emit(QtCore.QModelIndex(), QtCore.QModelIndex())
-        self.endInsertRows()
+    # def addRows(self, position, objects):
+    #
+    #     self.beginInsertRows(QtCore.QModelIndex(),
+    #                             position,
+    #                             position - 1 + len(objects))
+    #     self.idf_objects[position:position] = objects
+    #     self.getLabels()
+    #     if len(objects) > 1:
+    #         transaction.get().note('Add multiple objects')
+    #     else:
+    #         transaction.get().note('Add object')
+    #     transaction.commit()
+    #     self.dataChanged.emit(QtCore.QModelIndex(), QtCore.QModelIndex())
+    #     self.endInsertRows()
 
     def getLabels(self):
         field_labels = []
@@ -394,11 +415,11 @@ class TransposeProxyModel(QtGui.QAbstractProxyModel):
             new_orientation = QtCore.Qt.Horizontal
         return self.sourceModel().headerData(section, new_orientation, role, orientation)
 
-    def insertRows(self, position, rows):
-        return self.sourceModel().insertRows(position, rows)
+    def insertRows(self, position, objects):
+        return self.sourceModel().insertRows(position, objects)
 
-    def insertColumns(self, position, cols):
-        return self.sourceModel().insertColumns(position, cols)
+    def insertColumns(self, position, objects):
+        return self.sourceModel().insertColumns(position, objects)
 
     def removeRows(self, position, rows):
         return self.sourceModel().removeRows(position, rows)
@@ -406,17 +427,17 @@ class TransposeProxyModel(QtGui.QAbstractProxyModel):
     def removeColumns(self, position, cols):
         return self.sourceModel().removeColumns(position, cols)
 
-    def addRows(self, position, objects):
-        return self.sourceModel().addRows(position, objects)
+    # def addRows(self, position, objects):
+    #     return self.sourceModel().addRows(position, objects)
+    #
+    # def addColumns(self, position, objects):
+    #     return self.sourceModel().addColumns(position, objects)
 
-    def addColumns(self, position, objects):
-        return self.sourceModel().addColumns(position, objects)
-
-    def moveRows(self, position, source, destination):
-        return self.sourceModel().moveRows(position, source, destination)
-
-    def moveColumns(self, position, source, destination):
-        return self.sourceModel().moveColumns(position, source, destination)
+    # def moveRows(self, position, source, destination):
+    #     return self.sourceModel().moveRows(position, source, destination)
+    #
+    # def moveColumns(self, position, source, destination):
+    #     return self.sourceModel().moveColumns(position, source, destination)
 
 class SortFilterProxyModel(QtGui.QSortFilterProxyModel):
     """Proxy layer to sort and filter"""
@@ -434,17 +455,17 @@ class SortFilterProxyModel(QtGui.QSortFilterProxyModel):
         self.setFilterRegExp(QtCore.QRegExp('', caseSensitivity, syntax))
         self.setFilterCaseSensitivity(caseSensitivity)
 
-    def addRows(self, position, objects):
-        return self.sourceModel().addRows(position, objects)
+    def insertRows(self, position, objects):
+        return self.sourceModel().insertRows(position, objects)
 
-    def addColumns(self, position, objects):
-        return self.sourceModel().addColumns(position, objects)
+    def insertColumns(self, position, objects):
+        return self.sourceModel().insertColumns(position, objects)
 
-    def moveRows(self, position, source, destination):
-        return self.sourceModel().moveRows(position, source, destination)
-
-    def moveColumns(self, position, source, destination):
-        return self.sourceModel().moveColumns(position, source, destination)
+    # def moveRows(self, position, source, destination):
+    #     return self.sourceModel().moveRows(position, source, destination)
+    #
+    # def moveColumns(self, position, source, destination):
+    #     return self.sourceModel().moveColumns(position, source, destination)
 
     def filterAcceptsColumn(self, col, parent):
 
