@@ -27,6 +27,7 @@ import platform
 from BTrees.OOBTree import OOBTree
 from ZODB import FileStorage
 from ZODB import DB
+from collections import deque
 import transaction
 import tempfile
 
@@ -48,6 +49,7 @@ from . import misc_icons_qr  # Used for icons (in text format)
 
 # Global variables
 __version__ = '0.0.1'
+MAX_OBJ_HISTORY = 100
 log = logger.setup_logging(c.LOG_LEVEL, __name__)
 
 class IDFPlus(QtGui.QMainWindow):
@@ -373,6 +375,16 @@ class IDFPlus(QtGui.QMainWindow):
                 statusTip="Delete the current Object(s).",
                 triggered=self.deleteObject)
 
+        self.navForwardAct = QtGui.QAction("Forward", self,
+                shortcut=QtGui.QKeySequence('Ctrl+Plus'),
+                statusTip="Go forward to the next object.",
+                triggered=self.navForward)
+
+        self.navBackAct = QtGui.QAction("Back", self,
+                shortcut=QtGui.QKeySequence('Ctrl+Minus'),
+                statusTip="Go back to the previous object.",
+                triggered=self.navBack)
+
         # self.editFieldAct = QtGui.QAction("Edit Field", self,
         #         shortcut=QtGui.QKeySequence('Enter'),
         #         statusTip="Edit the currently focused field.",
@@ -420,7 +432,7 @@ class IDFPlus(QtGui.QMainWindow):
         self.viewMenu.addSeparator()
         self.viewMenu.addAction(self.fileToolBar.toggleViewAction())
         self.viewMenu.addAction(self.editToolBar.toggleViewAction())
-        # self.viewMenu.addAction(self.viewToolBar.toggleViewAction())
+        self.viewMenu.addAction(self.navToolBar.toggleViewAction())
         self.viewMenu.addAction(self.filterToolBar.toggleViewAction())
         self.viewMenu.addSeparator()
         self.viewMenu.addAction(self.transposeAct)
@@ -428,6 +440,12 @@ class IDFPlus(QtGui.QMainWindow):
         # Help Menu
         self.helpMenu = self.menuBar().addMenu("&Help")
         self.helpMenu.addAction(self.aboutAct)
+
+    def navForward(self):
+        pass
+
+    def navBack(self):
+        pass
 
     def update_file_menu(self):
         """Called to update the recent files portion of the file menu"""
@@ -458,6 +476,8 @@ class IDFPlus(QtGui.QMainWindow):
 
     def create_tool_bars(self):
         """Creates the necessary toolbars."""
+
+        # File Toolbar
         self.fileToolBar = self.addToolBar("File Toolbar")
         self.fileToolBar.setObjectName('fileToolbar')
         self.fileToolBar.addAction(self.newAct)
@@ -465,6 +485,7 @@ class IDFPlus(QtGui.QMainWindow):
         self.fileToolBar.addAction(self.saveAct)
         self.fileToolBar.setToolButtonStyle(QtCore.Qt.ToolButtonTextBesideIcon)
 
+        # Edit Toolbar
         self.editToolBar = self.addToolBar("Edit Toolbar")
         self.editToolBar.setObjectName('editToolbar')
         self.editToolBar.addAction(self.newObjAct)
@@ -475,11 +496,14 @@ class IDFPlus(QtGui.QMainWindow):
         self.editToolBar.addAction(self.pasteObjAct)
         self.editToolBar.setToolButtonStyle(QtCore.Qt.ToolButtonTextBesideIcon)
 
-        # self.viewToolBar = self.addToolBar("View Toolbar")
-        # self.viewToolBar.setObjectName('viewToolBar')
-        # self.viewToolBar.addAction(self.transposeAct)
-        # self.viewToolBar.setToolButtonStyle(QtCore.Qt.ToolButtonTextBesideIcon)
+        # Object history navigation toolbar
+        self.navToolBar = self.addToolBar("Navigation Toolbar")
+        self.navToolBar.setObjectName('viewToolBar')
+        self.navToolBar.addAction(self.navForwardAct)
+        self.navToolBar.addAction(self.navBackAct)
+        self.navToolBar.setToolButtonStyle(QtCore.Qt.ToolButtonTextBesideIcon)
 
+        # Object filter toolbar
         self.filterToolBar = self.addToolBar("Filter Toolbar")
         self.filterToolBar.setObjectName('filterToolBar')
         self.filterBox = QtGui.QLineEdit()
@@ -953,6 +977,9 @@ class IDFPlus(QtGui.QMainWindow):
         # Undo Stack
         self.undo_stack = QtGui.QUndoStack(self)
         self.undo_stack.setUndoLimit(100)
+
+        # Object navigation history
+        self.obj_history = deque([], MAX_OBJ_HISTORY)
 
         # Object class table widget
         classTable = QtGui.QTableView(self)
