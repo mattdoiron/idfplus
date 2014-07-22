@@ -42,6 +42,7 @@ from . import parser
 from . import idfsettings as c
 from . import datamodel
 from . import logger
+from . import commands
 
 # Resource imports
 from . import icons_qr  # Used for icons (in text format)
@@ -661,8 +662,8 @@ class IDFPlus(QtGui.QMainWindow):
         indexes = self.classTable.selectedIndexes()
 
         # Create undo command and push it to the undo stack
-        newobj = NewObjectCmd(self, indexes)
-        self.undo_stack.push(newobj)
+        cmd = commands.NewObjectCmd(self, indexes)
+        self.undo_stack.push(cmd)
 
     def duplicateObject(self):
 
@@ -670,88 +671,26 @@ class IDFPlus(QtGui.QMainWindow):
         indexes = self.classTable.selectedIndexes()
 
         # Create undo command and push it to the undo stack
-        cmd = DuplicateObjectCmd(self, indexes)
+        cmd = commands.NewObjectCmd(self, indexes, from_clipboard=True)
         self.undo_stack.push(cmd)
 
-        # #TODO allow duplicating next to the selection or at end of list?
-        # # how would the user specify which one?
-        #
-        # # Copy the selected object(s)
-        # if not self.copyObject() or len(self.obj_clipboard) == 0:
-        #     return False
-        #
-        # # Paste appropriately
-        # if self.obj_orientation == QtCore.Qt.Vertical:
-        #     model = self.classTable.model().sourceModel()
-        #     position = model.columnCount(QtCore.QModelIndex())
-        #     model.insertColumns(position, self.obj_clipboard)
-        # else:
-        #     model = self.classTable.model()
-        #     position = model.rowCount(QtCore.QModelIndex())
-        #     model.insertRows(position, self.obj_clipboard)
+    def deleteObject(self):
 
-    # def moveObject(self, position, source, destination):
-    #
-    #     """Moves (reorders) objects."""
-    #     if self.obj_orientation == QtCore.Qt.Vertical:
-    #         model = self.classTable.model().sourceModel()
-    #         model.moveColumns(position, source, destination)
-    #     else:
-    #         model = self.classTable.model()
-    #         model.moveRows(position, source, destination)
-
-    def copyObject(self):
-        """Copies object(s) to the clipboard for pasting to other programs."""
+        # Get the currently-selected indexes and proceed only if there are any
         indexes = self.classTable.selectedIndexes()
         if len(indexes) <= 0:
             return False
 
-        # Make a set to find unique columns/rows
-        if self.obj_orientation == QtCore.Qt.Vertical:
-            index_set = set([index.column() for index in indexes])
-        else:
-            index_set = set([index.row() for index in indexes])
-        count = len(list(index_set))
-        start = list(index_set)[0]
-        end = start + count
+        # Create undo command and push it to the undo stack
+        cmd = commands.DeleteObjectCmd(self, indexes)
+        self.undo_stack.push(cmd)
 
-        if self.obj_orientation == QtCore.Qt.Vertical:
-            self.obj_clipboard = self.idf[self.current_obj_class][start:end]
-        else:
-            self.obj_clipboard = self.idf[self.current_obj_class][start:end]
-        return True
+    def cutObject(self):
 
-    def copySelected(self):
-        """Copies the selected cells to the clipboard for pasting to other programs."""
-
-        # Find the selection and it's last row
-        indexes = self.classTable.selectedIndexes()
-        if len(indexes) <= 0:
+        # Copy object then delete it
+        if not self.copyObject():
             return False
-        last = indexes[-1].row()
-
-        # Iterate through indexes saving the columns
-        range_to_copy = []
-        col = []
-        for i in indexes:
-            col.append(i.data() or '')
-            if i.row() == last:
-                range_to_copy.append(col)
-                col = []
-
-        # Qt seems to always traverses by column so transpose rows/cols here
-        range_copied = zip(*range_to_copy)
-
-        # Convert to text for clipboard
-        text_copied = ''
-        for row in range_copied:
-            text_copied += '\t'.join(row)
-            text_copied += '\n'
-
-        # Save converted text to the clipboard
-        mode = QtGui.QClipboard.Clipboard
-        self.clipboard.setText(text_copied, mode)
-        return True
+        self.deleteObject()
 
     def pasteSelected(self):
         """Pastes clipboard into cells starting at selected cell."""
@@ -759,33 +698,14 @@ class IDFPlus(QtGui.QMainWindow):
         #TODO no field validation is done when it's pasted like this.
         # Is that ok?
 
-        # Find the selected cell at which to start pasting
+        # Get the currently-selected indexes and proceed only if there are any
         indexes = self.classTable.selectedIndexes()
         if len(indexes) <= 0:
             return False
-        start_col = indexes[0].column()
-        start_row = indexes[0].row()
 
-        # Get clipboard data if it's text
-        mimeData = self.clipboard.mimeData()
-        if mimeData.hasText():
-            raw_text = mimeData.text()
-        else:
-            return False
-
-        # Iterate through text, splitting into rows
-        table_model = self.classTable.model()
-        rows = raw_text.split('\n')
-        for i, row in enumerate(rows[:-1]):
-            cols = row.split('\t')
-            for j, col in enumerate(cols):
-
-                # Save cols and rows to data model
-                index = table_model.index(start_row + i,
-                                          start_col + j,
-                                          QtCore.QModelIndex())
-                table_model.setData(index, col, QtCore.Qt.EditRole)
-                table_model.dataChanged.emit(index, index)
+        # Create undo command and push it to the undo stack
+        cmd = commands.PasteObjectCmd(self, indexes)
+        self.undo_stack.push(cmd)
 
     def pasteObject(self):
         """Pastes the currently copies object(s)."""
@@ -819,24 +739,59 @@ class IDFPlus(QtGui.QMainWindow):
 
             model.addRows(position, self.obj_clipboard)
 
-    def deleteObject(self):
-
-        # Get the currently-selected indexes and proceed only if there are any
+    def copyObject(self):
+        """Copies object(s) to the clipboard for pasting to other programs."""
         indexes = self.classTable.selectedIndexes()
         if len(indexes) <= 0:
             return False
 
-        # Create undo command and push it to the undo stack
-        delObj = DeleteObjectCmd(self, indexes)
-        self.undo_stack.push(delObj)
+        # Make a set to find unique columns/rows
+        if self.obj_orientation == QtCore.Qt.Vertical:
+            index_set = set([index.column() for index in indexes])
+        else:
+            index_set = set([index.row() for index in indexes])
+        count = len(list(index_set))
+        start = list(index_set)[0]
+        end = start + count
 
-    def cutObject(self):
+        # Copy object to the clipboard
+        # if self.obj_orientation == QtCore.Qt.Vertical:
+        self.obj_clipboard = self.idf[self.current_obj_class][start:end]
+        # else:
+        #     self.obj_clipboard = self.idf[self.current_obj_class][start:end]
+        return True
 
-        # Copy object then delete it
-        if not self.copyObject():
+    def copySelected(self):
+        """Copies the selected cells to the clipboard for pasting to other programs."""
+
+        # Find the selection and it's last row
+        indexes = self.classTable.selectedIndexes()
+        if len(indexes) <= 0:
             return False
-        if not self.deleteObject():
-            return False
+        last = indexes[-1].row()
+
+        # Iterate through indexes saving the columns
+        range_to_copy = []
+        col = []
+        for i in indexes:
+            col.append(i.data() or '')
+            if i.row() == last:
+                range_to_copy.append(col)
+                col = []
+
+        # Qt seems to always traverses by column so transpose rows/cols here
+        range_copied = zip(*range_to_copy)
+
+        # Convert to text for clipboard
+        text_copied = ''
+        for row in range_copied:
+            text_copied += '\t'.join(row)
+            text_copied += '\n'
+
+        # Save converted text to the clipboard
+        mode = QtGui.QClipboard.Clipboard
+        self.clipboard.setText(text_copied, mode)
+        return True
 
     def toggle_full_tree(self):
         """Called to toggle the full class tree or a partial tree."""
@@ -997,7 +952,7 @@ class IDFPlus(QtGui.QMainWindow):
         self.obj_history = deque([], MAX_OBJ_HISTORY)
 
         # Object class table widget
-        classTable = QtGui.QTableView(self)
+        classTable = TableView(self)
         classTable.setObjectName("classTable")
         classTable.setAlternatingRowColors(True)
         classTable.setFrameShape(QtGui.QFrame.StyledPanel)
@@ -1169,18 +1124,25 @@ class IDFPlus(QtGui.QMainWindow):
             return index.row()
 
 
-#class MyTableView(QtGui.QTableView):
-#    '''Subclass of QTableView used to override mousePressEvent'''
-#    def __init__(self):
-#        super(MyTableView, self).__init__()
-#
-#    # Ads single-click editing
-#    def mousePressEvent(self, event):
-#        if event.button() == QtCore.Qt.LeftButton:
-#            index = self.indexAt(event.pos())
-#            if index.isValid():
-#                self.edit(index)
-#        QtGui.QTableView.mousePressEvent(self, event)
+class TableView(QtGui.QTableView):
+   '''Subclass of QTableView used to override mousePressEvent'''
+
+   def __init__(self, *args, **kwargs):
+       super(TableView, self).__init__(*args, **kwargs)
+
+   # # Ads single-click editing
+   # def mousePressEvent(self, event):
+   #     if event.button() == QtCore.Qt.LeftButton:
+   #         index = self.indexAt(event.pos())
+   #         if index.isValid():
+   #             self.edit(index)
+   #     QtGui.QTableView.mousePressEvent(self, event)
+
+   def commitData(self, *args, **kwargs):
+       print('data committed')
+       #TODO put transaction commit in here?
+       #TODO catch multiple paste and commit only once?
+       super(TableView, self).commitData(*args, **kwargs)
 
 
 class MyZODB(object):
@@ -1207,126 +1169,3 @@ class MyZODB(object):
         self.tmp.close()
         for extension in ['.lock', '.index', '.tmp']:
             os.remove(self.tmp.name + extension)
-
-
-class ObjectCmd(QtGui.QUndoCommand):
-    """Base class to be inherited by all classes needing QUndoCommand features"""
-    #TODO: Move this an all commands to a module
-
-    def __init__(self, parent, indexes, **kwargs):
-        super(ObjectCmd, self).__init__(**kwargs)
-        self.indexes = indexes
-        self.parent = parent
-        self.tx_id = None
-
-    def undo(self, *args, **kwargs):
-        # Call the undo function
-        self.parent.db.db.undo(self.tx_id)
-        transaction.commit()
-
-        # Let the table model know that something has changed. For now, the whole
-        # table must be reloaded because undo could do any number of things, all which
-        # need different update operations (like insert rows, remove columns, etc).
-        self.parent.load_table_view(self.parent.current_obj_class)
-
-    def redo(self, *args, **kwargs):
-        # At this point there was a transaction completed. Save it's id for later undos
-        no_initial = lambda tx: True if tx['description'] not in ['initial database creation','Load file'] else False
-        undo_log = self.parent.db.db.undoLog(0, sys.maxint, no_initial)
-        self.tx_id = undo_log[0]['id']
-
-
-class NewObjectCmd(ObjectCmd):
-    #TODO: Change from insertColumns/Rows to insertObject in IDFFile class?
-
-    def redo(self, *args, **kwargs):
-        self.setText('Create object')
-        indexes = self.indexes
-        parent = self.parent
-
-        # Detect orientation, then make a set to find unique columns/rows
-        #TODO: Shouldn't need to detect orientation this way. Proxy model should do that.
-        if parent.obj_orientation == QtCore.Qt.Vertical:
-            index_set = set([index.column() for index in indexes])
-            index_list = list(index_set)
-            model = parent.classTable.model().sourceModel()
-
-            if len(indexes) <= 0:
-                # No selection, so add to end of object list
-                position = model.columnCount(QtCore.QModelIndex())
-            else:
-                # Selection made so insert at end of selection
-                position = index_list[-1] + 1
-
-            model.insertColumns(position, None)
-            self.position = position
-        else:
-            index_set = set([index.row() for index in indexes])
-            index_list = list(index_set)
-            model = parent.classTable.model()
-
-            if len(indexes) <= 0:
-                position = model.rowCount(QtCore.QModelIndex())
-            else:
-                position = index_list[-1] + 1
-
-            model.insertRows(position, None)
-            self.position = position
-
-        super(NewObjectCmd, self).redo(*args, **kwargs)
-
-
-class DeleteObjectCmd(ObjectCmd):
-    #TODO change from removeColumns/Rows to removeObject in IDFFile class?
-
-    def redo(self, *args, **kwargs):
-        self.setText('Delete object')
-        indexes = self.indexes
-        parent = self.parent
-
-        # Make a set to find unique columns/rows
-        if parent.obj_orientation == QtCore.Qt.Vertical:
-            index_set = set([index.column() for index in indexes])
-        else:
-            index_set = set([index.row() for index in indexes])
-        count = len(list(index_set))
-
-        if parent.obj_orientation == QtCore.Qt.Vertical:
-            model = parent.classTable.model().sourceModel()
-            position = indexes[0].column()
-            model.removeColumns(position, count)
-        else:
-            model = parent.classTable.model()
-            position = indexes[0].row()
-            model.removeRows(position, count)
-
-        super(DeleteObjectCmd, self).redo(*args, **kwargs)
-
-
-class DuplicateObjectCmd(ObjectCmd):
-    #TODO: Change from insertColumns/Rows to insertObject in IDFFile class?
-
-    def redo(self, *args, **kwargs):
-        self.setText('Duplicate object')
-        indexes = self.indexes
-        parent = self.parent
-
-        # Copy the selected object(s)
-        if not parent.copyObject() or len(parent.obj_clipboard) == 0:
-            return False
-
-        # Paste appropriately
-        if parent.obj_orientation == QtCore.Qt.Vertical:
-            index_set = set([index.column() for index in indexes])
-            index_list = list(index_set)
-            model = parent.classTable.model().sourceModel()
-            position = index_list[-1] + 1
-            model.insertColumns(position, parent.obj_clipboard)
-        else:
-            index_set = set([index.row() for index in indexes])
-            index_list = list(index_set)
-            model = parent.classTable.model()
-            position = index_list[-1] + 1
-            model.insertRows(position, parent.obj_clipboard)
-
-        super(DuplicateObjectCmd, self).redo(*args, **kwargs)

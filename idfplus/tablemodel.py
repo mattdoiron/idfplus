@@ -149,6 +149,10 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
             return True
         return False
 
+    def commitData(self, *args, **kwargs):
+        print('item committed')
+        super(IDFObjectTableModel, self).submit(*args, **kwargs)
+
     def insertRows(self, position, objects=None):
 
         # If there are no objects to add, make new blank ones
@@ -202,32 +206,6 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
         self.dirty = True
         self.dataChanged.emit(QtCore.QModelIndex(), QtCore.QModelIndex())
         return True
-
-    # def moveRows(self, position, source, destination):
-    #     print('moveRows called')
-    #     self.beginMoveRows(QtCore.QModelIndex(),
-    #                           source,
-    #                           source,
-    #                           QtCore.QModelIndex(),
-    #                           destination)
-    #     print('beginMoveRows called')
-    #     to_move = self.idf_objects[position:position]
-    #     self.idf_objects[destination:destination] = to_move
-    #     print('to_move inserted')
-    #
-    #     if position >= destination:
-    #         del self.idf_objects[position + 1:position + 1 + 1]
-    #     else:
-    #         del self.idf_objects[position:position + 1]
-    #     print('to_move deleted')
-    #     self.getLabels()
-    #     print('getLabels called')
-    #     transaction.get().note('Move object')
-    #     transaction.commit()
-    #     self.endMoveRows()
-    #     self.dirty = True
-    #     self.dataChanged.emit(QtCore.QModelIndex(), QtCore.QModelIndex())
-    #     return True
 
     def insertColumns(self, position, objects=None):
 
@@ -284,62 +262,6 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
         self.dirty = True
         self.dataChanged.emit(QtCore.QModelIndex(), QtCore.QModelIndex())
         return True
-
-    # def moveColumns(self, position, source, destination):
-    #     print('moveColumns called')
-    #     self.beginMoveColumns(QtCore.QModelIndex(),
-    #                           source,
-    #                           source,
-    #                           QtCore.QModelIndex(),
-    #                           destination)
-    #     print('beginMoveColumns called')
-    #     to_move = self.idf_objects[position:position]
-    #     self.idf_objects[destination:destination] = to_move
-    #     print('to_move inserted')
-    #
-    #     if position >= destination:
-    #         del self.idf_objects[position + 1:position + 1 + 1]
-    #     else:
-    #         del self.idf_objects[position:position + 1]
-    #     print('to_move deleted')
-    #     self.getLabels()
-    #     print('getLabels called')
-    #     transaction.get().note('Move object')
-    #     transaction.commit()
-    #     self.endMoveColumns()
-    #     self.dirty = True
-    #     self.dataChanged.emit(QtCore.QModelIndex(), QtCore.QModelIndex())
-    #     return True
-
-    # def addColumns(self, position, objects):
-    #
-    #     self.beginInsertColumns(QtCore.QModelIndex(),
-    #                             position,
-    #                             position - 1 + len(objects))
-    #     self.idf_objects[position:position] = objects
-    #     self.getLabels()
-    #     if len(objects) > 1:
-    #         transaction.get().note('Add multiple objects')
-    #     else:
-    #         transaction.get().note('Add object')
-    #     transaction.commit()
-    #     self.dataChanged.emit(QtCore.QModelIndex(), QtCore.QModelIndex())
-    #     self.endInsertColumns()
-
-    # def addRows(self, position, objects):
-    #
-    #     self.beginInsertRows(QtCore.QModelIndex(),
-    #                             position,
-    #                             position - 1 + len(objects))
-    #     self.idf_objects[position:position] = objects
-    #     self.getLabels()
-    #     if len(objects) > 1:
-    #         transaction.get().note('Add multiple objects')
-    #     else:
-    #         transaction.get().note('Add object')
-    #     transaction.commit()
-    #     self.dataChanged.emit(QtCore.QModelIndex(), QtCore.QModelIndex())
-    #     self.endInsertRows()
 
     def getLabels(self):
         field_labels = []
@@ -422,17 +344,6 @@ class TransposeProxyModel(QtGui.QAbstractProxyModel):
     def removeColumns(self, position, cols):
         return self.sourceModel().removeColumns(position, cols)
 
-    # def addRows(self, position, objects):
-    #     return self.sourceModel().addRows(position, objects)
-    #
-    # def addColumns(self, position, objects):
-    #     return self.sourceModel().addColumns(position, objects)
-
-    # def moveRows(self, position, source, destination):
-    #     return self.sourceModel().moveRows(position, source, destination)
-    #
-    # def moveColumns(self, position, source, destination):
-    #     return self.sourceModel().moveColumns(position, source, destination)
 
 class SortFilterProxyModel(QtGui.QSortFilterProxyModel):
     """Proxy layer to sort and filter"""
@@ -455,12 +366,6 @@ class SortFilterProxyModel(QtGui.QSortFilterProxyModel):
 
     def insertColumns(self, position, objects):
         return self.sourceModel().insertColumns(position, objects)
-
-    # def moveRows(self, position, source, destination):
-    #     return self.sourceModel().moveRows(position, source, destination)
-    #
-    # def moveColumns(self, position, source, destination):
-    #     return self.sourceModel().moveColumns(position, source, destination)
 
     def filterAcceptsColumn(self, col, parent):
 
