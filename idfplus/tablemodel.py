@@ -71,14 +71,9 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
         # Detect the role being request and return the correct data
         if role == QtCore.Qt.DisplayRole or role == QtCore.Qt.EditRole:
             try:
-                data = self.idf_objects[row][column].value or ''
+                data = self.idf_objects[row][column].value
             except (AttributeError, IndexError):
-                data = ''
-
-            # If a row is completely empty, it won't display at all so fudge it
-            #FIXME: Should be able to make it display even empty rows!
-            if not data:
-                data = ' '
+                data = None
         elif role == QtCore.Qt.ToolTipRole:
             data = self.idd_object.tags.get('units', '')
         elif role == QtCore.Qt.DecorationRole:
@@ -478,10 +473,8 @@ class SortFilterProxyModel(QtGui.QSortFilterProxyModel):
 
         for row in range(row_count):
             data = model.index(row, col, parent).data()
-            if data:
-                # if pattern in data:
-                if regExp.indexIn(data) != -1:
-                    return True
+            if regExp.indexIn(data) != -1:
+                return True
 
         return False
 
@@ -496,8 +489,7 @@ class SortFilterProxyModel(QtGui.QSortFilterProxyModel):
 
         for col in range(column_count):
             data = model.index(row, col, parent).data()
-            if data:
-                if regExp.indexIn(data) != -1:
-                    return True
+            if regExp.indexIn(data) != -1:
+                return True
 
         return False
