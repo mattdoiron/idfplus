@@ -142,10 +142,12 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
                 new_field.value = value
                 self.idf_objects[row][column] = new_field
 
-            self.dirty = True
-            self.dataChanged.emit(index, index)
-            transaction.get().note('Modify field')
-            transaction.commit()
+            # Note: We do NOT commit the transaction here. This allows multiple fields
+            # to be edited within a single transaction.
+            # transaction.get().note('Modify field')
+            # transaction.commit()
+
+            # self.dataChanged.emit(index, index)
             return True
         return False
 
@@ -174,11 +176,6 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
 
         # Update state
         self.getLabels()
-        if count > 1:
-            transaction.get().note('Insert multiple objects')
-        else:
-            transaction.get().note('Insert object')
-        transaction.commit()
         self.dataChanged.emit(QtCore.QModelIndex(), QtCore.QModelIndex())
         self.endInsertRows()
         return True
@@ -186,25 +183,19 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
     def removeRows(self, position, rows=None, index=QtCore.QModelIndex()):
         if rows is None:
             rows = 1
+
         self.beginRemoveRows(QtCore.QModelIndex(),
                              position,
                              position - 1 + rows)
         start = position
         end = position + rows
 
-        # self.idf_objects[start:end] = []
         del self.idf_objects[start:end]
 
         # Update state
         self.getLabels()
-        if rows > 1:
-            transaction.get().note('Remove multiple objects')
-        else:
-            transaction.get().note('Remove object')
-        transaction.commit()
-        self.endRemoveRows()
-        self.dirty = True
         self.dataChanged.emit(QtCore.QModelIndex(), QtCore.QModelIndex())
+        self.endRemoveRows()
         return True
 
     def insertColumns(self, position, objects=None):
@@ -228,11 +219,6 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
 
         # Update state
         self.getLabels()
-        if count > 1:
-            transaction.get().note('Insert multiple objects')
-        else:
-            transaction.get().note('Insert object')
-        transaction.commit()
         self.dataChanged.emit(QtCore.QModelIndex(), QtCore.QModelIndex())
         self.endInsertColumns()
         return True
@@ -253,14 +239,8 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
 
         # Update state
         self.getLabels()
-        if cols > 1:
-            transaction.get().note('Remove multiple objects')
-        else:
-            transaction.get().note('Remove object')
-        transaction.commit()
-        self.endRemoveColumns()
-        self.dirty = True
         self.dataChanged.emit(QtCore.QModelIndex(), QtCore.QModelIndex())
+        self.endRemoveColumns()
         return True
 
     def getLabels(self):

@@ -658,31 +658,20 @@ class IDFPlus(QtGui.QMainWindow):
 
     def newObject(self):
 
-        # Get the currently-selected indexes
-        indexes = self.classTable.selectedIndexes()
-
         # Create undo command and push it to the undo stack
-        cmd = commands.NewObjectCmd(self, indexes)
+        cmd = commands.NewObjectCmd(self)
         self.undo_stack.push(cmd)
 
     def duplicateObject(self):
 
-        # Get the currently-selected indexes
-        indexes = self.classTable.selectedIndexes()
-
         # Create undo command and push it to the undo stack
-        cmd = commands.NewObjectCmd(self, indexes, from_clipboard=True)
+        cmd = commands.NewObjectCmd(self, from_selection=True)
         self.undo_stack.push(cmd)
 
     def deleteObject(self):
 
-        # Get the currently-selected indexes and proceed only if there are any
-        indexes = self.classTable.selectedIndexes()
-        if len(indexes) <= 0:
-            return False
-
         # Create undo command and push it to the undo stack
-        cmd = commands.DeleteObjectCmd(self, indexes)
+        cmd = commands.DeleteObjectCmd(self)
         self.undo_stack.push(cmd)
 
     def cutObject(self):
@@ -695,49 +684,16 @@ class IDFPlus(QtGui.QMainWindow):
     def pasteSelected(self):
         """Pastes clipboard into cells starting at selected cell."""
 
-        #TODO no field validation is done when it's pasted like this.
-        # Is that ok?
-
-        # Get the currently-selected indexes and proceed only if there are any
-        indexes = self.classTable.selectedIndexes()
-        if len(indexes) <= 0:
-            return False
-
         # Create undo command and push it to the undo stack
-        cmd = commands.PasteObjectCmd(self, indexes)
+        cmd = commands.PasteSelectedCmd(self)
         self.undo_stack.push(cmd)
 
     def pasteObject(self):
         """Pastes the currently copies object(s)."""
-        indexes = self.classTable.selectedIndexes()
-        if len(indexes) <= 0:
-            return False
 
-        # Detect orientation, then make a set to find unique columns/rows
-        if self.obj_orientation == QtCore.Qt.Vertical:
-            index_set = set([index.column() for index in indexes])
-            index_list = list(index_set)
-            model = self.classTable.model().sourceModel()
-
-            if len(indexes) <= 0:
-                # No selection, so add to end of object list
-                position = model.columnCount(QtCore.QModelIndex())
-            else:
-                # Selection made so insert at end of selection
-                position = index_list[-1] + 1
-
-            model.addColumns(position, self.obj_clipboard)
-        else:
-            index_set = set([index.row() for index in indexes])
-            index_list = list(index_set)
-            model = self.classTable.model()
-
-            if len(indexes) <= 0:
-                position = model.rowCount(QtCore.QModelIndex())
-            else:
-                position = index_list[-1] + 1
-
-            model.addRows(position, self.obj_clipboard)
+        # Create undo command and push it to the undo stack
+        cmd = commands.NewObjectCmd(self, from_clipboard=True)
+        self.undo_stack.push(cmd)
 
     def copyObject(self):
         """Copies object(s) to the clipboard for pasting to other programs."""
@@ -755,10 +711,7 @@ class IDFPlus(QtGui.QMainWindow):
         end = start + count
 
         # Copy object to the clipboard
-        # if self.obj_orientation == QtCore.Qt.Vertical:
         self.obj_clipboard = self.idf[self.current_obj_class][start:end]
-        # else:
-        #     self.obj_clipboard = self.idf[self.current_obj_class][start:end]
         return True
 
     def copySelected(self):
@@ -898,12 +851,6 @@ class IDFPlus(QtGui.QMainWindow):
             child.setTextAlignment(1, QtCore.Qt.AlignRight)
             group_root.addChild(child)
 
-#            left.setCurrentItem(left.topLevelItem(0))
-#        left.itemClicked.connect(self.iWasClicked)
-#        left.itemActivated.connect(self.iWasClicked)
-#        left.currentItemChanged.connect(self.iWasChanged)
-#        left.itemPressed.connect(self.iWasClicked)
-
     def transpose_table(self):
         """Transposes the table"""
         if self.obj_orientation == QtCore.Qt.Horizontal:
@@ -920,18 +867,6 @@ class IDFPlus(QtGui.QMainWindow):
             # print('Setting object orientation to: Horizontal')
 
         self.load_table_view(self.current_obj_class)
-
-    def search(self, dictionary, searchFor):
-        """Brute force search trial
-        :param dictionary:
-        :param searchFor:
-        """
-        for key in dictionary:
-            for obj in dictionary[key]:
-                for val in obj:
-                    if searchFor in val.value:
-                        return key
-        return None
 
     def classSelected(self, current, previous):
         """Test call to slot"""
@@ -1138,11 +1073,11 @@ class TableView(QtGui.QTableView):
    #             self.edit(index)
    #     QtGui.QTableView.mousePressEvent(self, event)
 
-   def commitData(self, *args, **kwargs):
-       print('data committed')
-       #TODO put transaction commit in here?
-       #TODO catch multiple paste and commit only once?
-       super(TableView, self).commitData(*args, **kwargs)
+   # def commitData(self, *args, **kwargs):
+   #     print('data committed')
+   #     #TODO put transaction commit in here?
+   #     #TODO catch multiple paste and commit only once?
+   #     super(TableView, self).commitData(*args, **kwargs)
 
 
 class MyZODB(object):

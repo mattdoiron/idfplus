@@ -33,8 +33,6 @@ from . import idfsettings as c
 from . import logger
 
 # Global variables
-__version__ = '0.0.1'
-MAX_OBJ_HISTORY = 100
 log = logger.setup_logging(c.LOG_LEVEL, __name__)
 
 
@@ -42,12 +40,18 @@ class ObjectCmd(QtGui.QUndoCommand):
     """Base class to be inherited by all classes needing QUndoCommand features"""
     #TODO: Move this an all commands to a module
 
-    def __init__(self, parent, indexes, **kwargs):
+    def __init__(self, parent, **kwargs):
         super(ObjectCmd, self).__init__(**kwargs)
-        self.indexes = indexes
+        self.index = kwargs.get('index', False)
+        self.indexes = parent.classTable.selectedIndexes()
         self.parent = parent
+        self.obj_orientation = self.parent.obj_orientation
         self.tx_id = None
+        self.mime_data = None
+        self.copied_objects = None
         self.from_clipboard = kwargs.get('from_clipboard', False)
+        self.from_selection = kwargs.get('from_selection', False)
+        self.value = kwargs.get('value', False)
 
     def undo(self, *args, **kwargs):
         # Call the undo function
@@ -73,16 +77,22 @@ class NewObjectCmd(ObjectCmd):
         self.setText('Create object')
 
         # Define which (if any) new objects to insert
+        new_objects = None
         if self.from_clipboard is True:
-            if not self.parent.copyObject():
-                return False
-            new_objects = self.parent.obj_clipboard
-        else:
-            new_objects = None
+            if not self.copied_objects:
+                self.copied_objects = self.parent.obj_clipboard
+            new_objects = self.copied_objects
+        elif self.from_selection is True:
+            if not self.copied_objects:
+                if not self.parent.copyObject():
+                    return False
+                self.copied_objects = self.parent.obj_clipboard
+            new_objects = self.copied_objects
+
 
         # Detect orientation, then make a set to find unique columns/rows
         #TODO: Shouldn't need to detect orientation this way. Proxy model should do that.
-        if self.parent.obj_orientation == QtCore.Qt.Vertical:
+        if self.obj_orientation == QtCore.Qt.Vertical:
             index_set = set([index.column() for index in self.indexes])
             index_list = list(index_set)
             model = self.parent.classTable.model().sourceModel()
@@ -111,27 +121,31 @@ class NewObjectCmd(ObjectCmd):
             # Call the model's insertColumns method
             model.insertRows(position, new_objects)
 
+        # Now commit the transaction
+        transaction.commit()
+
         super(NewObjectCmd, self).redo(*args, **kwargs)
 
 
-class PasteObjectCmd(ObjectCmd):
-
+class PasteSelectedCmd(ObjectCmd):
+    #FIXME this one is broken...pastes wrong
     def redo(self, *args, **kwargs):
         """Pastes clipboard into cells starting at selected cell."""
+        self.setText('Paste data')
 
-        #TODO no field validation is done when it's pasted like this.
-        # Is that ok?
-
-        # Find the selected cell at which to start pasting
+        # Get the currently-selected indexes and proceed only if there are any
         if len(self.indexes) <= 0:
             return False
+
+        # Find the selected cell at which to start pasting
         start_col = self.indexes[0].column()
         start_row = self.indexes[0].row()
 
-        # Get clipboard data if it's text
-        mimeData = self.parent.clipboard.mimeData()
-        if mimeData.hasText():
-            raw_text = mimeData.text()
+        # Get clipboard data if it's text, but only once (the first time)
+        if not self.mime_data:
+            self.mime_data = self.parent.clipboard.mimeData()
+        if self.mime_data.hasText():
+            raw_text = self.mime_data.text()
         else:
             return False
 
@@ -147,35 +161,61 @@ class PasteObjectCmd(ObjectCmd):
                                           start_col + j,
                                           QtCore.QModelIndex())
                 table_model.setData(index, col, QtCore.Qt.EditRole)
-                table_model.dataChanged.emit(index, index)
+
+        # Notify everyone that data has changed
+        table_model.dataChanged.emit(QtCore.QModelIndex(), QtCore.QModelIndex())
 
         # Now commit the transaction
         transaction.commit()
 
-        super(PasteObjectCmd, self).redo(*args, **kwargs)
+        super(PasteSelectedCmd, self).redo(*args, **kwargs)
 
 class DeleteObjectCmd(ObjectCmd):
     #TODO change from removeColumns/Rows to removeObject in IDFFile class?
 
     def redo(self, *args, **kwargs):
         self.setText('Delete object')
-        indexes = self.indexes
-        parent = self.parent
+
+        # Get the currently-selected indexes and proceed only if there are any
+        if len(self.indexes) <= 0:
+            return False
 
         # Make a set to find unique columns/rows
-        if parent.obj_orientation == QtCore.Qt.Vertical:
-            index_set = set([index.column() for index in indexes])
+        if self.obj_orientation == QtCore.Qt.Vertical:
+            index_set = set([index.column() for index in self.indexes])
         else:
-            index_set = set([index.row() for index in indexes])
+            index_set = set([index.row() for index in self.indexes])
         count = len(list(index_set))
 
-        if parent.obj_orientation == QtCore.Qt.Vertical:
-            model = parent.classTable.model().sourceModel()
-            position = indexes[0].column()
+        if self.obj_orientation == QtCore.Qt.Vertical:
+            model = self.parent.classTable.model().sourceModel()
+            position = self.indexes[0].column()
             model.removeColumns(position, count)
         else:
-            model = parent.classTable.model()
-            position = indexes[0].row()
+            model = self.parent.classTable.model()
+            position = self.indexes[0].row()
             model.removeRows(position, count)
 
+        # Now commit the transaction
+        transaction.commit()
+
         super(DeleteObjectCmd, self).redo(*args, **kwargs)
+
+
+class ModifyObjectCmd(ObjectCmd):
+
+    def redo(self, *args, **kwargs):
+        self.setText('Modify object')
+
+        if self.obj_orientation == QtCore.Qt.Vertical:
+            model = self.parent.classTable.model().sourceModel()
+        else:
+            model = self.parent.classTable.model()
+
+        model.setData(self.index, self.value, QtCore.Qt.EditRole)
+
+        # Now commit the transaction
+        self.parent.dataChanged.emit(self.index, self.index)
+        transaction.commit()
+
+        super(ModifyObjectCmd, self).redo(*args, **kwargs)

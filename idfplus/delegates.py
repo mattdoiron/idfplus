@@ -25,6 +25,8 @@ from PySide import QtGui
 from PySide import QtCore
 
 # Package imports
+import transaction
+from . import commands
 from . import idfsettings as c
 from . import logger
 
@@ -316,14 +318,16 @@ class ChoiceDelegate(QtGui.QItemDelegate):
         return self.comboBox
 
     def setEditorData(self, editor, index):
-#        editor.showPopup()
         value = index.data(QtCore.Qt.DisplayRole)
         comboIndex = editor.findText(value)
         if comboIndex >= 0:
             editor.setCurrentIndex(comboIndex)
 
     def setModelData(self, editor, model, index):
-        model.setData(index, editor.currentText(), QtCore.Qt.EditRole)
+
+        # Create undo command and push it to the undo stack
+        cmd = commands.ModifyObjectCmd(self, index=index, value=editor.currentText())
+        self.undo_stack.push(cmd)
 
 
 #class DateDelegate(QtGui.QItemDelegate):
