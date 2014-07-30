@@ -461,6 +461,7 @@ class IDFFile(PODict):
         self._eol_char = None
         self.file_path = None
         self.options = PersistentList()
+        self.object_lists = PersistentDict()
         self._version = None
 
         # # Load the idf file if specified, otherwise prepare a blank one

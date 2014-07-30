@@ -129,6 +129,7 @@ class NewObjectCmd(ObjectCmd):
 
 class PasteSelectedCmd(ObjectCmd):
     #FIXME this one is broken...pastes wrong
+    #won't paste outside of selection, regardless of size of copied text
     def redo(self, *args, **kwargs):
         """Pastes clipboard into cells starting at selected cell."""
         self.setText('Paste data')
@@ -150,20 +151,24 @@ class PasteSelectedCmd(ObjectCmd):
             return False
 
         # Iterate through text, splitting into rows
-        table_model = self.parent.classTable.model()
+        if self.obj_orientation == QtCore.Qt.Vertical:
+            model = self.parent.classTable.model().sourceModel()
+        else:
+            model = self.parent.classTable.model()
+
         rows = raw_text.split('\n')
         for i, row in enumerate(rows[:-1]):
             cols = row.split('\t')
             for j, col in enumerate(cols):
 
                 # Save cols and rows to data model
-                index = table_model.index(start_row + i,
-                                          start_col + j,
-                                          QtCore.QModelIndex())
-                table_model.setData(index, col, QtCore.Qt.EditRole)
+                index = model.index(start_row + i,
+                                    start_col + j,
+                                    QtCore.QModelIndex())
+                model.setData(index, col, QtCore.Qt.EditRole)
 
         # Notify everyone that data has changed
-        table_model.dataChanged.emit(QtCore.QModelIndex(), QtCore.QModelIndex())
+        model.dataChanged.emit(self.indexes[0], index)
 
         # Now commit the transaction
         transaction.commit()

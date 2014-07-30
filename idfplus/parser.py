@@ -27,6 +27,7 @@ import datetime as dt
 import transaction
 import codecs
 from persistent.list import PersistentList
+import networkx as nx
 
 # Package imports
 from . import datamodel
@@ -831,10 +832,12 @@ class IDFParser(Parser):
         :param file_path:
         :rtype : iterator
         """
-
+        G = nx.DiGraph()
+        self.idf._graph = G
         self.idf.file_path = file_path
         total_size = os.path.getsize(file_path)
         total_read = 0
+        object_lists = self.idf.object_lists
         log.info('Parsing IDF file: {} ({} bytes)'.format(file_path, total_size))
 
         # Open the specified file in a safe way
@@ -849,6 +852,8 @@ class IDFParser(Parser):
             group = None
             end_object = False
             idf_object = datamodel.IDFObject(self.idf)
+            obj_index = 0
+            prev_obj_class = None
 
             # Cycle through each line in the file (yes, use while!)
             while True:
@@ -914,6 +919,11 @@ class IDFParser(Parser):
                     # The first field is the object class name
                     obj_class = field_list.pop(0)
 
+                    # Reset index if obj_class has changed
+                    if obj_class != prev_obj_class:
+                        obj_index = 0
+                    prev_obj_class = obj_class
+
                     # The fields to use are defined in the idd file
                     idd_fields = self.idd[obj_class]
 
@@ -930,6 +940,32 @@ class IDFParser(Parser):
                         new_field.key = key
                         new_field.value = field
                         new_field.tags = tags
+
+                        # Check for reference tag to construct ref-lists
+                        if 'reference' in tags:
+                            print('reference: {}'.format(tags['reference']))
+
+                            if type(tags['reference']) is list:
+                                for tag in tags['reference']:
+                                    try:
+                                        object_lists[tag].add(obj_class)
+                                    except KeyError:
+                                        object_lists[tag] = set([obj_class])
+                            else:
+                                try:
+                                    object_lists[tags['reference']].add(obj_class)
+                                except KeyError:
+                                    object_lists[tags['reference']] = set([obj_class])
+
+                        # Check if this field should be a node
+                        tag_set = set(tags)
+                        node_set = set(['node', 'object-list', 'external-list'])
+                        if len(tag_set & node_set) > 0:
+                            id = (obj_class, obj_index, i)
+                            print('adding node: {}'.format(id))
+                            G.add_node(id, object_list=tags.get('object-list'))
+
+                        # Add the field to the object
                         idf_object.append(new_field)
 
                     # Save the parsed variables in the idf_object
@@ -961,6 +997,7 @@ class IDFParser(Parser):
                             self.idf[obj_class].append(idf_object)
                         except (AttributeError, KeyError) as e:
                             self.idf[obj_class] = [idf_object]
+                        obj_index += 1
 
                     # Reset lists for next object
                     field_list = list()
@@ -977,7 +1014,51 @@ class IDFParser(Parser):
                 # yield the current progress for progress bars
                 yield total_read
 
+        # Now that required nodes have been created, connect them as needed
+        self.connect_nodes()
+
         # Save changes
         transaction.get().note('Load file')
         transaction.commit()
         log.info('Parsing IDF complete!')
+
+    def connect_nodes(self):
+
+        G = self.idf._graph
+        idf = self.idf
+        print('object_lists: {}'.format(idf.object_lists))
+
+        for node in G.nodes_iter(data=True):
+            obj_class, obj_index, field_index = node[0]
+
+            try:
+                reference = idf[obj_class][obj_index][field_index]
+
+                object_list_class_name = node[1]['object_list']
+                print('object_list_class_name: {}'.format(object_list_class_name))
+
+
+                if type(object_list_class_name) is list:
+                    for cls in object_list_class_name:
+                        print('cls: {}'.format(cls))
+                        dest_obj_class = idf.object_lists.get(cls, '')
+                        print('dest_obj_class: {}'.format(dest_obj_class))
+                        for i, obj in enumerate(idf.get(dest_obj_class, '')):
+                            for j, field in enumerate([obj]):
+                                if field.value == reference:
+                                    dest_node = (dest_obj_class, i, j)
+                                    break
+                else:
+                    dest_obj_class = idf.object_lists.get(object_list_class_name, '')
+                    for i, obj in enumerate(idf.get(dest_obj_class, '')):
+                        for j, field in enumerate([obj]):
+                            if field.value == reference:
+                                dest_node = (dest_obj_class, i, j)
+                                break
+
+                G.add_edge(node[0], dest_node)
+
+                print('linked {} to {}'.format(reference, dest_node))
+
+            except (IndexError) as e:
+                continue
