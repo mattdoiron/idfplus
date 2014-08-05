@@ -21,7 +21,7 @@ along with IDFPlus. If not, see <http://www.gnu.org/licenses/>.
 import sys
 
 # PySide imports
-from PySide.QtGui import QApplication
+from PySide import QtGui
 
 # Local imports
 from idfplus import logger
@@ -35,9 +35,9 @@ log = logger.setup_logging(s.LOG_LEVEL, 'IDFPlus')
 def main():
     """Main function to start the program."""
 
-    app = QApplication.instance()
+    app = QtGui.QApplication.instance()
     if app is None:
-        app = QApplication(sys.argv)
+        app = QtGui.QApplication(sys.argv)
 
     idf_plus_window = IDFPlus()
     idf_plus_window.show()
