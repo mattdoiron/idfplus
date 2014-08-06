@@ -63,6 +63,8 @@ coverage.xml
 # Sphinx documentation
 docs/_build/
 
+*.spec
+
 # switch to regexp syntax.
 syntax: regexp
 ^\.pc/
