@@ -16,5 +16,5 @@ zdaemon==4.0.0
 zope.interface==4.1.1
 Pint==0.5.1
 odict==1.5.1
-PyInstaller==2.1
 networkx==1.9
+-e git+https://github.com/pyinstaller/pyinstaller.git
