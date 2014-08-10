@@ -37,7 +37,6 @@ from .datamodel import IDDFileDoesNotExist
 # Constants
 from . import idfsettings as c
 
-FILE_ENCODING = 'latin_1'
 OPTIONS_LIST = ['OriginalOrderTop', 'UseSpecialFormat']
 COMMENT_DELIMITER_GENERAL = '!'
 COMMENT_DELIMITER_SPECIAL = '!-'
@@ -185,7 +184,7 @@ class Writer(object):
         # Open file and write
         try:
             with codecs.open(file_path, 'w',
-                             encoding=FILE_ENCODING,
+                             encoding=c.FILE_ENCODING,
                              errors='backslashreplace') as file:
 
                 file.write("!-Generator IDFPlus v0.0.1{}".format(eol_char))
@@ -292,8 +291,6 @@ class Parser(object):
         :rtype : list:
         :param line_in:
         """
-        global COMMENT_DELIMITER_GENERAL
-        global COMMENT_DELIMITER_SPECIAL
         fields = list()
 
         # Partition the line twice
@@ -333,8 +330,6 @@ class Parser(object):
         :param line_in:
         :rtype : str:
         """
-        global COMMENT_DELIMITER_GENERAL
-        global COMMENT_DELIMITER_SPECIAL
         comments = str()
 
         if line_in.find(COMMENT_DELIMITER_GENERAL) == -1:
@@ -373,7 +368,6 @@ class Parser(object):
         :rtype : str
         :param line_in:
         """
-        global COMMENT_DELIMITER_SPECIAL
         line_clean = line_in.expandtabs().lstrip()
         comment_list_special = str()
 
@@ -389,8 +383,6 @@ class Parser(object):
         :rtype : dict:
         :param line_in: 
         """
-
-        global TAG_LIST
         tag_result = dict()
 
         # Create a list containing any tags found in line_in
@@ -421,7 +413,6 @@ class Parser(object):
         :rtype : list
         :param line_in:
         """
-        global OPTIONS_LIST
         line_clean = line_in.expandtabs().lstrip()
         matches = list()
 
@@ -498,11 +489,8 @@ class IDDParser(Parser):
         :return Shelve Database:
         """
 
-        data_dir = 'data'
-        version = 'IDDTEMP'
-        file_name_root = 'EnergyPlus_IDD_v{}.dat'
-        file_name = file_name_root.format(version)
-        idd_path = os.path.join(c.APP_ROOT, data_dir, file_name)
+        file_name = c.IDD_FILE_NAME_ROOT.format('IDDTEMP')
+        idd_path = os.path.join(c.DATA_DIR, file_name)
 
         try:
             log.debug('Opening idd dat file: {}'.format(idd_path))
@@ -521,9 +509,8 @@ class IDDParser(Parser):
         """Renames the idd once the version is known."""
 
         log.debug('Renaming temp idd file.')
-        file_name_root = 'EnergyPlus_IDD_v{}.dat'
-        file_name = file_name_root.format(version)
-        new = os.path.join(c.APP_ROOT, 'data', file_name)
+        file_name = c.IDD_FILE_NAME_ROOT.format(version)
+        new = os.path.join(c.DATA_DIR, file_name)
         old = new.replace(version, 'IDDTEMP')
         os.rename(old, new)
 
@@ -534,8 +521,6 @@ class IDDParser(Parser):
         """
 
         #TODO write parser for unit conversion comments!
-        global COMMENT_DELIMITER_SPECIAL  # Avoid these...
-
         total_size = os.path.getsize(file_path)
         total_read = 0.0
 
@@ -547,7 +532,7 @@ class IDDParser(Parser):
 
         # Open the specified file in a safe way
         with codecs.open(file_path, 'r',
-                         encoding=FILE_ENCODING,
+                         encoding=c.FILE_ENCODING,
                          errors='backslashreplace') as idd_file:
 
             # Prepare some variables to store the results
@@ -842,7 +827,7 @@ class IDFParser(Parser):
 
         # Open the specified file in a safe way
         with codecs.open(file_path, 'r',
-                         encoding=FILE_ENCODING,
+                         encoding=c.FILE_ENCODING,
                          errors='backslashreplace') as idf:
 
             # Prepare some variables to store the results

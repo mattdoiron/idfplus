@@ -28,7 +28,7 @@ import logging
 import logging.handlers
 
 # Package imports
-from . import idfsettings
+from . import idfsettings as c
 
 
 def setup_logging(_level, name):
@@ -39,10 +39,9 @@ def setup_logging(_level, name):
     :param silent: 
     """
 
-    level = getattr(logging, _level)
-
     # Setup handler and formatter
-    log_file = os.path.join(idfsettings.APP_ROOT, 'data', 'logs', 'idfplus.log')
+    level = getattr(logging, _level)
+    log_file = os.path.join(c.LOG_DIR, c.LOG_FILE_NAME)
     handler = logging.handlers.RotatingFileHandler(log_file,
                                                    mode='w',
                                                    maxBytes=2000000,

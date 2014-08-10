@@ -28,8 +28,9 @@ from BTrees.OOBTree import OOBTree
 from ZODB import FileStorage
 from ZODB import DB
 from collections import deque
-import transaction
+# import transaction
 import tempfile
+import appdirs
 
 # PySide imports
 from PySide import QtGui
@@ -1047,7 +1048,7 @@ class IDFPlus(QtGui.QMainWindow):
 
     def start_log_watcher(self):
         self.watcher = QtCore.QFileSystemWatcher()
-        log_path = os.path.join(c.APP_ROOT, 'data', 'logs', 'idfplus.log')
+        log_path = os.path.join(c.LOG_DIR, c.LOG_FILE_NAME)
         self.watcher.addPath(log_path)
         self.watcher.fileChanged.connect(self.update_log_viewer)
 
@@ -1087,6 +1088,15 @@ class MyZODB(object):
         log.info('Setting up database...')
         import transaction
         self.transaction = transaction
+        app_dir = appdirs.AppDirs("IDFPlus", "Mindful Modeller Inc.")
+        tempfile.tempdir = app_dir.user_cache_dir
+
+        try:
+            os.makedirs(app_dir.user_cache_dir)
+        except OSError:
+            if not os.path.isdir(app_dir.user_cache_dir):
+                raise
+
         self.tmp = tempfile.NamedTemporaryFile(prefix='idfplus_cache_', delete=True)
         self.storage = FileStorage.FileStorage(self.tmp.name)
         self.db = DB(self.storage)

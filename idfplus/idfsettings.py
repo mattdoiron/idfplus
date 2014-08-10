@@ -22,6 +22,7 @@ from __future__ import (print_function, division, absolute_import)
 
 # System imports
 import os
+import appdirs
 
 # PySide imports
 from PySide import QtGui
@@ -32,6 +33,22 @@ APP_ROOT = os.path.join(os.path.dirname(os.path.realpath(__file__)), '..')
 LOG_LEVEL = 'DEBUG'
 DEFAULT_COLUMN_WIDTH = 120
 FILE_ENCODING = 'latin_1'
+IDD_FILE_NAME_ROOT = 'EnergyPlus_IDD_v{}.dat'
+COMPANY_NAME_FULL = "Mindful Modeller Inc."
+COMPANY_NAME = 'mindfulmodeller'
+APP_NAME = "IDFPlus"
+LOG_FILE_NAME = "idfplus.log"
+DATA_DIR = appdirs.user_data_dir(APP_NAME, COMPANY_NAME)
+LOG_DIR = appdirs.user_log_dir(APP_NAME, COMPANY_NAME)
+
+# Make sure necessary folders exist
+for dir in [DATA_DIR, LOG_DIR]:
+    try:
+        os.makedirs(dir)
+    except OSError:
+        if not os.path.isdir(dir):
+            raise
+
 
 class Settings(object):
     """Object to handle setting and getting settings or info about them."""
@@ -43,8 +60,8 @@ class Settings(object):
         self.parent = parent
         self.settings = QtCore.QSettings(QtCore.QSettings.IniFormat,
                                          QtCore.QSettings.UserScope,
-                                         "IDF Plus Inc.",
-                                         "IDFPlus Editor",
+                                         COMPANY_NAME,
+                                         APP_NAME,
                                          parent)
 
     def read_settings(self):
