@@ -928,7 +928,7 @@ class IDFParser(Parser):
 
                         # Check for reference tag to construct ref-lists
                         if 'reference' in tags:
-                            print('reference: {}'.format(tags['reference']))
+                            # print('reference: {}'.format(tags['reference']))
 
                             if type(tags['reference']) is list:
                                 for tag in tags['reference']:
@@ -947,7 +947,7 @@ class IDFParser(Parser):
                         node_set = set(['node', 'object-list', 'external-list'])
                         if len(tag_set & node_set) > 0:
                             id = (obj_class, obj_index, i)
-                            print('adding node: {}'.format(id))
+                            # print('adding node: {}'.format(id))
                             G.add_node(id, object_list=tags.get('object-list'))
 
                         # Add the field to the object
@@ -1011,39 +1011,62 @@ class IDFParser(Parser):
 
         G = self.idf._graph
         idf = self.idf
-        print('object_lists: {}'.format(idf.object_lists))
+        dest_node = None
 
+        # Cycle through only nodes to avoid cycling through all objects
         for node in G.nodes_iter(data=True):
             obj_class, obj_index, field_index = node[0]
+            object_list_class_name = node[1]['object_list']
+
+            # Ensure we have a list to simplify
+            if type(object_list_class_name) is not list:
+                object_list_class_name = [object_list_class_name]
 
             try:
-                reference = idf[obj_class][obj_index][field_index]
+                reference = idf[obj_class][obj_index][field_index].value
 
-                object_list_class_name = node[1]['object_list']
-                print('object_list_class_name: {}'.format(object_list_class_name))
+                # print('object_list_class_name: {}'.format(object_list_class_name))
 
+                # Cycle through all class names in the object lists
+                for cls_name in object_list_class_name:
 
-                if type(object_list_class_name) is list:
-                    for cls in object_list_class_name:
-                        print('cls: {}'.format(cls))
-                        dest_obj_class = idf.object_lists.get(cls, '')
-                        print('dest_obj_class: {}'.format(dest_obj_class))
-                        for i, obj in enumerate(idf.get(dest_obj_class, '')):
-                            for j, field in enumerate([obj]):
-                                if field.value == reference:
-                                    dest_node = (dest_obj_class, i, j)
+                    # print('cls: {}'.format(cls))
+
+                    dest_obj_class = list(idf.object_lists.get(cls_name, ''))
+
+                    # print('dest_obj_class: {}'.format(dest_obj_class))
+
+                    # Cycle through all classes in the class list
+                    for obj_cls in dest_obj_class:
+
+                        # print('obj_cls: {}'.format(obj_cls))
+
+                        # Cycle through all IDFObjects in this class
+                        for i, obj in enumerate(idf.get(obj_cls, '')):
+
+                            # print('obj {}'.format(obj))
+
+                            # Cycle through all fields in this object
+                            for j, field in enumerate(obj):
+
+                                # print('field: {}, reference: {}'.format(field.value, reference))
+
+                                # Check if this is the referenced field
+                                if reference and field.value == reference:
+
+                                    # print('field: {}, reference: {}'.format(field.value, reference))
+
+                                    dest_node = (obj_cls, i, j)
                                     break
-                else:
-                    dest_obj_class = idf.object_lists.get(object_list_class_name, '')
-                    for i, obj in enumerate(idf.get(dest_obj_class, '')):
-                        for j, field in enumerate([obj]):
-                            if field.value == reference:
-                                dest_node = (dest_obj_class, i, j)
-                                break
 
-                G.add_edge(node[0], dest_node)
+                # If a destination node has been created, use it to add an edge
+                if dest_node is not None:
 
-                print('linked {} to {}'.format(reference, dest_node))
+                    # print('dest_node: {}'.format(dest_node))
+
+                    G.add_edge(node[0], dest_node)
+
+                    # print('linked node {} to {}'.format(node[0], dest_node))
 
             except (IndexError) as e:
                 continue
