@@ -716,11 +716,8 @@ class IDDParser(Parser):
         if not idd.version:
             raise Exception("Missing IDD file version")
 
-        version = idd.version
-        data_dir = 'data'
-        file_name_root = 'EnergyPlus_IDD_v{}.dat'
-        file_name = file_name_root.format(version)
-        idd_path = os.path.join(c.APP_ROOT, data_dir, file_name)
+        file_name = c.IDD_FILE_NAME_ROOT.format(idd.version)
+        idd_path = os.path.join(c.DATA_DIR, file_name)
 
         try:
             # storage = ZODB.FileStorage.FileStorage(idd_path)
@@ -758,13 +755,10 @@ class IDDParser(Parser):
         :return: :raise IDDFileDoesNotExist:
         """
 
-        log.info("Loading idd file")
-        idd_file_name = 'EnergyPlus_IDD_v{}.dat'.format(version)
-        data_dir = 'data'
-
         # Create the full path to the idd file
-        idd_path = os.path.join(c.APP_ROOT, data_dir, idd_file_name)
-
+        log.info("Loading idd file")
+        idd_file_name = c.IDD_FILE_NAME_ROOT.format(version)
+        idd_path = os.path.join(c.DATA_DIR, idd_file_name)
         log.debug('Checking for idd version: {}'.format(version))
         log.debug(idd_path)
 
@@ -935,16 +929,16 @@ class IDFParser(Parser):
                                     try:
                                         object_lists[tag].add(obj_class)
                                     except KeyError:
-                                        object_lists[tag] = set([obj_class])
+                                        object_lists[tag] = {obj_class}
                             else:
                                 try:
                                     object_lists[tags['reference']].add(obj_class)
                                 except KeyError:
-                                    object_lists[tags['reference']] = set([obj_class])
+                                    object_lists[tags['reference']] = {obj_class}
 
                         # Check if this field should be a node
                         tag_set = set(tags)
-                        node_set = set(['node', 'object-list', 'external-list'])
+                        node_set = {'node', 'object-list', 'external-list'}
                         if len(tag_set & node_set) > 0:
                             id = (obj_class, obj_index, i)
                             # print('adding node: {}'.format(id))

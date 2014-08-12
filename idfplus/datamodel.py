@@ -21,7 +21,7 @@ along with IDFPlus. If not, see <http://www.gnu.org/licenses/>.
 from __future__ import (print_function, division, absolute_import)
 
 # System imports
-import os
+# import os
 # import ZODB
 # from collections import OrderedDict
 # from pint import UnitRegistry
@@ -36,7 +36,7 @@ from odict.pyodict import _odict, _nil
 # https://pypi.python.org/pypi/blist
 
 # Constants
-APP_ROOT = os.path.join(os.path.dirname(os.path.realpath(__file__)), '..')
+# APP_ROOT = os.path.join(os.path.dirname(os.path.realpath(__file__)), '..')
 
 class IDDFileDoesNotExist(Exception):
     """Exception called when no IDD file is found."""
@@ -337,7 +337,7 @@ class IDDObject(list):
         self._group = kwargs.pop('group', None)
         # self._outer = outer
         # self._idd = outer
-        self.tags = dict()  # TODO populate this during parsing (only fields done now)
+        self.tags = dict()
         self.comments = kwargs.pop('comments', None)
         self.comments_special = kwargs.pop('comments_special', None)
 

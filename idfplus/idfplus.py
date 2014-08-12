@@ -118,7 +118,8 @@ class IDFPlus(QtGui.QMainWindow):
     def open_file(self):
         """Called by the open file action."""
         if self.ok_to_continue():
-            directory = os.path.dirname(self.file_path) if self.file_path else "."
+            home_dir = os.path.expanduser('~')
+            directory = os.path.dirname(self.file_path) if self.file_path else home_dir
             formats = "EnergyPlus Files (*.idf)"
             file_dialog = QtGui.QFileDialog()
             file_dialog.setFileMode(QtGui.QFileDialog.ExistingFile)
@@ -131,7 +132,8 @@ class IDFPlus(QtGui.QMainWindow):
         """Called to open an idd file location."""
         # print('find idd file was called')
         if self.ok_to_continue():
-            directory = os.path.dirname(self.file_path) if self.file_path else "."
+            home_dir = os.path.expanduser('~')
+            directory = os.path.dirname(self.file_path) if self.file_path else home_dir
             dialog_name = 'Open EnergyPlus Installation Directory'
             file_dialog = QtGui.QFileDialog()
             file_dialog.setFileMode(QtGui.QFileDialog.Directory)
@@ -166,7 +168,7 @@ class IDFPlus(QtGui.QMainWindow):
         for progress in idd_parser.parse_idd(file_path):
             self.progressDialogIDD.setValue(progress)
 
-        return True #parser.save_idd(idd)
+        return True
 
     def load_idf(self, file_path):
         log.info('Trying to load file: {}'.format(file_path))
@@ -253,7 +255,8 @@ class IDFPlus(QtGui.QMainWindow):
 
     def save_as(self):
         """Called by the save as action."""
-        directory = os.path.dirname(self.file_path) if self.file_path is not None else '.'
+        home_dir = os.path.expanduser('~')
+        directory = os.path.dirname(self.file_path) if self.file_path else home_dir
         formats = 'EnergyPlus Files (*.idf)'
         file_name, filtr = QtGui.QFileDialog.getSaveFileName(self, 'Save As',
                                                             directory, formats)
@@ -1088,13 +1091,12 @@ class MyZODB(object):
         log.info('Setting up database...')
         import transaction
         self.transaction = transaction
-        app_dir = appdirs.AppDirs("IDFPlus", "Mindful Modeller Inc.")
-        tempfile.tempdir = app_dir.user_cache_dir
+        tempfile.tempdir = appdirs.user_cache_dir(c.APP_NAME, c.COMPANY_NAME)
 
         try:
-            os.makedirs(app_dir.user_cache_dir)
+            os.makedirs(tempfile.tempdir)
         except OSError:
-            if not os.path.isdir(app_dir.user_cache_dir):
+            if not os.path.isdir(tempfile.tempdir):
                 raise
 
         self.tmp = tempfile.NamedTemporaryFile(prefix='idfplus_cache_', delete=True)
