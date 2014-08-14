@@ -940,9 +940,10 @@ class IDFParser(Parser):
                         tag_set = set(tags)
                         node_set = {'node', 'object-list', 'external-list'}
                         if len(tag_set & node_set) > 0:
-                            id = (obj_class, obj_index, i)
+                            # node_id = (obj_class, obj_index, i)
                             # print('adding node: {}'.format(id))
-                            G.add_node(id, object_list=tags.get('object-list'))
+                            # G.add_node(new_field, object_list=tags.get('object-list'))
+                            G.add_node(new_field)
 
                         # Add the field to the object
                         idf_object.append(new_field)
@@ -1008,16 +1009,20 @@ class IDFParser(Parser):
         dest_node = None
 
         # Cycle through only nodes to avoid cycling through all objects
-        for node in G.nodes_iter(data=True):
-            obj_class, obj_index, field_index = node[0]
-            object_list_class_name = node[1]['object_list']
+        # Do not use an iterator because we could add a new node in this loop!
+        for node in G.nodes():
+            # obj_class, obj_index, field_index = node[0]
+            # print('tags: {}'.format(node.tags))
+            object_list_class_name = node.tags['object-list']
 
             # Ensure we have a list to simplify
             if type(object_list_class_name) is not list:
                 object_list_class_name = [object_list_class_name]
 
             try:
-                reference = idf[obj_class][obj_index][field_index].value
+                # reference = idf[obj_class][obj_index][field_index].value
+                reference = node.value
+                # print('tags: {}'.format(node.tags))
 
                 # print('object_list_class_name: {}'.format(object_list_class_name))
 
@@ -1058,7 +1063,7 @@ class IDFParser(Parser):
 
                     # print('dest_node: {}'.format(dest_node))
 
-                    G.add_edge(node[0], dest_node)
+                    G.add_edge(node, dest_node)
 
                     # print('linked node {} to {}'.format(node[0], dest_node))
 
