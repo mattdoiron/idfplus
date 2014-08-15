@@ -31,6 +31,7 @@ from collections import deque
 # import transaction
 import tempfile
 import appdirs
+import networkx as nx
 
 # PySide imports
 from PySide import QtGui
@@ -554,6 +555,29 @@ class IDFPlus(QtGui.QMainWindow):
 #            action.setCheckable(True)
 #        return action
 #
+
+    def table_clicked(self, index):
+        ancestors = None
+        descendants = None
+        G = self.idf._graph
+        node = self.idf[self.current_obj_class][index.column()][index.row()]
+        # print('node value: {}'.format(node.value))
+        for n in G.nodes_iter():
+            if id(n) == id(node):
+                print("id of n: {}".format(id(n)))
+        print("id: {}".format(id(node)))
+        print('nodes: {}'.format(G.nodes()))
+        try:
+            ancestors = nx.ancestors(G, node)
+            descendants = nx.descendants(G, node)
+        except nx.exception.NetworkXError:
+            print('Node not found')
+
+        if ancestors:
+            print("Ancestors: {}".format(ancestors))
+        if descendants:
+            print("Ancestors: {}".format(descendants))
+
     def create_context_menu(self, pos):
         menu = QtGui.QMenu()
         openAction = menu.addAction("Test 1")
@@ -913,6 +937,7 @@ class IDFPlus(QtGui.QMainWindow):
         classTable.verticalHeader().setDefaultSectionSize(fm.height() + 5)
         # classTable.setStyleSheet("QTableView {padding: 0px; border: 0px;} ")
 
+        classTable.clicked.connect(self.table_clicked)
         # classTable.resizeColumnsToContents()
         # classTable.resizeRowsToContents()
         classTable.setSelectionMode(QtGui.QAbstractItemView.ContiguousSelection)

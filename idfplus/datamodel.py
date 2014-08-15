@@ -649,6 +649,7 @@ class IDFObject(PersistentList):
         # self._idd = idf.idd
         self._incoming_links = PersistentList()
         self._outgoing_links = PersistentList()
+        self._graph = None
         self._group = kwargs.pop('group', None)
         self._obj_class = kwargs.pop('obj_class', None)
         self.comments = kwargs.pop('comments', None)
