@@ -43,7 +43,7 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
         self.idd = idf._idd
         self.idf_objects = idf.get(obj_class, PersistentList())
         self.idd_object = idf._idd.get(obj_class, PersistentList())
-        self.dirty = False
+        # self.dirty = False
         self.getLabels()
         super(IDFObjectTableModel, self).__init__()
 

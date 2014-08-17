@@ -45,6 +45,7 @@ from . import idfsettings as c
 from . import datamodel
 from . import logger
 from . import commands
+from . import treemodel
 
 # Resource imports
 from . import icons_qr  # Used for icons (in text format)
@@ -578,8 +579,10 @@ class IDFPlus(QtGui.QMainWindow):
 
         if ancestors:
             print("Node Ancestors: {}".format(ancestors))
+            self.jumpView.setText(ancestors)
         if descendants:
             print("Node Descendants: {}".format(descendants))
+            self.jumpView.setText(ancestors)
 
     def create_context_menu(self, pos):
         menu = QtGui.QMenu()
@@ -983,6 +986,16 @@ class IDFPlus(QtGui.QMainWindow):
         infoView.setFrameShape(QtGui.QFrame.StyledPanel)
         infoDockWidget.setWidget(infoView)
 
+        # Node list and jump menu widget
+        jumpDockWidget = QtGui.QDockWidget("Jump", self)
+        jumpDockWidget.setObjectName("jumpDockWidget")
+        jumpDockWidget.setAllowedAreas(QtCore.Qt.AllDockWidgetAreas)
+        jump_model = treemodel.JumpTreeModel(None)
+        jumpView = QtGui.QTreeView(jumpDockWidget)
+        jumpView.setModel(jump_model)
+        jumpView.setFrameShape(QtGui.QFrame.StyledPanel)
+        jumpDockWidget.setWidget(jumpView)
+
         # Logging and debugging widget
         logDockWidget = QtGui.QDockWidget("Log Viewer", self)
         logDockWidget.setObjectName("logDockWidget")
@@ -1019,6 +1032,7 @@ class IDFPlus(QtGui.QMainWindow):
         self.addDockWidget(QtCore.Qt.LeftDockWidgetArea, classTreeDockWidget)
         self.addDockWidget(QtCore.Qt.RightDockWidgetArea, commentDockWidget)
         self.addDockWidget(QtCore.Qt.RightDockWidgetArea, infoDockWidget)
+        self.addDockWidget(QtCore.Qt.RightDockWidgetArea, jumpDockWidget)
         self.addDockWidget(QtCore.Qt.RightDockWidgetArea, logDockWidget)
         self.addDockWidget(QtCore.Qt.RightDockWidgetArea, undoDockWidget)
 
@@ -1029,6 +1043,7 @@ class IDFPlus(QtGui.QMainWindow):
         self.classTree = classTree
         self.logView = logView
         self.undoView = undoView
+        self.jumpView = jumpView
 
         # Store docks for access by other objects
         self.commentDockWidget = commentDockWidget
@@ -1036,6 +1051,7 @@ class IDFPlus(QtGui.QMainWindow):
         self.classTreeDockWidget = classTreeDockWidget
         self.logDockWidget = logDockWidget
         self.undoDockWidget = undoDockWidget
+        self.jumpDockWidget = jumpDockWidget
 
         # Perform other UI-related initialization tasks
         self.center()
