@@ -561,22 +561,25 @@ class IDFPlus(QtGui.QMainWindow):
         descendants = None
         G = self.idf._graph
         node = self.idf[self.current_obj_class][index.column()][index.row()]
+
         # print('node value: {}'.format(node.value))
-        for n in G.nodes_iter():
-            if id(n) == id(node):
-                print("id of n: {}".format(id(n)))
-        print("id: {}".format(id(node)))
-        print('nodes: {}'.format(G.nodes()))
+        # for n in G.nodes_iter():
+        #     if id(n) == id(node):
+        #         print("id of n: {}".format(id(n)))
+        # print('nodes: {}'.format(G.nodes()))
+
         try:
+            print("Node ID: {}".format(id(node)))
             ancestors = nx.ancestors(G, node)
             descendants = nx.descendants(G, node)
         except nx.exception.NetworkXError:
-            print('Node not found')
+            # print('Node not found')
+            pass
 
         if ancestors:
-            print("Ancestors: {}".format(ancestors))
+            print("Node Ancestors: {}".format(ancestors))
         if descendants:
-            print("Ancestors: {}".format(descendants))
+            print("Node Descendants: {}".format(descendants))
 
     def create_context_menu(self, pos):
         menu = QtGui.QMenu()

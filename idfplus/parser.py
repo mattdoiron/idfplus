@@ -1055,7 +1055,8 @@ class IDFParser(Parser):
 
                                     # print('field: {}, reference: {}'.format(field.value, reference))
 
-                                    dest_node = (obj_cls, i, j)
+                                    # dest_node = (obj_cls, i, j)
+                                    dest_node = field
                                     break
 
                 # If a destination node has been created, use it to add an edge
