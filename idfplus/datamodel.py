@@ -800,8 +800,9 @@ class IDFField(Persistent):
         self.key = kwargs.pop('key', None)
         self.value = kwargs.pop('value', None)
         self.tags = PersistentDict()
-        self.obj_class = outer.obj_class
+        self.obj_class = outer._obj_class
         self._ureg = None #outer.idd._ureg
+        self._outer = outer
 
         # self._idf_file = outer._outer
         # idd = outer.idd
