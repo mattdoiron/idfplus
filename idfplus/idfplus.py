@@ -558,31 +558,25 @@ class IDFPlus(QtGui.QMainWindow):
 #
 
     def table_clicked(self, index):
-        ancestors = None
-        descendants = None
-        G = self.idf._graph
-        node = self.idf[self.current_obj_class][index.column()][index.row()]
-
-        # print('node value: {}'.format(node.value))
-        # for n in G.nodes_iter():
-        #     if id(n) == id(node):
-        #         print("id of n: {}".format(id(n)))
-        # print('nodes: {}'.format(G.nodes()))
+        if not index.isValid():
+            return
 
         try:
-            print("Node ID: {}".format(id(node)))
+            G = self.idf._graph
+            node = self.idf[self.current_obj_class][index.column()][index.row()]
+
+            # print("Node ID: {}".format(id(node)))
             ancestors = nx.ancestors(G, node)
             descendants = nx.descendants(G, node)
-        except nx.exception.NetworkXError:
-            # print('Node not found')
-            pass
 
-        if ancestors:
-            print("Node Ancestors: {}".format(ancestors))
-            self.jumpView.setText(ancestors)
-        if descendants:
-            print("Node Descendants: {}".format(descendants))
-            self.jumpView.setText(ancestors)
+            # print("Node Ancestors: {}".format(ancestors))
+            new_model = treemodel.TreeModel([ancestors, descendants], self.jumpView)
+            self.jumpView.setModel(new_model)
+            self.jumpView.expandAll()
+
+        except (nx.exception.NetworkXError, IndexError) as e:
+            empty_model = treemodel.TreeModel(None, self.jumpDockWidget)
+            self.jumpView.setModel(empty_model)
 
     def create_context_menu(self, pos):
         menu = QtGui.QMenu()
@@ -987,12 +981,16 @@ class IDFPlus(QtGui.QMainWindow):
         infoDockWidget.setWidget(infoView)
 
         # Node list and jump menu widget
-        jumpDockWidget = QtGui.QDockWidget("Jump", self)
+        jumpDockWidget = QtGui.QDockWidget("Field References", self)
         jumpDockWidget.setObjectName("jumpDockWidget")
         jumpDockWidget.setAllowedAreas(QtCore.Qt.AllDockWidgetAreas)
-        jump_model = treemodel.JumpTreeModel(None)
+        jump_model = treemodel.TreeModel(None, jumpDockWidget)
         jumpView = QtGui.QTreeView(jumpDockWidget)
         jumpView.setModel(jump_model)
+        jumpView.setUniformRowHeights(True)
+        jumpView.setRootIsDecorated(False)
+        jumpView.setIndentation(15)
+        # jumpView.setHeaderHidden(True)
         jumpView.setFrameShape(QtGui.QFrame.StyledPanel)
         jumpDockWidget.setWidget(jumpView)
 
