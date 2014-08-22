@@ -57,13 +57,13 @@ class TreeItem(object):
         return 0
 
 
-class TreeModel(QtCore.QAbstractItemModel):
+class ReferenceTreeModel(QtCore.QAbstractItemModel):
     """Qt object that handles interaction between the jump widget and the data
     displayed in the tree view.
     """
 
     def __init__(self, data, parent=None):
-        super(TreeModel, self).__init__(parent)
+        super(ReferenceTreeModel, self).__init__(parent)
 
         self.rootItem = TreeItem(("Field", "Class"))
         self.setupModelData(data, self.rootItem)

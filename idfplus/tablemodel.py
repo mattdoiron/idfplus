@@ -378,3 +378,123 @@ class SortFilterProxyModel(QtGui.QSortFilterProxyModel):
                 return True
 
         return False
+
+
+class IDFClassTableModel(QtCore.QAbstractTableModel):
+    """Qt object that handles interaction between the table and the data
+    displayed in the table.
+    """
+
+    def __init__(self, idf):
+        # self.obj_class = obj_class
+        self.idf = idf
+        self.idd = idf._idd
+        # self.idf_objects = idf.get(obj_class, PersistentList())
+        # self.idd_object = idf._idd.get(obj_class, PersistentList())
+        # self.dirty = False
+        # self.getLabels()
+        super(IDFClassTableModel, self).__init__()
+
+    def flags(self, index):
+        if not index.isValid():
+            return QtCore.Qt.ItemIsEnabled
+
+        current_flags = QtCore.QAbstractTableModel.flags(self, index)
+        return QtCore.Qt.ItemFlags(current_flags | QtCore.Qt.ItemIsEditable)
+
+    def data(self, index, role):
+        """Provides various data to Table models. Tables iterate through
+        columns and rows with different roles to get different types of data.
+        """
+
+        # Check for valid qt index
+        if not index.isValid():
+            return None
+
+        # Get the row and column and prepare a blank data var to return
+        row = index.row()
+        column = index.column()
+        data = None
+
+        # Detect the role being request and return the correct data
+        if role == QtCore.Qt.DisplayRole or role == QtCore.Qt.EditRole:
+            try:
+                data = self.idf_objects[row][column].value
+            except (AttributeError, IndexError):
+                data = None
+        elif role == QtCore.Qt.ToolTipRole:
+            data = self.idd_object.tags.get('units', '')
+        elif role == QtCore.Qt.DecorationRole:
+            pass
+        elif role == QtCore.Qt.StatusTipRole:
+            data = self.idd_object.tags.get('units', '')
+        elif role == QtCore.Qt.TextAlignmentRole:
+            data = int(QtCore.Qt.AlignLeft | QtCore.Qt.AlignVCenter)
+        elif role == QtCore.Qt.TextColorRole or role == QtCore.Qt.ForegroundRole:
+            pass
+        elif role == QtCore.Qt.BackgroundColorRole:
+            #TODO Colour cells differently depending on things like if they are required
+            pass
+        return data
+
+    def headerData(self, section, orientation, role, old_orientation=None):
+        if role == QtCore.Qt.TextAlignmentRole:
+            if old_orientation is None:
+                if orientation == QtCore.Qt.Vertical:
+                    return int(QtCore.Qt.AlignRight | QtCore.Qt.AlignVCenter)
+                return int(QtCore.Qt.AlignLeft | QtCore.Qt.AlignVCenter)
+            else:
+                if orientation == QtCore.Qt.Vertical:
+                    return int(QtCore.Qt.AlignLeft | QtCore.Qt.AlignVCenter)
+                return int(QtCore.Qt.AlignRight | QtCore.Qt.AlignVCenter)
+        elif role == QtCore.Qt.DisplayRole or role == QtCore.Qt.ToolTipRole:
+            if orientation == QtCore.Qt.Horizontal:
+                return self.field_labels[section]
+            if orientation == QtCore.Qt.Vertical:
+                return self.objID_labels[section]
+        return None
+
+    def rowCount(self, index):
+        return len(self.idf_objects)
+
+    def columnCount(self, index):
+        return len(self.idd_object)
+
+    def setData(self, index, value, role):
+        if not index.isValid():
+            return False
+        if role == QtCore.Qt.EditRole:
+            row = index.row()
+            column = index.column()
+
+            # Try to assign the value
+            try:
+                self.idf_objects[row][column].value = value
+            except (AttributeError, IndexError):
+                # An invalid index could mean that we're trying to assign a value
+                # to a field that has not yet been 'allocated'. Check for max
+                # allowable fields
+                max_field_count = len(self.idd.get(self.obj_class, []))
+                current_field_count = len(self.idf_objects[row])
+
+                # If within limits allowed, allocate additional field 'slots'
+                if index.column() < max_field_count:
+                    extra_field_count = index.column() - current_field_count + 1
+                    extra_fields = extra_field_count*[None]
+                    self.idf_objects[row].extend(extra_fields)
+                else:
+                    return False
+
+                # Create a new field object, give it a value and save it
+                new_field = IDFField(self.idf_objects[row])
+                new_field.value = value
+                self.idf_objects[row][column] = new_field
+
+            # Note: We do NOT commit the transaction here. This allows multiple fields
+            # to be edited within a single transaction.
+            # transaction.get().note('Modify field')
+            # transaction.commit()
+
+            # self.dataChanged.emit(index, index)
+            return True
+        return False

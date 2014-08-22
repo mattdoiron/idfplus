@@ -40,11 +40,12 @@ class ObjectCmd(QtGui.QUndoCommand):
     """Base class to be inherited by all classes needing QUndoCommand features"""
     #TODO: Move this an all commands to a module
 
-    def __init__(self, parent, **kwargs):
+    def __init__(self, model, **kwargs):
         super(ObjectCmd, self).__init__(**kwargs)
         self.index = kwargs.get('index', False)
-        self.indexes = parent.classTable.selectedIndexes()
-        self.parent = parent
+        # self.indexes = parent.classTable.selectedIndexes()
+        self.indexes = model.selectedIndexes()
+        self.model = model
         self.obj_orientation = self.parent.obj_orientation
         self.tx_id = None
         self.mime_data = None
@@ -213,14 +214,14 @@ class ModifyObjectCmd(ObjectCmd):
         self.setText('Modify object')
 
         if self.obj_orientation == QtCore.Qt.Vertical:
-            model = self.parent.classTable.model().sourceModel()
+            model = self.model.sourceModel()
         else:
-            model = self.parent.classTable.model()
+            model = self.model
 
         model.setData(self.index, self.value, QtCore.Qt.EditRole)
 
         # Now commit the transaction
-        self.parent.dataChanged.emit(self.index, self.index)
+        self.model.dataChanged.emit(self.index, self.index)
         transaction.commit()
 
         super(ModifyObjectCmd, self).redo(*args, **kwargs)

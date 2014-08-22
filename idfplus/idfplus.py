@@ -570,13 +570,14 @@ class IDFPlus(QtGui.QMainWindow):
             descendants = nx.descendants(G, node)
 
             # print("Node Ancestors: {}".format(ancestors))
-            new_model = treemodel.TreeModel([ancestors, descendants], self.jumpView)
-            self.jumpView.setModel(new_model)
-            self.jumpView.expandAll()
+            new_model = treemodel.ReferenceTreeModel([ancestors, descendants],
+                                                     self.refView)
+            self.refView.setModel(new_model)
+            self.refView.expandAll()
 
         except (nx.exception.NetworkXError, IndexError) as e:
-            empty_model = treemodel.TreeModel(None, self.jumpDockWidget)
-            self.jumpView.setModel(empty_model)
+            empty_model = treemodel.ReferenceTreeModel(None, self.refDockWidget)
+            self.refView.setModel(empty_model)
 
     def create_context_menu(self, pos):
         menu = QtGui.QMenu()
@@ -626,14 +627,6 @@ class IDFPlus(QtGui.QMainWindow):
 
         self.setWindowTitle("%s[*] - Application" % shownName)
         self.update_status(shownName)
-
-#    def loadInitialFile(self):
-#       '''Loads the previously open file upon program start.'''
-#        settings = QtCore.QSettings()
-#        fname = settings.value("LastFile")
-#        file_path = self.file_path
-#        if file_path and QtCore.QFile.exists(file_path):
-#            self.open_file()
 
     def ok_to_continue(self):
         """Checks if there are unsaved changes and prompts for action."""
@@ -981,18 +974,18 @@ class IDFPlus(QtGui.QMainWindow):
         infoDockWidget.setWidget(infoView)
 
         # Node list and jump menu widget
-        jumpDockWidget = QtGui.QDockWidget("Field References", self)
-        jumpDockWidget.setObjectName("jumpDockWidget")
-        jumpDockWidget.setAllowedAreas(QtCore.Qt.AllDockWidgetAreas)
-        jump_model = treemodel.TreeModel(None, jumpDockWidget)
-        jumpView = QtGui.QTreeView(jumpDockWidget)
-        jumpView.setModel(jump_model)
-        jumpView.setUniformRowHeights(True)
-        jumpView.setRootIsDecorated(False)
-        jumpView.setIndentation(15)
-        # jumpView.setHeaderHidden(True)
-        jumpView.setFrameShape(QtGui.QFrame.StyledPanel)
-        jumpDockWidget.setWidget(jumpView)
+        refDockWidget = QtGui.QDockWidget("Field References", self)
+        refDockWidget.setObjectName("refDockWidget")
+        refDockWidget.setAllowedAreas(QtCore.Qt.AllDockWidgetAreas)
+        ref_model = treemodel.ReferenceTreeModel(None, refDockWidget)
+        refView = QtGui.QTreeView(refDockWidget)
+        refView.setModel(ref_model)
+        refView.setUniformRowHeights(True)
+        refView.setRootIsDecorated(False)
+        refView.setIndentation(15)
+        # refView.setHeaderHidden(True)
+        refView.setFrameShape(QtGui.QFrame.StyledPanel)
+        refDockWidget.setWidget(refView)
 
         # Logging and debugging widget
         logDockWidget = QtGui.QDockWidget("Log Viewer", self)
@@ -1030,7 +1023,7 @@ class IDFPlus(QtGui.QMainWindow):
         self.addDockWidget(QtCore.Qt.LeftDockWidgetArea, classTreeDockWidget)
         self.addDockWidget(QtCore.Qt.RightDockWidgetArea, commentDockWidget)
         self.addDockWidget(QtCore.Qt.RightDockWidgetArea, infoDockWidget)
-        self.addDockWidget(QtCore.Qt.RightDockWidgetArea, jumpDockWidget)
+        self.addDockWidget(QtCore.Qt.RightDockWidgetArea, refDockWidget)
         self.addDockWidget(QtCore.Qt.RightDockWidgetArea, logDockWidget)
         self.addDockWidget(QtCore.Qt.RightDockWidgetArea, undoDockWidget)
 
@@ -1041,7 +1034,7 @@ class IDFPlus(QtGui.QMainWindow):
         self.classTree = classTree
         self.logView = logView
         self.undoView = undoView
-        self.jumpView = jumpView
+        self.refView = refView
 
         # Store docks for access by other objects
         self.commentDockWidget = commentDockWidget
@@ -1049,7 +1042,7 @@ class IDFPlus(QtGui.QMainWindow):
         self.classTreeDockWidget = classTreeDockWidget
         self.logDockWidget = logDockWidget
         self.undoDockWidget = undoDockWidget
-        self.jumpDockWidget = jumpDockWidget
+        self.refDockWidget = refDockWidget
 
         # Perform other UI-related initialization tasks
         self.center()

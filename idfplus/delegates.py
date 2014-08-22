@@ -248,6 +248,7 @@ class ChoiceDelegate(QtGui.QItemDelegate):
 
         self.field = field
         self.model = QtGui.QStandardItemModel()
+        self.parent = parent
         self.comboFields = ['minimum>',
                             'minimum',
                             'maximum<',
@@ -326,7 +327,9 @@ class ChoiceDelegate(QtGui.QItemDelegate):
     def setModelData(self, editor, model, index):
 
         # Create undo command and push it to the undo stack
-        cmd = commands.ModifyObjectCmd(self, index=index, value=editor.currentText())
+        cmd = commands.ModifyObjectCmd(model,
+                                       index=index,
+                                       value=editor.currentText())
         self.undo_stack.push(cmd)
 
 
