@@ -21,22 +21,16 @@ along with IDFPlus. If not, see <http://www.gnu.org/licenses/>.
 from __future__ import (print_function, division, absolute_import)
 
 # System imports
-# import os
-# import ZODB
-# from collections import OrderedDict
 # from pint import UnitRegistry
 from persistent import Persistent
 from persistent.list import PersistentList
 from persistent.dict import PersistentDict
 from persistent.mapping import PersistentMapping
 from odict.pyodict import _odict, _nil
-# from BTrees.OOBTree import OOBTree
 
 # Investigate as replacement for large lists
 # https://pypi.python.org/pypi/blist
 
-# Constants
-# APP_ROOT = os.path.join(os.path.dirname(os.path.realpath(__file__)), '..')
 
 class IDDFileDoesNotExist(Exception):
     """Exception called when no IDD file is found."""
@@ -54,152 +48,6 @@ class PODict(_odict, PersistentMapping):
 
     def _dict_impl(self):
         return PersistentMapping
-
-
-# class PODict(_odict, OOBTree):
-#
-#     def _dict_impl(self):
-#         return OOBTree
-#
-#     def _get_lh(self):
-#         try:
-#             return self['____lh']
-#         except KeyError:
-#             self['____lh'] = _nil
-#         return self['____lh']
-#
-#     def _set_lh(self, val):
-#         self['____lh'] = val
-#
-#     lh = property(_get_lh, _set_lh)
-#
-#     def _get_lt(self):
-#         try:
-#             return self['____lt']
-#         except KeyError:
-#             self['____lt'] = _nil
-#         return self['____lt']
-#
-#     def _set_lt(self, val):
-#         self['____lt'] = val
-#
-#     lt = property(_get_lt, _set_lt)
-#
-#     def __getitem__(self, key):
-#         if key.startswith('____'):
-#             return self._dict_impl().__getitem__(self, key)
-#         return _odict.__getitem__(self, key)
-#
-#     def __setitem__(self, key, val=None):
-#         if key.startswith('____'):
-#             # private attributes, no way to set persistent attributes on
-#             # OOBTree deriving class.
-#             print('private attribute fail {}'.format(key))
-#             self._dict_impl().__setitem__(self, key, val)
-#         else:
-#             # super(PODict, self).__setitem__(key, val)
-#             print('key: {}, val: {}'.format(key, val))
-#             _odict.__setitem__(self, key, val)
-#
-#     def __repr__(self):
-#         if self:
-#             pairs = ("(%r, %r)" % (k, v) for k, v in self.iteritems())
-#             return "OOBTodict([%s])" % ", ".join(pairs)
-#         else:
-#             return "OOBTodict()"
-
-
-# class PODict(OrderedDict):
-#     """Custom OrderedDict that ensures the 'changed' flag is set for ZODB
-#     persistence."""
-#
-#     def __init__(self):
-#         self._data = OrderedDict()
-#         super(PODict, self).__init__()
-#
-#     def __delitem__(self, key, dict_delitem=dict.__delitem__):
-#         self._data.__delitem__(key, dict_delitem)
-#         self._data._p_changed = True
-#         self._p_changed = True
-#
-#     def __getitem__(self, key):
-#         return self._data.__getitem__(key)
-#
-#     def __setitem__(self, key, value, dict_setitem=dict.__setitem__):
-#         self._data.__setitem__(key, value, dict_setitem)
-#         self._data._p_changed = True
-#         self._p_changed = True
-#
-#     # def __getattribute__(self, name):
-#     #     return self._data.__getattribute__(name)
-#     #
-#     # def __setattr__(self, name, value):
-#     #     return self._data.__setattr__(name, value)
-#
-#     def __contains__(self, key):
-#         return self._data.__contains__(key)
-#
-#     def __len__(self):
-#         return self._data.__len__()
-#
-#     def __iter__(self):
-#         return self._data.__iter__()
-#
-#     def __delattr__(self, name):
-#         return self._data.__delattr__(name)
-#
-#     def __repr__(self, _repr_running={}):
-#         return self._data.__repr__(_repr_running)
-#
-#     def __format__(self, *args, **kwargs):
-#         return self._data.__format__(*args, **kwargs)
-#
-#     def clear(self):
-#         self._data.clear()
-#         self._data._p_changed = True
-#         self._p_changed = True
-#
-#     def update(self, other=None, **kwargs):
-#         self._data.update(other, **kwargs)
-#         self._data._p_changed = True
-#         self._p_changed = True
-#
-#     def itervalues(self):
-#         return self._data.itervalues()
-#
-#     def iteritems(self):
-#         return self._data.iteritems()
-#
-#     def iterkeys(self):
-#         return self._data.iterkeys()
-#
-#     def setdefault(self, key, default=None):
-#         if not key in self._data:
-#             self._data._p_changed = True
-#             self._p_changed = True
-#         return self._data.setdefault(key, default)
-#
-#     def values(self):
-#         return self._data.values()
-#
-#     def keys(self):
-#         return self._data.keys()
-#
-#     def items(self):
-#         return self._data.items()
-#
-#     def get(self, key, default=None):
-#         return self._data.get(key, default)
-#
-#     def pop(self, key, default=OrderedDict._OrderedDict__marker):
-#         self._data._p_changed = True
-#         self._p_changed = True
-#         return self._data.pop(key, default)
-#
-#     def popitem(self, last=True):
-#         self._data._p_changed = True
-#         self._p_changed = True
-#         return self._data.popitem(last)
 
 
 class IDDFile(PODict):
@@ -237,44 +85,6 @@ class IDDFile(PODict):
         units_file = 'units.dat'
         self._ureg = None #UnitRegistry(os.path.join(APP_ROOT, data_dir, units_file))
 
-        # # Continue only if a version is specified, else a blank IDD file
-        # if version:
-        #
-        #     # Create the full path to the idd file
-        #     idd_file_path = os.path.join(APP_ROOT, data_dir,
-        #                                  compiled_idd_file_name.format(version))
-        #     print(idd_file_path)
-        #     # Check if the file name is a file and then open the idd file
-        #     if os.path.isfile(idd_file_path):
-        #         storage = ZODB.FileStorage.FileStorage(idd_file_path)
-        #         db = ZODB.DB(storage)
-        #         connection = db.open()
-        #
-        #         with db.open() as connection:
-        #             root = connection.root
-        #
-        #             try:
-        #                 test = root.idd.version
-        #                 return root.idd
-        #             except AttributeError:
-        #                 raise IDDFileDoesNotExist("Can't find IDD file: {}".format(idd_file_path))
-
-                # f = shelve.open(idd_file_path)
-
-                # if f.get('idd', None):
-                #     return f
-                # else:
-                #     raise IDDFileDoesNotExist("Can't find IDD file: {}".format(idd_file_path))
-            #     # Set some more attributes with using the idd file
-            #     self._groups = f['groups']
-            #     self._conversions = f.get('conversions', None)
-            #     #self._class_tree = f['class_tree']  # To be implemented
-            #     self._OrderedDict__update(f['idd'])
-            #
-            #     f.close()
-            # else:
-            #     raise IDDFileDoesNotExist("Can't find IDD file: {}".format(idd_file_path))
-
         # Call the parent class' init method
         super(IDDFile, self).__init__(data, **kwargs)
 
@@ -288,15 +98,6 @@ class IDDFile(PODict):
     #
     #     super(IDDFile, self).__setitem__(key, value, dict_setitem)
 
-    # def _set_version(self, version):
-    #     """Method used to set the version of the IDD file. Can only
-    #     :param str version:
-    #     be set once for safety and sanity."""
-    #     if self._version_set is True:
-    #         raise VersionAlreadySet('Version can be set only once.')
-    #     else:
-    #         self._version = version
-    #         self._version_set = True
 
     @property
     def version(self):
@@ -464,21 +265,6 @@ class IDFFile(PODict):
         self.object_lists = PersistentDict()
         self._version = None
 
-        # # Load the idf file if specified, otherwise prepare a blank one
-        # if file_path:
-        #     from . import idfparse
-        #     print("IDFFile file_path: {}".format(file_path))
-        #     self.file_path = file_path
-        #     parser = idfparse.IDFParser(self)
-        #     for progress in parser.parse_idf():
-        #         # print(progress)
-        #         yield progress
-        # else:
-        #     default = '8.1'  # retrieve this from settings eventually
-        #     self._version = kwargs.pop('version', default)
-        #     self._idd = IDDFile(self._version)
-        # yield self
-
         # Call the parent class' init method
         super(IDFFile, self).__init__(data, **kwargs)
 
@@ -495,79 +281,6 @@ class IDFFile(PODict):
     #
     #     super(IDFFile, self).__setitem__(key, value, dict_setitem)
 
-    # def __getitem__(self, key):
-    #     """"""
-    #     # print(key)
-    #     # print(type(self))
-    #     # print(type(self._classes))
-    #     # print(self._classes.items())
-    #     # print(self.file_path)
-    #     # print(self._classes)
-    #     if key in self._classes:
-    #         return self._classes[key]
-    #     else:
-    #         return None
-
-    # def load_idd(self):
-    #     """Loads an idd file into the object instance variable.
-    #     Also sets some attributes of the file.
-    #     :rtype : bool
-    #     :param version:
-    #     :return: :raise IDDFileDoesNotExist:
-    #     """
-    #
-    #     idd_file_name = 'EnergyPlus_IDD_v{}.dat'.format(self.version)
-    #     data_dir = 'data'
-    #
-    #     # Create the full path to the idd file
-    #     idd_file_path = os.path.join(APP_ROOT, data_dir, idd_file_name)
-    #     print('checking for idd version: {}'.format(self.version))
-    #     print(idd_file_path)
-    #
-    #     # Check if the file name is a file and then open the idd file
-    #     if os.path.isfile(idd_file_path):
-    #         print('idd found, loading...')
-    #         # storage = ZODB.FileStorage.FileStorage(idd_file_path)
-    #         db = ZODB.DB(idd_file_path)
-    #         connection = db.open()
-    #         root = connection.root
-    #
-    #         try:
-    #             print('testing if loaded idd file has a version attribute')
-    #             test = root.idd.version
-    #             idd = root.idd
-    #             self._idd = idd
-    #             # db.close()
-    #             return True
-    #         except AttributeError:
-    #             print('no version attribute found!')
-    #             raise IDDFileDoesNotExist("Can't find IDD file: {}".format(idd_file_path))
-    #     else:
-    #         print('idd not found')
-    #         raise IDDFileDoesNotExist("Can't find IDD file: {}".format(idd_file_path))
-
-    # def load_idf(self, file_path):
-    #     """Parses and loads an idf file into the object instance variable.
-    #     Also sets some attributes of the file.
-    #     :param file_path:
-    #     """
-    #     from . import idfparse
-    #     print("IDFFile file_path: {}".format(file_path))
-    #     self.file_path = file_path
-    #     parser = idfparse.IDFParser(self)
-    #     for progress in parser.parse_idf():
-    #         # print(progress)
-    #         yield progress
-
-    # def _set_version(self, version):
-    #     """Method used to set the version of the IDF file. Can only
-    #     be set once for safety and sanity."""
-    #     if self._version_set is True:
-    #         raise VersionAlreadySet('Version can be set only once.')
-    #     else:
-    #         self._version = version
-    #         self._version_set = True
-
     @property
     def version(self):
         """Read-only property containing idf file version"""
@@ -582,36 +295,6 @@ class IDFFile(PODict):
         """Searches within the file for objects having 'contains'
         :param str contains:  (Default value = None)
         """
-        pass
-
-    def save(self, file_path):
-        """Handles writing of the idf file back to disk.
-        :param str file_path: The absolute file path to the corresponding idf
-        """
-#        exception = None
-#        fh = None
-#        try:
-#            if file_path.isEmpty():
-#                raise IOError, "no filename specified for saving"
-#            fh = QtCore.QFile(self.file_path)
-#            if not fh.open(QtCore.QIODevice.WriteOnly):
-#                raise IOError, unicode(fh.errorString())
-#            stream = QtCore.QDataStream(fh)
-#            stream.writeInt32(MAGIC_NUMBER)
-#            stream.writeInt16(FILE_VERSION)
-#            stream.setVersion(QtCore.QDataStream.Qt_4_1)
-#            for idfObject in self.idfObjects:
-#                stream << idfObject.name << idfObject.owner \
-#                       << idfObject.description
-#                stream.writeInt32(idfObject.teu)
-#            self.dirty = False
-#        except IOError, e:
-#            exception = e
-#        finally:
-#            if fh is not None:
-#                fh.close()
-#            if exception is not None:
-#                raise exception
         pass
 
 
@@ -657,18 +340,6 @@ class IDFObject(PersistentList):
         # Call the parent class' init method
         super(IDFObject, self).__init__(**kwargs)
 
-    # def __repr__(self):
-    #     """Returns a string representation of the object in idf format"""
-    #     values = [str(val) for val in self.value()]
-    #     str_list = ','.join(values)
-    #     return self._obj_class + ',' + str_list + ';'
-
-    # @property
-    # def idd(self):
-    #     """Read-only property containing idd file
-    #     :rtype : IDDFile"""
-    #     return self._idd
-
     @property
     def obj_class(self):
         """Read-only property containing idf object's class type
@@ -680,90 +351,6 @@ class IDFObject(PersistentList):
         """Read-only property containing idf object's group
         :rtype : str"""
         return self._group
-
-    @property
-    def incoming_links(self):
-        """Read-only property containing incoming links
-        :rtype : list"""
-        return self._incoming_links
-
-    @property
-    def outgoing_links(self):
-        """Read-only property containing outgoing links
-        :rtype : list
-        """
-        return self._outgoing_links
-
-    # @property
-    # def idf_file(self):
-    #     """Read-only property containing the outer class of this obj
-    #     :rtype : IDFFile"""
-    #     return self._idf_file
-
-#    def value(self, field):
-#        """Returns the value of the specified field.
-#
-#        :param field: Field id or key to be retrieved
-#        :raises TypeError: If field is not a string or an int
-#        """
-#
-#        # Check for proper types and return the value
-#        if isinstance(field, int):
-#            return self[self.keys()[field]]
-#        elif isinstance(field, str):
-#            return self[field]
-#        else:
-#            raise TypeError('Invalid key type - must be string or int')
-
-    def add_link(self, obj, field_id, incoming=False, outgoing=False):
-        """Ads a link to and/or from this object.
-
-        :param IDFObject obj: Another object of type IDFObject
-        :param str field_id: A field id like 'A1' or 'N1'
-        :param bool incoming:  (Default value = False)
-        :param bool outgoing:  (Default value = False)
-        :raises ValueError: If neither incoming nor outgoing is True
-        :raises TypeError: If either field_id or obj are not a valid types
-        """
-
-        # Checks for valid inputs
-        if not incoming and not outgoing:
-            raise ValueError('Must specify either incoming or outgoing.')
-        if not isinstance(obj, IDFObject) or not isinstance(field_id, str):
-            raise TypeError('Invalid object or field_id type.')
-
-        # Adds the specified objects to the list(s) of links
-        link = (obj, field_id)
-        if incoming and link not in self._incoming_links:
-            self._incoming_links.append((obj, field_id))
-        if outgoing and link not in self._outgoing_links:
-            self._outgoing_links.append((obj, field_id))
-        return True
-
-    def remove_link(self, obj, field_id, incoming=False, outgoing=False):
-        """Removes a link to and/or from this object.
-
-        :param IDFObject obj: Another object of type IDFObject
-        :param str field_id: A field id like 'A1' or 'N1'
-        :param bool incoming:  (Default value = False)
-        :param bool outgoing:  (Default value = False)
-        :raises ValueError: If neither incoming nor outgoing is True
-        :raises TypeError: If either field_id or obj are not a valid types
-        """
-
-        # Checks for valid inputs
-        if not incoming and not outgoing:
-            raise ValueError('Must specify either incoming or outgoing.')
-        if not isinstance(obj, IDFObject) or not isinstance(field_id, str):
-            raise TypeError('Invalid object or field_id type.')
-
-        # Removes the specified objects to the list(s) of links
-        link = (obj, field_id)
-        if incoming and link in self._incoming_links:
-            self._incoming_links.remove(link)
-        if outgoing and link in self._outgoing_links:
-            self._outgoing_links.remove(link)
-        return True
 
     def set_defaults(self, idd):
         """Populates the field with its defaults"""
