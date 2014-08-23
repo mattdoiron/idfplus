@@ -337,7 +337,10 @@ class ChoiceDelegate(QtGui.QItemDelegate):
 
     def setModelData(self, editor, model, index):
         # Create undo command and push it to the undo stack
-        cmd = commands.ModifyObjectCmd(self.main_window, value=editor.currentText())
+        cmd = commands.ModifyObjectCmd(self.main_window,
+                                       model=model,
+                                       index=index,
+                                       value=editor.currentText())
         self.main_window.undo_stack.push(cmd)
 
 

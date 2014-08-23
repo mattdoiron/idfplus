@@ -957,6 +957,9 @@ class IDFPlus(QtGui.QMainWindow):
         classTree.setColumnWidth(1, 10)
         classTree.header().resizeSection(0, 280)
         classTree.header().resizeSection(1, 10)
+        palette = classTree.palette()
+        palette.setColor(QtGui.QPalette.Highlight, QtCore.Qt.darkCyan)
+        classTree.setPalette(palette)
 
         # Comments widget
         commentDockWidget = QtGui.QDockWidget("Comments", self)

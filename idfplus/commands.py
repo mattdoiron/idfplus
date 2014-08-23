@@ -51,7 +51,9 @@ class ObjectCmd(QtGui.QUndoCommand):
         self.copied_objects = None
         self.from_clipboard = kwargs.get('from_clipboard', False)
         self.from_selection = kwargs.get('from_selection', False)
-        self.value = kwargs.get('value', False)
+        self.model = kwargs.get('model', None)
+        self.index = kwargs.get('index', QtCore.QModelIndex)
+        self.value = kwargs.get('value', None)
 
     def undo(self, *args, **kwargs):
         # Call the undo function
@@ -218,10 +220,11 @@ class ModifyObjectCmd(ObjectCmd):
         else:
             model = self.main_window.classTable.model()
 
-        model.setData(self.indexes[0], self.value, QtCore.Qt.EditRole)
+        model.setData(self.index, self.value, QtCore.Qt.EditRole)
 
         # Notify everyone that data has changed
-        model.dataChanged.emit(self.indexes[0], self.indexes[0])
+        # model.dataChanged.emit(self.indexes[0], self.indexes[0])
+        model.dataChanged.emit(self.index, self.index)
 
         # Now commit the transaction
         transaction.commit()
