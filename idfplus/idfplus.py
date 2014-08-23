@@ -823,7 +823,8 @@ class IDFPlus(QtGui.QMainWindow):
         table.setModel(sortable)
 
         # Create generic delegates for table cells
-        my_delegates = delegates.GenericDelegate(obj_class,
+        my_delegates = delegates.GenericDelegate(self,
+                                                 obj_class,
                                                  self.idd,
                                                  self.obj_orientation)
         table.setItemDelegate(my_delegates)

@@ -38,15 +38,14 @@ log = logger.setup_logging(c.LOG_LEVEL, __name__)
 
 class ObjectCmd(QtGui.QUndoCommand):
     """Base class to be inherited by all classes needing QUndoCommand features"""
-    #TODO: Move this an all commands to a module
 
-    def __init__(self, model, **kwargs):
-        super(ObjectCmd, self).__init__(**kwargs)
-        self.index = kwargs.get('index', False)
-        # self.indexes = parent.classTable.selectedIndexes()
-        self.indexes = model.selectedIndexes()
-        self.model = model
-        self.obj_orientation = self.parent.obj_orientation
+    def __init__(self, main_window, **kwargs):
+        super(ObjectCmd, self).__init__()
+        # self.index = kwargs.get('index', False)
+        self.indexes = main_window.classTable.selectedIndexes()
+        self.main_window = main_window
+        self.obj_class = main_window.current_obj_class
+        self.obj_orientation = main_window.obj_orientation
         self.tx_id = None
         self.mime_data = None
         self.copied_objects = None
@@ -56,18 +55,18 @@ class ObjectCmd(QtGui.QUndoCommand):
 
     def undo(self, *args, **kwargs):
         # Call the undo function
-        self.parent.db.db.undo(self.tx_id)
+        self.main_window.db.db.undo(self.tx_id)
         transaction.commit()
 
         # Let the table model know that something has changed. For now, the whole
         # table must be reloaded because undo could do any number of things, all which
         # need different update operations (like insert rows, remove columns, etc).
-        self.parent.load_table_view(self.parent.current_obj_class)
+        self.main_window.load_table_view(self.obj_class)
 
     def redo(self, *args, **kwargs):
         # At this point there was a transaction completed. Save it's id for later undos
         no_initial = lambda tx: True if tx['description'] not in ['initial database creation','Load file'] else False
-        undo_log = self.parent.db.db.undoLog(0, sys.maxint, no_initial)
+        undo_log = self.main_window.db.db.undoLog(0, sys.maxint, no_initial)
         self.tx_id = undo_log[0]['id']
 
 
@@ -81,13 +80,13 @@ class NewObjectCmd(ObjectCmd):
         new_objects = None
         if self.from_clipboard is True:
             if not self.copied_objects:
-                self.copied_objects = self.parent.obj_clipboard
+                self.copied_objects = self.main_window.obj_clipboard
             new_objects = self.copied_objects
         elif self.from_selection is True:
             if not self.copied_objects:
-                if not self.parent.copyObject():
+                if not self.main_window.copyObject():
                     return False
-                self.copied_objects = self.parent.obj_clipboard
+                self.copied_objects = self.main_window.obj_clipboard
             new_objects = self.copied_objects
 
 
@@ -96,7 +95,7 @@ class NewObjectCmd(ObjectCmd):
         if self.obj_orientation == QtCore.Qt.Vertical:
             index_set = set([index.column() for index in self.indexes])
             index_list = list(index_set)
-            model = self.parent.classTable.model().sourceModel()
+            model = self.main_window.classTable.model().sourceModel()
 
             # Define the position into which the objects will be inserted
             if len(self.indexes) <= 0:
@@ -111,7 +110,7 @@ class NewObjectCmd(ObjectCmd):
         else:
             index_set = set([index.row() for index in self.indexes])
             index_list = list(index_set)
-            model = self.parent.classTable.model()
+            model = self.main_window.classTable.model()
 
             # Define the position into which the objects will be inserted
             if len(self.indexes) <= 0:
@@ -131,6 +130,7 @@ class NewObjectCmd(ObjectCmd):
 class PasteSelectedCmd(ObjectCmd):
     #FIXME this one is broken...pastes wrong
     #won't paste outside of selection, regardless of size of copied text
+
     def redo(self, *args, **kwargs):
         """Pastes clipboard into cells starting at selected cell."""
         self.setText('Paste data')
@@ -145,7 +145,7 @@ class PasteSelectedCmd(ObjectCmd):
 
         # Get clipboard data if it's text, but only once (the first time)
         if not self.mime_data:
-            self.mime_data = self.parent.clipboard.mimeData()
+            self.mime_data = self.main_window.clipboard.mimeData()
         if self.mime_data.hasText():
             raw_text = self.mime_data.text()
         else:
@@ -153,9 +153,9 @@ class PasteSelectedCmd(ObjectCmd):
 
         # Iterate through text, splitting into rows
         if self.obj_orientation == QtCore.Qt.Vertical:
-            model = self.parent.classTable.model().sourceModel()
+            model = self.main_window.classTable.model().sourceModel()
         else:
-            model = self.parent.classTable.model()
+            model = self.main_window.classTable.model()
 
         rows = raw_text.split('\n')
         for i, row in enumerate(rows[:-1]):
@@ -194,11 +194,11 @@ class DeleteObjectCmd(ObjectCmd):
         count = len(list(index_set))
 
         if self.obj_orientation == QtCore.Qt.Vertical:
-            model = self.parent.classTable.model().sourceModel()
+            model = self.main_window.classTable.model().sourceModel()
             position = self.indexes[0].column()
             model.removeColumns(position, count)
         else:
-            model = self.parent.classTable.model()
+            model = self.main_window.classTable.model()
             position = self.indexes[0].row()
             model.removeRows(position, count)
 
@@ -214,14 +214,16 @@ class ModifyObjectCmd(ObjectCmd):
         self.setText('Modify object')
 
         if self.obj_orientation == QtCore.Qt.Vertical:
-            model = self.model.sourceModel()
+            model = self.main_window.classTable.model().sourceModel()
         else:
-            model = self.model
+            model = self.main_window.classTable.model()
 
-        model.setData(self.index, self.value, QtCore.Qt.EditRole)
+        model.setData(self.indexes[0], self.value, QtCore.Qt.EditRole)
+
+        # Notify everyone that data has changed
+        model.dataChanged.emit(self.indexes[0], self.indexes[0])
 
         # Now commit the transaction
-        self.model.dataChanged.emit(self.index, self.index)
         transaction.commit()
 
         super(ModifyObjectCmd, self).redo(*args, **kwargs)

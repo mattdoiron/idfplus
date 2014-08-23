@@ -37,11 +37,13 @@ log = logger.setup_logging(c.LOG_LEVEL, __name__)
 class GenericDelegate(QtGui.QItemDelegate):
     """Template delegate for the table view."""
 
-    def __init__(self, obj_class, idd, obj_orientation, parent=None):
-        super(GenericDelegate, self).__init__(parent)
+    def __init__(self, main_window, obj_class, idd, obj_orientation):
+        super(GenericDelegate, self).__init__(main_window.classTable)
         self.obj_class = obj_class
         self.idd = idd
         self.delegates = {}
+        self.main_window = main_window
+        self.parent = main_window.classTable
         self.obj_orientation = obj_orientation
         self.assignDelegates(idd[obj_class])
 
@@ -135,7 +137,7 @@ class GenericDelegate(QtGui.QItemDelegate):
 
             # If there are choices then use the choiceDelegate
             if tag_count > 0:
-                self.insertDelegate(i, ChoiceDelegate(field, data_type=field_type))
+                self.insertDelegate(i, ChoiceDelegate(field, self.main_window))
             else:
                 # Otherwise check the type field
                 min = field.tags.get('minimum', 0)
@@ -143,29 +145,32 @@ class GenericDelegate(QtGui.QItemDelegate):
                 min_inc = field.tags.get('minimum>', min)
                 max_inc = field.tags.get('maximum<', max)
                 if field_type == 'integer':
-                    self.insertDelegate(i, IntegerDelegate(field, min_inc, max_inc))
+                    self.insertDelegate(i, IntegerDelegate(field, self.main_window,
+                                                           min_inc, max_inc))
                 elif field_type == 'real':
-                    self.insertDelegate(i, RealDelegate(field, min_inc, max_inc))
+                    self.insertDelegate(i, RealDelegate(field, self.main_window,
+                                                        min_inc, max_inc))
                 elif field_type == 'alpha':
-                    self.insertDelegate(i, AlphaDelegate(field))
+                    self.insertDelegate(i, AlphaDelegate(field, self.main_window))
                 else:
                     # The type field is not always present so check fieldname
                     idd_field = idd_obj[i - 1]
                     if idd_field.key.startswith('A'):
-                        self.insertDelegate(i, AlphaDelegate(field))
+                        self.insertDelegate(i, AlphaDelegate(field, self.main_window))
                     elif idd_field.key.startswith('N'):
-                        self.insertDelegate(i, RealDelegate(field, min_inc, max_inc))
+                        self.insertDelegate(i, RealDelegate(field, self.main_window,
+                                                            min_inc, max_inc))
                     else:
-                        self.insertDelegate(i, AlphaDelegate(field))
+                        self.insertDelegate(i, AlphaDelegate(field, self.main_window))
 
 
 class IntegerDelegate(QtGui.QItemDelegate):
 
-    def __init__(self, idd_obj, minimum=0, maximum=100, parent=None):
-        super(IntegerDelegate, self).__init__(parent)
+    def __init__(self, field, main_window, minimum=0, maximum=100):
+        super(IntegerDelegate, self).__init__()
+        self.main_window = main_window
         self.minimum = minimum
         self.maximum = maximum
-        self.idd_obj = idd_obj
         # use idd object to define min, max, etc
 
     def createEditor(self, parent, option, index):
@@ -180,19 +185,21 @@ class IntegerDelegate(QtGui.QItemDelegate):
         editor.setValue(value)
 
     def setModelData(self, editor, model, index):
+        # Create undo command and push it to the undo stack
         editor.interpretText()
-        model.setData(index, editor.value(), QtCore.Qt.EditRole)
+        cmd = commands.ModifyObjectCmd(self.main_window, value=editor.value())
+        self.main_window.undo_stack.push(cmd)
 
 
 class RealDelegate(QtGui.QItemDelegate):
 
-    def __init__(self, idd_obj, minimum=0, maximum=100, default=0, decimals=10, parent=None):
-        super(RealDelegate, self).__init__(parent)
+    def __init__(self, field, main_window, minimum=0, maximum=100, default=0, decimals=10):
+        super(RealDelegate, self).__init__()
+        self.main_window = main_window
         self.minimum = minimum
         self.maximum = maximum
         self.decimals = decimals
         self.default = default
-        self.idd_obj = idd_obj
         # use idd object to define min, max, etc
 
     def createEditor(self, parent, option, index):
@@ -209,13 +216,16 @@ class RealDelegate(QtGui.QItemDelegate):
         editor.setText(value)
 
     def setModelData(self, editor, model, index):
-        model.setData(index, editor.text(), QtCore.Qt.EditRole)
+        # Create undo command and push it to the undo stack
+        cmd = commands.ModifyObjectCmd(self.main_window, value=editor.text())
+        self.main_window.undo_stack.push(cmd)
 
 
 class AlphaDelegate(QtGui.QItemDelegate):
 
-    def __init__(self, idd_obj, parent=None):
-        super(AlphaDelegate, self).__init__(parent)
+    def __init__(self, field, main_window):
+        super(AlphaDelegate, self).__init__()
+        self.main_window = main_window
 
     def createEditor(self, parent, option, index):
         lineedit = QtGui.QLineEdit(parent)
@@ -228,7 +238,9 @@ class AlphaDelegate(QtGui.QItemDelegate):
         editor.setText(value)
 
     def setModelData(self, editor, model, index):
-        model.setData(index, editor.text(), QtCore.Qt.EditRole)
+        # Create undo command and push it to the undo stack
+        cmd = commands.ModifyObjectCmd(self.main_window, value=editor.text())
+        self.main_window.undo_stack.push(cmd)
 
     # def sizeHint(self, option, index):
     #     fm = option.fontMetrics
@@ -243,12 +255,11 @@ class AlphaDelegate(QtGui.QItemDelegate):
 
 class ChoiceDelegate(QtGui.QItemDelegate):
 
-    def __init__(self, field, parent=None, data_type=None):
-        super(ChoiceDelegate, self).__init__(parent)
-
+    def __init__(self, field, main_window):
+        super(ChoiceDelegate, self).__init__()
         self.field = field
         self.model = QtGui.QStandardItemModel()
-        self.parent = parent
+        self.main_window = main_window
         self.comboFields = ['minimum>',
                             'minimum',
                             'maximum<',
@@ -258,15 +269,15 @@ class ChoiceDelegate(QtGui.QItemDelegate):
                             'autocalculatable',
                             'key']
 
-    def imActivated(self, index):
+    # def imActivated(self, index):
 #        self.combo.showPopup()
 #        print 'i was activated'
-        pass
+#         pass
 
     def createEditor(self, parent, option, index):
         self.comboBox = QtGui.QComboBox(parent)
         self.comboBox.setEditable(True)
-        self.comboBox.editTextChanged.connect(self.imActivated)
+        # self.comboBox.editTextChanged.connect(self.imActivated)
         self.comboBox.setStyleSheet("QComboBox { border: 0px; }")
         self.comboBox.setFrame(False)
 
@@ -325,12 +336,9 @@ class ChoiceDelegate(QtGui.QItemDelegate):
             editor.setCurrentIndex(comboIndex)
 
     def setModelData(self, editor, model, index):
-
         # Create undo command and push it to the undo stack
-        cmd = commands.ModifyObjectCmd(model,
-                                       index=index,
-                                       value=editor.currentText())
-        self.undo_stack.push(cmd)
+        cmd = commands.ModifyObjectCmd(self.main_window, value=editor.currentText())
+        self.main_window.undo_stack.push(cmd)
 
 
 #class DateDelegate(QtGui.QItemDelegate):
