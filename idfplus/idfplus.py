@@ -22,13 +22,11 @@ from __future__ import (print_function, division, absolute_import)
 
 # System imports
 import os
-import sys
 import platform
 from BTrees.OOBTree import OOBTree
 from ZODB import FileStorage
 from ZODB import DB
 from collections import deque
-# import transaction
 import tempfile
 import appdirs
 import networkx as nx
@@ -53,7 +51,6 @@ from . import misc_icons_qr  # Used for icons (in text format)
 
 # Global variables
 __version__ = '0.0.1'
-MAX_OBJ_HISTORY = 100
 log = logger.setup_logging(c.LOG_LEVEL, __name__)
 
 class IDFPlus(QtGui.QMainWindow):
@@ -906,7 +903,7 @@ class IDFPlus(QtGui.QMainWindow):
         self.undo_stack.setUndoLimit(100)
 
         # Object navigation history
-        self.obj_history = deque([], MAX_OBJ_HISTORY)
+        self.obj_history = deque([], c.MAX_OBJ_HISTORY)
 
         # Object class table widget
         classTable = TableView(self)

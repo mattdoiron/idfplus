@@ -41,7 +41,6 @@ class ObjectCmd(QtGui.QUndoCommand):
 
     def __init__(self, main_window, **kwargs):
         super(ObjectCmd, self).__init__()
-        # self.index = kwargs.get('index', False)
         self.indexes = main_window.classTable.selectedIndexes()
         self.main_window = main_window
         self.obj_class = main_window.current_obj_class
@@ -51,8 +50,6 @@ class ObjectCmd(QtGui.QUndoCommand):
         self.copied_objects = None
         self.from_clipboard = kwargs.get('from_clipboard', False)
         self.from_selection = kwargs.get('from_selection', False)
-        self.model = kwargs.get('model', None)
-        self.index = kwargs.get('index', QtCore.QModelIndex())
         self.value = kwargs.get('value', None)
 
     def undo(self, *args, **kwargs):

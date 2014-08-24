@@ -25,7 +25,6 @@ from PySide import QtGui
 from PySide import QtCore
 
 # Package imports
-import transaction
 from . import commands
 from . import idfsettings as c
 from . import logger
@@ -269,15 +268,9 @@ class ChoiceDelegate(QtGui.QItemDelegate):
                             'autocalculatable',
                             'key']
 
-    # def imActivated(self, index):
-#        self.combo.showPopup()
-#        print 'i was activated'
-#         pass
-
     def createEditor(self, parent, option, index):
         self.comboBox = QtGui.QComboBox(parent)
         self.comboBox.setEditable(True)
-        # self.comboBox.editTextChanged.connect(self.imActivated)
         self.comboBox.setStyleSheet("QComboBox { border: 0px; }")
         self.comboBox.setFrame(False)
 
@@ -338,8 +331,6 @@ class ChoiceDelegate(QtGui.QItemDelegate):
     def setModelData(self, editor, model, index):
         # Create undo command and push it to the undo stack
         cmd = commands.ModifyObjectCmd(self.main_window,
-                                       model=model,
-                                       index=index,
                                        value=editor.currentText())
         self.main_window.undo_stack.push(cmd)
 

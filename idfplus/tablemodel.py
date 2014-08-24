@@ -21,7 +21,6 @@ along with IDFPlus. If not, see <http://www.gnu.org/licenses/>.
 from __future__ import (print_function, division, absolute_import)
 
 # System imports
-import transaction
 from persistent.list import PersistentList
 
 # PySide imports
@@ -143,11 +142,8 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
                 self.idf_objects[row][column] = new_field
 
             # Note: We do NOT commit the transaction here. This allows multiple fields
-            # to be edited within a single transaction.
-            # transaction.get().note('Modify field')
-            # transaction.commit()
-
-            # self.dataChanged.emit(index, index)
+            # to be edited within a single transaction. The transaction is committed
+            # by the function calling setData.
             return True
         return False
 
@@ -156,8 +152,8 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
         super(IDFObjectTableModel, self).submit(*args, **kwargs)
 
     def sourceModel(self):
-        """Ensures that sourceModel is always available as a method even when
-        there is no transpose proxy layer."""
+        """Ensures that the sourceModel method is always available as a method even
+        when there is no proxy layer."""
         return self
 
     def removeObjects(self, index, count):
@@ -238,8 +234,6 @@ class TransposeProxyModel(QtGui.QAbstractProxyModel):
         self.sourceModel().rowsInserted.connect(self.columnsInserted.emit)
         self.sourceModel().rowsAboutToBeRemoved.connect(self.columnsAboutToBeRemoved.emit)
         self.sourceModel().rowsRemoved.connect(self.columnsRemoved.emit)
-        # self.sourceModel().dataChanged.connect(self.dataChanged)
-        # self.sourceModel().sort.connect(self.sort)
 
     def mapFromSource(self, sourceIndex):
         if not sourceIndex.isValid():
@@ -277,12 +271,6 @@ class TransposeProxyModel(QtGui.QAbstractProxyModel):
             new_orientation = QtCore.Qt.Horizontal
         return self.sourceModel().headerData(section, new_orientation, role, orientation)
 
-    def insertRows(self, position, objects):
-        return self.sourceModel().insertRows(position, objects)
-
-    def insertColumns(self, position, objects):
-        return self.sourceModel().insertColumns(position, objects)
-
     def insertObjects(self, index, objects):
         return self.sourceModel().insertObjects(self.mapToSource(index), objects)
 
@@ -296,9 +284,6 @@ class TransposeProxyModel(QtGui.QAbstractProxyModel):
 class SortFilterProxyModel(QtGui.QSortFilterProxyModel):
     """Proxy layer to sort and filter"""
 
-    #TODO should I swap order in which sort and transpose are layered?
-    # tried but wouldn't work? Things don't flow between the layers properly?
-
     def __init__(self, obj_orientation, *args, **kwargs):
         super(SortFilterProxyModel, self).__init__(*args, **kwargs)
 
@@ -308,12 +293,6 @@ class SortFilterProxyModel(QtGui.QSortFilterProxyModel):
 
         self.setFilterRegExp(QtCore.QRegExp('', caseSensitivity, syntax))
         self.setFilterCaseSensitivity(caseSensitivity)
-
-    def insertRows(self, position, objects):
-        return self.sourceModel().insertRows(position, objects)
-
-    def insertColumns(self, position, objects):
-        return self.sourceModel().insertColumns(position, objects)
 
     def filterAcceptsColumn(self, col, parent):
 
