@@ -52,7 +52,7 @@ class ObjectCmd(QtGui.QUndoCommand):
         self.from_clipboard = kwargs.get('from_clipboard', False)
         self.from_selection = kwargs.get('from_selection', False)
         self.model = kwargs.get('model', None)
-        self.index = kwargs.get('index', QtCore.QModelIndex)
+        self.index = kwargs.get('index', QtCore.QModelIndex())
         self.value = kwargs.get('value', None)
 
     def undo(self, *args, **kwargs):
@@ -73,7 +73,6 @@ class ObjectCmd(QtGui.QUndoCommand):
 
 
 class NewObjectCmd(ObjectCmd):
-    #TODO: Change from insertColumns/Rows to insertObject in IDFFile class?
 
     def redo(self, from_clipboard=False, *args, **kwargs):
         self.setText('Create object')
@@ -91,37 +90,15 @@ class NewObjectCmd(ObjectCmd):
                 self.copied_objects = self.main_window.obj_clipboard
             new_objects = self.copied_objects
 
-
-        # Detect orientation, then make a set to find unique columns/rows
-        #TODO: Shouldn't need to detect orientation this way. Proxy model should do that.
-        if self.obj_orientation == QtCore.Qt.Vertical:
-            index_set = set([index.column() for index in self.indexes])
-            index_list = list(index_set)
-            model = self.main_window.classTable.model().sourceModel()
-
-            # Define the position into which the objects will be inserted
-            if len(self.indexes) <= 0:
-                # No selection, so add to end of object list
-                position = model.columnCount(QtCore.QModelIndex())
-            else:
-                # Selection made so insert at end of selection
-                position = index_list[-1] + 1
-
-            # Call the model's insertColumns method
-            model.insertColumns(position, new_objects)
+        # Define the index at which the objects will be inserted
+        if len(self.indexes) <= 0:
+            index = QtCore.QModelIndex()
         else:
-            index_set = set([index.row() for index in self.indexes])
-            index_list = list(index_set)
-            model = self.main_window.classTable.model()
+            index = self.indexes[0]
 
-            # Define the position into which the objects will be inserted
-            if len(self.indexes) <= 0:
-                position = model.rowCount(QtCore.QModelIndex())
-            else:
-                position = index_list[-1] + 1
-
-            # Call the model's insertColumns method
-            model.insertRows(position, new_objects)
+        # Get the table's model and call its insert method
+        model = self.main_window.classTable.model().sourceModel()
+        model.insertObjects(index, new_objects)
 
         # Now commit the transaction
         transaction.commit()
@@ -130,8 +107,6 @@ class NewObjectCmd(ObjectCmd):
 
 
 class PasteSelectedCmd(ObjectCmd):
-    #FIXME this one is broken...pastes wrong
-    #won't paste outside of selection, regardless of size of copied text
 
     def redo(self, *args, **kwargs):
         """Pastes clipboard into cells starting at selected cell."""
@@ -154,21 +129,17 @@ class PasteSelectedCmd(ObjectCmd):
             return False
 
         # Iterate through text, splitting into rows
-        if self.obj_orientation == QtCore.Qt.Vertical:
-            model = self.main_window.classTable.model().sourceModel()
-        else:
-            model = self.main_window.classTable.model()
-
+        model = self.main_window.classTable.model().sourceModel()
         rows = raw_text.split('\n')
         for i, row in enumerate(rows[:-1]):
-            cols = row.split('\t')
-            for j, col in enumerate(cols):
+            values = row.split('\t')
+            for j, value in enumerate(values):
 
-                # Save cols and rows to data model
+                # Save value and rows to data model
                 index = model.index(start_row + i,
                                     start_col + j,
                                     QtCore.QModelIndex())
-                model.setData(index, col, QtCore.Qt.EditRole)
+                model.setData(index, value, QtCore.Qt.EditRole)
 
         # Notify everyone that data has changed
         model.dataChanged.emit(self.indexes[0], index)
@@ -179,7 +150,6 @@ class PasteSelectedCmd(ObjectCmd):
         super(PasteSelectedCmd, self).redo(*args, **kwargs)
 
 class DeleteObjectCmd(ObjectCmd):
-    #TODO change from removeColumns/Rows to removeObject in IDFFile class?
 
     def redo(self, *args, **kwargs):
         self.setText('Delete object')
@@ -195,14 +165,9 @@ class DeleteObjectCmd(ObjectCmd):
             index_set = set([index.row() for index in self.indexes])
         count = len(list(index_set))
 
-        if self.obj_orientation == QtCore.Qt.Vertical:
-            model = self.main_window.classTable.model().sourceModel()
-            position = self.indexes[0].column()
-            model.removeColumns(position, count)
-        else:
-            model = self.main_window.classTable.model()
-            position = self.indexes[0].row()
-            model.removeRows(position, count)
+        # Get the table's model and call its remove method
+        model = self.main_window.classTable.model().sourceModel()
+        model.removeObjects(self.indexes[0], count)
 
         # Now commit the transaction
         transaction.commit()
@@ -215,16 +180,12 @@ class ModifyObjectCmd(ObjectCmd):
     def redo(self, *args, **kwargs):
         self.setText('Modify object')
 
-        if self.obj_orientation == QtCore.Qt.Vertical:
-            model = self.main_window.classTable.model().sourceModel()
-        else:
-            model = self.main_window.classTable.model()
-
-        model.setData(self.index, self.value, QtCore.Qt.EditRole)
+        # Get the table's model and call it's setData method
+        model = self.main_window.classTable.model().sourceModel()
+        model.setData(self.indexes[0], self.value, QtCore.Qt.EditRole)
 
         # Notify everyone that data has changed
-        # model.dataChanged.emit(self.indexes[0], self.indexes[0])
-        model.dataChanged.emit(self.index, self.index)
+        model.dataChanged.emit(self.indexes[0], self.indexes[0])
 
         # Now commit the transaction
         transaction.commit()

@@ -155,7 +155,37 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
         print('item committed')
         super(IDFObjectTableModel, self).submit(*args, **kwargs)
 
-    def insertRows(self, position, objects=None):
+    def sourceModel(self):
+        """Ensures that sourceModel is always available as a method even when
+        there is no transpose proxy layer."""
+        return self
+
+    def removeObjects(self, index, count):
+
+        # Set the position for the removal
+        position = index.row()
+
+        # Warn the model that we're about to remove rows
+        self.beginRemoveRows(QtCore.QModelIndex(),
+                             position,
+                             position - 1 + count)
+
+        # Delete the range
+        del self.idf_objects[position:position + count]
+
+        # Update state
+        self.getLabels()
+        self.dataChanged.emit(QtCore.QModelIndex(), QtCore.QModelIndex())
+        self.endRemoveRows()
+        return True
+
+    def insertObjects(self, index, objects=None):
+
+        # Set the position for the insertion
+        if index.row() == -1:
+            position = len(self.idf_objects)
+        else:
+            position = index.row() + 1
 
         # If there are no objects to add, make new blank ones
         if objects is None:
@@ -167,6 +197,7 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
             obj_to_insert = objects
             count = len(objects)
 
+        # Warn the model that we're about to add rows
         self.beginInsertRows(QtCore.QModelIndex(),
                              position,
                              position - 1 + count)
@@ -178,69 +209,6 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
         self.getLabels()
         self.dataChanged.emit(QtCore.QModelIndex(), QtCore.QModelIndex())
         self.endInsertRows()
-        return True
-
-    def removeRows(self, position, rows=None, index=QtCore.QModelIndex()):
-        if rows is None:
-            rows = 1
-
-        self.beginRemoveRows(QtCore.QModelIndex(),
-                             position,
-                             position - 1 + rows)
-        start = position
-        end = position + rows
-
-        del self.idf_objects[start:end]
-
-        # Update state
-        self.getLabels()
-        self.dataChanged.emit(QtCore.QModelIndex(), QtCore.QModelIndex())
-        self.endRemoveRows()
-        return True
-
-    def insertColumns(self, position, objects=None):
-
-        # If there are no objects to add, make new blank ones
-        if objects is None:
-            new_obj = IDFObject(self.idf, obj_class=self.obj_class)
-            new_obj.set_defaults(self.idd)
-            obj_to_insert = [new_obj]
-            count = 1
-        else:
-            obj_to_insert = objects
-            count = len(objects)
-
-        self.beginInsertColumns(QtCore.QModelIndex(),
-                                position,
-                                position - 1 + count)
-
-        # Insert the new object(s)
-        self.idf_objects[position:position] = obj_to_insert
-
-        # Update state
-        self.getLabels()
-        self.dataChanged.emit(QtCore.QModelIndex(), QtCore.QModelIndex())
-        self.endInsertColumns()
-        return True
-
-    def removeColumns(self, position, cols=None, index=QtCore.QModelIndex()):
-        #TODO is this EXACTLY the same as removeRows? Merge them? Make a removeObjects?
-        if cols is None:
-            cols = 1
-
-        self.beginRemoveColumns(QtCore.QModelIndex(),
-                                position,
-                                position - 1 + cols)
-        start = position
-        end = position + cols
-
-        # self.idf_objects[start:end] = []
-        del self.idf_objects[start:end]
-
-        # Update state
-        self.getLabels()
-        self.dataChanged.emit(QtCore.QModelIndex(), QtCore.QModelIndex())
-        self.endRemoveColumns()
         return True
 
     def getLabels(self):
@@ -258,21 +226,18 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
 class TransposeProxyModel(QtGui.QAbstractProxyModel):
     """Translates columns to rows or vice versa"""
 
-    # def __init__(self, parent=None):
-    #     super(TransposeProxyModel, self).__init__(parent)
-    #     # self.source_model = source_model
-    #     # self.setSourceModel(source_model)
-
     def setSourceModel(self, source):
         super(TransposeProxyModel, self).setSourceModel(source)
 
-        # Connect signals
-        self.sourceModel().columnsAboutToBeInserted.connect(self.columnsAboutToBeInserted.emit)
-        self.sourceModel().columnsInserted.connect(self.columnsInserted.emit)
-        self.sourceModel().columnsAboutToBeRemoved.connect(self.columnsAboutToBeRemoved.emit)
-        self.sourceModel().columnsRemoved.connect(self.columnsRemoved.emit)
-        # self.sourceModel().rowsInserted.connect(self._rowsInserted)
-        # self.sourceModel().rowsRemoved.connect(self._rowsRemoved)
+        # Connect signals in a transposed way as well
+        self.sourceModel().columnsAboutToBeInserted.connect(self.rowsAboutToBeInserted.emit)
+        self.sourceModel().columnsInserted.connect(self.rowsInserted.emit)
+        self.sourceModel().columnsAboutToBeRemoved.connect(self.rowsAboutToBeRemoved.emit)
+        self.sourceModel().columnsRemoved.connect(self.rowsRemoved.emit)
+        self.sourceModel().rowsAboutToBeInserted.connect(self.columnsAboutToBeInserted.emit)
+        self.sourceModel().rowsInserted.connect(self.columnsInserted.emit)
+        self.sourceModel().rowsAboutToBeRemoved.connect(self.columnsAboutToBeRemoved.emit)
+        self.sourceModel().rowsRemoved.connect(self.columnsRemoved.emit)
         # self.sourceModel().dataChanged.connect(self.dataChanged)
         # self.sourceModel().sort.connect(self.sort)
 
@@ -318,11 +283,14 @@ class TransposeProxyModel(QtGui.QAbstractProxyModel):
     def insertColumns(self, position, objects):
         return self.sourceModel().insertColumns(position, objects)
 
-    def removeRows(self, position, rows):
-        return self.sourceModel().removeRows(position, rows)
+    def insertObjects(self, index, objects):
+        return self.sourceModel().insertObjects(self.mapToSource(index), objects)
 
-    def removeColumns(self, position, cols):
-        return self.sourceModel().removeColumns(position, cols)
+    def removeObjects(self, index, count):
+        return self.sourceModel().removeObjects(self.mapToSource(index), count)
+
+    def setData(self, index, value, role):
+        return self.sourceModel().setData(self.mapToSource(index), value, role)
 
 
 class SortFilterProxyModel(QtGui.QSortFilterProxyModel):
@@ -459,42 +427,3 @@ class IDFClassTableModel(QtCore.QAbstractTableModel):
 
     def columnCount(self, index):
         return len(self.idd_object)
-
-    def setData(self, index, value, role):
-        if not index.isValid():
-            return False
-        if role == QtCore.Qt.EditRole:
-            row = index.row()
-            column = index.column()
-
-            # Try to assign the value
-            try:
-                self.idf_objects[row][column].value = value
-            except (AttributeError, IndexError):
-                # An invalid index could mean that we're trying to assign a value
-                # to a field that has not yet been 'allocated'. Check for max
-                # allowable fields
-                max_field_count = len(self.idd.get(self.obj_class, []))
-                current_field_count = len(self.idf_objects[row])
-
-                # If within limits allowed, allocate additional field 'slots'
-                if index.column() < max_field_count:
-                    extra_field_count = index.column() - current_field_count + 1
-                    extra_fields = extra_field_count*[None]
-                    self.idf_objects[row].extend(extra_fields)
-                else:
-                    return False
-
-                # Create a new field object, give it a value and save it
-                new_field = IDFField(self.idf_objects[row])
-                new_field.value = value
-                self.idf_objects[row][column] = new_field
-
-            # Note: We do NOT commit the transaction here. This allows multiple fields
-            # to be edited within a single transaction.
-            # transaction.get().note('Modify field')
-            # transaction.commit()
-
-            # self.dataChanged.emit(index, index)
-            return True
-        return False
