@@ -1,0 +1,21 @@
+<!DOCTYPE RCC>
+<RCC version="1.0">
+    <qresource>
+        <file>images/eplus.png</file>
+        <file>images/eplus_sm.png</file>
+        <file>images/new1.png</file>
+        <file>images/new2.png</file>
+        <file>images/open.png</file>
+        <file>images/save.png</file>
+        <file>images/saveas.png</file>
+        <file>images/quit.png</file>
+        <file>images/cut.png</file>
+        <file>images/copy.png</file>
+        <file>images/paste.png</file>
+        <file>images/undo.png</file>
+        <file>images/redo.png</file>
+        <file>images/delete.png</file>
+    </qresource>
+</RCC>
+
+

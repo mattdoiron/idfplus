@@ -45,9 +45,8 @@ from . import logger
 from . import commands
 from . import treemodel
 
-# Resource imports
-from . import icons_qr  # Used for icons (in text format)
-from . import misc_icons_qr  # Used for icons (in text format)
+# Resource imports for icons
+from . import icons_rc
 
 # Global variables
 __version__ = '0.0.1'
@@ -300,28 +299,32 @@ class IDFPlus(QtGui.QMainWindow):
     def create_actions(self):
         """Creates appropriate actions for use in menus and toolbars."""
 
-        self.newAct = QtGui.QAction(QtGui.QIcon(':/images/new.png'), "&New",
-                self, shortcut=QtGui.QKeySequence.New,
-                statusTip="Create a new file", triggered=self.new_file)
+        self.newAct = QtGui.QAction(QtGui.QIcon(':/images/new1.png'),
+                "&New", self, shortcut=QtGui.QKeySequence.New,
+                statusTip="Create a new file",
+                triggered=self.new_file)
 
         self.openAct = QtGui.QAction(QtGui.QIcon(':/images/open.png'),
                 "&Open...", self, shortcut=QtGui.QKeySequence.Open,
-                statusTip="Open an existing file", triggered=self.open_file)
+                statusTip="Open an existing file",
+                triggered=self.open_file)
 
         self.saveAct = QtGui.QAction(QtGui.QIcon(':/images/save.png'),
                 "&Save", self, shortcut=QtGui.QKeySequence.Save,
-                statusTip="Save the document to disk", triggered=self.save)
+                statusTip="Save the document to disk",
+                triggered=self.save)
 
-        self.saveAsAct = QtGui.QAction("Save &As...", self,
-                shortcut=QtGui.QKeySequence.SaveAs,
+        self.saveAsAct = QtGui.QAction(QtGui.QIcon(':/images/saveas.png'),
+                "Save &As...", self, shortcut=QtGui.QKeySequence.SaveAs,
                 statusTip="Save the document under a new name",
                 triggered=self.save_as)
 
-        self.exitAct = QtGui.QAction("E&xit", self, shortcut="Ctrl+Q",
+        self.exitAct = QtGui.QAction(QtGui.QIcon(':/images/quit.png'),
+                "E&xit", self, shortcut="Ctrl+Q",
                 statusTip="Exit the application", triggered=self.close)
 
-        self.cutAct = QtGui.QAction(QtGui.QIcon(':/images/cut.png'), "Cu&t",
-                self, shortcut=QtGui.QKeySequence.Cut,
+        self.cutAct = QtGui.QAction(QtGui.QIcon(':/images/cut.png'),
+                "Cu&t", self, shortcut=QtGui.QKeySequence.Cut,
                 statusTip="Cut the current selection's contents to the clipboard",
                 triggered=self.cutObject)
 
@@ -334,6 +337,46 @@ class IDFPlus(QtGui.QMainWindow):
                 "&Paste", self, shortcut=QtGui.QKeySequence('Ctrl+Shift+v'),
                 statusTip="Paste the clipboard's contents into the current selection",
                 triggered=self.pasteSelected)
+
+        self.transposeAct = QtGui.QAction("Transpose", self,
+                shortcut=QtGui.QKeySequence('Ctrl+t'),
+                statusTip="Transpose rows and columns in object display.",
+                triggered=self.transpose_table)
+
+        self.newObjAct = QtGui.QAction(QtGui.QIcon(':/images/new2.png'),
+                "New Obj", self, shortcut=QtGui.QKeySequence('Ctrl+Shift+n'),
+                statusTip="Create a new object in the current class.",
+                triggered=self.newObject)
+
+        self.copyObjAct = QtGui.QAction(QtGui.QIcon(':/images/copy.png'),
+                "Copy Obj", self, shortcut=QtGui.QKeySequence.Copy,
+                statusTip="Copy the current Object(s).",
+                triggered=self.copyObject)
+
+        self.pasteObjAct = QtGui.QAction(QtGui.QIcon(':/images/paste.png'),
+                "Paste Obj", self, shortcut=QtGui.QKeySequence.Paste,
+                statusTip="Paste the currently copies Object(s).",
+                triggered=self.pasteObject)
+
+        self.dupObjAct = QtGui.QAction(QtGui.QIcon(':/images/copy.png'),
+                "Dup Obj", self, shortcut=QtGui.QKeySequence('Ctrl+d'),
+                statusTip="Duplicate the current Object(s).",
+                triggered=self.duplicateObject)
+
+        self.delObjAct = QtGui.QAction(QtGui.QIcon(':/images/delete.png'),
+                "Del Obj", self, shortcut=QtGui.QKeySequence('Del'),
+                statusTip="Delete the current Object(s).",
+                triggered=self.deleteObject)
+
+        self.navForwardAct = QtGui.QAction("Forward", self,
+                shortcut=QtGui.QKeySequence('Ctrl+Plus'),
+                statusTip="Go forward to the next object.",
+                triggered=self.navForward)
+
+        self.navBackAct = QtGui.QAction("Back", self,
+                shortcut=QtGui.QKeySequence('Ctrl+Minus'),
+                statusTip="Go back to the previous object.",
+                triggered=self.navBack)
 
         self.aboutAct = QtGui.QAction("&About", self,
                 statusTip="Show the application's About box",
@@ -348,65 +391,15 @@ class IDFPlus(QtGui.QMainWindow):
         self.restoreAction = QtGui.QAction("&Restore", self,
                 triggered=self.showNormal)
 
-        self.transposeAct = QtGui.QAction("Transpose", self,
-                shortcut=QtGui.QKeySequence('Ctrl+t'),
-                statusTip="Transpose rows and columns in object display.",
-                triggered=self.transpose_table)
-
-        self.newObjAct = QtGui.QAction("New Obj", self,
-                statusTip="Create a new object in the current class.",
-                triggered=self.newObject)
-
-        self.copyObjAct = QtGui.QAction(QtGui.QIcon(':/images/copy.png'),
-                            "Copy Obj", self,
-                            shortcut=QtGui.QKeySequence.Copy,
-                            statusTip="Copy the current Object(s).",
-                            triggered=self.copyObject)
-
-        self.pasteObjAct = QtGui.QAction(QtGui.QIcon(':/images/paste.png'),
-                            "Paste Obj", self,
-                             shortcut=QtGui.QKeySequence.Paste,
-                             statusTip="Paste the currently copies Object(s).",
-                             triggered=self.pasteObject)
-
-        self.dupObjAct = QtGui.QAction("Dup Obj", self,
-                shortcut=QtGui.QKeySequence('Ctrl+d'),
-                statusTip="Duplicate the current Object(s).",
-                triggered=self.duplicateObject)
-
-        self.delObjAct = QtGui.QAction("Del Obj", self,
-                shortcut=QtGui.QKeySequence('Del'),
-                statusTip="Delete the current Object(s).",
-                triggered=self.deleteObject)
-
-        self.navForwardAct = QtGui.QAction("Forward", self,
-                shortcut=QtGui.QKeySequence('Ctrl+Plus'),
-                statusTip="Go forward to the next object.",
-                triggered=self.navForward)
-
-        self.navBackAct = QtGui.QAction("Back", self,
-                shortcut=QtGui.QKeySequence('Ctrl+Minus'),
-                statusTip="Go back to the previous object.",
-                triggered=self.navBack)
-
         self.undoAct = self.undo_stack.createUndoAction(self.undo_stack)
         self.undoAct.setShortcut(QtGui.QKeySequence.Undo)
+        self.undoAct.setIcon(QtGui.QIcon(':/images/undo.png'))
 
         self.redoAct = self.undo_stack.createRedoAction(self.undo_stack)
         self.redoAct.setShortcut(QtGui.QKeySequence.Redo)
+        self.redoAct.setIcon(QtGui.QIcon(':/images/redo.png'))
 
-        # self.editFieldAct = QtGui.QAction("Edit Field", self,
-        #         shortcut=QtGui.QKeySequence('Enter'),
-        #         statusTip="Edit the currently focused field.",
-        #         triggered=self.editField)
-
-        # self.cutAct.setEnabled(False)
-        # self.copyAct.setEnabled(False)
-        # self.pasteAct.setEnabled(False)
         self.transposeAct.setEnabled(False)
-        # self.newObjAct.setEnabled(False)
-        # self.dupObjAct.setEnabled(False)
-        # self.delObjAct.setEnabled(False)
 
     def create_menus(self):
         """Create all required items for menus."""
@@ -474,7 +467,7 @@ class IDFPlus(QtGui.QMainWindow):
 #            print 'recent files length: ' + str(len(recentFiles))
             for i, fname in enumerate(recentFiles):
 #                print 'recent file name in loop: ' + fname
-                action = QtGui.QAction(QtGui.QIcon(":/icon.png"),
+                action = QtGui.QAction(QtGui.QIcon(":/images/icon.png"),
                                        "&%d %s" % (i + 1, QtCore.QFileInfo(fname).fileName()),
                                        self)
                 action.setData(fname)
@@ -498,6 +491,8 @@ class IDFPlus(QtGui.QMainWindow):
         # Edit Toolbar
         self.editToolBar = self.addToolBar("Edit Toolbar")
         self.editToolBar.setObjectName('editToolbar')
+        self.editToolBar.addAction(self.undoAct)
+        self.editToolBar.addAction(self.redoAct)
         self.editToolBar.addAction(self.newObjAct)
         self.editToolBar.addAction(self.dupObjAct)
         self.editToolBar.addAction(self.delObjAct)
@@ -1049,7 +1044,7 @@ class IDFPlus(QtGui.QMainWindow):
         self.center()
         self.setUnifiedTitleAndToolBarOnMac(True)
         self.setWindowTitle('IDFPlus Editor')
-        self.setWindowIcon(QtGui.QIcon(':/eplussm.gif'))
+        self.setWindowIcon(QtGui.QIcon(':/images/eplus_sm.png'))
 
         # Status bar setup
         self.statusBar().showMessage('Status: Ready')
@@ -1074,7 +1069,7 @@ class IDFPlus(QtGui.QMainWindow):
         # System tray itself
         self.trayIcon = QtGui.QSystemTrayIcon(self)
         self.trayIcon.setContextMenu(self.trayIconMenu)
-        self.trayIcon.setIcon(QtGui.QIcon(':/images/eplussm.gif'))
+        self.trayIcon.setIcon(QtGui.QIcon(':/images/eplus_sm.png'))
         self.trayIcon.setToolTip('IDFPlus')
         self.trayIcon.show()
 
