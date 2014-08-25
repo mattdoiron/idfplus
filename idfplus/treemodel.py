@@ -22,9 +22,12 @@ from __future__ import (print_function, division, absolute_import)
 
 # PySide imports
 from PySide import QtCore
+from PySide import QtGui
 
 
 class TreeItem(object):
+    """Low level item for a custom tree view"""
+
     def __init__(self, data, parent=None):
         self.parentItem = parent
         self.itemData = data
@@ -57,15 +60,14 @@ class TreeItem(object):
         return 0
 
 
-class ReferenceTreeModel(QtCore.QAbstractItemModel):
+class CustomTreeModel(QtCore.QAbstractItemModel):
     """Qt object that handles interaction between the jump widget and the data
     displayed in the tree view.
     """
 
-    def __init__(self, data, parent=None):
-        super(ReferenceTreeModel, self).__init__(parent)
-
-        self.rootItem = TreeItem(("Field", "Class"))
+    def __init__(self, data, root, parent=None):
+        super(CustomTreeModel, self).__init__(parent)
+        self.rootItem = TreeItem(root)
         self.setupModelData(data, self.rootItem)
 
     def columnCount(self, parent):
@@ -89,7 +91,7 @@ class ReferenceTreeModel(QtCore.QAbstractItemModel):
         if not index.isValid():
             return QtCore.Qt.NoItemFlags
 
-        return QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable
+        return int(QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable)
 
     def headerData(self, section, orientation, role):
         if orientation == QtCore.Qt.Horizontal and role == QtCore.Qt.DisplayRole:
@@ -134,6 +136,73 @@ class ReferenceTreeModel(QtCore.QAbstractItemModel):
             parentItem = parent.internalPointer()
 
         return parentItem.childCount()
+
+    def setupModelData(self, data, parent):
+        pass
+
+
+class ObjectClassTreeModel(CustomTreeModel):
+    """Qt object that handles interaction between the object class list and the data
+    displayed in the tree view.
+    """
+
+    def flags(self, index):
+        if not index.isValid():
+            return QtCore.Qt.NoItemFlags
+
+        item = index.internalPointer()
+        if item.data(0) == '' and item.data(1) == '':
+            data = QtCore.Qt.NoItemFlags
+        elif item.parent().data(0) == 'Object Class' and item.data(0) != '':
+            data = QtCore.Qt.ItemIsEnabled
+        else:
+            data = int(QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable)
+
+        return data
+
+    def data(self, index, role):
+        if not index.isValid():
+            return None
+
+        data = None
+        if role == QtCore.Qt.DisplayRole:
+            data = index.internalPointer().data(index.column())
+        elif role == QtCore.Qt.BackgroundRole:
+            item = index.internalPointer()
+            if item.parent().data(0) == 'Object Class' and item.data(0) != '':
+                data = QtGui.QColor(205, 192, 176)  # light grey
+        elif role == QtCore.Qt.TextAlignmentRole and index.column() == 1:
+            data = QtCore.Qt.AlignRight
+
+        return data
+
+    def setupModelData(self, data, parent):
+        if data:
+            group = ''
+            group_root = None
+
+            for obj_class, obj in data._idd.iteritems():
+                if group != obj.group:
+
+                    group = obj.group
+                    group_root = TreeItem((group,''), parent)
+                    parent.appendChild(group_root)
+
+                    blank = TreeItem(('',''), parent)
+                    parent.appendChild(blank)
+                    # blank.setDisabled(True)
+
+                objs = data.get(obj_class, None)
+                obj_count = len(objs or []) or ''
+
+                child = TreeItem((obj_class, str(obj_count)), group_root)
+                group_root.appendChild(child)
+
+
+class ReferenceTreeModel(CustomTreeModel):
+    """Qt object that handles interaction between the jump widget and the data
+    displayed in the tree view.
+    """
 
     def setupModelData(self, data, parent):
         if data:

@@ -85,9 +85,6 @@ class IDFPlus(QtGui.QMainWindow):
         self.create_shortcuts()
         self.create_tray_menu()
 
-        # Connect some slots and signals
-        self.classTree.currentItemChanged.connect(self.classSelected)
-
         # In-memory ZODB databases don't support undo! Use an on-disk cache
         self.db = MyZODB()
 
@@ -563,12 +560,15 @@ class IDFPlus(QtGui.QMainWindow):
 
             # print("Node Ancestors: {}".format(ancestors))
             new_model = treemodel.ReferenceTreeModel([ancestors, descendants],
+                                                     ("Field", "Class"),
                                                      self.refView)
             self.refView.setModel(new_model)
             self.refView.expandAll()
 
         except (nx.exception.NetworkXError, IndexError) as e:
-            empty_model = treemodel.ReferenceTreeModel(None, self.refDockWidget)
+            empty_model = treemodel.ReferenceTreeModel(None,
+                                                       ("Field", "Class"),
+                                                       self.refView)
             self.refView.setModel(empty_model)
 
     def create_context_menu(self, pos):
@@ -829,41 +829,15 @@ class IDFPlus(QtGui.QMainWindow):
 
     def load_tree_view(self):
         """Loads the tree of class type names."""
-        #TODO modify this to use a custom datamodel linking to the same
-        # IDFFile object, but interpreting it differently. This way when
-        # the object counts change, they will automatically update. Would
-        # this method also be faster?
 
-        tree = self.classTree
-        tree.clear()
-        group = ''
-        group_root = None
-
-        for obj_class, obj in self.idd.iteritems():
-            if group != obj.group:
-
-                group = obj.group
-                group_root = QtGui.QTreeWidgetItem([group])
-                group_root.setFirstColumnSpanned(True)
-                colour = QtGui.QColor(205, 192, 176)  # light grey
-                brush = QtGui.QBrush(colour)
-                group_root.setBackground(0, brush)
-
-                blank = QtGui.QTreeWidgetItem([''])
-                blank.setDisabled(True)
-
-                tree.addTopLevelItem(group_root)
-                tree.addTopLevelItem(blank)
-                tree.setItemExpanded(group_root, True)
-                tree.setFirstItemColumnSpanned(group_root, True)
-                tree.setRootIsDecorated(False)
-
-            objs = self.idf.get(obj_class, None)
-            obj_count = len(objs or []) or ''
-
-            child = QtGui.QTreeWidgetItem([obj_class, str(obj_count)])
-            child.setTextAlignment(1, QtCore.Qt.AlignRight)
-            group_root.addChild(child)
+        new_model = treemodel.ObjectClassTreeModel(self.idf,
+                                                   ("Object Class", "Count"),
+                                                   self.classTree)
+        self.classTree.setModel(new_model)
+        self.classTree.setRootIsDecorated(False)
+        self.classTree.expandAll()
+        self.classTree.setColumnWidth(0, 280)
+        self.classTree.setColumnWidth(1, 10)
 
     def transpose_table(self):
         """Transposes the table"""
@@ -882,11 +856,12 @@ class IDFPlus(QtGui.QMainWindow):
 
         self.load_table_view(self.current_obj_class)
 
-    def classSelected(self, current, previous):
-        """Test call to slot"""
+    def classSelected(self, current):
+        """Loads the table view when a new class is selected"""
         if (current or current.parent()) is None:
             return
-        self.load_table_view(current.text(0))
+        cls = current.internalPointer().data(0)
+        self.load_table_view(cls)
 
     def create_ui(self):
         """Setup main UI elements, dock widgets, UI-related elements, etc. """
@@ -924,8 +899,6 @@ class IDFPlus(QtGui.QMainWindow):
         # classTable.setStyleSheet("QTableView {padding: 0px; border: 0px;} ")
 
         classTable.clicked.connect(self.table_clicked)
-        # classTable.resizeColumnsToContents()
-        # classTable.resizeRowsToContents()
         classTable.setSelectionMode(QtGui.QAbstractItemView.ContiguousSelection)
 
         # These are currently broken
@@ -936,22 +909,17 @@ class IDFPlus(QtGui.QMainWindow):
         classTreeDockWidget = QtGui.QDockWidget("Object Classes and Counts", self)
         classTreeDockWidget.setObjectName("classTreeDockWidget")
         classTreeDockWidget.setAllowedAreas(QtCore.Qt.AllDockWidgetAreas)
-        classTree = QtGui.QTreeWidget(classTreeDockWidget)
-        header = QtGui.QTreeWidgetItem(['Object Class', 'Count'])
-        header.setFirstColumnSpanned(True)
-        classTree.setHeaderItem(header)
+        # classTree = QtGui.QTreeWidget(classTreeDockWidget)
+        classTree = QtGui.QTreeView(classTreeDockWidget)
         classTree.setUniformRowHeights(True)
+        classTree.setExpandsOnDoubleClick(False)
         classTree.setFont(font)
-        # classTree.header().setResizeMode(QtGui.QHeaderView.ResizeToContents)
         classTree.setAlternatingRowColors(True)
-        classTreeDockWidget.setWidget(classTree)
-        classTree.setColumnWidth(0, 280)
-        classTree.setColumnWidth(1, 10)
-        classTree.header().resizeSection(0, 280)
-        classTree.header().resizeSection(1, 10)
         palette = classTree.palette()
         palette.setColor(QtGui.QPalette.Highlight, QtCore.Qt.darkCyan)
         classTree.setPalette(palette)
+        classTreeDockWidget.setWidget(classTree)
+        classTree.clicked.connect(self.classSelected)
 
         # Comments widget
         commentDockWidget = QtGui.QDockWidget("Comments", self)
@@ -973,7 +941,7 @@ class IDFPlus(QtGui.QMainWindow):
         refDockWidget = QtGui.QDockWidget("Field References", self)
         refDockWidget.setObjectName("refDockWidget")
         refDockWidget.setAllowedAreas(QtCore.Qt.AllDockWidgetAreas)
-        ref_model = treemodel.ReferenceTreeModel(None, refDockWidget)
+        ref_model = treemodel.ReferenceTreeModel(None, ("", ""), refDockWidget)
         refView = QtGui.QTreeView(refDockWidget)
         refView.setModel(ref_model)
         refView.setUniformRowHeights(True)
