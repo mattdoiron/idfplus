@@ -28,6 +28,7 @@ import transaction
 import codecs
 from persistent.list import PersistentList
 import networkx as nx
+import math
 
 # Package imports
 from . import datamodel
@@ -693,7 +694,7 @@ class IDDParser(Parser):
                     break
 
                 # Yield the current progress for progress bars
-                yield total_read
+                yield math.ceil(100 * total_read / total_size)
 
             idd._conversions = conversions
             idd._groups = group_list
@@ -992,10 +993,11 @@ class IDFParser(Parser):
                     break
 
                 # yield the current progress for progress bars
-                yield total_read
+                yield math.ceil(100 * 0.5 * total_read / total_size)
 
         # Now that required nodes have been created, connect them as needed
-        self.connect_nodes()
+        for progress in self.connect_nodes():
+            yield progress
 
         # Save changes
         transaction.get().note('Load file')
@@ -1007,10 +1009,13 @@ class IDFParser(Parser):
         G = self.idf._graph
         idf = self.idf
         dest_node = None
+        node_list = G.nodes()
+        node_count = len(node_list)
 
         # Cycle through only nodes to avoid cycling through all objects
         # Do not use an iterator because we could add a new node in this loop!
-        for node in G.nodes():
+        # Does this slow things down? Not sure of an alternative.
+        for k, node in enumerate(node_list):
             # obj_class, obj_index, field_index = node[0]
             # print('tags: {}'.format(node.tags))
             object_list_class_name = node.tags['object-list']
@@ -1057,7 +1062,7 @@ class IDFParser(Parser):
 
                                     # dest_node = (obj_cls, i, j)
                                     dest_node = field
-                                    break
+                                    yield math.ceil(50 + (100 * 0.5 * k / node_count))
 
                 # If a destination node has been created, use it to add an edge
                 if dest_node is not None:
@@ -1070,3 +1075,5 @@ class IDFParser(Parser):
 
             except (IndexError) as e:
                 continue
+
+            yield math.ceil(50 + (100 * 0.5 * k / node_count))

@@ -84,6 +84,7 @@ class IDFPlus(QtGui.QMainWindow):
         self.create_menus()
         self.create_shortcuts()
         self.create_tray_menu()
+        self.create_progress_bar()
 
         # In-memory ZODB databases don't support undo! Use an on-disk cache
         self.db = MyZODB()
@@ -145,15 +146,8 @@ class IDFPlus(QtGui.QMainWindow):
         """
         log.debug('Processing IDD file')
 
-        total_size = os.path.getsize(file_path)
-        self.progressDialogIDD = QtGui.QProgressDialog("Loading IDD File", "", 0,
-                                                       total_size, self)
         message = "Loading {}...".format(file_path)
         self.progressDialogIDD.setLabelText(message)
-        self.progressDialogIDD.setWindowTitle('Loading IDD File')
-        self.progressDialogIDD.setWindowModality(QtCore.Qt.WindowModal)
-        self.progressDialogIDD.setMinimumDuration(500)
-        self.progressDialogIDD.setCancelButton(None)
         self.progressDialogIDD.show()
         self.statusBar().showMessage(message, 5000)
 
@@ -199,15 +193,8 @@ class IDFPlus(QtGui.QMainWindow):
             else:
                 return False
 
-        total_size = os.path.getsize(file_path)
-        self.progressDialogIDF = QtGui.QProgressDialog("Loading IDF File", "", 0,
-                                                       total_size, self)
         message = "Loading {}...".format(file_path)
         self.progressDialogIDF.setLabelText(message)
-        self.progressDialogIDF.setWindowTitle('Loading IDF File')
-        self.progressDialogIDF.setWindowModality(QtCore.Qt.WindowModal)
-        self.progressDialogIDF.setMinimumDuration(500)
-        self.progressDialogIDF.setCancelButton(None)
         self.progressDialogIDF.show()
         self.statusBar().showMessage(message, 5000)
 
@@ -230,16 +217,20 @@ class IDFPlus(QtGui.QMainWindow):
             else:
                 self.load_idf(file_path)
 
+        log.debug('Loading tree view...')
         self.groups = self.idd.groups
         self.load_tree_view()
+        log.debug('Setting class table model...')
         self.classTable.setModel(None)
         self.commentView.setText(str(len(self.idf)))  # test only
         self.dirty = False  # Move this into tablemodelContainer?
         self.file_path = file_path
+        log.debug('Updating recent file list...')
         self.add_recent_file(file_path)
         message = "Loaded %s" % os.path.basename(file_path)
         self.update_status(message)
         self.set_current_file(file_path)
+        log.debug('File Loaded Successfully!')
         return True
 
     def save(self):
@@ -862,6 +853,25 @@ class IDFPlus(QtGui.QMainWindow):
             return
         cls = current.internalPointer().data(0)
         self.load_table_view(cls)
+
+    def create_progress_bar(self):
+
+        # Setup idf progress dialog
+        self.progressDialogIDF = QtGui.QProgressDialog("Loading IDF File", "", 0,
+                                                       100, self)
+        self.progressDialogIDF.setWindowTitle('Loading IDF File')
+        self.progressDialogIDF.setWindowModality(QtCore.Qt.WindowModal)
+        self.progressDialogIDF.setMinimumDuration(500)
+        self.progressDialogIDF.setCancelButton(None)
+
+        # Setup idd progress dialog
+        self.progressDialogIDD = QtGui.QProgressDialog("Loading IDD File", "", 0,
+                                                       100, self)
+        self.progressDialogIDD.setWindowTitle('Loading IDD File')
+        self.progressDialogIDD.setWindowModality(QtCore.Qt.WindowModal)
+        self.progressDialogIDD.setMinimumDuration(500)
+        self.progressDialogIDD.setCancelButton(None)
+
 
     def create_ui(self):
         """Setup main UI elements, dock widgets, UI-related elements, etc. """
