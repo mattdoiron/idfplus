@@ -28,7 +28,8 @@ from PySide import QtGui
 from PySide import QtCore
 
 # Package imports
-from .datamodel import (IDFObject, IDFField)
+from .datamodel import IDFObject
+from .datamodel import IDFField
 
 
 class IDFObjectTableModel(QtCore.QAbstractTableModel):
@@ -406,3 +407,24 @@ class IDFClassTableModel(QtCore.QAbstractTableModel):
 
     def columnCount(self, index):
         return len(self.idd_object)
+
+
+class TableView(QtGui.QTableView):
+   '''Subclass of QTableView used to override mousePressEvent'''
+
+   def __init__(self, *args, **kwargs):
+       super(TableView, self).__init__(*args, **kwargs)
+
+   # # Ads single-click editing
+   # def mousePressEvent(self, event):
+   #     if event.button() == QtCore.Qt.LeftButton:
+   #         index = self.indexAt(event.pos())
+   #         if index.isValid():
+   #             self.edit(index)
+   #     QtGui.QTableView.mousePressEvent(self, event)
+
+   # def commitData(self, *args, **kwargs):
+   #     print('data committed')
+   #     #TODO put transaction commit in here?
+   #     #TODO catch multiple paste and commit only once?
+   #     super(TableView, self).commitData(*args, **kwargs)

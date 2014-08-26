@@ -59,6 +59,13 @@ class TreeItem(object):
             return self.parentItem.childItems.index(self)
         return 0
 
+    def setData(self, column, value):
+        if column < 0 or column >= len(self.itemData):
+            return False
+
+        self.itemData[column] = value
+
+        return True
 
 class CustomTreeModel(QtCore.QAbstractItemModel):
     """Qt object that handles interaction between the jump widget and the data
@@ -197,6 +204,18 @@ class ObjectClassTreeModel(CustomTreeModel):
 
                 child = TreeItem((obj_class, str(obj_count)), group_root)
                 group_root.appendChild(child)
+
+    def setData(self, index, value, role=QtCore.Qt.EditRole):
+        if role != QtCore.Qt.EditRole:
+            return False
+
+        item = self.getItem(index)
+        result = item.setData(index.column(), value)
+
+        if result:
+            self.dataChanged.emit(index, index)
+
+        return result
 
 
 class ReferenceTreeModel(CustomTreeModel):
