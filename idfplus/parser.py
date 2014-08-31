@@ -24,11 +24,12 @@ from __future__ import (print_function, division, absolute_import)
 import os
 import shelve
 import datetime as dt
-import transaction
+# import transaction
 import codecs
-from persistent.list import PersistentList
+# from persistent.list import PersistentList
 import networkx as nx
 import math
+import cPickle as pickle
 
 # Package imports
 from . import datamodel
@@ -282,9 +283,9 @@ class Writer(object):
 class Parser(object):
     """Base class for more specialized parsers"""
 
-    def __init__(self, *args, **kwargs):
-        #        self.msg = msg  # Communicate()
-        pass
+    # def __init__(self, *args, **kwargs):
+    #     #        self.msg = msg  # Communicate()
+    #     pass
 
     @staticmethod
     def get_fields(line_in):
@@ -473,37 +474,41 @@ class IDDParser(Parser):
         :param kwargs:
         """
 
+        # Call the parent class' init method
+        super(IDDParser, self).__init__(*args, **kwargs)
+
         if idd is not None:
             log.debug('custom idd received by parser')
             self.idd = idd
         else:
             log.debug('no custom idd received by parser. using blank')
+            print('blank idd file used')
             self.idd = datamodel.IDDFile()
 
-        # Call the parent class' init method
-        super(IDDParser, self).__init__(*args, **kwargs)
 
-    @staticmethod
-    def init_db(idd):
-        """Initializes a shelve database and saves the idd file to it.
-        :param idd:
-        :return Shelve Database:
-        """
 
-        file_name = c.IDD_FILE_NAME_ROOT.format('IDDTEMP')
-        idd_path = os.path.join(c.DATA_DIR, file_name)
-
-        try:
-            log.debug('Opening idd dat file: {}'.format(idd_path))
-            database = shelve.open(idd_path, protocol=2, writeback=True)
-            log.debug('idd type is: {}'.format(type(idd)))
-            database['idd'] = idd
-            database['date_generated'] = dt.datetime.now()
-            return database
-        except IOError as e:
-            return False
-        except Exception as e:
-            print(e.message)
+    # @staticmethod
+    # def init_db(idd):
+    #     """Initializes a shelve database and saves the idd file to it.
+    #     :param idd:
+    #     :return Shelve Database:
+    #     """
+    #
+    #     file_name = c.IDD_FILE_NAME_ROOT.format('IDDTEMP')
+    #     idd_path = os.path.join(c.DATA_DIR, file_name)
+    #
+    #     try:
+    #         log.debug('Opening idd dat file: {}'.format(idd_path))
+    #         database = shelve.open(idd_path, protocol=2, writeback=True)
+    #         # log.debug('idd type is: {}'.format(type(idd)))
+    #         database['idd'] = idd
+    #         # database['date_generated'] = dt.datetime.now()
+    #         return database
+    #     except IOError as e:
+    #         log.debug('IO fail on loading idd path')
+    #         return False
+    #     except Exception as e:
+    #         print(e.message)
 
     @staticmethod
     def rename_idd(version):
@@ -528,8 +533,16 @@ class IDDParser(Parser):
         log.info('Parsing IDD file: {} ({} bytes)'.format(file_path, total_size))
 
         # Create an on-disk database in which to store the new idd
-        db = self.init_db(self.idd)
-        idd = db['idd']
+        # db = self.init_db(self.idd)
+        idd = self.idd
+
+
+        file_name = c.IDD_FILE_NAME_ROOT.format('IDDTEMP')
+        idd_path = os.path.join(c.DATA_DIR, file_name)
+        # idd = datamodel.IDDFile2(idd_path)
+        # db = shelve.open(idd_path, protocol=2, writeback=True)
+        # db['idd'] = idd
+        # idd = db['idd']
 
         # Open the specified file in a safe way
         with codecs.open(file_path, 'r',
@@ -583,7 +596,9 @@ class IDDParser(Parser):
                         version_raw = line_parsed['comments'].split()[1].strip()
                         version = '.'.join(version_raw.split('.')[0:2])
                         idd._version = version
-                        log.debug('Found idd version in idd file: '.format(db['idd']._version))
+                        print('idd version from idd1: {}'.format(version))
+                        print('idd version from idd2: {}'.format(idd._version))
+                        log.debug('Found idd version in idd file: {}'.format(idd._version))
 
                 # Check for special comments and options
                 if line_parsed['comments_special']:
@@ -701,51 +716,72 @@ class IDDParser(Parser):
             idd._tree_model = None
 
         # Save changes and rename temp idd file because we now know the version
-        db.close()
+        # log.debug('test 123 idd for keys: {}'.format(idd.keys()[:5]))
+        # db['idd'] = idd
+
+        with open(idd_path, 'w') as fp:
+            pickle.dump(idd, fp)
+        # db = shelve.open(idd_path, protocol=2, writeback=True)
+        # db['idd'] = idd
+        # log.debug('test 1234 idd for keys: {}'.format(db['idd'].keys()[:5]))
+        print('version 123: {}'.format(idd._version))
+        print('test of loaded idd1: {}'.format(idd.keys()))
+        # idd.close()
+        # db.close()
+
+        # db = shelve.open(idd_path, protocol=2, writeback=True)
+        with open(idd_path) as fp:
+            idd2 = pickle.load(fp)
+        print('version 456: {}'.format(idd2._version))
+        print('test of loaded idd2: {}'.format(idd2.keys()))
+        # db.close()
         self.rename_idd(version)
         log.info('Parsing IDD complete!')
 
-    @staticmethod
-    def save_idd(idd):
-        """Shelves a copy of the IDD file object.
-        :param idd:
-        :raises : Exception
-        :rtype : bool
-        """
-        log.debug('Saving idd...')
-        log.debug('Received idd with {} keys'.format(len(idd.keys())))
-        if not idd.version:
-            raise Exception("Missing IDD file version")
+        # Yield the final progress for progress bars
+        yield math.ceil(100 * total_read / total_size)
 
-        file_name = c.IDD_FILE_NAME_ROOT.format(idd.version)
-        idd_path = os.path.join(c.DATA_DIR, file_name)
-
-        try:
-            # storage = ZODB.FileStorage.FileStorage(idd_path)
-            log.debug('Opening idd dat file: {}'.format(idd_path))
-            # db = ZODB.DB(idd_path)
-            # connection = db.open()
-            # root = db.open().root
-
-            # print('saving idd to root obj: {}'.format(type(idd)))
-            database = shelve.open(idd_path, protocol=2, writeback=True)
-            log.debug('idd type is: {}'.format(type(idd)))
-            log.debug('test 1 idd for keys: {}'.format(idd.keys()[:20]))
-            database['idd'] = idd
-            database['date_generated'] = dt.datetime.now()
-            database.close()
-
-            # root.idd = idd
-            # root.date_generated = dt.datetime.now()
-            log.debug('Saving idd file to disk...')
-            # transaction.commit()
-            # db.close()
-            log.debug('test 2 idd for keys: {}'.format(idd.keys()[:20]))
-            return True
-        except IOError as e:
-            return False
-        except Exception as e:
-            log.debug(e.message)
+    # @staticmethod
+    # def save_idd(idd):
+    #     """Shelves a copy of the IDD file object.
+    #     :param idd:
+    #     :raises : Exception
+    #     :rtype : bool
+    #     """
+    #     log.debug('Saving idd...')
+    #     log.debug('Received idd with {} keys'.format(len(idd.keys())))
+    #     if not idd.version:
+    #         raise Exception("Missing IDD file version")
+    #
+    #     file_name = c.IDD_FILE_NAME_ROOT.format(idd.version)
+    #     idd_path = os.path.join(c.DATA_DIR, file_name)
+    #
+    #     try:
+    #         # storage = ZODB.FileStorage.FileStorage(idd_path)
+    #         log.debug('Opening idd dat file: {}'.format(idd_path))
+    #         # db = ZODB.DB(idd_path)
+    #         # connection = db.open()
+    #         # root = db.open().root
+    #
+    #         # print('saving idd to root obj: {}'.format(type(idd)))
+    #         database = shelve.open(idd_path, protocol=2, writeback=True)
+    #         log.debug('idd type is: {}'.format(type(idd)))
+    #         log.debug('test 1 idd for keys: {}'.format(idd.keys()[:20]))
+    #         database['idd'] = idd
+    #         database['date_generated'] = dt.datetime.now()
+    #         database.close()
+    #
+    #         # root.idd = idd
+    #         # root.date_generated = dt.datetime.now()
+    #         log.debug('Saving idd file to disk...')
+    #         # transaction.commit()
+    #         # db.close()
+    #         log.debug('test 2 idd for keys: {}'.format(idd.keys()[:20]))
+    #         return True
+    #     except IOError as e:
+    #         return False
+    #     except Exception as e:
+    #         log.debug(e.message)
 
     @staticmethod
     def load_idd(version):
@@ -766,14 +802,17 @@ class IDDParser(Parser):
         # Check if the file name is a file and then open the idd file
         if os.path.isfile(idd_path):
             log.debug('idd found, loading...')
-            database = shelve.open(idd_path, flag='r', protocol=2)
-            idd = database['idd']
-            date_generated = database['date_generated']
-            database.close()
+            # database = shelve.open(idd_path, flag='r', protocol=2)
+            # idd = database['idd']
+            with open(idd_path) as fp:
+                idd = pickle.load(fp)
+            # idd = datamodel.IDDFile2(idd_path, flag='r')
+            # date_generated = database['date_generated']
+            # database.close()
             try:
-                # log.debug('Testing if loaded idd file has a version attribute')
-                # log.debug('Version found! (v{})'.format(idd.version))
-                # log.debug('test 3 idd for keys: {}'.format(idd.keys()[:5]))
+                log.debug('Testing if loaded idd file has a version attribute')
+                log.debug('Version found! (v{})'.format(idd.version))
+                log.debug('test 3 idd for keys: {}'.format(idd.keys()[:5]))
                 assert idd.version is not None
                 return idd
             except AttributeError:
@@ -890,7 +929,7 @@ class IDFParser(Parser):
                             # the idf file's object classes. This must be done early
                             # so that all objects added later are saved in the proper
                             # order.
-                            self.idf.update((k, PersistentList()) for k, v in idd.iteritems())
+                            self.idf.update((k, list()) for k, v in idd.iteritems())
                         log.debug('idd loaded as version: {}'.format(self.idd.version))
 
                 # If this is the end of an object save it
@@ -905,6 +944,9 @@ class IDFParser(Parser):
                     prev_obj_class = obj_class
 
                     # The fields to use are defined in the idd file
+                    # for cls123 in self.idd.iterkeys():
+                    #     print(cls123)
+                    # print(self.idd)
                     idd_fields = self.idd[obj_class]
 
                     # Create IDFField objects for all fields
@@ -1000,8 +1042,8 @@ class IDFParser(Parser):
             yield progress
 
         # Save changes
-        transaction.get().note('Load file')
-        transaction.commit()
+        # transaction.get().note('Load file')
+        # transaction.commit()
         log.info('Parsing IDF complete!')
 
     def connect_nodes(self):

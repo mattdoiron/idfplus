@@ -22,15 +22,25 @@ from __future__ import (print_function, division, absolute_import)
 
 # System imports
 # from pint import UnitRegistry
-from persistent import Persistent
-from persistent.list import PersistentList
-from persistent.dict import PersistentDict
+from collections import OrderedDict
+# from persistent import Persistent
+# from persistent.list import PersistentList
+# from persistent.dict import PersistentDict
 from persistent.mapping import PersistentMapping
 from odict.pyodict import _odict, _nil
+import pickle, json, csv, os, shutil
+
+# Package imports
+from . import logger
+
+# Constants
+from . import idfsettings as c
 
 # Investigate as replacement for large lists
 # https://pypi.python.org/pypi/blist
 
+# Setup logging
+log = logger.setup_logging(c.LOG_LEVEL, __name__)
 
 class IDDFileDoesNotExist(Exception):
     """Exception called when no IDD file is found."""
@@ -72,6 +82,9 @@ class IDDFile(PODict):
         :param **kwargs: keyword arguments to pass to dictionary
         """
 
+        # Call the parent class' init method
+        super(IDDFile, self).__init__()
+
         # Various attributes of the idd file
         self._groups = list()
         self._conversions = list()
@@ -81,12 +94,16 @@ class IDDFile(PODict):
         self.options = list()
         self.tags = dict()
         # compiled_idd_file_name = 'EnergyPlus_IDD_v{}.dat'
-        data_dir = 'data'
-        units_file = 'units.dat'
+        # data_dir = 'data'
+        # units_file = 'units.dat'
         self._ureg = None #UnitRegistry(os.path.join(APP_ROOT, data_dir, units_file))
 
         # Call the parent class' init method
-        super(IDDFile, self).__init__(data, **kwargs)
+        # super(IDDFile, self).__init__(data, **kwargs)
+
+    def __reduce__(self):
+        return super(IDDFile, self).__reduce__()
+
 
     # def __setitem__(self, key, value, dict_setitem=dict.__setitem__):
     #     """Override the default __setitem__ to ensure that only certain
@@ -233,7 +250,7 @@ class IDDField(object):
     #     return self._value # _ip_units
 
 
-class IDFFile(PODict):
+class IDFFile(OrderedDict):
     """Primary object representing idf file and container for idf objects.
 
     Contains an OrderedDict of lists of IDFObjects with the class type as a
@@ -261,8 +278,8 @@ class IDFFile(PODict):
         self._idd = None
         self._eol_char = None
         self.file_path = None
-        self.options = PersistentList()
-        self.object_lists = PersistentDict()
+        self.options = list()
+        self.object_lists = dict()
         self._version = None
 
         # Call the parent class' init method
@@ -298,7 +315,7 @@ class IDFFile(PODict):
         pass
 
 
-class IDFObject(PersistentList):
+class IDFObject(list):
     """Represents objects in idf files.
 
     Contains a list of fields in the form:
@@ -330,8 +347,8 @@ class IDFObject(PersistentList):
         # Set various attributes of the idf object
         # self._idf = idf
         # self._idd = idf.idd
-        self._incoming_links = PersistentList()
-        self._outgoing_links = PersistentList()
+        # self._incoming_links = list()
+        # self._outgoing_links = list()
         self._graph = None
         self._group = kwargs.pop('group', None)
         self._obj_class = kwargs.pop('obj_class', None)
@@ -368,7 +385,7 @@ class IDFObject(PersistentList):
                     self.append(IDFField(self, value=default))
 
 
-class IDFField(Persistent):
+class IDFField(object):
     """Basic component of the idf object classes.
 
     Simply a regular dict containing keys which are the names of various
@@ -386,7 +403,7 @@ class IDFField(Persistent):
         """
         self.key = kwargs.pop('key', None)
         self.value = kwargs.pop('value', None)
-        self.tags = PersistentDict()
+        self.tags = dict()
         self.obj_class = outer._obj_class
         self._ureg = None #outer.idd._ureg
         self._outer = outer
@@ -429,3 +446,84 @@ class IDFField(Persistent):
     #         return ip_quantity.magnitude
     #     else:
     #         return self._value
+
+#
+# class PersistentDict(OrderedDict):
+#     """Ordered dict that writes to a file when asked to
+#     """
+#
+#     def __init__(self, filename, **kwargs):
+#         self.flag = kwargs.get('flag', 'c')           # r=readonly, c=create, or n=new
+#         self.mode = kwargs.get('mode', None)          # None or an octal triple like 0644
+#         self.format = kwargs.get('format', 'pickle')  # 'csv', 'json', or 'pickle'
+#         self.filename = filename
+#
+#         # Call the parent class' init method before self.load
+#         super(PersistentDict, self).__init__()
+#
+#         # Call self.load
+#         if self.flag != 'n' and os.access(filename, os.R_OK):
+#             with open(filename, 'rb') as fileobj:
+#                 self.update(pickle.load(fileobj))
+#                 # return pickle.load(fileobj)
+#
+#     def sync(self):
+#         '''Write dict to disk'''
+#         if self.flag == 'r':
+#             return
+#         filename = self.filename
+#         tempname = filename + '.tmp'
+#         with open(tempname, 'wb') as fileobj:
+#             try:
+#                 # self.dump(fileobj)
+#                 pickle.dump(self, fileobj, 2)
+#             except Exception:
+#                 os.remove(tempname)
+#                 raise
+#         shutil.move(tempname, self.filename)    # atomic commit
+#         if self.mode is not None:
+#             os.chmod(self.filename, self.mode)
+#
+#     def close(self):
+#         self.sync()
+#
+#     def __enter__(self):
+#         return self
+#
+#     def __exit__(self, *exc_info):
+#         self.close()
+#
+#
+# class IDDFile2(PersistentDict):
+#     """Ordered dict that writes to a file when asked to
+#     """
+#
+#     def __init__(self, filename, **kwargs):
+#
+#         # Various attributes of the idd file
+#         self._groups = list()
+#         self._conversions = list()
+#         self._version_set = False
+#         self._version = kwargs.get('version', None)
+#         self.options = list()
+#         self.tags = dict()
+#         self._ureg = None
+#
+#         # Call the parent class' init method before self.load
+#         super(IDDFile2, self).__init__(filename, **kwargs)
+#
+#     @property
+#     def version(self):
+#         """Read-only property containing idf file version."""
+#         # return '8.1'
+#         return self['Version'][0].value
+#
+#     @property
+#     def groups(self):
+#         """Read-only property containing list of all possible class groups"""
+#         return self._groups
+#
+#     @property
+#     def conversions(self):
+#         """Read-only property containing list unit conversions"""
+#         return self._conversions

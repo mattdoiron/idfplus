@@ -98,7 +98,7 @@ class NewObjectCmd(ObjectCmd):
         model.insertObjects(index, new_objects)
 
         # Now commit the transaction
-        transaction.commit()
+        # transaction.commit()
 
         super(NewObjectCmd, self).redo(*args, **kwargs)
 
@@ -142,7 +142,7 @@ class PasteSelectedCmd(ObjectCmd):
         model.dataChanged.emit(self.indexes[0], index)
 
         # Now commit the transaction
-        transaction.commit()
+        # transaction.commit()
 
         super(PasteSelectedCmd, self).redo(*args, **kwargs)
 
@@ -167,24 +167,33 @@ class DeleteObjectCmd(ObjectCmd):
         model.removeObjects(self.indexes[0], count)
 
         # Now commit the transaction
-        transaction.commit()
+        # transaction.commit()
 
         super(DeleteObjectCmd, self).redo(*args, **kwargs)
 
 
 class ModifyObjectCmd(ObjectCmd):
 
+    def undo(self):
+        # Get the table's model and call it's setData method
+        model = self.main_window.classTable.model().sourceModel()
+        model.setData(self.indexes[0], self.old_value, QtCore.Qt.EditRole)
+
+        # Notify everyone that data has changed
+        model.dataChanged.emit(self.indexes[0], self.indexes[0])
+
     def redo(self, *args, **kwargs):
         self.setText('Modify object')
 
         # Get the table's model and call it's setData method
         model = self.main_window.classTable.model().sourceModel()
+        self.old_value = model.data(self.indexes[0], QtCore.Qt.DisplayRole)
         model.setData(self.indexes[0], self.value, QtCore.Qt.EditRole)
 
         # Notify everyone that data has changed
         model.dataChanged.emit(self.indexes[0], self.indexes[0])
 
         # Now commit the transaction
-        transaction.commit()
+        # transaction.commit()
 
-        super(ModifyObjectCmd, self).redo(*args, **kwargs)
+        # super(ModifyObjectCmd, self).redo(*args, **kwargs)

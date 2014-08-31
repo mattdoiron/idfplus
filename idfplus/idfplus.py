@@ -121,9 +121,10 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow):
             home_dir = os.path.expanduser('~')
             directory = os.path.dirname(self.file_path) if self.file_path else home_dir
             formats = "EnergyPlus Files (*.idf)"
+            dialog_name = 'Open file'
             file_dialog = QtGui.QFileDialog()
             file_dialog.setFileMode(QtGui.QFileDialog.ExistingFile)
-            file_name, filt = file_dialog.getOpenFileName(self, 'Open file',
+            file_name, filt = file_dialog.getOpenFileName(self, dialog_name,
                                                           directory, formats)
             if file_name:
                 self.load_file(file_name)
@@ -134,11 +135,12 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow):
         if self.ok_to_continue():
             home_dir = os.path.expanduser('~')
             directory = os.path.dirname(self.file_path) if self.file_path else home_dir
+            formats = "EnergyPlus IDD Files (*.idd)"
             dialog_name = 'Open EnergyPlus Installation Directory'
             file_dialog = QtGui.QFileDialog()
             file_dialog.setFileMode(QtGui.QFileDialog.Directory)
             file_name, filt = file_dialog.getOpenFileName(self, dialog_name,
-                                                          directory)
+                                                          directory, formats)
             if file_name:
                 return self.process_idd_file(file_name)
         return False
@@ -155,8 +157,8 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow):
         self.progressDialogIDD.show()
         self.statusBar().showMessage(message, 5000)
 
-        idd = datamodel.IDDFile()
-        idd_parser = parser.IDDParser(idd)
+        # idd = datamodel.IDDFile()
+        idd_parser = parser.IDDParser()
 
         for progress in idd_parser.parse_idd(file_path):
             self.progressDialogIDD.setValue(progress)
