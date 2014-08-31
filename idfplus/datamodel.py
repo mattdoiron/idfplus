@@ -27,8 +27,7 @@ from collections import OrderedDict
 # from persistent.list import PersistentList
 # from persistent.dict import PersistentDict
 from persistent.mapping import PersistentMapping
-from odict.pyodict import _odict, _nil
-import pickle, json, csv, os, shutil
+from odict.pyodict import _odict
 
 # Package imports
 from . import logger
@@ -82,9 +81,6 @@ class IDDFile(PODict):
         :param **kwargs: keyword arguments to pass to dictionary
         """
 
-        # Call the parent class' init method
-        super(IDDFile, self).__init__()
-
         # Various attributes of the idd file
         self._groups = list()
         self._conversions = list()
@@ -99,11 +95,10 @@ class IDDFile(PODict):
         self._ureg = None #UnitRegistry(os.path.join(APP_ROOT, data_dir, units_file))
 
         # Call the parent class' init method
-        # super(IDDFile, self).__init__(data, **kwargs)
+        super(IDDFile, self).__init__(data, **kwargs)
 
     def __reduce__(self):
         return super(IDDFile, self).__reduce__()
-
 
     # def __setitem__(self, key, value, dict_setitem=dict.__setitem__):
     #     """Override the default __setitem__ to ensure that only certain
@@ -114,7 +109,6 @@ class IDDFile(PODict):
     #         raise TypeError('Only items of type IDDObject can be added!')
     #
     #     super(IDDFile, self).__setitem__(key, value, dict_setitem)
-
 
     @property
     def version(self):

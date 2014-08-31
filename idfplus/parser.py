@@ -22,8 +22,8 @@ from __future__ import (print_function, division, absolute_import)
 
 # System imports
 import os
-import shelve
-import datetime as dt
+# import shelve
+# import datetime as dt
 # import transaction
 import codecs
 # from persistent.list import PersistentList
@@ -478,47 +478,11 @@ class IDDParser(Parser):
         super(IDDParser, self).__init__(*args, **kwargs)
 
         if idd is not None:
-            log.debug('custom idd received by parser')
+            log.debug('IDD received by parser - using it.')
             self.idd = idd
         else:
-            log.debug('no custom idd received by parser. using blank')
-            print('blank idd file used')
+            log.debug('No IDD received by parser - using a blank one.')
             self.idd = datamodel.IDDFile()
-
-
-
-    # @staticmethod
-    # def init_db(idd):
-    #     """Initializes a shelve database and saves the idd file to it.
-    #     :param idd:
-    #     :return Shelve Database:
-    #     """
-    #
-    #     file_name = c.IDD_FILE_NAME_ROOT.format('IDDTEMP')
-    #     idd_path = os.path.join(c.DATA_DIR, file_name)
-    #
-    #     try:
-    #         log.debug('Opening idd dat file: {}'.format(idd_path))
-    #         database = shelve.open(idd_path, protocol=2, writeback=True)
-    #         # log.debug('idd type is: {}'.format(type(idd)))
-    #         database['idd'] = idd
-    #         # database['date_generated'] = dt.datetime.now()
-    #         return database
-    #     except IOError as e:
-    #         log.debug('IO fail on loading idd path')
-    #         return False
-    #     except Exception as e:
-    #         print(e.message)
-
-    @staticmethod
-    def rename_idd(version):
-        """Renames the idd once the version is known."""
-
-        log.debug('Renaming temp idd file.')
-        file_name = c.IDD_FILE_NAME_ROOT.format(version)
-        new = os.path.join(c.DATA_DIR, file_name)
-        old = new.replace(version, 'IDDTEMP')
-        os.rename(old, new)
 
     def parse_idd(self, file_path):
         """Parse the provided idd (or idf) file
@@ -529,20 +493,8 @@ class IDDParser(Parser):
         #TODO write parser for unit conversion comments!
         total_size = os.path.getsize(file_path)
         total_read = 0.0
-
-        log.info('Parsing IDD file: {} ({} bytes)'.format(file_path, total_size))
-
-        # Create an on-disk database in which to store the new idd
-        # db = self.init_db(self.idd)
         idd = self.idd
-
-
-        file_name = c.IDD_FILE_NAME_ROOT.format('IDDTEMP')
-        idd_path = os.path.join(c.DATA_DIR, file_name)
-        # idd = datamodel.IDDFile2(idd_path)
-        # db = shelve.open(idd_path, protocol=2, writeback=True)
-        # db['idd'] = idd
-        # idd = db['idd']
+        log.info('Parsing IDD file: {} ({} bytes)'.format(file_path, total_size))
 
         # Open the specified file in a safe way
         with codecs.open(file_path, 'r',
@@ -596,8 +548,8 @@ class IDDParser(Parser):
                         version_raw = line_parsed['comments'].split()[1].strip()
                         version = '.'.join(version_raw.split('.')[0:2])
                         idd._version = version
-                        print('idd version from idd1: {}'.format(version))
-                        print('idd version from idd2: {}'.format(idd._version))
+                        # print('idd version from idd1: {}'.format(version))
+                        # print('idd version from idd2: {}'.format(idd._version))
                         log.debug('Found idd version in idd file: {}'.format(idd._version))
 
                 # Check for special comments and options
@@ -715,73 +667,15 @@ class IDDParser(Parser):
             idd._groups = group_list
             idd._tree_model = None
 
-        # Save changes and rename temp idd file because we now know the version
-        # log.debug('test 123 idd for keys: {}'.format(idd.keys()[:5]))
-        # db['idd'] = idd
-
-        with open(idd_path, 'w') as fp:
-            pickle.dump(idd, fp)
-        # db = shelve.open(idd_path, protocol=2, writeback=True)
-        # db['idd'] = idd
-        # log.debug('test 1234 idd for keys: {}'.format(db['idd'].keys()[:5]))
-        print('version 123: {}'.format(idd._version))
-        print('test of loaded idd1: {}'.format(idd.keys()))
-        # idd.close()
-        # db.close()
-
-        # db = shelve.open(idd_path, protocol=2, writeback=True)
-        with open(idd_path) as fp:
-            idd2 = pickle.load(fp)
-        print('version 456: {}'.format(idd2._version))
-        print('test of loaded idd2: {}'.format(idd2.keys()))
-        # db.close()
-        self.rename_idd(version)
+        # Save changes
+        file_name = c.IDD_FILE_NAME_ROOT.format(version)
+        idd_path = os.path.join(c.DATA_DIR, file_name)
+        with open(idd_path, 'wb') as fp:
+            pickle.dump(idd, fp, 2)
         log.info('Parsing IDD complete!')
 
         # Yield the final progress for progress bars
         yield math.ceil(100 * total_read / total_size)
-
-    # @staticmethod
-    # def save_idd(idd):
-    #     """Shelves a copy of the IDD file object.
-    #     :param idd:
-    #     :raises : Exception
-    #     :rtype : bool
-    #     """
-    #     log.debug('Saving idd...')
-    #     log.debug('Received idd with {} keys'.format(len(idd.keys())))
-    #     if not idd.version:
-    #         raise Exception("Missing IDD file version")
-    #
-    #     file_name = c.IDD_FILE_NAME_ROOT.format(idd.version)
-    #     idd_path = os.path.join(c.DATA_DIR, file_name)
-    #
-    #     try:
-    #         # storage = ZODB.FileStorage.FileStorage(idd_path)
-    #         log.debug('Opening idd dat file: {}'.format(idd_path))
-    #         # db = ZODB.DB(idd_path)
-    #         # connection = db.open()
-    #         # root = db.open().root
-    #
-    #         # print('saving idd to root obj: {}'.format(type(idd)))
-    #         database = shelve.open(idd_path, protocol=2, writeback=True)
-    #         log.debug('idd type is: {}'.format(type(idd)))
-    #         log.debug('test 1 idd for keys: {}'.format(idd.keys()[:20]))
-    #         database['idd'] = idd
-    #         database['date_generated'] = dt.datetime.now()
-    #         database.close()
-    #
-    #         # root.idd = idd
-    #         # root.date_generated = dt.datetime.now()
-    #         log.debug('Saving idd file to disk...')
-    #         # transaction.commit()
-    #         # db.close()
-    #         log.debug('test 2 idd for keys: {}'.format(idd.keys()[:20]))
-    #         return True
-    #     except IOError as e:
-    #         return False
-    #     except Exception as e:
-    #         log.debug(e.message)
 
     @staticmethod
     def load_idd(version):
@@ -794,25 +688,20 @@ class IDDParser(Parser):
 
         # Create the full path to the idd file
         log.info("Loading idd file")
-        idd_file_name = c.IDD_FILE_NAME_ROOT.format(version)
-        idd_path = os.path.join(c.DATA_DIR, idd_file_name)
+        file_name = c.IDD_FILE_NAME_ROOT.format(version)
+        idd_path = os.path.join(c.DATA_DIR, file_name)
         log.debug('Checking for idd version: {}'.format(version))
         log.debug(idd_path)
 
         # Check if the file name is a file and then open the idd file
         if os.path.isfile(idd_path):
-            log.debug('idd found, loading...')
-            # database = shelve.open(idd_path, flag='r', protocol=2)
-            # idd = database['idd']
-            with open(idd_path) as fp:
+            log.debug('IDD found, loading...')
+            with open(idd_path, 'rb') as fp:
                 idd = pickle.load(fp)
-            # idd = datamodel.IDDFile2(idd_path, flag='r')
-            # date_generated = database['date_generated']
-            # database.close()
             try:
                 log.debug('Testing if loaded idd file has a version attribute')
                 log.debug('Version found! (v{})'.format(idd.version))
-                log.debug('test 3 idd for keys: {}'.format(idd.keys()[:5]))
+                # log.debug('test 3 idd for keys: {}'.format(idd.keys()[:5]))
                 assert idd.version is not None
                 return idd
             except AttributeError:
