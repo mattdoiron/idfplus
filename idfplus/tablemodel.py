@@ -106,10 +106,10 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
                 return self.objID_labels[section]
         return None
 
-    def rowCount(self, index):
+    def rowCount(self, parent=None):
         return len(self.idf_objects)
 
-    def columnCount(self, index):
+    def columnCount(self, parent=None):
         return len(self.idd_object)
 
     def setData(self, index, value, role):
@@ -160,7 +160,10 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
     def removeObjects(self, index, count):
 
         # Set the position for the removal
-        position = index.row()
+        if index.row() == -1:
+            position = len(self.idf_objects) - 1
+        else:
+            position = index.row()
 
         # Warn the model that we're about to remove rows
         self.beginRemoveRows(QtCore.QModelIndex(),
@@ -256,11 +259,11 @@ class TransposeProxyModel(QtGui.QAbstractProxyModel):
     def parent(self, index):
         return QtCore.QModelIndex()
 
-    def rowCount(self, parent):
-        return self.sourceModel().columnCount(QtCore.QModelIndex())
+    def rowCount(self, parent=None):
+        return self.sourceModel().columnCount(parent)
 
-    def columnCount(self, parent):
-        return self.sourceModel().rowCount(QtCore.QModelIndex())
+    def columnCount(self, parent=None):
+        return self.sourceModel().rowCount(parent)
 
     def data(self, index, role):
         return self.sourceModel().data(self.mapToSource(index), role)

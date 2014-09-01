@@ -42,8 +42,8 @@ class ObjectCmd(QtGui.QUndoCommand):
     def __init__(self, main_window, **kwargs):
         super(ObjectCmd, self).__init__()
         self.selectedIndexes = main_window.classTable.selectedIndexes()
-        self.indexes = None
-        self.cols_rows = [(index.row(), index.column()) for index in self.selectedIndexes]
+        self.indexes = main_window.classTable.selectedIndexes()
+        self.index_list = [(index.row(), index.column()) for index in self.selectedIndexes]
         self.main_window = main_window
         obj_class_index = main_window.classTree.selectedIndexes()[0]
         self.obj_class_index = QtCore.QPersistentModelIndex(obj_class_index)
@@ -52,50 +52,59 @@ class ObjectCmd(QtGui.QUndoCommand):
         self.tx_id = None
         self.mime_data = None
         self.new_objects = None
+        self.old_objects = None
         self.copied_objects = None
         self.from_clipboard = kwargs.get('from_clipboard', False)
         self.from_selection = kwargs.get('from_selection', False)
         self.value = kwargs.get('value', None)
         self.old_value = None
-        self.model = None
+        self.model = self.main_window.classTable.model().sourceModel()
 
-    def set_model(self):
+    def update_model(self):
 
         # Make sure the table view is updated so we grab the right model
         if self.main_window.current_obj_class != self.obj_class:
             self.main_window.load_table_view(self.obj_class)
             self.main_window.classTree.setCurrentIndex(self.obj_class_index)
 
-        # Get the table's model
-        self.model = self.main_window.classTable.model().sourceModel()
+            # Get the new table's model
+            self.model = self.main_window.classTable.model().sourceModel()
+
+            # Recreate the index for the new model
+            self.indexes = []
+            for i in self.index_list:
+                self.indexes.append(self.model.index(i[0], i[1], QtCore.QModelIndex()))
 
 
 class NewObjectCmd(ObjectCmd):
+    """Class that handles creating new objects, and undo of that creation."""
 
     def undo(self, *args, **kwargs):
-
-        super(NewObjectCmd, self).set_model()
+        self.update_model()
 
         # Make a set to find unique columns/rows
-        if self.obj_orientation == QtCore.Qt.Vertical:
+        if self.main_window.obj_orientation == QtCore.Qt.Vertical:
             row_offset = 0
             col_offset = 1
         else:
             row_offset = 1
             col_offset = 0
 
-        # Recreate the index for the possibly new model
-        index = self.model.index(self.cols_rows[0][0] + row_offset,
-                                 self.cols_rows[0][1] + col_offset,
-                                 QtCore.QModelIndex())
+        # Recreate index for new model, but with an offset, or use the last row
+        if self.index_to_delete.row() == -1:
+            index = self.index_to_delete
+        else:
+            index = self.model.index(self.index_list[-1][0] + row_offset,
+                                     self.index_list[-1][1] + col_offset,
+                                     QtCore.QModelIndex())
 
         # Get the table's model and call its remove method
-        self.model.removeObjects(index, 1)
+        self.model.removeObjects(index, self.delete_count)
 
     def redo(self, from_clipboard=False, *args, **kwargs):
+        self.update_model()
 
-        super(NewObjectCmd, self).set_model()
-
+        # Set a name for the undo/redo action
         self.setText('Create object')
 
         # Define which (if any) new objects to insert
@@ -114,15 +123,14 @@ class NewObjectCmd(ObjectCmd):
 
             # Save the new objects for later use by undo
             self.new_objects = new_objects
-            self.delete_count = len(new_objects or [])
+            self.delete_count = len(new_objects or [0])
 
         # Define the index at which the objects will be inserted
-        if len(self.selectedIndexes) <= 0:
+        if not self.indexes:
             index = QtCore.QModelIndex()
         else:
-            # Recreate the index for the possibly new model
-            index = self.model.index(self.cols_rows[0][0], self.cols_rows[0][1],
-                                     QtCore.QModelIndex())
+            index = self.indexes[0]
+
         self.index_to_delete = index
 
         # Call the table's insert method
@@ -130,21 +138,35 @@ class NewObjectCmd(ObjectCmd):
 
 
 class PasteSelectedCmd(ObjectCmd):
+    """Pastes clipboard into cells starting at selected cell."""
+
+    def undo(self):
+        self.update_model()
+
+        # insert rest here
+        index = None
+        value = None
+
+        # Replace the data
+        self.model.setData(index, value, QtCore.Qt.EditRole)
+
+        # Notify everyone that data has changed
+        self.model.dataChanged.emit(self.indexes[0], index)
+
 
     def redo(self, *args, **kwargs):
-        """Pastes clipboard into cells starting at selected cell."""
+        self.update_model()
 
-        super(PasteSelectedCmd, self).set_model()
-
+        # Set a name for the undo/redo action
         self.setText('Paste data')
 
         # Get the currently-selected indexes and proceed only if there are any
-        if len(self.selectedIndexes) <= 0:
+        if len(self.indexes) <= 0:
             return False
 
         # Find the selected cell at which to start pasting
-        start_col = self.selectedIndexes[0].column()
-        start_row = self.selectedIndexes[0].row()
+        start_col = self.indexes[0].column()
+        start_row = self.indexes[0].row()
 
         # Get clipboard data if it's text, but only once (the first time)
         if not self.mime_data:
@@ -162,8 +184,17 @@ class PasteSelectedCmd(ObjectCmd):
 
                 # Save value and rows to data model
                 index = self.model.index(start_row + i,
-                                    start_col + j,
-                                    QtCore.QModelIndex())
+                                         start_col + j,
+                                         QtCore.QModelIndex())
+
+                # Save the data about to be replaced for undo
+                saved_value = self.model.data(index, value, QtCore.Qt.DisplayRole)
+                self.old_objects = []
+                self.old_objects.append((start_row + i,
+                                         start_col + j,
+                                         saved_value))
+
+                # Replace the data
                 self.model.setData(index, value, QtCore.Qt.EditRole)
 
         # Notify everyone that data has changed
@@ -171,62 +202,71 @@ class PasteSelectedCmd(ObjectCmd):
 
 
 class DeleteObjectCmd(ObjectCmd):
+    """Class that handles deleting objects, and undo of that deletion."""
 
-    def redo(self, *args, **kwargs):
-
-        super(DeleteObjectCmd, self).set_model()
-
-        self.setText('Delete object')
-
-        # Get the currently-selected indexes and proceed only if there are any
-        if len(self.selectedIndexes) <= 0:
-            return False
+    def undo(self):
+        self.update_model()
 
         # Make a set to find unique columns/rows
-        if self.obj_orientation == QtCore.Qt.Vertical:
-            index_set = set([index.column() for index in self.selectedIndexes])
+        if self.main_window.obj_orientation == QtCore.Qt.Vertical:
+            row_offset = 0
+            col_offset = -1
         else:
-            index_set = set([index.row() for index in self.selectedIndexes])
-        self.delete_count = len(list(index_set))
+            row_offset = -1
+            col_offset = 0
 
-        # Recreate the index for the possibly new model
-        index = self.model.index(self.cols_rows[0][0], self.cols_rows[0][1],
+        # Recreate index for new model, but with an offset, or use the last row
+        index = self.model.index(self.index_list[-1][0] + row_offset,
+                                 self.index_list[-1][1] + col_offset,
                                  QtCore.QModelIndex())
 
+        # Call the table's insert method
+        self.model.insertObjects(index, self.old_objects)
+
+    def redo(self, *args, **kwargs):
+        self.update_model()
+
+        # Set a name for the undo/redo action
+        self.setText('Delete object')
+
+        # Make a copy of the object(s) about to be deleted (only once)
+        if self.old_objects is None:
+            self.old_objects = self.main_window.copyObject(save=False)
+
+        # Make a set to find unique columns/rows - use to find number to be deleted
+        if self.obj_orientation == QtCore.Qt.Vertical:
+            index_set = set([index.column() for index in self.indexes])
+        else:
+            index_set = set([index.row() for index in self.indexes])
+        self.delete_count = len(list(index_set))
+
         # Get the table's model and call its remove method
-        self.model.removeObjects(index, self.delete_count)
+        self.model.removeObjects(self.indexes[0], self.delete_count)
 
 
 class ModifyObjectCmd(ObjectCmd):
+    """Class that handles modifying a single field value, and undo of that change."""
 
     def undo(self):
-        super(ModifyObjectCmd, self).set_model()
-
-        # Recreate the index for the possibly new model
-        index = self.model.index(self.cols_rows[0][0], self.cols_rows[0][1],
-                            QtCore.QModelIndex())
+        self.update_model()
 
         # Call the setData method to change the values
-        self.model.setData(index, self.old_value, QtCore.Qt.EditRole)
+        self.model.setData(self.indexes[0], self.old_value, QtCore.Qt.EditRole)
 
         # Notify everyone that data has changed
-        self.model.dataChanged.emit(index, index)
+        self.model.dataChanged.emit(self.indexes[0], self.indexes[0])
 
     def redo(self, *args, **kwargs):
+        self.update_model()
 
-        super(ModifyObjectCmd, self).set_model()
-
+        # Set a name for the undo/redo action
         self.setText('Modify object')
 
-        # Recreate the index for the possibly new model
-        index = self.model.index(self.cols_rows[0][0], self.cols_rows[0][1],
-                                 QtCore.QModelIndex())
-
         # Store the old value for use by undo
-        self.old_value = self.model.data(index, QtCore.Qt.DisplayRole)
+        self.old_value = self.model.data(self.indexes[0], QtCore.Qt.DisplayRole)
 
         # Call the setData method to change the values
-        self.model.setData(index, self.value, QtCore.Qt.EditRole)
+        self.model.setData(self.indexes[0], self.value, QtCore.Qt.EditRole)
 
         # Notify everyone that data has changed
-        self.model.dataChanged.emit(index, index)
+        self.model.dataChanged.emit(self.indexes[0], self.indexes[0])

@@ -441,6 +441,9 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow):
 
     def deleteObject(self):
 
+        if len(self.classTable.selectedIndexes()) <= 0:
+            return False
+
         # Create undo command and push it to the undo stack
         cmd = commands.DeleteObjectCmd(self)
         self.undo_stack.push(cmd)
@@ -466,7 +469,7 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow):
         cmd = commands.NewObjectCmd(self, from_clipboard=True)
         self.undo_stack.push(cmd)
 
-    def copyObject(self):
+    def copyObject(self, save=None):
         """Copies object(s) to the clipboard for pasting to other programs."""
         indexes = self.classTable.selectedIndexes()
         if len(indexes) <= 0:
@@ -481,9 +484,12 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow):
         start = list(index_set)[0]
         end = start + count
 
-        # Copy object to the clipboard
-        self.obj_clipboard = self.idf[self.current_obj_class][start:end]
-        return True
+        # Copy object(s) to the clipboard or return the object(s)
+        if save is None:
+            self.obj_clipboard = self.idf[self.current_obj_class][start:end]
+            return True
+        else:
+            return self.idf[self.current_obj_class][start:end]
 
     def copySelected(self):
         """Copies the selected cells to the clipboard for pasting to other programs."""
