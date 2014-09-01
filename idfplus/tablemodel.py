@@ -428,3 +428,8 @@ class TableView(QtGui.QTableView):
    #     #TODO put transaction commit in here?
    #     #TODO catch multiple paste and commit only once?
    #     super(TableView, self).commitData(*args, **kwargs)
+
+    # def clear(self):
+    #     self.model().beginResetModel()
+    #     self.model().clear()
+    #     self.model().endResetModel()

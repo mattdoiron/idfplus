@@ -544,7 +544,6 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow):
 
         # Save some variables
         table = self.classTable
-        self.current_obj_class = obj_class
 
         # Create the default table model
         self.default_model = tablemodel.IDFObjectTableModel(obj_class,
@@ -578,7 +577,8 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow):
         self.newObjAct.setEnabled(True)
         self.delObjAct.setEnabled(True)
         self.transposeAct.setEnabled(True)
-        self.infoView.setText(self.idd[self.current_obj_class].get_info)
+        self.infoView.setText(self.idd[obj_class].get_info)
+        self.current_obj_class = obj_class
 
     def load_tree_view(self):
         """Loads the tree of class type names."""
@@ -592,9 +592,10 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow):
         self.classTree.setColumnWidth(0, 280)
         self.classTree.setColumnWidth(1, 10)
 
-    def update_tree_view(self):
-        print('updated tree view')
-        self.classTree.sourceModel().setData(0, 123123)
+    def update_tree_view(self, index):
+        # print('updated tree view, args: {}'.format(args))
+
+        self.classTree.model().setData(index, 123123)
 
     def transpose_table(self):
         """Transposes the table"""

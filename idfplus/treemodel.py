@@ -100,6 +100,14 @@ class CustomTreeModel(QtCore.QAbstractItemModel):
 
         return int(QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable)
 
+    def getItem(self, index):
+        if index.isValid():
+            item = index.internalPointer()
+            if item:
+                return item
+
+        return self.rootItem
+
     def headerData(self, section, orientation, role):
         if orientation == QtCore.Qt.Horizontal and role == QtCore.Qt.DisplayRole:
             return self.rootItem.data(section)
