@@ -46,8 +46,18 @@ class TreeItem(object):
         return len(self.itemData)
 
     def data(self, column):
+        data = self.itemData[column]
         try:
-            return self.itemData[column]
+            if column == 1:
+                if data == 'Count':
+                    return data
+                count = len(data)
+                if count <= 0:
+                    return ''
+                else:
+                    return len(data)
+            else:
+                return data
         except IndexError:
             return None
 
@@ -76,12 +86,6 @@ class CustomTreeModel(QtCore.QAbstractItemModel):
         super(CustomTreeModel, self).__init__(parent)
         self.rootItem = TreeItem(root)
         self.setupModelData(data, self.rootItem)
-
-    def columnCount(self, parent):
-        if parent.isValid():
-            return parent.internalPointer().columnCount()
-        else:
-            return self.rootItem.columnCount()
 
     def data(self, index, role):
         if not index.isValid():
@@ -152,6 +156,12 @@ class CustomTreeModel(QtCore.QAbstractItemModel):
 
         return parentItem.childCount()
 
+    def columnCount(self, parent):
+        if parent.isValid():
+            return parent.internalPointer().columnCount()
+        else:
+            return self.rootItem.columnCount()
+
     def setupModelData(self, data, parent):
         pass
 
@@ -175,7 +185,7 @@ class ObjectClassTreeModel(CustomTreeModel):
 
         return data
 
-    def data(self, index, role):
+    def data(self, index, role=QtCore.Qt.DisplayRole):
         if not index.isValid():
             return None
 
@@ -191,12 +201,12 @@ class ObjectClassTreeModel(CustomTreeModel):
 
         return data
 
-    def setupModelData(self, data, parent):
-        if data:
+    def setupModelData(self, idf, parent):
+        if idf:
             group = ''
             group_root = None
 
-            for obj_class, obj in data._idd.iteritems():
+            for obj_class, obj in idf._idd.iteritems():
                 if group != obj.group:
 
                     group = obj.group
@@ -207,10 +217,10 @@ class ObjectClassTreeModel(CustomTreeModel):
                     parent.appendChild(blank)
                     # blank.setDisabled(True)
 
-                objs = data.get(obj_class, None)
+                objs = idf.get(obj_class, None)
                 obj_count = len(objs or []) or ''
 
-                child = TreeItem((obj_class, str(obj_count)), group_root)
+                child = TreeItem((obj_class, objs), group_root)
                 group_root.appendChild(child)
 
     def setData(self, index, value, role=QtCore.Qt.EditRole):
@@ -245,3 +255,55 @@ class ReferenceTreeModel(CustomTreeModel):
                 for item in data[1]:
                     tree_data = (str(item._outer[0].value), item._outer._obj_class)
                     descendant_root.appendChild(TreeItem(tree_data, descendant_root))
+
+
+class TreeSortFilterProxyModel(QtGui.QSortFilterProxyModel):
+    """Proxy layer to sort and filter"""
+
+    def __init__(self, *args, **kwargs):
+        super(TreeSortFilterProxyModel, self).__init__(*args, **kwargs)
+
+        syntax = QtCore.QRegExp.PatternSyntax(QtCore.QRegExp.Wildcard)
+        caseSensitivity = QtCore.Qt.CaseInsensitive
+
+        self.setFilterRegExp(QtCore.QRegExp('', caseSensitivity, syntax))
+        self.setFilterCaseSensitivity(caseSensitivity)
+
+        self.filter_empty = False
+
+    def filterAcceptsRow(self, row, parent):
+        """ Filters rows
+            http://gaganpreet.in/blog/2013/07/04/qtreeview-and-custom-filter-models/
+            https://qt-project.org/forums/viewthread/7782/#45740
+        """
+
+        # Filter out classes without and objects in them
+        if self.filter_empty and parent.data():
+            model = self.sourceModel()
+            index = model.index(row, 1, parent)
+            data = model.data(index)
+            if data == '':
+                return False
+
+        # Check if the current row matches
+        if self.filter_accepts_row_itself(row, parent):
+            return True
+
+        # Finally, check if any of the children match
+        return self.has_accepted_children(row, parent)
+
+    def filter_accepts_row_itself(self, row, parent):
+        return super(TreeSortFilterProxyModel, self).filterAcceptsRow(row, parent)
+
+    def has_accepted_children(self, row, parent):
+        """ Starting from the current node as root, traverse all
+            the descendants and test if any of the children match
+        """
+        model = self.sourceModel()
+        source_index = model.index(row, 0, parent)
+
+        children_count = model.rowCount(source_index)
+        for i in xrange(children_count):
+            if self.filterAcceptsRow(i, source_index):
+                return True
+        return False

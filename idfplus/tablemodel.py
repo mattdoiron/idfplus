@@ -37,7 +37,7 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
     displayed in the table.
     """
 
-    def __init__(self, obj_class, idf):
+    def __init__(self, obj_class, idf, parent):
         self.obj_class = obj_class
         self.idf = idf
         self.idd = idf._idd
@@ -45,7 +45,7 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
         self.idd_object = idf._idd.get(obj_class, PersistentList())
         # self.dirty = False
         self.getLabels()
-        super(IDFObjectTableModel, self).__init__()
+        super(IDFObjectTableModel, self).__init__(parent)
 
     def flags(self, index):
         if not index.isValid():
@@ -175,7 +175,7 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
 
         # Update state
         self.getLabels()
-        self.dataChanged.emit(QtCore.QModelIndex(), QtCore.QModelIndex())
+        # self.dataChanged.emit(QtCore.QModelIndex(), QtCore.QModelIndex())
         self.endRemoveRows()
         return True
 
@@ -207,7 +207,7 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
 
         # Update state
         self.getLabels()
-        self.dataChanged.emit(QtCore.QModelIndex(), QtCore.QModelIndex())
+        # self.dataChanged.emit(QtCore.QModelIndex(), QtCore.QModelIndex())
         self.endInsertRows()
         return True
 

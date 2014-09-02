@@ -344,17 +344,28 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow):
             else:
                 target.addAction(action)
 
-    def filterRegExpChanged(self):
+    def tableFilterRegExpChanged(self):
         pattern = self.filterBox.text()
         if len(pattern) < 3:
-            pattern = ''
+            pattern = None
+        if not self.classTable.model():
+            return
         self.classTable.model().setFilterRegExp(pattern)
         self.classTable.model().invalidate()
-        # self.classTable.dataChanged.emit(QtCore.QModelIndex(), QtCore.QModelIndex())
+
+    def treeFilterRegExpChanged(self):
+        pattern = self.filterBox.text()
+        if len(pattern) < 2:
+            pattern = None
+        if not self.classTree.model():
+            return
+        self.classTree.model().setFilterRegExp(pattern)
+        self.classTree.model().invalidate()
+        self.classTree.expandAll()
 
     def clearFilterClicked(self):
         self.filterBox.clear()
-        self.filterRegExpChanged()
+        self.tableFilterRegExpChanged()
 
     def caseSensitivityChanged(self):
         if self.caseSensitivity.isChecked() == True:
@@ -362,7 +373,7 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow):
         else:
             sensitivity = QtCore.Qt.CaseInsensitive
         self.classTable.model().setFilterCaseSensitivity(sensitivity)
-        self.filterRegExpChanged()
+        self.tableFilterRegExpChanged()
 
     def set_current_file(self, file_name):
         """Sets the current file globally and updates title, statusbar, etc."""
@@ -435,6 +446,9 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow):
 
     def duplicateObject(self):
 
+        if len(self.classTable.selectedIndexes()) <= 0:
+            return False
+
         # Create undo command and push it to the undo stack
         cmd = commands.NewObjectCmd(self, from_selection=True)
         self.undo_stack.push(cmd)
@@ -449,6 +463,9 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow):
         self.undo_stack.push(cmd)
 
     def cutObject(self):
+
+        if len(self.classTable.selectedIndexes()) <= 0:
+            return False
 
         # Copy object then delete it
         if not self.copyObject():
@@ -529,13 +546,17 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow):
         tree = self.classTree
         current = tree.currentIndex()
 
-        for item in QtGui.QTreeWidgetItemIterator(tree):
-            obj = item.value().text(0)
-            count = item.value().text(1)
-            disabled = item.value().isDisabled()
-            spanned = item.value().isFirstColumnSpanned()
-            if obj is not None and count == '' and not disabled and not spanned:
-                item.value().setHidden(not self.fullTree)
+        self.classTree.model().filter_empty = not self.classTree.model().filter_empty
+        self.treeFilterRegExpChanged()
+
+        # for item in QtGui.QTreeWidgetItemIterator(tree):
+        #     obj = item.value().text(0)
+        #     count = item.value().text(1)
+        #     disabled = item.value().isDisabled()
+        #     spanned = item.value().isFirstColumnSpanned()
+        #     if obj is not None and count == '' and not disabled and not spanned:
+        #         item.value().setHidden(not self.fullTree)
+
         tree.scrollTo(current)
 
     def load_table_view(self, obj_class):
@@ -552,15 +573,14 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow):
         table = self.classTable
 
         # Create the default table model
-        self.default_model = tablemodel.IDFObjectTableModel(obj_class,
-                                                            self.idf)
+        default_model = tablemodel.IDFObjectTableModel(obj_class, self.idf, table)
 
         # If objects are vertical, create transposed model
         if self.obj_orientation == QtCore.Qt.Vertical:
-            model = tablemodel.TransposeProxyModel(self.default_model)
-            model.setSourceModel(self.default_model)
+            model = tablemodel.TransposeProxyModel(default_model)
+            model.setSourceModel(default_model)
         else:
-            model = self.default_model
+            model = default_model
 
         # Create additional proxy for sorting and filtering
         sortable = tablemodel.SortFilterProxyModel(self.obj_orientation)
@@ -577,7 +597,7 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow):
                                                  self.obj_orientation)
         table.setItemDelegate(my_delegates)
 
-        self.default_model.sourceModel().dataChanged.connect(self.update_tree_view)
+        default_model.sourceModel().dataChanged.connect(self.update_tree_view)
 
         # Now that there is a class selected, enable some actions
         self.newObjAct.setEnabled(True)
@@ -589,19 +609,27 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow):
     def load_tree_view(self):
         """Loads the tree of class type names."""
 
-        new_model = treemodel.ObjectClassTreeModel(self.idf,
-                                                   ("Object Class", "Count"),
-                                                   self.classTree)
-        self.classTree.setModel(new_model)
+        source_model = treemodel.ObjectClassTreeModel(self.idf,
+                                                      ("Object Class", "Count"),
+                                                      self.classTree)
+
+        # Create additional proxy for sorting and filtering
+        proxy_model = treemodel.TreeSortFilterProxyModel()
+        proxy_model.setSourceModel(source_model)
+
+        self.classTree.setModel(proxy_model)
         self.classTree.setRootIsDecorated(False)
         self.classTree.expandAll()
         self.classTree.setColumnWidth(0, 280)
         self.classTree.setColumnWidth(1, 10)
 
     def update_tree_view(self, index):
-        # print('updated tree view, args: {}'.format(args))
+        # print('updated tree view, args: ({},{})'.format(index.row(), index.column()))
 
-        self.classTree.model().setData(index, 123123)
+        # item_to_update = self.classTree.model().match()
+        # self.classTree.model().setData(index, 123123)
+        pass
+        # self.classTree.model().reset()
 
     def transpose_table(self):
         """Transposes the table"""
@@ -622,10 +650,14 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow):
 
     def classSelected(self, current):
         """Loads the table view when a new class is selected"""
-        if (current or current.parent()) is None:
+
+        selected = self.classTree.selectedIndexes()
+        data = self.classTree.model().data(selected[0], QtCore.Qt.DisplayRole)
+
+        if not data:
             return
-        cls = current.internalPointer().data(0)
-        self.load_table_view(cls)
+
+        self.load_table_view(data)
 
     def update_log_viewer(self, changed_path):
         with open(changed_path) as f:

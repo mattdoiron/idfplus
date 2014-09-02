@@ -101,6 +101,9 @@ class NewObjectCmd(ObjectCmd):
         # Get the table's model and call its remove method
         self.model.removeObjects(index, self.delete_count)
 
+         # Notify everyone that data has changed
+        self.model.dataChanged.emit(QtCore.QModelIndex(), QtCore.QModelIndex())
+
     def redo(self, from_clipboard=False, *args, **kwargs):
         self.update_model()
 
@@ -135,6 +138,9 @@ class NewObjectCmd(ObjectCmd):
 
         # Call the table's insert method
         self.model.insertObjects(index, self.new_objects)
+
+        # Notify everyone that data has changed
+        self.model.dataChanged.emit(QtCore.QModelIndex(), QtCore.QModelIndex())
 
 
 class PasteSelectedCmd(ObjectCmd):
@@ -223,6 +229,9 @@ class DeleteObjectCmd(ObjectCmd):
         # Call the table's insert method
         self.model.insertObjects(index, self.old_objects)
 
+        # Notify everyone that data has changed
+        self.model.dataChanged.emit(index, index)
+
     def redo(self, *args, **kwargs):
         self.update_model()
 
@@ -242,6 +251,9 @@ class DeleteObjectCmd(ObjectCmd):
 
         # Get the table's model and call its remove method
         self.model.removeObjects(self.indexes[0], self.delete_count)
+
+        # Notify everyone that data has changed
+        self.model.dataChanged.emit(self.indexes[0], self.indexes[0])
 
 
 class ModifyObjectCmd(ObjectCmd):
