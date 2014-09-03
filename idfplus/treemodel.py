@@ -25,8 +25,8 @@ from PySide import QtCore
 from PySide import QtGui
 
 
-class TreeItem(object):
-    """Low level item for a custom tree view"""
+class BaseTreeItem(object):
+    """Low level item for a custom tree views"""
 
     def __init__(self, data, parent=None):
         self.parentItem = parent
@@ -46,20 +46,7 @@ class TreeItem(object):
         return len(self.itemData)
 
     def data(self, column):
-        data = self.itemData[column]
-        try:
-            if column == 1:
-                if data == 'Count':
-                    return data
-                count = len(data)
-                if count <= 0:
-                    return ''
-                else:
-                    return len(data)
-            else:
-                return data
-        except IndexError:
-            return None
+        pass
 
     def parent(self):
         return self.parentItem
@@ -77,15 +64,41 @@ class TreeItem(object):
 
         return True
 
+
+class TreeItem(BaseTreeItem):
+    """Low level item for a custom class tree view"""
+
+    def data(self, column):
+        data = self.itemData[column]
+        try:
+            if column == 1:
+                if data == 'Count':
+                    return data
+                count = len(data)
+                if count <= 0:
+                    return ''
+                else:
+                    return len(data)
+            else:
+                return data
+        except IndexError:
+            return None
+
+
+class RefTreeItem(BaseTreeItem):
+    """Low level item for a custom reference tree view"""
+
+    def data(self, column):
+        try:
+            return self.itemData[column]
+        except IndexError:
+            return None
+
+
 class CustomTreeModel(QtCore.QAbstractItemModel):
     """Qt object that handles interaction between the jump widget and the data
     displayed in the tree view.
     """
-
-    def __init__(self, data, root, parent=None):
-        super(CustomTreeModel, self).__init__(parent)
-        self.rootItem = TreeItem(root)
-        self.setupModelData(data, self.rootItem)
 
     def data(self, index, role):
         if not index.isValid():
@@ -171,6 +184,11 @@ class ObjectClassTreeModel(CustomTreeModel):
     displayed in the tree view.
     """
 
+    def __init__(self, data, root, parent=None):
+        super(ObjectClassTreeModel, self).__init__(parent)
+        self.rootItem = TreeItem(root)
+        self.setupModelData(data, self.rootItem)
+
     def flags(self, index):
         if not index.isValid():
             return QtCore.Qt.NoItemFlags
@@ -241,20 +259,25 @@ class ReferenceTreeModel(CustomTreeModel):
     displayed in the tree view.
     """
 
+    def __init__(self, data, root, parent=None):
+        super(ReferenceTreeModel, self).__init__(parent)
+        self.rootItem = RefTreeItem(root)
+        self.setupModelData(data, self.rootItem)
+
     def setupModelData(self, data, parent):
         if data:
             if data[0]:
-                ancestor_root = TreeItem(('Incoming References',''), parent)
+                ancestor_root = RefTreeItem(('Incoming References',''), parent)
                 parent.appendChild(ancestor_root)
                 for item in data[0]:
                     tree_data = (str(item._outer[0].value), item._outer._obj_class)
-                    ancestor_root.appendChild(TreeItem(tree_data, ancestor_root))
+                    ancestor_root.appendChild(RefTreeItem(tree_data, ancestor_root))
             if data[1]:
-                descendant_root = TreeItem(('Outgoing References',''), parent)
+                descendant_root = RefTreeItem(('Outgoing References',''), parent)
                 parent.appendChild(descendant_root)
                 for item in data[1]:
                     tree_data = (str(item._outer[0].value), item._outer._obj_class)
-                    descendant_root.appendChild(TreeItem(tree_data, descendant_root))
+                    descendant_root.appendChild(RefTreeItem(tree_data, descendant_root))
 
 
 class TreeSortFilterProxyModel(QtGui.QSortFilterProxyModel):
