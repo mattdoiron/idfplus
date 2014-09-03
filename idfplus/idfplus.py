@@ -354,8 +354,8 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow):
         self.classTable.model().invalidate()
 
     def treeFilterRegExpChanged(self):
-        pattern = self.filterBox.text()
-        if len(pattern) < 2:
+        pattern = self.filterTreeBox.text()
+        if len(pattern) < 3:
             pattern = None
         if not self.classTree.model():
             return
@@ -366,6 +366,10 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow):
     def clearFilterClicked(self):
         self.filterBox.clear()
         self.tableFilterRegExpChanged()
+
+    def clearTreeFilterClicked(self):
+        self.filterTreeBox.clear()
+        self.treeFilterRegExpChanged()
 
     def caseSensitivityChanged(self):
         if self.caseSensitivity.isChecked() == True:

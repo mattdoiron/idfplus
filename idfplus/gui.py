@@ -86,9 +86,8 @@ class UI_MainWindow(object):
         classTreeDockWidget = QtGui.QDockWidget("Object Classes and Counts", self)
         classTreeDockWidget.setObjectName("classTreeDockWidget")
         classTreeDockWidget.setAllowedAreas(QtCore.Qt.AllDockWidgetAreas)
-        # classTree = QtGui.QTreeWidget(classTreeDockWidget)
-        classTree = QtGui.QTreeView(classTreeDockWidget)
 
+        classTree = QtGui.QTreeView(classTreeDockWidget)
         classTree.setUniformRowHeights(True)
         classTree.setExpandsOnDoubleClick(False)
         classTree.setFont(font)
@@ -97,7 +96,29 @@ class UI_MainWindow(object):
         palette = classTree.palette()
         palette.setColor(QtGui.QPalette.Highlight, QtCore.Qt.darkCyan)
         classTree.setPalette(palette)
-        classTreeDockWidget.setWidget(classTree)
+
+        class_tree_window = QtGui.QWidget(classTreeDockWidget)
+        class_tree_dock_layout_v = QtGui.QVBoxLayout()
+        class_tree_dock_layout_h = QtGui.QHBoxLayout()
+        class_tree_dock_layout_v.setContentsMargins(0, 8, 0, 0)
+        class_tree_dock_layout_h.setContentsMargins(0, 0, 0, 0)
+
+        class_tree_filter_edit = QtGui.QLineEdit(classTreeDockWidget)
+        class_tree_filter_edit.setPlaceholderText("Filter Classes")
+        class_tree_filter_edit.textChanged.connect(self.treeFilterRegExpChanged)
+
+        class_tree_filter_cancel = QtGui.QPushButton("Clear", classTreeDockWidget)
+        class_tree_filter_cancel.setMaximumWidth(45)
+        class_tree_filter_cancel.clicked.connect(self.clearTreeFilterClicked)
+
+        class_tree_dock_layout_h.addWidget(class_tree_filter_edit)
+        class_tree_dock_layout_h.addWidget(class_tree_filter_cancel)
+        class_tree_dock_layout_v.addLayout(class_tree_dock_layout_h)
+        class_tree_dock_layout_v.addWidget(classTree)
+        class_tree_window.setLayout(class_tree_dock_layout_v)
+
+        classTreeDockWidget.setWidget(class_tree_window)
+        classTreeDockWidget.setContentsMargins(0,0,0,0)
         classTree.clicked.connect(self.classSelected)
 
         # Comments widget
@@ -175,6 +196,7 @@ class UI_MainWindow(object):
         self.logView = logView
         self.undoView = undoView
         self.refView = refView
+        self.filterTreeBox = class_tree_filter_edit
 
         # Store docks for access by other objects
         self.commentDockWidget = commentDockWidget
@@ -351,7 +373,7 @@ class UI_MainWindow(object):
 
         # View Menu
         self.viewMenu = self.menuBar().addMenu("&View")
-        self.viewMenu.addAction(self.classTree.parent().toggleViewAction())
+        self.viewMenu.addAction(self.classTreeDockWidget.toggleViewAction())
         self.viewMenu.addAction(self.infoView.parent().toggleViewAction())
         self.viewMenu.addAction(self.commentView.parent().toggleViewAction())
         self.viewMenu.addAction(self.logView.parent().toggleViewAction())
@@ -403,14 +425,16 @@ class UI_MainWindow(object):
         self.filterToolBar = self.addToolBar("Filter Toolbar")
         self.filterToolBar.setObjectName('filterToolBar')
         self.filterBox = QtGui.QLineEdit()
+        self.filterBox.setPlaceholderText("Filter Objects")
         self.filterBox.setMaximumWidth(160)
         self.filterBox.setFixedWidth(160)
-        filterLabel = QtGui.QLabel("Filter Obj:", self)
-        filterLabel.setBuddy(self.filterBox)
-        self.filterToolBar.addWidget(filterLabel)
+        # filterLabel = QtGui.QLabel("Filter Obj:", self)
+        # filterLabel.setBuddy(self.filterBox)
+        # self.filterToolBar.addWidget(filterLabel)
         self.filterBox.textChanged.connect(self.tableFilterRegExpChanged)
         self.filterBox.textChanged.connect(self.treeFilterRegExpChanged)
-        clearFilterButton = QtGui.QPushButton('Clear Filter')
+        clearFilterButton = QtGui.QPushButton('Clear')
+        clearFilterButton.setMaximumWidth(45)
         clearFilterButton.clicked.connect(self.clearFilterClicked)
         self.filterToolBar.addWidget(self.filterBox)
         self.filterToolBar.addWidget(clearFilterButton)
