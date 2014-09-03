@@ -21,8 +21,8 @@ along with IDFPlus. If not, see <http://www.gnu.org/licenses/>.
 from __future__ import (print_function, division, absolute_import)
 
 # System imports
-import sys
-import transaction
+# import sys
+# import transaction
 
 # PySide imports
 from PySide import QtGui
@@ -103,6 +103,7 @@ class NewObjectCmd(ObjectCmd):
 
          # Notify everyone that data has changed
         self.model.dataChanged.emit(QtCore.QModelIndex(), QtCore.QModelIndex())
+        self.main_window.classTree.expandAll()
 
     def redo(self, from_clipboard=False, *args, **kwargs):
         self.update_model()
@@ -141,6 +142,7 @@ class NewObjectCmd(ObjectCmd):
 
         # Notify everyone that data has changed
         self.model.dataChanged.emit(QtCore.QModelIndex(), QtCore.QModelIndex())
+        self.main_window.classTree.expandAll()
 
 
 class PasteSelectedCmd(ObjectCmd):
@@ -231,6 +233,7 @@ class DeleteObjectCmd(ObjectCmd):
 
         # Notify everyone that data has changed
         self.model.dataChanged.emit(index, index)
+        self.main_window.classTree.expandAll()
 
     def redo(self, *args, **kwargs):
         self.update_model()
@@ -254,6 +257,7 @@ class DeleteObjectCmd(ObjectCmd):
 
         # Notify everyone that data has changed
         self.model.dataChanged.emit(self.indexes[0], self.indexes[0])
+        self.main_window.classTree.expandAll()
 
 
 class ModifyObjectCmd(ObjectCmd):

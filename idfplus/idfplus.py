@@ -23,12 +23,12 @@ from __future__ import (print_function, division, absolute_import)
 # System imports
 import os
 import platform
-from BTrees.OOBTree import OOBTree
-from ZODB import FileStorage
-from ZODB import DB
-from collections import deque
-import tempfile
-import appdirs
+# from BTrees.OOBTree import OOBTree
+# from ZODB import FileStorage
+# from ZODB import DB
+# from collections import deque
+# import tempfile
+# import appdirs
 import networkx as nx
 
 # PySide imports
@@ -91,18 +91,18 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow):
         self.create_progress_bar()
 
         # In-memory ZODB databases don't support undo! Use an on-disk cache
-        self.db = MyZODB()
+        # self.db = MyZODB()
 
         # Create a place to store all open files
-        self.db.dbroot.files = OOBTree()
-        self.files = self.db.dbroot.files
-        self.idd = OOBTree()
+        # self.db.dbroot.files = OOBTree()
+        # self.files = self.db.dbroot.files
+        # self.idd = OOBTree()
 
     def closeEvent(self, event):
         """Called when the application is closed."""
         if self.ok_to_continue():
             self.settings.write_settings()
-            self.db.close()
+            # self.db.close()
             del self.watcher
             log.info('Shutting down IDFPlus')
             event.accept()
@@ -169,7 +169,7 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow):
         log.info('Trying to load file: {}'.format(file_path))
 
         idf = datamodel.IDFFile()
-        self.files.update({0:idf})
+        # self.files.update({0:idf})
         idf_parser = parser.IDFParser(idf)
 
         for progress in idf_parser.parse_idf(file_path):
@@ -677,35 +677,35 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow):
         self.watcher.fileChanged.connect(self.update_log_viewer)
 
 
-class MyZODB(object):
-    """Wrapper for ZODB connection"""
+# class MyZODB(object):
+#     """Wrapper for ZODB connection"""
+#
+#     def __init__(self):
+#         log.info('Setting up database...')
+#         import transaction
+#         self.transaction = transaction
+#         tempfile.tempdir = appdirs.user_cache_dir(c.APP_NAME, c.COMPANY_NAME)
+#
+#         try:
+#             os.makedirs(tempfile.tempdir)
+#         except OSError:
+#             if not os.path.isdir(tempfile.tempdir):
+#                 raise
+#
+#         self.tmp = tempfile.NamedTemporaryFile(prefix='idfplus_cache_', delete=True)
+#         self.storage = FileStorage.FileStorage(self.tmp.name)
+#         self.db = DB(self.storage)
+#         self.connection = self.db.open()
+#         self.dbroot = self.connection.root
 
-    def __init__(self):
-        log.info('Setting up database...')
-        import transaction
-        self.transaction = transaction
-        tempfile.tempdir = appdirs.user_cache_dir(c.APP_NAME, c.COMPANY_NAME)
-
-        try:
-            os.makedirs(tempfile.tempdir)
-        except OSError:
-            if not os.path.isdir(tempfile.tempdir):
-                raise
-
-        self.tmp = tempfile.NamedTemporaryFile(prefix='idfplus_cache_', delete=True)
-        self.storage = FileStorage.FileStorage(self.tmp.name)
-        self.db = DB(self.storage)
-        self.connection = self.db.open()
-        self.dbroot = self.connection.root
-
-    def close(self):
-        """Closes connections/files and cleans up."""
-        log.info('Closing database...')
-        import os
-        self.transaction.commit()
-        self.connection.close()
-        self.db.close()
-        self.storage.close()
-        self.tmp.close()
-        for extension in ['.lock', '.index', '.tmp']:
-            os.remove(self.tmp.name + extension)
+    # def close(self):
+    #     """Closes connections/files and cleans up."""
+    #     log.info('Closing database...')
+    #     import os
+    #     self.transaction.commit()
+    #     self.connection.close()
+    #     self.db.close()
+    #     self.storage.close()
+    #     self.tmp.close()
+    #     for extension in ['.lock', '.index', '.tmp']:
+    #         os.remove(self.tmp.name + extension)
