@@ -120,7 +120,7 @@ class UI_MainWindow(object):
 
         classTreeDockWidget.setWidget(class_tree_window)
         classTreeDockWidget.setContentsMargins(0,0,0,0)
-        classTree.clicked.connect(self.classSelected)
+        # classTree.clicked.connect(self.classSelected)
 
         # Comments widget
         commentDockWidget = QtGui.QDockWidget("Comments", self)
@@ -149,9 +149,11 @@ class UI_MainWindow(object):
         refView.setRootIsDecorated(False)
         refView.setIndentation(15)
         refView.setColumnWidth(0, 160)
+        # refView.resizeColumnToContents(0)
         # refView.setHeaderHidden(True)
         refView.setFrameShape(QtGui.QFrame.StyledPanel)
         refDockWidget.setWidget(refView)
+        refView.doubleClicked.connect(self.ref_tree_double_clicked)
 
         # Logging and debugging widget
         logDockWidget = QtGui.QDockWidget("Log Viewer", self)

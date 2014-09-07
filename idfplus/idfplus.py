@@ -344,6 +344,45 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow):
                                                        self.refView)
             self.refView.setModel(empty_model)
 
+    def ref_tree_double_clicked(self, index):
+        if not index.isValid():
+            return
+        field = self.refView.model().get_field(index)
+        obj_class, obj_index, field_index = field.field_id
+
+        self.load_table_view(obj_class)
+
+        selection_model = self.classTable.selectionModel()
+        model = self.classTable.model().sourceModel()
+        # tree_model = self.classTree.model().sourceModel()
+        # start_index = tree_model.createIndex(0, 0, QtCore.QModelIndex())
+
+        if self.obj_orientation == QtCore.Qt.Vertical:
+            table_index = model.createIndex(field_index, obj_index, QtCore.QModelIndex())
+        else:
+            table_index = model.createIndex(obj_index, field_index, QtCore.QModelIndex())
+
+        selection_model.setCurrentIndex(table_index,
+                                        QtGui.QItemSelectionModel.SelectCurrent)
+        selection_model.select(table_index,
+                               QtGui.QItemSelectionModel.SelectCurrent)
+        self.classTable.scrollTo(table_index)
+        # matches = tree_model.match(start_index,
+        #                            QtCore.Qt.DisplayRole,
+        #                            obj_class,
+        #                            hits=2,
+        #                            flags=QtCore.Qt.MatchRecursive)
+        # match_selection = QtGui.QItemSelection(matches[0], matches[0])
+        # print("selection: {}".format(match_selection.first().topLeft().row()))
+        # self.classSelected(match_selection)
+        self.classTree.keyboardSearch(obj_class)
+
+        # self.classTable.scrollToTop()
+        # self.classTable.scrollTo(table_index)
+
+        # print('field_id: {}'.format(field.field_id))
+        # print("matches: {}".format(matches))
+
     def addActions(self, target, actions):
         """Helper to add actions or a separator easily."""
         for action in actions:
@@ -642,6 +681,9 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow):
         self.classTree.setColumnWidth(0, 280)
         self.classTree.setColumnWidth(1, 10)
 
+        selection_model = self.classTree.selectionModel()
+        selection_model.selectionChanged.connect(self.classSelected)
+
     def update_tree_view(self, index):
         # print('updated tree view, args: ({},{})'.format(index.row(), index.column()))
 
@@ -670,12 +712,15 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow):
     def classSelected(self, current):
         """Loads the table view when a new class is selected"""
 
-        selected = self.classTree.selectedIndexes()
+        # print('current: {}'.format(current))
 
-        if not selected:
+        index = current.first().topLeft()
+        # selected = self.classTree.selectedIndexes()
+
+        if not index or not index.isValid():
             return
 
-        data = self.classTree.model().data(selected[0], QtCore.Qt.DisplayRole)
+        data = self.classTree.model().data(index, QtCore.Qt.DisplayRole)
 
         if not data:
             return

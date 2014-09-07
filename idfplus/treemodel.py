@@ -43,9 +43,11 @@ class BaseTreeItem(object):
         return len(self.childItems)
 
     def columnCount(self):
-        return len(self.itemData)
+        # return len(self.itemData)
+        return 2
 
     def data(self, column):
+        # Must implement in a sub-class
         pass
 
     def parent(self):
@@ -56,14 +58,16 @@ class BaseTreeItem(object):
             return self.parentItem.childItems.index(self)
         return 0
 
-    def setData(self, column, value):
-        if column < 0 or column >= len(self.itemData):
-            return False
+    # def setData(self, column, value):
+    #     if column < 0 or column >= len(self.itemData):
+    #         return False
+    #
+    #     self.itemData[column] = value
+    #
+    #     return True
 
-        self.itemData[column] = value
-
-        return True
-
+    def item(self):
+        return self.itemData
 
 class TreeItem(BaseTreeItem):
     """Low level item for a custom class tree view"""
@@ -89,8 +93,18 @@ class RefTreeItem(BaseTreeItem):
     """Low level item for a custom reference tree view"""
 
     def data(self, column):
+        data = self.itemData[column]
         try:
-            return self.itemData[column]
+            if data in ['Class', 'Field', 'Outgoing:', 'Incoming:', '']:
+                return data
+            if column == 1:
+                # if data == 'Class':
+                #     return data
+                return self.itemData[column].obj_class
+            else:
+                # if data == 'Field':
+                #     return data
+                return self.itemData[column].value
         except IndexError:
             return None
 
@@ -236,9 +250,10 @@ class ObjectClassTreeModel(CustomTreeModel):
                     # blank.setDisabled(True)
 
                 objs = idf.get(obj_class, None)
-                obj_count = len(objs or []) or ''
+                # obj_count = len(objs or []) or ''
 
                 child = TreeItem((obj_class, objs), group_root)
+                # child = TreeItem((objs, objs), group_root)
                 group_root.appendChild(child)
 
     def setData(self, index, value, role=QtCore.Qt.EditRole):
@@ -270,15 +285,23 @@ class ReferenceTreeModel(CustomTreeModel):
                 ancestor_root = RefTreeItem(('Incoming:',''), parent)
                 parent.appendChild(ancestor_root)
                 for item in data[0]:
-                    tree_data = (str(item._outer[0].value), item._outer._obj_class)
+                    # print('type of item: {}'.format(type(item)))
+                    tree_data = (item._outer[0], item)
+                    # tree_data = (str(item._outer[0].value), item.obj_class)
                     ancestor_root.appendChild(RefTreeItem(tree_data, ancestor_root))
             if data[1]:
                 descendant_root = RefTreeItem(('Outgoing:',''), parent)
                 parent.appendChild(descendant_root)
                 for item in data[1]:
-                    tree_data = (str(item._outer[0].value), item._outer._obj_class)
+                    # tree_data = (str(item._outer[0].value), item.obj_class)
+                    tree_data = (item._outer[0], item)
                     descendant_root.appendChild(RefTreeItem(tree_data, descendant_root))
 
+    def get_field(self, index):
+        if index.isValid():
+            return index.internalPointer().item()[1]
+        else:
+            return None
 
 class TreeSortFilterProxyModel(QtGui.QSortFilterProxyModel):
     """Proxy layer to sort and filter"""

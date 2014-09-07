@@ -347,6 +347,7 @@ class IDFObject(list):
         self._group = kwargs.pop('group', None)
         self._obj_class = kwargs.pop('obj_class', None)
         self.comments = kwargs.pop('comments', None)
+        self._outer = idf
 
         # Call the parent class' init method
         super(IDFObject, self).__init__(**kwargs)
@@ -432,6 +433,21 @@ class IDFField(object):
         :return : The name of the class from the outer object
         """
         return self._outer._obj_class
+
+    @property
+    def position(self):
+        """
+        :rtype : int
+        :return : The index of this field in its outer class
+        """
+        return self._outer.index(self.value)
+
+    @property
+    def field_id(self):
+        my_id = (self._outer._obj_class,
+                 self._outer._outer[self._outer._obj_class].index(self._outer),
+                 self._outer.index(self))
+        return my_id
 
     # def __repr__(self):
     #     return self._idf_file.obj_class + ':' + self._key
