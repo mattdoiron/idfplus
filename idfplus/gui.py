@@ -128,6 +128,14 @@ class UI_MainWindow(object):
         commentDockWidget.setAllowedAreas(QtCore.Qt.AllDockWidgetAreas)
         commentView = QtGui.QTextEdit(commentDockWidget)
         commentView.setFrameShape(QtGui.QFrame.StyledPanel)
+        commentView.setFontFamily('Courier')
+        commentView.setFontPointSize(10)
+        # comment_font = commentView.font()
+        # comment_font.setFamily("Courier")
+        # comment_font.setFixedPitch(True)
+        # comment_font.setPointSize(5)
+        # commentView.setFont(comment_font)
+        commentView.setReadOnly(True) # Just for now!
         commentDockWidget.setWidget(commentView)
 
         # Info and help widget
@@ -136,6 +144,7 @@ class UI_MainWindow(object):
         infoDockWidget.setAllowedAreas(QtCore.Qt.AllDockWidgetAreas)
         infoView = QtGui.QTextEdit(infoDockWidget)
         infoView.setFrameShape(QtGui.QFrame.StyledPanel)
+        infoView.setReadOnly(True)
         infoDockWidget.setWidget(infoView)
 
         # Node list and jump menu widget
@@ -162,6 +171,7 @@ class UI_MainWindow(object):
         logView = QtGui.QPlainTextEdit(logDockWidget)
         logView.setLineWrapMode(QtGui.QPlainTextEdit.NoWrap)
         logView.setReadOnly(True)
+        logView.setFont(font)
         logView.ensureCursorVisible()
         logDockWidget.setWidget(logView)
 

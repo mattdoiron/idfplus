@@ -228,7 +228,7 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow):
         self.load_tree_view()
         log.debug('Setting class table model...')
         self.classTable.setModel(None)
-        self.commentView.setText(str(len(self.idf)))  # test only
+        self.commentView.setText("".join(self.idf['Version'][0].comments))
         self.dirty = False  # Move this into tablemodelContainer?
         self.file_path = file_path
         log.debug('Updating recent file list...')
@@ -659,6 +659,7 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow):
         self.delObjAct.setEnabled(True)
         self.transposeAct.setEnabled(True)
         self.infoView.setText(self.idd[obj_class].get_info)
+        self.commentView.setText("".join(self.idf[obj_class][0].comments))
         self.current_obj_class = obj_class
 
     def load_tree_view(self):
