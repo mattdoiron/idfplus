@@ -345,43 +345,37 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow):
             self.refView.setModel(empty_model)
 
     def ref_tree_double_clicked(self, index):
+        """Responds when the reference tree widget is double-clicked.
+        """
         if not index.isValid():
             return
         field = self.refView.model().get_field(index)
         obj_class, obj_index, field_index = field.field_id
 
-        self.load_table_view(obj_class)
+        # Select the appropriate class from the class tree (this also loads the table view)
+        self.classTree.keyboardSearch(obj_class)
 
+        # Give focus to the class table
+        self.classTable.setFocus()
+
+        # After the table is loaded, get its model and selection model
         selection_model = self.classTable.selectionModel()
         model = self.classTable.model().sourceModel()
-        # tree_model = self.classTree.model().sourceModel()
-        # start_index = tree_model.createIndex(0, 0, QtCore.QModelIndex())
 
+        # Create an index for the target field with the table's model
         if self.obj_orientation == QtCore.Qt.Vertical:
-            table_index = model.createIndex(field_index, obj_index, QtCore.QModelIndex())
+            table_index = model.index(field_index, obj_index, QtCore.QModelIndex())
         else:
-            table_index = model.createIndex(obj_index, field_index, QtCore.QModelIndex())
+            table_index = model.index(obj_index, field_index, QtCore.QModelIndex())
 
+        # Scroll to the target field (shouldn't need this!)
+        self.classTable.selectColumn(obj_index)
+
+        # Select the target index (why are both needed!?)
         selection_model.setCurrentIndex(table_index,
                                         QtGui.QItemSelectionModel.SelectCurrent)
         selection_model.select(table_index,
                                QtGui.QItemSelectionModel.SelectCurrent)
-        self.classTable.scrollTo(table_index)
-        # matches = tree_model.match(start_index,
-        #                            QtCore.Qt.DisplayRole,
-        #                            obj_class,
-        #                            hits=2,
-        #                            flags=QtCore.Qt.MatchRecursive)
-        # match_selection = QtGui.QItemSelection(matches[0], matches[0])
-        # print("selection: {}".format(match_selection.first().topLeft().row()))
-        # self.classSelected(match_selection)
-        self.classTree.keyboardSearch(obj_class)
-
-        # self.classTable.scrollToTop()
-        # self.classTable.scrollTo(table_index)
-
-        # print('field_id: {}'.format(field.field_id))
-        # print("matches: {}".format(matches))
 
     def addActions(self, target, actions):
         """Helper to add actions or a separator easily."""
@@ -601,6 +595,9 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow):
         self.classTree.model().filter_empty = not self.classTree.model().filter_empty
         self.treeFilterRegExpChanged()
 
+        #TODO need to find a way to handle what happens when 'currentIndex' disappears
+        #     during the filtering.
+
         # for item in QtGui.QTreeWidgetItemIterator(tree):
         #     obj = item.value().text(0)
         #     count = item.value().text(1)
@@ -609,7 +606,7 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow):
         #     if obj is not None and count == '' and not disabled and not spanned:
         #         item.value().setHidden(not self.fullTree)
 
-        tree.scrollTo(current_persistent)
+        tree.scrollTo(current_persistent, QtGui.QAbstractItemView.PositionAtCenter)
 
     def load_table_view(self, obj_class):
         """Loads the table of objects for the specified class name.
