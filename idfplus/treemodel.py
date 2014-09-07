@@ -267,13 +267,13 @@ class ReferenceTreeModel(CustomTreeModel):
     def setupModelData(self, data, parent):
         if data:
             if data[0]:
-                ancestor_root = RefTreeItem(('Incoming References',''), parent)
+                ancestor_root = RefTreeItem(('Incoming:',''), parent)
                 parent.appendChild(ancestor_root)
                 for item in data[0]:
                     tree_data = (str(item._outer[0].value), item._outer._obj_class)
                     ancestor_root.appendChild(RefTreeItem(tree_data, ancestor_root))
             if data[1]:
-                descendant_root = RefTreeItem(('Outgoing References',''), parent)
+                descendant_root = RefTreeItem(('Outgoing:',''), parent)
                 parent.appendChild(descendant_root)
                 for item in data[1]:
                     tree_data = (str(item._outer[0].value), item._outer._obj_class)

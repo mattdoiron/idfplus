@@ -279,7 +279,7 @@ class ChoiceDelegate(QtGui.QItemDelegate):
                 if tag == 'default':
                     self.model.insertRow(0, [QtGui.QStandardItem(value),
                                              QtGui.QStandardItem(tag)])
-                elif tag == 'object-list':
+                elif tag in ['node', 'object-list', 'external-list']:
                     #Retrieve object list and use it to populate the dropdown
                     pass
                 else:
@@ -334,6 +334,17 @@ class ChoiceDelegate(QtGui.QItemDelegate):
                                        value=editor.currentText())
         self.main_window.undo_stack.push(cmd)
 
+    # def updateEditorGeometry(self, editor, option, index):
+    #     editor.setGeometry(option.rect)
+
+    # def paint(self, painter, option, index):
+    #     my_option = QtGui.QStyleOptionViewItemV4(option)
+    #     # text = Items[index.row()].c_str()
+    #     value = index.data(QtCore.Qt.DisplayRole)
+    #
+    #     my_option.text = value
+    #     app = QtGui.QApplication.instance()
+    #     app.style().drawControl(QtGui.QStyle.CE_ItemViewItem, my_option, painter)
 
 #class DateDelegate(QtGui.QItemDelegate):
 #

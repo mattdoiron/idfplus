@@ -398,7 +398,6 @@ class IDFField(object):
         self.key = kwargs.pop('key', None)
         self.value = kwargs.pop('value', None)
         self.tags = dict()
-        self.obj_class = outer._obj_class
         self._ureg = None #outer.idd._ureg
         self._outer = outer
 
@@ -416,7 +415,7 @@ class IDFField(object):
     #     return self.value or str()
 
     @property
-    def field(self):
+    def name(self):
         """
         :rtype : str
         :return : The name of the field from the idd file
@@ -425,6 +424,14 @@ class IDFField(object):
             return self.tags['field']
         else:
             return str()
+
+    @property
+    def obj_class(self):
+        """
+        :rtype : str
+        :return : The name of the class from the outer object
+        """
+        return self._outer._obj_class
 
     # def __repr__(self):
     #     return self._idf_file.obj_class + ':' + self._key

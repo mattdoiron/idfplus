@@ -313,17 +313,25 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow):
         self.fileMenu.addSeparator()
         self.fileMenu.addAction(self.fileMenuActions[-1])
 
-    def table_clicked(self, index):
-        if not index.isValid():
+    def table_selection_changed(self, selected, deselected):
+        if selected:
+            index = selected.first().topLeft()
+            if not index or not index.isValid():
+                return
+        else:
             return
 
         try:
             G = self.idf._graph
-            node = self.idf[self.current_obj_class][index.column()][index.row()]
+            if self.obj_orientation == QtCore.Qt.Vertical:
+                node = self.idf[self.current_obj_class][index.column()][index.row()]
+            else:
+                node = self.idf[self.current_obj_class][index.row()][index.column()]
 
             ancestors = nx.ancestors(G, node)
             descendants = nx.descendants(G, node)
-
+            # print('degree: {}'.format(nx.degree(G, node)))
+            # print('node value: {}'.format(node.value))
             new_model = treemodel.ReferenceTreeModel([ancestors, descendants],
                                                      ("Field", "Class"),
                                                      self.refView)
@@ -549,6 +557,7 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow):
         self.fullTree = not self.fullTree
         tree = self.classTree
         current = tree.currentIndex()
+        current_persistent = QtCore.QPersistentModelIndex(current)
 
         self.classTree.model().filter_empty = not self.classTree.model().filter_empty
         self.treeFilterRegExpChanged()
@@ -561,7 +570,7 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow):
         #     if obj is not None and count == '' and not disabled and not spanned:
         #         item.value().setHidden(not self.fullTree)
 
-        tree.scrollTo(current)
+        tree.scrollTo(current_persistent)
 
     def load_table_view(self, obj_class):
         """Loads the table of objects for the specified class name.
@@ -572,6 +581,9 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow):
         # Filter out group headers
         if obj_class not in self.idd:
             return
+
+        # Clear the table filter when changing classes
+        self.clearFilterClicked()
 
         # Save some variables
         table = self.classTable
@@ -601,7 +613,10 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow):
                                                  self.obj_orientation)
         table.setItemDelegate(my_delegates)
 
+        # Connect some signals
         default_model.sourceModel().dataChanged.connect(self.update_tree_view)
+        selection_model = table.selectionModel()
+        selection_model.selectionChanged.connect(self.table_selection_changed)
 
         # Now that there is a class selected, enable some actions
         self.newObjAct.setEnabled(True)
@@ -656,6 +671,10 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow):
         """Loads the table view when a new class is selected"""
 
         selected = self.classTree.selectedIndexes()
+
+        if not selected:
+            return
+
         data = self.classTree.model().data(selected[0], QtCore.Qt.DisplayRole)
 
         if not data:

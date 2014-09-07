@@ -75,7 +75,8 @@ class UI_MainWindow(object):
         classTable.verticalHeader().setDefaultSectionSize(fm.height() + 5)
         # classTable.setStyleSheet("QTableView {padding: 0px; border: 0px;} ")
 
-        classTable.clicked.connect(self.table_clicked)
+        # classTable.clicked.connect(self.table_clicked)
+        # classTable.selectionModel().currentChanged.connect(self.table_clicked)
         classTable.setSelectionMode(QtGui.QAbstractItemView.ContiguousSelection)
 
         # These are currently broken
@@ -147,6 +148,7 @@ class UI_MainWindow(object):
         refView.setUniformRowHeights(True)
         refView.setRootIsDecorated(False)
         refView.setIndentation(15)
+        refView.setColumnWidth(0, 160)
         # refView.setHeaderHidden(True)
         refView.setFrameShape(QtGui.QFrame.StyledPanel)
         refDockWidget.setWidget(refView)

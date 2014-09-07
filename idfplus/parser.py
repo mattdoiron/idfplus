@@ -831,17 +831,11 @@ class IDFParser(Parser):
                     if obj_class != prev_obj_class:
                         obj_index = 0
                     prev_obj_class = obj_class
-
-                    # The fields to use are defined in the idd file
-                    # for cls123 in self.idd.iterkeys():
-                    #     print(cls123)
-                    # print(self.idd)
                     idd_fields = self.idd[obj_class]
 
                     # Create IDFField objects for all fields
                     for i, field in enumerate(field_list):
                         if idd_fields:
-                            # print(idd_fields[i])
                             key = idd_fields[i].key
                             tags = idd_fields[i].tags
                         else:
@@ -854,8 +848,6 @@ class IDFParser(Parser):
 
                         # Check for reference tag to construct ref-lists
                         if 'reference' in tags:
-                            # print('reference: {}'.format(tags['reference']))
-
                             if type(tags['reference']) is list:
                                 for tag in tags['reference']:
                                     try:
@@ -868,13 +860,10 @@ class IDFParser(Parser):
                                 except KeyError:
                                     object_lists[tags['reference']] = {obj_class}
 
-                        # Check if this field should be a node
+                        # Check if field should be a node (check for OUTGOING nodes only)
                         tag_set = set(tags)
                         node_set = {'node', 'object-list', 'external-list'}
                         if len(tag_set & node_set) > 0:
-                            # node_id = (obj_class, obj_index, i)
-                            # print('adding node: {}'.format(id))
-                            # G.add_node(new_field, object_list=tags.get('object-list'))
                             G.add_node(new_field)
 
                         # Add the field to the object
@@ -895,14 +884,8 @@ class IDFParser(Parser):
 
                     # Save the new object to the IDF file (canNOT use setdefault)
                     # due to apparent incompatibility with ZODB
+                    #TODO don't use ZODB anymore, use setdefault?
                     if obj_class in self.idd:
-
-                        # Should not need this now. It also messes up file writing
-                        # # Pad length of object to pre-allocate list size
-                        # length = len(idf_object)
-                        # max_length = len(self.idd[obj_class])
-                        # padding = (max_length - length) * [None]
-                        # idf_object.extend(padding)
 
                         # Add the object
                         try:
@@ -930,79 +913,46 @@ class IDFParser(Parser):
         for progress in self.connect_nodes():
             yield progress
 
-        # Save changes
-        # transaction.get().note('Load file')
-        # transaction.commit()
         log.info('Parsing IDF complete!')
 
     def connect_nodes(self):
 
-        G = self.idf._graph
+        graph = self.idf._graph
         idf = self.idf
-        dest_node = None
-        node_list = G.nodes()
-        node_count = len(node_list)
+        node_count = len(graph.nodes())
 
         # Cycle through only nodes to avoid cycling through all objects
         # Do not use an iterator because we could add a new node in this loop!
         # Does this slow things down? Not sure of an alternative.
-        for k, node in enumerate(node_list):
-            # obj_class, obj_index, field_index = node[0]
-            # print('tags: {}'.format(node.tags))
+        for k, node in enumerate(graph.nodes()):
+
             object_list_class_name = node.tags['object-list']
 
-            # Ensure we have a list to simplify
+            # Ensure we have a list to simplify later operations
             if type(object_list_class_name) is not list:
                 object_list_class_name = [object_list_class_name]
 
             try:
-                # reference = idf[obj_class][obj_index][field_index].value
                 reference = node.value
-                # print('tags: {}'.format(node.tags))
-
-                # print('object_list_class_name: {}'.format(object_list_class_name))
 
                 # Cycle through all class names in the object lists
                 for cls_name in object_list_class_name:
 
-                    # print('cls: {}'.format(cls))
-
                     dest_obj_class = list(idf.object_lists.get(cls_name, ''))
-
-                    # print('dest_obj_class: {}'.format(dest_obj_class))
 
                     # Cycle through all classes in the class list
                     for obj_cls in dest_obj_class:
 
-                        # print('obj_cls: {}'.format(obj_cls))
-
                         # Cycle through all IDFObjects in this class
                         for i, obj in enumerate(idf.get(obj_cls, '')):
-
-                            # print('obj {}'.format(obj))
 
                             # Cycle through all fields in this object
                             for j, field in enumerate(obj):
 
-                                # print('field: {}, reference: {}'.format(field.value, reference))
-
                                 # Check if this is the referenced field
-                                if reference and field.value == reference:
-
-                                    # print('field: {}, reference: {}'.format(field.value, reference))
-
-                                    # dest_node = (obj_cls, i, j)
-                                    dest_node = field
+                                if reference and field.value == reference and field is not node:
+                                    graph.add_edge(node, field)
                                     yield math.ceil(50 + (100 * 0.5 * k / node_count))
-
-                # If a destination node has been created, use it to add an edge
-                if dest_node is not None:
-
-                    # print('dest_node: {}'.format(dest_node))
-
-                    G.add_edge(node, dest_node)
-
-                    # print('linked node {} to {}'.format(node[0], dest_node))
 
             except (IndexError) as e:
                 continue
