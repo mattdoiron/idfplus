@@ -344,6 +344,15 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow):
                                                        self.refView)
             self.refView.setModel(empty_model)
 
+        # Also update the infoview
+        if self.obj_orientation == QtCore.Qt.Vertical:
+            info_index = index.row()
+        else:
+            info_index = index.column()
+        obj_info = self.idd[self.current_obj_class].get_info()
+        field_info = self.idd[self.current_obj_class][info_index].get_info()
+        self.infoView.setText(obj_info + "\n\n" + field_info)
+
     def ref_tree_double_clicked(self, index):
         """Responds when the reference tree widget is double-clicked.
         """
@@ -654,12 +663,17 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow):
         selection_model = table.selectionModel()
         selection_model.selectionChanged.connect(self.table_selection_changed)
 
-        # Now that there is a class selected, enable some actions
+        # Grab the comments
+        comments = ''
+        if self.idf[obj_class]:
+            comments = "".join(self.idf[obj_class][0].comments)
+
+        # Now that there is a class selected, enable some actions and set some vars
         self.newObjAct.setEnabled(True)
         self.delObjAct.setEnabled(True)
         self.transposeAct.setEnabled(True)
-        self.infoView.setText(self.idd[obj_class].get_info)
-        self.commentView.setText("".join(self.idf[obj_class][0].comments))
+        self.infoView.setText(self.idd[obj_class].get_info())
+        self.commentView.setText(comments)
         self.current_obj_class = obj_class
 
     def load_tree_view(self):

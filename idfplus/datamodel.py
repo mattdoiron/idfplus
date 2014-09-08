@@ -179,25 +179,34 @@ class IDDObject(list):
         """
         return self._group
 
-    @property
     def get_info(self):
         """Read-only property returning a collection of comments/notes about the obj"""
 
+        # Prepare the info variable and add the object class
+        info = '--[ Object Class ]----------------------'
+        info += '\nClass: {}'.format(self._obj_class)
+
+        # Grab the object memo, if any
         memo = self.tags.get('memo')
-        if type(memo) is list:
-            info = ' '.join(self.tags.get('memo', ''))
-        else:
-            info = memo
+        if memo:
+            info += '\n'
+            if isinstance(memo, list):
+                info += ' '.join(memo)
+            else:
+                info += memo
 
-        unique = 'Yes' if 'unique-object' in self.tags else 'No'
-        required = 'Yes' if 'required-object' in self.tags else 'No'
-        obsolete = 'Yes' if 'obsolete' in self.tags else 'No'
-        min_fields = self.tags.get('min-fields', '0')
+        # Grab various info from field tags
+        unique = self.tags.get('unique-object')
+        required = self.tags.get('required-object')
+        obsolete = self.tags.get('obsolete')
+        min_fields = self.tags.get('min-fields')
 
-        info += '\n\nUnique: {}'.format(unique)
-        info += '\nRequired: {}'.format(required)
-        info += '' if int(min_fields) <= 0 else '\nMinimum Fields: {}'.format(min_fields)
-        info += '' if obsolete == 'No' else '\nObject Obsolete: {}'.format(obsolete)
+        # Add nicely formatted versions of the above field tags
+        info += '\n'
+        info += '\nUnique: {}'.format(unique or 'No')
+        info += '\nRequired: {}'.format(required or 'No')
+        info += '\nMinimum Fields: {}'.format(min_fields) if min_fields else ''
+        info += '\nObject Obsolete: {}'.format(obsolete) if obsolete else ''
 
         return info
 
@@ -218,16 +227,68 @@ class IDDField(object):
         self.value = kwargs.pop('value', None)
         self.key = kwargs.pop('key', None)
         # self._idd = outer._idd
-        # self._outer = outer
-        self.obj_class = outer.obj_class
+        self._outer = outer
+        self._obj_class = outer.obj_class
         self.tags = dict()
-
-        # if iterable:
-        #     iterable.setdefault(key, key)
-        #     iterable.setdefault(value, value)
 
          # Call the parent class' init method
         super(IDDField, self).__init__()
+
+    def get_info(self):
+        """Read-only property returning a collection of comments/notes about the obj"""
+
+        # Prepare the info variable and add the field name
+        info = '--[ Field ]----------------------------------'
+        field = self.tags.get('field', 'Un-named')
+        info += '\nField: {} ({})'.format(self.key, field)
+
+        # Grab the field note, if any
+        note = self.tags.get('note')
+        if note:
+            info += '\n'
+            if isinstance(note, list):
+                info += ' '.join(note)
+            else:
+                info += note
+
+        # Grab various info from field tags
+        required = self.tags.get('required')
+        units = self.tags.get('units')
+        ip_units = self.tags.get('ip_units')
+        minimum = self.tags.get('minimum')
+        minimum_gt = self.tags.get('minimum>')
+        maximum = self.tags.get('maximum')
+        maximum_lt = self.tags.get('maximum<')
+        default = self.tags.get('default')
+        deprecated = self.tags.get('deprecated')
+        autosizable = self.tags.get('autosizable')
+        autocalculatable = self.tags.get('autocalculatable')
+
+        # Add nicely formatted versions of the above field tags
+        info += '\n'
+        info += '\nDefault: {}'.format(default or 'n/a')
+        info += '\nRequired: {}'.format(required or 'No')
+        if units:
+            info += '\nUnits: {}'.format(units)
+            if ip_units:
+                info += ' ({})'.format(ip_units)
+        info += '\nMinimum: {}'.format(minimum) if minimum else ''
+        info += '\nMinimum>: {}'.format(minimum_gt) if minimum_gt else ''
+        info += '\nMaximum: {}'.format(maximum) if maximum else ''
+        info += '\nMaximum<: {}'.format(maximum_lt) if maximum_lt else ''
+        info += '\nDeprecated: Yes' if deprecated else ''
+        info += '\nAutosizable: Yes' if autosizable else ''
+        info += '\nAutocalculatable: Yes' if autocalculatable else ''
+
+        return info
+
+    @property
+    def obj_class(self):
+        """
+        :rtype : str
+        :return : The name of the class from the outer object
+        """
+        return self._outer._obj_class
 
     # @property
     # def units(self):
