@@ -314,11 +314,10 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow):
         self.fileMenu.addAction(self.fileMenuActions[-1])
 
     def table_selection_changed(self, selected, deselected):
-        if selected:
-            index = selected.first().topLeft()
-            if not index or not index.isValid():
-                return
-        else:
+        if not selected:
+            return
+        index = selected.first().topLeft()
+        if not index or not index.isValid():
             return
 
         try:
@@ -361,8 +360,30 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow):
         field = self.refView.model().get_field(index)
         obj_class, obj_index, field_index = field.field_id
 
+        tree_model = self.classTree.model()
+        tree_selection_model = self.classTree.selectionModel()
+        start_index = tree_model.createIndex(0, 0, QtCore.QModelIndex())
+
         # Select the appropriate class from the class tree (this also loads the table view)
-        self.classTree.keyboardSearch(obj_class)
+        # self.classTree.keyboardSearch(obj_class)
+        matches = tree_model.match(start_index,
+                                   QtCore.Qt.DisplayRole,
+                                   obj_class,
+                                   hits=2,
+                                   flags=int(QtCore.Qt.MatchRecursive |
+                                             QtCore.Qt.MatchExactly |
+                                             QtCore.Qt.MatchWrap))
+
+        # match_selection = QtGui.QItemSelection(matches[0], matches[0])
+        persistent = QtCore.QPersistentModelIndex(matches[0])
+
+        tree_selection_model.select(persistent, QtGui.QItemSelectionModel.SelectCurrent)
+        self.classTree.scrollTo(persistent, QtGui.QAbstractItemView.PositionAtCenter)
+
+        # print("selection: {}".format(persistent))
+        # print("selection: {}".format(match_selection.first().topLeft().row()))
+        # print("selection: {}".format(match_selection))
+        # self.classSelected(match_selection)
 
         # Give focus to the class table
         self.classTable.setFocus()
@@ -373,9 +394,9 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow):
 
         # Create an index for the target field with the table's model
         if self.obj_orientation == QtCore.Qt.Vertical:
-            table_index = model.index(field_index, obj_index, QtCore.QModelIndex())
+            table_index = model.createIndex(field_index, obj_index, QtCore.QModelIndex())
         else:
-            table_index = model.index(obj_index, field_index, QtCore.QModelIndex())
+            table_index = model.createIndex(obj_index, field_index, QtCore.QModelIndex())
 
         # Scroll to the target field (shouldn't need this!)
         self.classTable.selectColumn(obj_index)
@@ -659,7 +680,7 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow):
         table.setItemDelegate(my_delegates)
 
         # Connect some signals
-        default_model.sourceModel().dataChanged.connect(self.update_tree_view)
+        # default_model.sourceModel().dataChanged.connect(self.update_tree_view)
         selection_model = table.selectionModel()
         selection_model.selectionChanged.connect(self.table_selection_changed)
 
@@ -695,14 +716,6 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow):
 
         selection_model = self.classTree.selectionModel()
         selection_model.selectionChanged.connect(self.classSelected)
-
-    def update_tree_view(self, index):
-        # print('updated tree view, args: ({},{})'.format(index.row(), index.column()))
-
-        # item_to_update = self.classTree.model().match()
-        # self.classTree.model().setData(index, 123123)
-        pass
-        # self.classTree.model().reset()
 
     def transpose_table(self):
         """Transposes the table"""

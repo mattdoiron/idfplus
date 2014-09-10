@@ -494,6 +494,7 @@ class IDDParser(Parser):
         total_size = os.path.getsize(file_path)
         total_read = 0.0
         idd = self.idd
+        object_lists = self.idd.object_lists
         log.info('Parsing IDD file: {} ({} bytes)'.format(file_path, total_size))
 
         # Open the specified file in a safe way
@@ -623,6 +624,22 @@ class IDDParser(Parser):
                             new_field.tags = tag_list[i]
                         except IndexError:
                             new_field.tags = dict()
+                        tags = new_field.tags
+
+                        # Check for reference tag to construct ref-lists
+                        if 'reference' in tags:
+                            if isinstance(tags['reference'], list):
+                                for tag in tags['reference']:
+                                    try:
+                                        object_lists[tag].add(obj_class)
+                                    except KeyError:
+                                        object_lists[tag] = {obj_class}
+                            else:
+                                try:
+                                    object_lists[tags['reference']].add(obj_class)
+                                except KeyError:
+                                    object_lists[tags['reference']] = {obj_class}
+
                         # print('new_field.tags: {}'.format(new_field.tags))
                         idd_object.append(new_field)
                         # print('setting field tags: {}'.format(new_field.tags))
@@ -745,7 +762,7 @@ class IDFParser(Parser):
         self.idf.file_path = file_path
         total_size = os.path.getsize(file_path)
         total_read = 0
-        object_lists = self.idf.object_lists
+        # object_lists = self.idf.object_lists
         log.info('Parsing IDF file: {} ({} bytes)'.format(file_path, total_size))
 
         # Open the specified file in a safe way
@@ -846,19 +863,19 @@ class IDFParser(Parser):
                         new_field.value = field
                         new_field.tags = tags
 
-                        # Check for reference tag to construct ref-lists
-                        if 'reference' in tags:
-                            if type(tags['reference']) is list:
-                                for tag in tags['reference']:
-                                    try:
-                                        object_lists[tag].add(obj_class)
-                                    except KeyError:
-                                        object_lists[tag] = {obj_class}
-                            else:
-                                try:
-                                    object_lists[tags['reference']].add(obj_class)
-                                except KeyError:
-                                    object_lists[tags['reference']] = {obj_class}
+                        # # Check for reference tag to construct ref-lists
+                        # if 'reference' in tags:
+                        #     if type(tags['reference']) is list:
+                        #         for tag in tags['reference']:
+                        #             try:
+                        #                 object_lists[tag].add(obj_class)
+                        #             except KeyError:
+                        #                 object_lists[tag] = {obj_class}
+                        #     else:
+                        #         try:
+                        #             object_lists[tags['reference']].add(obj_class)
+                        #         except KeyError:
+                        #             object_lists[tags['reference']] = {obj_class}
 
                         # Check if field should be a node (check for OUTGOING nodes only)
                         tag_set = set(tags)
@@ -919,6 +936,7 @@ class IDFParser(Parser):
 
         graph = self.idf._graph
         idf = self.idf
+        idd = self.idf._idd
         node_count = len(graph.nodes())
 
         # Cycle through only nodes to avoid cycling through all objects
@@ -938,7 +956,7 @@ class IDFParser(Parser):
                 # Cycle through all class names in the object lists
                 for cls_name in object_list_class_name:
 
-                    dest_obj_class = list(idf.object_lists.get(cls_name, ''))
+                    dest_obj_class = list(idd.object_lists.get(cls_name, ''))
 
                     # Cycle through all classes in the class list
                     for obj_cls in dest_obj_class:

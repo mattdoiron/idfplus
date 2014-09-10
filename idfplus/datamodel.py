@@ -89,6 +89,7 @@ class IDDFile(PODict):
         self._version = version
         self.options = list()
         self.tags = dict()
+        self.object_lists = dict()
         # compiled_idd_file_name = 'EnergyPlus_IDD_v{}.dat'
         # data_dir = 'data'
         # units_file = 'units.dat'
@@ -334,7 +335,7 @@ class IDFFile(OrderedDict):
         self._eol_char = None
         self.file_path = None
         self.options = list()
-        self.object_lists = dict()
+        # self.object_lists = dict()
         self._version = None
 
         # Call the parent class' init method
