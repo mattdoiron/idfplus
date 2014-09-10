@@ -116,7 +116,8 @@ class GenericDelegate(QtGui.QItemDelegate):
                        'default',
                        'autosizeable',
                        'autocalculatable',
-                       'key']
+                       'key',
+                       'object-list']
 
         # Cycle through field tags
         for i, field in enumerate(idd_obj):
@@ -272,7 +273,8 @@ class ChoiceDelegate(QtGui.QItemDelegate):
                             'default',
                             'autosizeable',
                             'autocalculatable',
-                            'key']
+                            'key',
+                            'object-list']
 
     def createEditor(self, parent, option, index):
         self.comboBox = QtGui.QComboBox(parent)
@@ -281,15 +283,40 @@ class ChoiceDelegate(QtGui.QItemDelegate):
         self.comboBox.setFrame(False)
 
         if not self.model:
+
             self.model = QtGui.QStandardItemModel()
+
             for tag, value in self.field.tags.iteritems():
+
                 if tag in self.comboFields:
+
                     if tag == 'default':
                         self.model.insertRow(0, [QtGui.QStandardItem(value),
                                                  QtGui.QStandardItem(tag)])
-                    elif tag in ['node', 'object-list', 'external-list']:
-                        #Retrieve object list and use it to populate the dropdown
+
+                    elif tag == 'object-list':
+                        # Get list of all classes that are part of the object-list
+                        class_list = self.main_window.idd.object_lists[value]
+
+                        # Cycle through all classes in the list
+                        for cls in class_list:
+
+                            # Get the objects for the current class
+                            idf_objects = self.main_window.idf.get(cls)
+
+                            # Cycle through all idf objects in the class
+                            for obj in idf_objects:
+                                self.model.appendRow([QtGui.QStandardItem(obj[0].value),
+                                                      QtGui.QStandardItem(cls)])
+
+                    elif tag == 'node':
+                        # Retrieve a list of all nodes?
                         pass
+
+                    elif tag == 'external-list':
+                        # Retrieve list from external file
+                        pass
+
                     else:
                         # Need to check if it's a list...is there a better way?
                         # Could make them all lists...would be annoying.
