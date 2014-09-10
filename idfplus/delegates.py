@@ -186,6 +186,8 @@ class IntegerDelegate(QtGui.QItemDelegate):
     def setModelData(self, editor, model, index):
         # Create undo command and push it to the undo stack
         editor.interpretText()
+        if index.data() == editor.value():
+            return
         cmd = commands.ModifyObjectCmd(self.main_window, value=editor.value())
         self.main_window.undo_stack.push(cmd)
 
@@ -216,6 +218,8 @@ class RealDelegate(QtGui.QItemDelegate):
 
     def setModelData(self, editor, model, index):
         # Create undo command and push it to the undo stack
+        if index.data() == editor.text():
+            return
         cmd = commands.ModifyObjectCmd(self.main_window, value=editor.text())
         self.main_window.undo_stack.push(cmd)
 
@@ -238,6 +242,8 @@ class AlphaDelegate(QtGui.QItemDelegate):
 
     def setModelData(self, editor, model, index):
         # Create undo command and push it to the undo stack
+        if index.data() == editor.text():
+            return
         cmd = commands.ModifyObjectCmd(self.main_window, value=editor.text())
         self.main_window.undo_stack.push(cmd)
 
@@ -257,7 +263,7 @@ class ChoiceDelegate(QtGui.QItemDelegate):
     def __init__(self, field, main_window):
         super(ChoiceDelegate, self).__init__()
         self.field = field
-        self.model = QtGui.QStandardItemModel()
+        self.model = None
         self.main_window = main_window
         self.comboFields = ['minimum>',
                             'minimum',
@@ -274,24 +280,26 @@ class ChoiceDelegate(QtGui.QItemDelegate):
         self.comboBox.setStyleSheet("QComboBox { border: 0px; }")
         self.comboBox.setFrame(False)
 
-        for tag, value in self.field.tags.iteritems():
-            if tag in self.comboFields:
-                if tag == 'default':
-                    self.model.insertRow(0, [QtGui.QStandardItem(value),
-                                             QtGui.QStandardItem(tag)])
-                elif tag in ['node', 'object-list', 'external-list']:
-                    #Retrieve object list and use it to populate the dropdown
-                    pass
-                else:
-                    # Need to check if it's a list...is there a better way?
-                    # Could make them all lists...would be annoying.
-                    if type(value) is list:
-                        for val in value:
-                            self.model.appendRow([QtGui.QStandardItem(val),
-                                                  QtGui.QStandardItem(tag)])
+        if not self.model:
+            self.model = QtGui.QStandardItemModel()
+            for tag, value in self.field.tags.iteritems():
+                if tag in self.comboFields:
+                    if tag == 'default':
+                        self.model.insertRow(0, [QtGui.QStandardItem(value),
+                                                 QtGui.QStandardItem(tag)])
+                    elif tag in ['node', 'object-list', 'external-list']:
+                        #Retrieve object list and use it to populate the dropdown
+                        pass
                     else:
-                        self.model.appendRow([QtGui.QStandardItem(value),
-                                              QtGui.QStandardItem(tag)])
+                        # Need to check if it's a list...is there a better way?
+                        # Could make them all lists...would be annoying.
+                        if type(value) is list:
+                            for val in value:
+                                self.model.appendRow([QtGui.QStandardItem(val),
+                                                      QtGui.QStandardItem(tag)])
+                        else:
+                            self.model.appendRow([QtGui.QStandardItem(value),
+                                                  QtGui.QStandardItem(tag)])
 
         myitem = self.model.findItems('current', column=1)
         if len(myitem) > 0:
@@ -310,7 +318,6 @@ class ChoiceDelegate(QtGui.QItemDelegate):
         self.tableView.verticalHeader().setVisible(False)
         self.tableView.horizontalHeader().setVisible(False)
         self.tableView.setAutoScroll(False)
-
         self.tableView.resizeColumnsToContents()
         self.tableView.resizeRowsToContents()
         self.tableView.setMinimumWidth(self.tableView.horizontalHeader().length())
@@ -330,6 +337,8 @@ class ChoiceDelegate(QtGui.QItemDelegate):
 
     def setModelData(self, editor, model, index):
         # Create undo command and push it to the undo stack
+        if index.data() == editor.currentText():
+            return
         cmd = commands.ModifyObjectCmd(self.main_window,
                                        value=editor.currentText())
         self.main_window.undo_stack.push(cmd)
