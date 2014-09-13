@@ -54,7 +54,7 @@ for dir in [DATA_DIR, LOG_DIR]:
 class Settings(object):
     """Object to handle setting and getting settings or info about them."""
 
-    def __init__(self, parent):
+    def __init__(self, parent=None):
         '''Create the settings object and set some of its own settings.'''
         from . import logger
         self.log = logger.setup_logging(LOG_LEVEL, __name__)
@@ -79,7 +79,7 @@ class Settings(object):
         position = settings.value("pos", QtCore.QPoint(200, 200))
         state = settings.value("state", QtCore.QByteArray())
 #        geometry = settings.value("geometry", QtCore.QByteArray())
-        style = settings.value("style", 'Cleanlooks')
+        style = settings.value("style", default_style())
         settings.endGroup()
 
         settings.beginGroup("Files")
@@ -125,6 +125,7 @@ class Settings(object):
         settings.setValue("pos", parent.pos())
         settings.setValue("state", parent.saveState())
 #        settings.setValue("geometry", parent.saveGeometry())
+        settings.setValue("style", default_style())
         settings.endGroup()
 
         settings.beginGroup("ClassTable")
@@ -152,3 +153,18 @@ class Settings(object):
         """get dir name"""
         import os
         return os.path.dirname(self.settings.fileName())
+
+def default_style():
+    system = get_os()
+    if system == 'Windows':
+        style = 'WindowsVista'
+    elif system == 'Macintosh':
+        style = 'Macintosh'
+    else:
+        style = 'Cleanlooks'
+    return style
+
+def get_os():
+    import platform
+    system = platform.system()
+    return system

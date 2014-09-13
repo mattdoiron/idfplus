@@ -25,7 +25,7 @@ from PySide import QtGui
 
 # Local imports
 from idfplus import logger
-from idfplus.idfplus import IDFPlus
+from idfplus.main import IDFPlus
 from idfplus import idfsettings as s
 
 # Setup logging
@@ -35,13 +35,18 @@ log = logger.setup_logging(s.LOG_LEVEL, 'IDFPlus')
 def main():
     """Main function to start the program."""
 
+    # Retrieve the currently running instance or make a new one
     app = QtGui.QApplication.instance()
     if app is None:
         app = QtGui.QApplication(sys.argv)
 
+    # Load settings
+    settings = s.Settings().settings
+    app.setStyle(settings.value("style", s.default_style()))
+
+    # Create the main window and show it
     idf_plus_window = IDFPlus()
     idf_plus_window.show()
-
     sys.exit(app.exec_())
 
 
