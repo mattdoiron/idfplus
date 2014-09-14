@@ -1,0 +1,26 @@
+Windows Setup:
+- install python 2.7x
+- install pip: https://bootstrap.pypa.io/get-pip.py
+- use pip to install: virtualenv and virtualenvwrapper-win
+- mkvirtualenv idfplus
+- workon idfplus
+- pip install -r requirements.txt
+- pywin32 may need to be installed manually (probably won't work through pip)
+- also need mingw32? or Visual C++ 2008 Express Edition (http://go.microsoft.com/?linkid=7729279)?
+- pyinstaller --onefile --noconsole --upx-dir=resources\upx\upx391w --clean idfplus.py
+
+
+Ubuntu/Debian Setup:
+- install python 2.7x (probably already installed)
+- sudo aptitude install python-pip python-virtualenv python-virtualenvwrapper
+- mkvirtualenv idfplus
+- workon idfplus
+- pip install -r requirements.txt
+- pyinstaller --onefile --noconsole --upx-dir=resources\upx\upx-3.91-amd64_linux --clean idfplus.py
+   or
+- pyinstaller --onefile --noconsole --upx-dir=resources\upx\upx-3.91-amd64_linux --clean idfplus.py
+   or
+- pyinstaller --onefile --noconsole --upx-dir=resources\upx\upx-3.91-i386_linux --clean idfplus.py
+
+Notes:
+Use --onedir later once MSI installer is ready or if using .deb files
