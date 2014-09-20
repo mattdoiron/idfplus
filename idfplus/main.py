@@ -129,14 +129,14 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow):
             if file_name:
                 self.load_file(file_name)
 
-    def find_idd_file(self):
+    def find_idd_file(self, version):
         """Called to open an idd file location."""
         # print('find idd file was called')
         if self.ok_to_continue():
             home_dir = os.path.expanduser('~')
             directory = os.path.dirname(self.file_path) if self.file_path else home_dir
             formats = "EnergyPlus IDD Files (*.idd)"
-            dialog_name = 'Open EnergyPlus Installation Directory'
+            dialog_name = 'Select EnergyPlus IDD File (Version: {})'.format(version)
             file_dialog = QtGui.QFileDialog()
             file_dialog.setFileMode(QtGui.QFileDialog.Directory)
             file_name, filt = file_dialog.getOpenFileName(self, dialog_name,
@@ -210,7 +210,7 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow):
         except datamodel.IDDFileDoesNotExist as e:
 
             # Load IDD File for the version of this IDF file
-            if not self.find_idd_file():
+            if not self.find_idd_file(e.version):
                 QtGui.QMessageBox.warning(self, "Processing IDD File Failed",
                                           ("{}\n\nVersion Required: {}\n\nLoading "
                                           "cancelled!".format(e.message, e.version)),

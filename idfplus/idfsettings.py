@@ -157,7 +157,7 @@ class Settings(object):
 def default_style():
     system = get_os()
     if system == 'Windows':
-        style = 'WindowsVista'
+        style = 'WindowsXP'
     elif system == 'Macintosh':
         style = 'Macintosh'
     else:
