@@ -360,52 +360,50 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow):
         field = self.refView.model().get_field(index)
         obj_class, obj_index, field_index = field.field_id
 
+        # Get the tree selection model and model
         tree_model = self.classTree.model()
         tree_selection_model = self.classTree.selectionModel()
-        start_index = tree_model.createIndex(0, 0, QtCore.QModelIndex())
 
-        # Select the appropriate class from the class tree (this also loads the table view)
-        # self.classTree.keyboardSearch(obj_class)
+        # Create an index to serve as the starting point for the tree search
+        start_index = tree_model.index(0, 0)
+
+        # Find the items in the class tree that contain the object class
         matches = tree_model.match(start_index,
                                    QtCore.Qt.DisplayRole,
                                    obj_class,
-                                   hits=2,
+                                   hits=1,
                                    flags=int(QtCore.Qt.MatchRecursive |
                                              QtCore.Qt.MatchExactly |
                                              QtCore.Qt.MatchWrap))
 
-        # match_selection = QtGui.QItemSelection(matches[0], matches[0])
-        persistent = QtCore.QPersistentModelIndex(matches[0])
+        # Select the resulting found item (this also triggers a load of the table view)
+        tree_selection_model.setCurrentIndex(matches[0],
+                                             QtGui.QItemSelectionModel.SelectCurrent)
 
-        tree_selection_model.select(persistent, QtGui.QItemSelectionModel.SelectCurrent)
-        self.classTree.scrollTo(persistent, QtGui.QAbstractItemView.PositionAtCenter)
+        # Scroll to the new selection
+        self.classTree.scrollTo(matches[0], QtGui.QAbstractItemView.PositionAtCenter)
 
-        # print("selection: {}".format(persistent))
-        # print("selection: {}".format(match_selection.first().topLeft().row()))
-        # print("selection: {}".format(match_selection))
-        # self.classSelected(match_selection)
+        # After the table is loaded, get its model and selection model
+        table_selection_model = self.classTable.selectionModel()
+        table_model = self.classTable.model().sourceModel()
+
+        # Create an index for the target field with the table's model
+        if self.obj_orientation == QtCore.Qt.Vertical:
+            table_index = table_model.createIndex(field_index, obj_index,
+                                                  QtCore.QModelIndex().internalId())
+        else:
+            table_index = table_model.createIndex(obj_index, field_index,
+                                                  QtCore.QModelIndex().internalId())
 
         # Give focus to the class table
         self.classTable.setFocus()
 
-        # After the table is loaded, get its model and selection model
-        selection_model = self.classTable.selectionModel()
-        model = self.classTable.model().sourceModel()
-
-        # Create an index for the target field with the table's model
-        if self.obj_orientation == QtCore.Qt.Vertical:
-            table_index = model.createIndex(field_index, obj_index, QtCore.QModelIndex())
-        else:
-            table_index = model.createIndex(obj_index, field_index, QtCore.QModelIndex())
-
         # Scroll to the target field (shouldn't need this!)
         self.classTable.selectColumn(obj_index)
 
-        # Select the target index (why are both needed!?)
-        selection_model.setCurrentIndex(table_index,
-                                        QtGui.QItemSelectionModel.SelectCurrent)
-        selection_model.select(table_index,
-                               QtGui.QItemSelectionModel.SelectCurrent)
+        # Select the target index
+        table_selection_model.setCurrentIndex(table_index,
+                                              QtGui.QItemSelectionModel.SelectCurrent)
 
     def addActions(self, target, actions):
         """Helper to add actions or a separator easily."""
@@ -622,19 +620,13 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow):
         current = tree.currentIndex()
         current_persistent = QtCore.QPersistentModelIndex(current)
 
-        self.classTree.model().filter_empty = not self.classTree.model().filter_empty
-        self.treeFilterRegExpChanged()
+        tree_model = self.classTree.model()
+        if tree_model:
+            tree_model.filter_empty = not self.classTree.model().filter_empty
+            self.treeFilterRegExpChanged()
 
         #TODO need to find a way to handle what happens when 'currentIndex' disappears
         #     during the filtering.
-
-        # for item in QtGui.QTreeWidgetItemIterator(tree):
-        #     obj = item.value().text(0)
-        #     count = item.value().text(1)
-        #     disabled = item.value().isDisabled()
-        #     spanned = item.value().isFirstColumnSpanned()
-        #     if obj is not None and count == '' and not disabled and not spanned:
-        #         item.value().setHidden(not self.fullTree)
 
         tree.scrollTo(current_persistent, QtGui.QAbstractItemView.PositionAtCenter)
 
@@ -764,37 +756,3 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow):
         log_path = os.path.join(c.LOG_DIR, c.LOG_FILE_NAME)
         self.watcher.addPath(log_path)
         self.watcher.fileChanged.connect(self.update_log_viewer)
-
-
-# class MyZODB(object):
-#     """Wrapper for ZODB connection"""
-#
-#     def __init__(self):
-#         log.info('Setting up database...')
-#         import transaction
-#         self.transaction = transaction
-#         tempfile.tempdir = appdirs.user_cache_dir(c.APP_NAME, c.COMPANY_NAME)
-#
-#         try:
-#             os.makedirs(tempfile.tempdir)
-#         except OSError:
-#             if not os.path.isdir(tempfile.tempdir):
-#                 raise
-#
-#         self.tmp = tempfile.NamedTemporaryFile(prefix='idfplus_cache_', delete=True)
-#         self.storage = FileStorage.FileStorage(self.tmp.name)
-#         self.db = DB(self.storage)
-#         self.connection = self.db.open()
-#         self.dbroot = self.connection.root
-
-    # def close(self):
-    #     """Closes connections/files and cleans up."""
-    #     log.info('Closing database...')
-    #     import os
-    #     self.transaction.commit()
-    #     self.connection.close()
-    #     self.db.close()
-    #     self.storage.close()
-    #     self.tmp.close()
-    #     for extension in ['.lock', '.index', '.tmp']:
-    #         os.remove(self.tmp.name + extension)
