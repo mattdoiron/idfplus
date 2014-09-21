@@ -104,6 +104,8 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
                 return self.field_labels[section]
             if orientation == QtCore.Qt.Vertical:
                 return self.objID_labels[section]
+        elif role == QtCore.Qt.BackgroundColorRole:
+            return QtGui.QColor(205, 192, 176)
         return None
 
     def rowCount(self, parent=None):
