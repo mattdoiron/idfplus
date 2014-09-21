@@ -39,21 +39,22 @@ from PySide import QtCore
 from . import delegates
 from . import tablemodel
 from . import parser
-from . import idfsettings as c
+from . import idfsettings
 from . import datamodel
 from . import logger
 from . import commands
 from . import treemodel
 from . import gui
+from . import options
 
 # Resource imports for icons
 from . import icons_rc
 
 # Global variables
 __version__ = '0.0.1'
-log = logger.setup_logging(c.LOG_LEVEL, __name__)
+log = logger.setup_logging(idfsettings.LOG_LEVEL, __name__)
 
-class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow):
+class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow, idfsettings.Settings):
     """Main GUI window for IDFPlus program."""
 
     def __init__(self):
@@ -63,8 +64,9 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow):
         self.create_ui()
 
         # Load settings (call this second)
-        self.settings = c.Settings(self)
-        self.settings.read_settings()
+        # self.settings = idfsettings.Settings()
+        self.init_settings(self)
+        self.read_settings()
 
         # TODO should only start this when the log viewer window is visible?
         self.start_log_watcher()
@@ -101,7 +103,7 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow):
     def closeEvent(self, event):
         """Called when the application is closed."""
         if self.ok_to_continue():
-            self.settings.write_settings()
+            self.write_settings()
             # self.db.close()
             del self.watcher
             log.info('Shutting down IDFPlus')
@@ -186,7 +188,6 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow):
         :param file_path:
         """
 
-        log.info('Loading file: {}'.format(file_path))
         if file_path:
             log.debug('Loading file from dialog: {}'.format(file_path))
         if file_path is None:
@@ -297,21 +298,27 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow):
         self.addActions(self.fileMenu, self.fileMenuActions[:-1])
         current = self.file_path or None
         recentFiles = []
-        if self.recentFiles:
-            for fname in self.recentFiles:
+        if self.prefs['recent_files']:
+            for fname in self.prefs['recent_files']:
                 if fname != current and QtCore.QFile.exists(fname):
                     recentFiles.append(fname)
         if recentFiles:
-            self.fileMenu.addSeparator()
+            # self.fileMenu.addSeparator()
             for i, fname in enumerate(recentFiles):
                 action = QtGui.QAction(QtGui.QIcon(":/images/icon.png"),
-                                       "&%d %s" % (i + 1, QtCore.QFileInfo(fname).fileName()),
+                                       '{} - {}'.format(i + 1, QtCore.QFileInfo(fname).fileName()),
+                                       # "&%d %s" % (i + 1, QtCore.QFileInfo(fname).fileName()),
                                        self)
                 action.setData(fname)
                 action.triggered.connect(self.load_file)
                 self.fileMenu.addAction(action)
-        self.fileMenu.addSeparator()
+            self.fileMenu.addAction(self.clearRecentAct)
+            self.fileMenu.addSeparator()
         self.fileMenu.addAction(self.fileMenuActions[-1])
+
+    def clear_recent(self):
+        self.prefs['recent_files'] = []
+        self.update_file_menu()
 
     def table_selection_changed(self, selected, deselected):
         if not selected:
@@ -484,9 +491,12 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow):
         if not file_name:
             return
         if not file_name in self.recentFiles:
-            self.recentFiles.insert(0, file_name)
-            while len(self.recentFiles) > 9:
-                self.recentFiles.pop()
+            try:
+                self.prefs['recent_files'].insert(0, file_name)
+            except AttributeError as e:
+                self.prefs['recent_files'] = [file_name]
+            while len(self.prefs['recent_files']) > 9:
+                self.prefs['recent_files'].pop()
 
     def update_status(self, message):
         """Updates the window title and status bar with a message.
@@ -753,6 +763,6 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow):
 
     def start_log_watcher(self):
         self.watcher = QtCore.QFileSystemWatcher()
-        log_path = os.path.join(c.LOG_DIR, c.LOG_FILE_NAME)
+        log_path = os.path.join(idfsettings.LOG_DIR, idfsettings.LOG_FILE_NAME)
         self.watcher.addPath(log_path)
         self.watcher.fileChanged.connect(self.update_log_viewer)

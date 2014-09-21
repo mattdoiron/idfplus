@@ -300,47 +300,51 @@ class UI_MainWindow(object):
 
         self.transposeAct = QtGui.QAction("Transpose", self,
                 shortcut=QtGui.QKeySequence('Ctrl+t'),
-                statusTip="Transpose rows and columns in object display.",
+                statusTip="Transpose rows and columns in object display",
                 triggered=self.transpose_table)
 
         self.newObjAct = QtGui.QAction(QtGui.QIcon(':/images/new2.png'),
                 "New Obj", self, shortcut=QtGui.QKeySequence('Ctrl+Shift+n'),
-                statusTip="Create a new object in the current class.",
+                statusTip="Create a new object in the current class",
                 triggered=self.newObject)
 
         self.copyObjAct = QtGui.QAction(QtGui.QIcon(':/images/copy.png'),
                 "Copy Obj", self, shortcut=QtGui.QKeySequence.Copy,
-                statusTip="Copy the current Object(s).",
+                statusTip="Copy the current Object(s)",
                 triggered=self.copyObject)
 
         self.pasteObjAct = QtGui.QAction(QtGui.QIcon(':/images/paste.png'),
                 "Paste Obj", self, shortcut=QtGui.QKeySequence.Paste,
-                statusTip="Paste the currently copies Object(s).",
+                statusTip="Paste the currently copies Object(s)",
                 triggered=self.pasteObject)
 
         self.dupObjAct = QtGui.QAction(QtGui.QIcon(':/images/copy.png'),
                 "Dup Obj", self, shortcut=QtGui.QKeySequence('Ctrl+d'),
-                statusTip="Duplicate the current Object(s).",
+                statusTip="Duplicate the current Object(s)",
                 triggered=self.duplicateObject)
 
         self.delObjAct = QtGui.QAction(QtGui.QIcon(':/images/delete.png'),
                 "Del Obj", self, shortcut=QtGui.QKeySequence('Del'),
-                statusTip="Delete the current Object(s).",
+                statusTip="Delete the current Object(s)",
                 triggered=self.deleteObject)
 
         self.navForwardAct = QtGui.QAction("Forward", self,
                 shortcut=QtGui.QKeySequence('Ctrl+Plus'),
-                statusTip="Go forward to the next object.",
+                statusTip="Go forward to the next object",
                 triggered=self.navForward)
 
         self.navBackAct = QtGui.QAction("Back", self,
                 shortcut=QtGui.QKeySequence('Ctrl+Minus'),
-                statusTip="Go back to the previous object.",
+                statusTip="Go back to the previous object",
                 triggered=self.navBack)
 
         self.aboutAct = QtGui.QAction("&About", self,
                 statusTip="Show the application's About box",
                 triggered=self.about)
+
+        self.clearRecentAct = QtGui.QAction("Clear Recent", self,
+                statusTip="Clear recent files",
+                triggered=self.clear_recent)
 
         self.minimizeAction = QtGui.QAction("Mi&nimize", self,
                 triggered=self.hide)
@@ -350,6 +354,9 @@ class UI_MainWindow(object):
 
         self.restoreAction = QtGui.QAction("&Restore", self,
                 triggered=self.showNormal)
+
+        self.showPrefsAction = QtGui.QAction("&Preferences", self,
+                triggered=self.show_prefs_dialog)
 
         self.undoAct = self.undo_stack.createUndoAction(self.undo_stack)
         self.undoAct.setShortcut(QtGui.QKeySequence.Undo)
@@ -384,6 +391,8 @@ class UI_MainWindow(object):
         self.editMenu.addAction(self.copyObjAct)
         self.editMenu.addAction(self.pasteAct)
         self.editMenu.addAction(self.pasteObjAct)
+        self.editMenu.addSeparator()
+        self.editMenu.addAction(self.showPrefsAction)
 
         # View Menu
         self.viewMenu = self.menuBar().addMenu("&View")

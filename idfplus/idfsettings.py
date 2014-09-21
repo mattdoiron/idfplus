@@ -54,11 +54,12 @@ for dir in [DATA_DIR, LOG_DIR]:
 class Settings(object):
     """Object to handle setting and getting settings or info about them."""
 
-    def __init__(self, parent=None):
-        '''Create the settings object and set some of its own settings.'''
+    def init_settings(self, parent=None):
+        """Create the settings object and set some of its own settings."""
         from . import logger
         self.log = logger.setup_logging(LOG_LEVEL, __name__)
         self.parent = parent
+        self.prefs = dict()
         self.settings = QtCore.QSettings(QtCore.QSettings.IniFormat,
                                          QtCore.QSettings.UserScope,
                                          COMPANY_NAME,
@@ -69,76 +70,71 @@ class Settings(object):
         """Reads application settings and restores them."""
 
         self.log.info('Reading settings')
-#        print("file: {}".format(self.get_file_name()))
-#        print("directory: {}".format(self.get_dir_name()))
         settings = self.settings
-        parent = self.parent
 
+        # Retrieve settings and store them in the prefs dict
         settings.beginGroup("MainWindow")
-        size = settings.value("size", QtCore.QSize(600, 500))
-        position = settings.value("pos", QtCore.QPoint(200, 200))
-        state = settings.value("state", QtCore.QByteArray())
-#        geometry = settings.value("geometry", QtCore.QByteArray())
-        style = settings.value("style", default_style())
+        self.prefs['size'] = settings.value("size", QtCore.QSize(600, 500))
+        self.prefs['pos'] = settings.value("pos", QtCore.QPoint(200, 200))
+        self.prefs['state'] = settings.value("state", QtCore.QByteArray())
+        self.prefs['style'] = settings.value("style", default_style())
         settings.endGroup()
 
         settings.beginGroup("Files")
-        parent.recentFiles = list(settings.value("recent_files", ['']))
+        self.prefs['recent_files'] = list(settings.value("recent_files") or [''])
         settings.endGroup()
 
         settings.beginGroup("ClassTable")
+        self.prefs['default_column_width'] = settings.value("default_column_width", 120)
         global DEFAULT_COLUMN_WIDTH
-        DEFAULT_COLUMN_WIDTH = settings.value("default_column_width", 120)
+        DEFAULT_COLUMN_WIDTH = self.prefs['default_column_width']
         settings.endGroup()
 
         settings.beginGroup("Global")
-        global FILE_ENCODING
-        FILE_ENCODING = settings.value("file_encoding", 'latin_1')
+        # self.prefs['file_encoding'] = settings.value("file_encoding", 'latin_1')
+        self.prefs['log_level'] = settings.value("log_level", 'INFO')
+        global LOG_LEVEL
+        LOG_LEVEL = self.prefs['log_level']
         settings.endGroup()
 
-        parent.resize(size)
-        parent.move(position)
-        parent.restoreState(state)
-        QtGui.QApplication.setStyle(QtGui.QStyleFactory.create(style))
-#        parent.restoreGeometry(geometry)
-#        parent.restoreDockWidget(parent.classTree.parent())
-#        parent.restoreDockWidget(parent.infoView.parent())
-#        parent.restoreDockWidget(parent.commentView.parent())
+        # Apply some settings immediately
+        self.parent.resize(self.prefs['size'])
+        self.parent.move(self.prefs['pos'])
+        self.parent.restoreState(self.prefs['state'])
+        self.parent.recentFiles = self.prefs['recent_files']
+        QtGui.QApplication.setStyle(QtGui.QStyleFactory.create(self.prefs['style']))
 
     def write_settings(self):
-        """Writes application settings to save them."""
+        """Writes application settings to disk."""
 
         self.log.info('Writing settings')
-        parent = self.parent
         settings = self.settings
-
-#        filename = self.filename  # or '' or None
-        recentFiles = parent.recentFiles or ['']
+        prefs = self.parent.prefs
 
         settings.beginGroup("Files")
-#        settings.setValue("LastFile", filename)
-        settings.setValue("recent_files", recentFiles)
+        settings.setValue("recent_files", prefs.get('recent_files', ['']))
         settings.endGroup()
 
         settings.beginGroup("MainWindow")
-        settings.setValue("size", parent.size())
-        settings.setValue("pos", parent.pos())
-        settings.setValue("state", parent.saveState())
-#        settings.setValue("geometry", parent.saveGeometry())
-        settings.setValue("style", default_style())
+        settings.setValue("size", prefs['size'])
+        settings.setValue("pos", prefs['pos'])
+        settings.setValue("state", self.parent.saveState())
+        settings.setValue("style", prefs['style'])
         settings.endGroup()
 
         settings.beginGroup("ClassTable")
-        settings.setValue("default_column_width", 120)
+        settings.setValue("default_column_width", prefs['default_column_width'])
         settings.endGroup()
 
         settings.beginGroup("Global")
-        settings.setValue("file_encoding", 'latin_1')
+        # settings.setValue("file_encoding", prefs['file_encoding'])
+        settings.setValue("log_level", prefs['log_level'])
         settings.endGroup()
 
-    def show_settings_dialog(self):
+    def show_prefs_dialog(self):
         """Handles showing the settings dialog and setting its values."""
-        pass
+        dlg = PrefsDialog(self)
+        dlg.exec_()
 
     def get_path(self):
         """get path"""
@@ -153,6 +149,39 @@ class Settings(object):
         """get dir name"""
         import os
         return os.path.dirname(self.settings.fileName())
+
+
+class PrefsDialog(QtGui.QDialog):
+    """ Form used to view and edit global program options
+    """
+
+    def __init__(self, parent):
+        super(PrefsDialog, self).__init__(parent)
+
+        # self.parent = parent
+        self.settings = parent.settings
+        self.prefs = parent.prefs
+
+        button_box = QtGui.QDialogButtonBox(QtGui.QDialogButtonBox.Ok |
+                                            QtGui.QDialogButtonBox.Cancel)
+
+        # Create layout and assign it to self
+        layout = QtGui.QVBoxLayout()
+        layout.addWidget(button_box)
+        self.setLayout(layout)
+
+        # Connect gui elements to events
+        button_box.accepted.connect(self.accept)
+        button_box.rejected.connect(self.reject)
+
+        self.setWindowTitle("IDF+ Options")
+
+    def accept(self):
+        """ Override default accept method to save settings
+        """
+        self.parent().write_settings()
+        # super(PrefsDialog, self).accept()
+
 
 def default_style():
     system = get_os()
