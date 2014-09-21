@@ -134,7 +134,9 @@ class Settings(object):
     def show_prefs_dialog(self):
         """Handles showing the settings dialog and setting its values."""
         dlg = PrefsDialog(self)
-        dlg.exec_()
+        if dlg.exec_():
+            result = dlg.prefs
+            print('saved')
 
     def get_path(self):
         """get path"""
@@ -161,26 +163,86 @@ class PrefsDialog(QtGui.QDialog):
         # self.parent = parent
         self.settings = parent.settings
         self.prefs = parent.prefs
-
         button_box = QtGui.QDialogButtonBox(QtGui.QDialogButtonBox.Ok |
                                             QtGui.QDialogButtonBox.Cancel)
 
+        # Create the tab widget and assign its tabs
+        tab_widget = QtGui.QTabWidget()
+        tab_widget.addTab(AppearanceTab(self), "Appearance")
+        tab_widget.addTab(LogTab(self), "Logging")
+
         # Create layout and assign it to self
         layout = QtGui.QVBoxLayout()
+        layout.addWidget(tab_widget)
         layout.addWidget(button_box)
         self.setLayout(layout)
+        self.setWindowTitle("IDF+ Options")
 
         # Connect gui elements to events
         button_box.accepted.connect(self.accept)
         button_box.rejected.connect(self.reject)
 
-        self.setWindowTitle("IDF+ Options")
-
     def accept(self):
         """ Override default accept method to save settings
         """
         self.parent().write_settings()
-        # super(PrefsDialog, self).accept()
+        super(PrefsDialog, self).accept()
+
+
+class AppearanceTab(QtGui.QWidget):
+    def __init__(self, parent=None):
+        super(AppearanceTab, self).__init__(parent)
+
+        self.prefs = parent.prefs
+
+        col_width_label = QtGui.QLabel("Default Column Width:")
+        self.col_width_edit = QtGui.QLineEdit(self.prefs['default_column_width'])
+        self.col_width_edit.setMinimumWidth(40)
+        validator = QtGui.QIntValidator(10, 200, self)
+        self.col_width_edit.setValidator(validator)
+
+        style_label = QtGui.QLabel("Visual Style:")
+        self.style_edit = QtGui.QComboBox(self)
+        self.style_edit.addItems(QtGui.QStyleFactory.keys())
+        self.style_edit.setCurrentIndex(self.style_edit.findText(self.prefs['style']))
+
+        mainLayout = QtGui.QVBoxLayout()
+        mainLayout.addWidget(col_width_label)
+        mainLayout.addWidget(self.col_width_edit)
+        mainLayout.addWidget(style_label)
+        mainLayout.addWidget(self.style_edit)
+        mainLayout.addStretch(1)
+        self.setLayout(mainLayout)
+
+        self.col_width_edit.textChanged.connect(self.update)
+        self.style_edit.currentIndexChanged.connect(self.update)
+
+    def update(self):
+        self.prefs['default_column_width'] = self.col_width_edit.text()
+        self.prefs['style'] = self.style_edit.currentText()
+
+
+class LogTab(QtGui.QWidget):
+    def __init__(self, parent=None):
+        super(LogTab, self).__init__(parent)
+
+        self.prefs = parent.prefs
+
+        log_label = QtGui.QLabel("Log Detail Level:")
+        self.log_edit = QtGui.QComboBox(self)
+        self.log_edit.addItems(['INFO', 'DEBUG', 'WARNING'])
+        self.log_edit.setCurrentIndex(self.log_edit.findText(self.prefs['log_level']))
+
+        mainLayout = QtGui.QVBoxLayout()
+        mainLayout.addWidget(log_label)
+        mainLayout.addWidget(self.log_edit)
+        mainLayout.addStretch(1)
+        self.setLayout(mainLayout)
+
+        self.log_edit.currentIndexChanged.connect(self.update)
+
+    def update(self):
+        self.prefs['log_level'] = self.log_edit.currentText()
 
 
 def default_style():
