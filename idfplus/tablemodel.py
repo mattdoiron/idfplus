@@ -84,7 +84,7 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
             data = int(QtCore.Qt.AlignLeft | QtCore.Qt.AlignVCenter)
         elif role == QtCore.Qt.TextColorRole or role == QtCore.Qt.ForegroundRole:
             pass
-        elif role == QtCore.Qt.BackgroundColorRole:
+        elif role == QtCore.Qt.BackgroundRole:
             #TODO Colour cells differently depending on things like if they are required
             pass
         return data
@@ -104,8 +104,8 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
                 return self.field_labels[section]
             if orientation == QtCore.Qt.Vertical:
                 return self.objID_labels[section]
-        elif role == QtCore.Qt.BackgroundColorRole:
-            return QtGui.QColor(205, 192, 176)
+        elif role == QtCore.Qt.BackgroundRole:
+            return QtGui.QColor(244, 244, 244)
         return None
 
     def rowCount(self, parent=None):

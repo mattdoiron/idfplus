@@ -45,7 +45,6 @@ from . import logger
 from . import commands
 from . import treemodel
 from . import gui
-from . import options
 
 # Resource imports for icons
 from . import icons_rc

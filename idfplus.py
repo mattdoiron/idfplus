@@ -40,6 +40,9 @@ def main():
     if app is None:
         app = QtGui.QApplication(sys.argv)
 
+    import faulthandler
+    faulthandler.enable()
+
     # Create the main window and show it
     idf_plus_window = IDFPlus()
     idf_plus_window.show()

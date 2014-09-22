@@ -82,7 +82,7 @@ class NewObjectCmd(ObjectCmd):
     def undo(self, *args, **kwargs):
         self.update_model()
 
-        # Make a set to find unique columns/rows
+        # Define the offset from the index to delete
         if self.main_window.obj_orientation == QtCore.Qt.Vertical:
             row_offset = 0
             col_offset = 1
@@ -94,15 +94,26 @@ class NewObjectCmd(ObjectCmd):
         if self.index_to_delete.row() == -1:
             index = self.index_to_delete
         else:
-            index = self.model.index(self.index_list[-1][0] + row_offset,
-                                     self.index_list[-1][1] + col_offset,
-                                     QtCore.QModelIndex())
+            index = self.model.createIndex(self.index_list[-1][0] + row_offset,
+                                           self.index_list[-1][1] + col_offset)
+
+        # Find the top and bottom corners of the selection in the new model
+        top_left = self.model.createIndex(self.index_list[0][0],
+                                          self.index_list[0][1])
+        bottom_right = self.model.createIndex(self.index_list[-1][0],
+                                              self.index_list[-1][1])
 
         # Get the table's model and call its remove method
         self.model.removeObjects(index, self.delete_count)
 
-         # Notify everyone that data has changed
-        self.model.dataChanged.emit(QtCore.QModelIndex(), QtCore.QModelIndex())
+        # Reselect the previously deleted range
+        selection = QtGui.QItemSelection(top_left, bottom_right)
+        selection_model = self.main_window.classTable.selectionModel()
+        selection_model.reset()
+        selection_model.select(selection, QtGui.QItemSelectionModel.SelectCurrent)
+
+        # Notify everyone that data has changed
+        self.model.dataChanged.emit(top_left, bottom_right)
         self.main_window.classTree.expandAll()
 
     def redo(self, from_clipboard=False, *args, **kwargs):
@@ -129,19 +140,18 @@ class NewObjectCmd(ObjectCmd):
             self.new_objects = new_objects
             self.delete_count = len(new_objects or [0])
 
-        # Define the index at which the objects will be inserted
+        # Define the index at which the objects will be inserted, deleted
         if not self.indexes:
             index = QtCore.QModelIndex()
         else:
-            index = self.indexes[0]
-
-        self.index_to_delete = index
+            index = self.indexes[-1]
+        self.index_to_delete = self.indexes[0]
 
         # Call the table's insert method
         self.model.insertObjects(index, self.new_objects)
 
         # Notify everyone that data has changed
-        self.model.dataChanged.emit(QtCore.QModelIndex(), QtCore.QModelIndex())
+        self.model.dataChanged.emit(index, index)
         self.main_window.classTree.expandAll()
 
 
@@ -156,7 +166,7 @@ class PasteSelectedCmd(ObjectCmd):
         value = None
 
         # Replace the data
-        self.model.setData(index, value, QtCore.Qt.EditRole)
+        self.model.setData(index, value)
 
         # Notify everyone that data has changed
         self.model.dataChanged.emit(self.indexes[0], index)
@@ -196,7 +206,7 @@ class PasteSelectedCmd(ObjectCmd):
                                          QtCore.QModelIndex())
 
                 # Save the data about to be replaced for undo
-                saved_value = self.model.data(index, value, QtCore.Qt.DisplayRole)
+                saved_value = self.model.data(index, value)
                 self.old_objects = []
                 self.old_objects.append((start_row + i,
                                          start_col + j,
@@ -215,7 +225,7 @@ class DeleteObjectCmd(ObjectCmd):
     def undo(self):
         self.update_model()
 
-        # Make a set to find unique columns/rows
+        # Define the offset from the index to delete
         if self.main_window.obj_orientation == QtCore.Qt.Vertical:
             row_offset = 0
             col_offset = -1
@@ -224,12 +234,23 @@ class DeleteObjectCmd(ObjectCmd):
             col_offset = 0
 
         # Recreate index for new model, but with an offset, or use the last row
-        index = self.model.index(self.index_list[-1][0] + row_offset,
-                                 self.index_list[-1][1] + col_offset,
-                                 QtCore.QModelIndex())
+        index = self.model.createIndex(self.index_list[0][0] + row_offset,
+                                       self.index_list[0][1] + col_offset)
+
+        # Find the top and bottom corners of the selection in the new model
+        top_left = self.model.createIndex(self.index_list[0][0],
+                                          self.index_list[0][1])
+        bottom_right = self.model.createIndex(self.index_list[-1][0],
+                                              self.index_list[-1][1])
 
         # Call the table's insert method
         self.model.insertObjects(index, self.old_objects)
+
+        # Reselect the previously deleted range
+        selection = QtGui.QItemSelection(top_left, bottom_right)
+        selection_model = self.main_window.classTable.selectionModel()
+        selection_model.reset()
+        selection_model.select(selection, QtGui.QItemSelectionModel.SelectCurrent)
 
         # Notify everyone that data has changed
         self.model.dataChanged.emit(index, index)
@@ -255,8 +276,18 @@ class DeleteObjectCmd(ObjectCmd):
         # Get the table's model and call its remove method
         self.model.removeObjects(self.indexes[0], self.delete_count)
 
+        # Find the top and bottom corners of the selection in the new model
+        top_left = self.model.createIndex(self.index_list[0][0],
+                                          self.index_list[0][1])
+        bottom_right = self.model.createIndex(self.index_list[-1][0],
+                                              self.index_list[-1][1])
+
+        # Clear any current selection
+        selection_model = self.main_window.classTable.selectionModel()
+        selection_model.reset()
+
         # Notify everyone that data has changed
-        self.model.dataChanged.emit(self.indexes[0], self.indexes[0])
+        self.model.dataChanged.emit(top_left, bottom_right)
         self.main_window.classTree.expandAll()
 
 
