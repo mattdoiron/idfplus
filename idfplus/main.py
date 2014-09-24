@@ -426,7 +426,7 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow, idfsettings.Settings):
         if not self.classTable.model():
             return
         self.classTable.model().setFilterRegExp(pattern)
-        self.classTable.model().invalidate()
+        self.classTable.model().invalidateFilter()
 
     def treeFilterRegExpChanged(self):
         pattern = self.filterTreeBox.text()
@@ -435,7 +435,7 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow, idfsettings.Settings):
         if not self.classTree.model():
             return
         self.classTree.model().setFilterRegExp(pattern)
-        self.classTree.model().invalidate()
+        self.classTree.model().invalidateFilter()
         self.classTree.expandAll()
 
     def clearFilterClicked(self):
@@ -738,19 +738,25 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow, idfsettings.Settings):
     def classSelected(self, current):
         """Loads the table view when a new class is selected"""
 
-        # print('current: {}'.format(current))
+        # If nothing is selected, return
+        if not current:
+            return
 
+        # Find the index of the first selection
         index = current.first().topLeft()
-        # selected = self.classTree.selectedIndexes()
 
+        # If the index is not valid, return
         if not index or not index.isValid():
             return
 
+        # Get the class name from the tree's data method
         data = self.classTree.model().data(index, QtCore.Qt.DisplayRole)
 
+        # If there is no data, return
         if not data:
             return
 
+        # Load the corresponding class in the tableView
         self.load_table_view(data)
 
     def update_log_viewer(self, changed_path):
