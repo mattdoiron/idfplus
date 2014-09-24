@@ -93,15 +93,17 @@ class NewObjectCmd(ObjectCmd):
         # Recreate index for new model, but with an offset, or use the last row
         if self.index_to_delete.row() == -1:
             index = self.index_to_delete
+            top_left = self.model.createIndex(0, 0)
+            bottom_right = top_left
         else:
             index = self.model.createIndex(self.index_list[-1][0] + row_offset,
                                            self.index_list[-1][1] + col_offset)
 
-        # Find the top and bottom corners of the selection in the new model
-        top_left = self.model.createIndex(self.index_list[0][0],
-                                          self.index_list[0][1])
-        bottom_right = self.model.createIndex(self.index_list[-1][0],
-                                              self.index_list[-1][1])
+            # Find the top and bottom corners of the selection in the new model
+            top_left = self.model.createIndex(self.index_list[0][0],
+                                              self.index_list[0][1])
+            bottom_right = self.model.createIndex(self.index_list[-1][0],
+                                                  self.index_list[-1][1])
 
         # Get the table's model and call its remove method
         self.model.removeObjects(index, self.delete_count)
@@ -143,9 +145,10 @@ class NewObjectCmd(ObjectCmd):
         # Define the index at which the objects will be inserted, deleted
         if not self.indexes:
             index = QtCore.QModelIndex()
+            self.index_to_delete = QtCore.QModelIndex()
         else:
             index = self.indexes[-1]
-        self.index_to_delete = self.indexes[0]
+            self.index_to_delete = self.indexes[0]
 
         # Call the table's insert method
         self.model.insertObjects(index, self.new_objects)
