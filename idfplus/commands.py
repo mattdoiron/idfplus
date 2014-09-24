@@ -259,6 +259,11 @@ class DeleteObjectCmd(ObjectCmd):
     def redo(self, *args, **kwargs):
         self.update_model()
 
+        vis_ind = QtCore.QPersistentModelIndex(self.indexes[0])
+        ind = self.indexes[0]
+        print("persistent index: ({}, {})".format(vis_ind.row(), vis_ind.column()))
+        print("regular index: ({}, {})".format(ind.row(), ind.column()))
+
         # Set a name for the undo/redo action
         self.setText('Delete object')
 

@@ -53,7 +53,7 @@ class UI_MainWindow(object):
         self.obj_history = deque([], c.MAX_OBJ_HISTORY)
 
         # Object class table widget
-        classTable = tablemodel.TableView(self)
+        classTable = QtGui.QTableView(self)
         classTable.setObjectName("classTable")
         classTable.setAlternatingRowColors(True)
         classTable.setFrameShape(QtGui.QFrame.StyledPanel)

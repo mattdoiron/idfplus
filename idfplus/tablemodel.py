@@ -240,23 +240,39 @@ class TransposeProxyModel(QtGui.QAbstractProxyModel):
         self.sourceModel().rowsInserted.connect(self.columnsInserted.emit)
         self.sourceModel().rowsAboutToBeRemoved.connect(self.columnsAboutToBeRemoved.emit)
         self.sourceModel().rowsRemoved.connect(self.columnsRemoved.emit)
+        self.sourceModel().dataChanged.connect(self.data_changed)
+        self.sourceModel().headerDataChanged.connect(self.header_data_changed)
 
     def mapFromSource(self, sourceIndex):
         if not sourceIndex.isValid():
             return QtCore.QModelIndex()
-        return self.createIndex(sourceIndex.column(),
-                                sourceIndex.row(),
-                                QtCore.QModelIndex())
+        return self.index(sourceIndex.column(), sourceIndex.row())
 
     def mapToSource(self, proxyIndex):
         if not proxyIndex.isValid():
             return QtCore.QModelIndex()
-        return self.sourceModel().createIndex(proxyIndex.column(),
-                                              proxyIndex.row(),
-                                              QtCore.QModelIndex())
+        return self.sourceModel().index(proxyIndex.column(), proxyIndex.row())
 
-    def index(self, row, col, parent):
-        return self.createIndex(row, col, QtCore.QModelIndex())
+    def mapSelectionToSource(self, selection):
+        returnSelection = QtGui.QItemSelection()
+        for sel in selection:
+            top_left = self.mapToSource(sel.topLeft())
+            bottom_right = self.mapToSource(sel.bottomRight())
+            sel_range = QtGui.QItemSelectionRange(top_left, bottom_right)
+            returnSelection.append(sel_range)
+        return returnSelection
+
+    def mapSelectionFromSource(self, selection):
+        returnSelection = QtGui.QItemSelection()
+        for sel in selection:
+            top_left = self.mapFromSource(sel.topLeft())
+            bottom_right = self.mapFromSource(sel.bottomRight())
+            sel_range = QtGui.QItemSelectionRange(top_left, bottom_right)
+            returnSelection.append(sel_range)
+        return returnSelection
+
+    def index(self, row, col, parent=None):
+        return self.createIndex(row, col)
 
     def parent(self, index):
         return QtCore.QModelIndex()
@@ -285,6 +301,17 @@ class TransposeProxyModel(QtGui.QAbstractProxyModel):
 
     def setData(self, index, value, role):
         return self.sourceModel().setData(self.mapToSource(index), value, role)
+
+    def data_changed(self, top_left, bottom_right):
+        self.dataChanged.emit(self.mapFromSource(top_left),
+                              self.mapFromSource(bottom_right))
+
+    def header_data_changed(self, orientation, first, last):
+        if orientation == QtCore.Qt.Horizontal:
+            new_orientation = QtCore.Qt.Vertical
+        else:
+            new_orientation = QtCore.Qt.Horizontal
+        self.headerDataChanged.emit(new_orientation, first, last)
 
 
 class SortFilterProxyModel(QtGui.QSortFilterProxyModel):
@@ -414,27 +441,28 @@ class IDFClassTableModel(QtCore.QAbstractTableModel):
         return len(self.idd_object)
 
 
-class TableView(QtGui.QTableView):
-   '''Subclass of QTableView used to override mousePressEvent'''
-
-   def __init__(self, *args, **kwargs):
-       super(TableView, self).__init__(*args, **kwargs)
-
-   # # Ads single-click editing
-   # def mousePressEvent(self, event):
-   #     if event.button() == QtCore.Qt.LeftButton:
-   #         index = self.indexAt(event.pos())
-   #         if index.isValid():
-   #             self.edit(index)
-   #     QtGui.QTableView.mousePressEvent(self, event)
-
-   # def commitData(self, *args, **kwargs):
-   #     print('data committed')
-   #     #TODO put transaction commit in here?
-   #     #TODO catch multiple paste and commit only once?
-   #     super(TableView, self).commitData(*args, **kwargs)
-
-    # def clear(self):
-    #     self.model().beginResetModel()
-    #     self.model().clear()
-    #     self.model().endResetModel()
+# class TableView(QtGui.QTableView):
+#     '''Subclass of QTableView used to override mousePressEvent'''
+#
+#     def __init__(self, *args, **kwargs):
+#         super(TableView, self).__init__(*args, **kwargs)
+#
+#     def visualIndex(self, index):
+#         super(TableView, self).visualIndex(index)
+#
+#    # # Ads single-click editing
+#    # def mousePressEvent(self, event):
+#    #     if event.button() == QtCore.Qt.LeftButton:
+#    #         index = self.indexAt(event.pos())
+#    #         if index.isValid():
+#    #             self.edit(index)
+#    #     QtGui.QTableView.mousePressEvent(self, event)
+#
+#    # def commitData(self, *args, **kwargs):
+#    #     print('data committed')
+#    #     super(TableView, self).commitData(*args, **kwargs)
+#
+#     # def clear(self):
+#     #     self.model().beginResetModel()
+#     #     self.model().clear()
+#     #     self.model().endResetModel()
