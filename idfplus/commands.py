@@ -165,14 +165,24 @@ class PasteSelectedCmd(ObjectCmd):
         self.update_model()
 
         # insert rest here
-        index = None
-        value = None
+        # index = None
+        # value = None
 
-        # Replace the data
-        self.model.setData(index, value)
+        # Create an index to represent the start of the replacement
+        start_index = self.model.index(self.old_objects[0][0],
+                                       self.old_objects[0][1])
+
+        # Cycle through all the old objects
+        for obj in self.old_objects:
+
+            # Create an index from the saved values
+            index = self.model.index(obj[0], obj[1])
+
+            # Restore the old data
+            self.model.setData(index, obj[2], QtCore.Qt.EditRole)
 
         # Notify everyone that data has changed
-        self.model.dataChanged.emit(self.indexes[0], index)
+        self.model.dataChanged.emit(start_index, index)
 
 
     def redo(self, *args, **kwargs):
@@ -198,22 +208,19 @@ class PasteSelectedCmd(ObjectCmd):
             return False
 
         # Iterate through text, splitting into rows
+        self.old_objects = []
         rows = raw_text.split('\n')
         for i, row in enumerate(rows[:-1]):
             values = row.split('\t')
             for j, value in enumerate(values):
 
-                # Save value and rows to data model
-                index = self.model.index(start_row + i,
-                                         start_col + j,
-                                         QtCore.QModelIndex())
+                # Make an index for the data to be affected
+                index = self.model.index(start_row + i, start_col + j)
 
-                # Save the data about to be replaced for undo
-                saved_value = self.model.data(index, value)
-                self.old_objects = []
+                # Save the data about to be replaced (for undo)
                 self.old_objects.append((start_row + i,
                                          start_col + j,
-                                         saved_value))
+                                         index.data()))
 
                 # Replace the data
                 self.model.setData(index, value, QtCore.Qt.EditRole)
@@ -261,11 +268,6 @@ class DeleteObjectCmd(ObjectCmd):
 
     def redo(self, *args, **kwargs):
         self.update_model()
-
-        vis_ind = QtCore.QPersistentModelIndex(self.indexes[0])
-        ind = self.indexes[0]
-        print("persistent index: ({}, {})".format(vis_ind.row(), vis_ind.column()))
-        print("regular index: ({}, {})".format(ind.row(), ind.column()))
 
         # Set a name for the undo/redo action
         self.setText('Delete object')
