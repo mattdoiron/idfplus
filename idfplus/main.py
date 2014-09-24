@@ -411,6 +411,20 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow, idfsettings.Settings):
         table_selection_model.setCurrentIndex(table_index,
                                               QtGui.QItemSelectionModel.SelectCurrent)
 
+    def custom_table_context_menu(self, position):
+
+        # Create a menu and populate it with actions
+        menu = QtGui.QMenu(self)
+        menu.addAction(self.undoAct)
+        menu.addAction(self.redoAct)
+        menu.addSeparator()
+        menu.addAction(self.copyObjAct)
+        menu.addAction(self.dupObjAct)
+        menu.addAction(self.delObjAct)
+        menu.addAction(self.newObjAct)
+        menu.addAction(self.cutAct)
+        menu.popup(self.classTable.viewport().mapToGlobal(position))
+
     def addActions(self, target, actions):
         """Helper to add actions or a separator easily."""
         for action in actions:
