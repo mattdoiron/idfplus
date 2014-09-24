@@ -688,7 +688,9 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow, idfsettings.Settings):
         # Grab the comments
         comments = ''
         if self.idf[obj_class]:
-            comments = "".join(self.idf[obj_class][0].comments)
+            comment_list = self.idf[obj_class][0].comments
+            if comment_list:
+                comments = "".join(self.idf[obj_class][0].comments)
 
         # Now that there is a class selected, enable some actions and set some vars
         self.newObjAct.setEnabled(True)
