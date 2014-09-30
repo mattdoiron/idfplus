@@ -213,6 +213,13 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
         self.endInsertRows()
         return True
 
+    def get_row_number(self, header_name):
+        try:
+            row = self.objID_labels.index(header_name)
+            return row
+        except ValueError:
+            return None
+
     def getLabels(self):
         field_labels = []
         obj_count = len(self.idf_objects)
@@ -262,14 +269,14 @@ class TransposeProxyModel(QtGui.QAbstractProxyModel):
             returnSelection.append(sel_range)
         return returnSelection
 
-    def mapSelectionFromSource(self, selection):
-        returnSelection = QtGui.QItemSelection()
-        for sel in selection:
-            top_left = self.mapFromSource(sel.topLeft())
-            bottom_right = self.mapFromSource(sel.bottomRight())
-            sel_range = QtGui.QItemSelectionRange(top_left, bottom_right)
-            returnSelection.append(sel_range)
-        return returnSelection
+    # def mapSelectionFromSource(self, selection):
+    #     returnSelection = QtGui.QItemSelection()
+    #     for sel in selection:
+    #         top_left = self.mapFromSource(sel.topLeft())
+    #         bottom_right = self.mapFromSource(sel.bottomRight())
+    #         sel_range = QtGui.QItemSelectionRange(top_left, bottom_right)
+    #         returnSelection.append(sel_range)
+    #     return returnSelection
 
     def index(self, row, col, parent=None):
         return self.createIndex(row, col)
@@ -317,10 +324,11 @@ class TransposeProxyModel(QtGui.QAbstractProxyModel):
 class SortFilterProxyModel(QtGui.QSortFilterProxyModel):
     """Proxy layer to sort and filter"""
 
-    def __init__(self, obj_orientation, *args, **kwargs):
-        super(SortFilterProxyModel, self).__init__(*args, **kwargs)
+    def __init__(self, obj_orientation, parent_view, parent):
+        super(SortFilterProxyModel, self).__init__(parent)
 
         self.obj_orientation = obj_orientation
+        self.parent_view = parent_view
         syntax = QtCore.QRegExp.PatternSyntax(QtCore.QRegExp.Wildcard)
         caseSensitivity = QtCore.Qt.CaseInsensitive
 
@@ -359,86 +367,72 @@ class SortFilterProxyModel(QtGui.QSortFilterProxyModel):
 
         return False
 
+    # def mapFromSource(self, sourceIndex):
+    #     if not sourceIndex.isValid():
+    #         return QtCore.QModelIndex()
+    #     return self.index(sourceIndex.row(), sourceIndex.column())
+    #
+    # def mapToSource(self, proxyIndex):
+    #     if not proxyIndex.isValid():
+    #         return QtCore.QModelIndex()
+    #     return self.sourceModel().index(proxyIndex.row(), proxyIndex.column())
 
-class IDFClassTableModel(QtCore.QAbstractTableModel):
-    """Qt object that handles interaction between the table and the data
-    displayed in the table.
-    """
+    def mapSelectionToSource(self, selection):
+        return_selection = QtGui.QItemSelection()
+        for sel in selection:
+            # print('mapped from: {}'.format(sel.topLeft().column()))
+            # print('mapped to: {}'.format(self.mapToSource(sel.topLeft()).column()))
+            top_left = self.mapToSource(sel.topLeft())
+            bottom_right = self.mapToSource(sel.bottomRight())
+            sel_range = QtGui.QItemSelectionRange(top_left, bottom_right)
+            return_selection.append(sel_range)
+        return return_selection
+    #
+    # def mapSelectionFromSource(self, selection):
+    #     returnSelection = QtGui.QItemSelection()
+    #     for sel in selection:
+    #         top_left = self.mapFromSource(sel.topLeft())
+    #         bottom_right = self.mapFromSource(sel.bottomRight())
+    #         sel_range = QtGui.QItemSelectionRange(top_left, bottom_right)
+    #         returnSelection.append(sel_range)
+    #     return returnSelection
 
-    def __init__(self, idf):
-        # self.obj_class = obj_class
-        self.idf = idf
-        self.idd = idf._idd
-        # self.idf_objects = idf.get(obj_class, PersistentList())
-        # self.idd_object = idf._idd.get(obj_class, PersistentList())
-        # self.dirty = False
-        # self.getLabels()
-        super(IDFClassTableModel, self).__init__()
+    # def index(self, row, col, parent=None):
+        # ind = self.sourceModel().index(row, col)
+        # ind = self.createIndex(row, col, parent)
+        # return self.mapFromSource(ind)
+        # return self.mapFromSource(ind)
+        # return self.createIndex(row, col, parent)
+    #
+    # def parent(self, index):
+    #     return QtCore.QModelIndex()
+    #
+    # def rowCount(self, parent=None):
+    #     return self.sourceModel().rowCount(parent)
+    #
+    # def columnCount(self, parent=None):
+    #     return self.sourceModel().columnCount(parent)
 
-    def flags(self, index):
-        if not index.isValid():
-            return QtCore.Qt.ItemIsEnabled
+    def insertObjects(self, index, objects):
+        return self.sourceModel().insertObjects(self.mapToSource(index), objects)
 
-        current_flags = QtCore.QAbstractTableModel.flags(self, index)
-        return QtCore.Qt.ItemFlags(current_flags | QtCore.Qt.ItemIsEditable)
+    def removeObjects(self, index, count):
+        # print('source ind: {}'.format(self.sourceModel().headerData(index.column(),
+        #                                     QtCore.Qt.Horizontal,
+        #                                     QtCore.Qt.DisplayRole)))
+        # print('sections hidden: {}'.format(self.model().header().sectionsHidden()))
+        # test = self.parent_view.horizontalHeader().logicalIndex(index.column())
+        # test = self.parent_view.horizontalHeader()[index.column()]
+        # test = self.parent_view.horizontalHeader().hiddenSectionCount()
+        # count123 = self.parent_view.horizontalHeader().count()
+        # print('vis index: {}, log index: {}, count: {}'.format(index.column(), test, count123))
+        # print(self.persistent_indexes)
 
-    def data(self, index, role):
-        """Provides various data to Table models. Tables iterate through
-        columns and rows with different roles to get different types of data.
-        """
+        print('mapped from: {}'.format(index.column()))
+        print('removing: {}'.format(self.mapToSource(index).column()))
 
-        # Check for valid qt index
-        if not index.isValid():
-            return None
-
-        # Get the row and column and prepare a blank data var to return
-        row = index.row()
-        column = index.column()
-        data = None
-
-        # Detect the role being request and return the correct data
-        if role == QtCore.Qt.DisplayRole or role == QtCore.Qt.EditRole:
-            try:
-                data = self.idf_objects[row][column].value
-            except (AttributeError, IndexError):
-                data = None
-        elif role == QtCore.Qt.ToolTipRole:
-            data = self.idd_object.tags.get('units', '')
-        elif role == QtCore.Qt.DecorationRole:
-            pass
-        elif role == QtCore.Qt.StatusTipRole:
-            data = self.idd_object.tags.get('units', '')
-        elif role == QtCore.Qt.TextAlignmentRole:
-            data = int(QtCore.Qt.AlignLeft | QtCore.Qt.AlignVCenter)
-        elif role == QtCore.Qt.TextColorRole or role == QtCore.Qt.ForegroundRole:
-            pass
-        elif role == QtCore.Qt.BackgroundColorRole:
-            #TODO Colour cells differently depending on things like if they are required
-            pass
-        return data
-
-    def headerData(self, section, orientation, role, old_orientation=None):
-        if role == QtCore.Qt.TextAlignmentRole:
-            if old_orientation is None:
-                if orientation == QtCore.Qt.Vertical:
-                    return int(QtCore.Qt.AlignRight | QtCore.Qt.AlignVCenter)
-                return int(QtCore.Qt.AlignLeft | QtCore.Qt.AlignVCenter)
-            else:
-                if orientation == QtCore.Qt.Vertical:
-                    return int(QtCore.Qt.AlignLeft | QtCore.Qt.AlignVCenter)
-                return int(QtCore.Qt.AlignRight | QtCore.Qt.AlignVCenter)
-        elif role == QtCore.Qt.DisplayRole or role == QtCore.Qt.ToolTipRole:
-            if orientation == QtCore.Qt.Horizontal:
-                return self.field_labels[section]
-            if orientation == QtCore.Qt.Vertical:
-                return self.objID_labels[section]
-        return None
-
-    def rowCount(self, index):
-        return len(self.idf_objects)
-
-    def columnCount(self, index):
-        return len(self.idd_object)
+        # self.dataChanged.emit(top_left, bottom_right)
+        return self.sourceModel().removeObjects(self.mapToSource(index), count)
 
 
 # class TableView(QtGui.QTableView):

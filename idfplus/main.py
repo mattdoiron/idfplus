@@ -584,18 +584,33 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow, idfsettings.Settings):
 
     def copyObject(self, save=None):
         """Copies object(s) to the clipboard for pasting to other programs."""
-        indexes = self.classTable.selectedIndexes()
-        if len(indexes) <= 0:
+        # indexes = self.classTable.selectedIndexes()
+        selection_model = self.classTable.selectionModel()
+        # if len(indexes) <= 0:
+        if not selection_model.hasSelection():
             return False
 
+        # The model may be filtered, so map the selection to the source model
+        # source_model = self.classTable.model()#.sourceModel()
+        # selection = source_model.mapSelectionToSource(selection_model.selection())
+        selection = selection_model.selection()
+        # print(selection[0].width())
         # Make a set to find unique columns/rows
+        # if self.obj_orientation == QtCore.Qt.Vertical:
+        #     index_set = set([self.classTable.model().mapToSource(index).column() for index in indexes])
+        # else:
+        #     index_set = set([self.classTable.model().mapToSource(index).row() for index in indexes])
+        # count = len(list(index_set))
+        # start = list(index_set)[0]
         if self.obj_orientation == QtCore.Qt.Vertical:
-            index_set = set([index.column() for index in indexes])
+            count = selection[0].width()
+            start = selection[0].left()
         else:
-            index_set = set([index.row() for index in indexes])
-        count = len(list(index_set))
-        start = list(index_set)[0]
+            count = selection[0].height()
+            start = selection[0].top()
         end = start + count
+        print('start: {}, count: {}, end: {}'.format(start, count, end))
+        print(self.idf[self.current_obj_class][start:end][0][0].value)
 
         # Copy object(s) to the clipboard or return the object(s)
         if save is None:
@@ -680,7 +695,7 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow, idfsettings.Settings):
             model = default_model
 
         # Create additional proxy for sorting and filtering
-        sortable = tablemodel.SortFilterProxyModel(self.obj_orientation)
+        sortable = tablemodel.SortFilterProxyModel(self.obj_orientation, table, model)
         sortable.setSourceModel(model)
 
         # Assign model to table (enable sorting FIRST)

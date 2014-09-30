@@ -58,7 +58,7 @@ class ObjectCmd(QtGui.QUndoCommand):
         self.from_selection = kwargs.get('from_selection', False)
         self.value = kwargs.get('value', None)
         self.old_value = None
-        self.model = self.main_window.classTable.model().sourceModel()
+        self.model = self.main_window.classTable.model()#.sourceModel()
 
     def update_model(self):
 
@@ -93,16 +93,16 @@ class NewObjectCmd(ObjectCmd):
         # Recreate index for new model, but with an offset, or use the last row
         if self.index_to_delete.row() == -1:
             index = self.index_to_delete
-            top_left = self.model.createIndex(0, 0)
+            top_left = self.model.index(0, 0)
             bottom_right = top_left
         else:
-            index = self.model.createIndex(self.index_list[-1][0] + row_offset,
+            index = self.model.index(self.index_list[-1][0] + row_offset,
                                            self.index_list[-1][1] + col_offset)
 
             # Find the top and bottom corners of the selection in the new model
-            top_left = self.model.createIndex(self.index_list[0][0],
+            top_left = self.model.index(self.index_list[0][0],
                                               self.index_list[0][1])
-            bottom_right = self.model.createIndex(self.index_list[-1][0],
+            bottom_right = self.model.index(self.index_list[-1][0],
                                                   self.index_list[-1][1])
 
         # Get the table's model and call its remove method
@@ -244,14 +244,14 @@ class DeleteObjectCmd(ObjectCmd):
             col_offset = 0
 
         # Recreate index for new model, but with an offset, or use the last row
-        index = self.model.createIndex(self.index_list[0][0] + row_offset,
-                                       self.index_list[0][1] + col_offset)
+        index = self.model.index(self.index_list[0][0] + row_offset,
+                                 self.index_list[0][1] + col_offset)
 
         # Find the top and bottom corners of the selection in the new model
-        top_left = self.model.createIndex(self.index_list[0][0],
-                                          self.index_list[0][1])
-        bottom_right = self.model.createIndex(self.index_list[-1][0],
-                                              self.index_list[-1][1])
+        top_left = self.model.index(self.index_list[0][0],
+                                    self.index_list[0][1])
+        bottom_right = self.model.index(self.index_list[-1][0],
+                                        self.index_list[-1][1])
 
         # Call the table's insert method
         self.model.insertObjects(index, self.old_objects)
@@ -263,7 +263,8 @@ class DeleteObjectCmd(ObjectCmd):
         selection_model.select(selection, QtGui.QItemSelectionModel.SelectCurrent)
 
         # Notify everyone that data has changed
-        self.model.dataChanged.emit(index, index)
+        self.model.dataChanged.emit(self.model.mapToSource(top_left),
+                                    self.model.mapToSource(bottom_right))
         self.main_window.classTree.expandAll()
 
     def redo(self, *args, **kwargs):
@@ -277,27 +278,32 @@ class DeleteObjectCmd(ObjectCmd):
             self.old_objects = self.main_window.copyObject(save=False)
 
         # Make a set to find unique columns/rows - use to find number to be deleted
-        if self.obj_orientation == QtCore.Qt.Vertical:
-            index_set = set([index.column() for index in self.indexes])
-        else:
-            index_set = set([index.row() for index in self.indexes])
-        self.delete_count = len(list(index_set))
+        # if self.obj_orientation == QtCore.Qt.Vertical:
+        #     index_set = set([index.column() for index in self.indexes])
+        # else:
+        #     index_set = set([index.row() for index in self.indexes])
+        # self.delete_count = len(list(index_set))
+        self.delete_count = len(self.old_objects)
+        print('delete count: {}'.format(self.delete_count))
 
         # Get the table's model and call its remove method
         self.model.removeObjects(self.indexes[0], self.delete_count)
 
         # Find the top and bottom corners of the selection in the new model
-        top_left = self.model.createIndex(self.index_list[0][0],
-                                          self.index_list[0][1])
-        bottom_right = self.model.createIndex(self.index_list[-1][0],
-                                              self.index_list[-1][1])
+        #use mapto/fromsource here?
+        top_left = self.model.index(self.index_list[0][0],
+                                    self.index_list[0][1])
+        bottom_right = self.model.index(self.index_list[-1][0],
+                                        self.index_list[-1][1])
 
-        # Clear any current selection
+        # Clear any current selection and select the next item
         selection_model = self.main_window.classTable.selectionModel()
         selection_model.reset()
+        selection_model.select(self.indexes[0], QtGui.QItemSelectionModel.SelectCurrent)
 
         # Notify everyone that data has changed
-        self.model.dataChanged.emit(top_left, bottom_right)
+        self.model.dataChanged.emit(self.model.mapToSource(top_left),
+                                    self.model.mapToSource(bottom_right))
         self.main_window.classTree.expandAll()
 
 
