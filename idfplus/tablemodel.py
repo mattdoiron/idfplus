@@ -22,6 +22,8 @@ from __future__ import (print_function, division, absolute_import)
 
 # System imports
 from persistent.list import PersistentList
+from operator import itemgetter
+from itertools import groupby
 
 # PySide imports
 from PySide import QtGui
@@ -159,26 +161,30 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
         when there is no proxy layer."""
         return self
 
-    def removeObjects(self, index, count):
+    def removeObjects(self, indexes):
 
-        # Set the position for the removal
-        if index.row() == -1:
-            position = len(self.idf_objects) - 1
-        else:
-            position = index.row()
+        # Make a unique set of rows to be deleted
+        row_set = list(set(index.row() for index in indexes))
 
-        # Warn the model that we're about to remove rows
-        self.beginRemoveRows(QtCore.QModelIndex(),
-                             position,
-                             position - 1 + count)
+        print('received {} objects to delete on {} rows'.format(len(indexes), len(row_set)))
+        print('deleting rows: {}'.format(row_set))
 
-        # Delete the range
-        del self.idf_objects[position:position + count]
+        for key, g in groupby(enumerate(row_set), lambda (i, x): i-x):
+            group = map(itemgetter(1), g)
+            delete_count = len(group)
+
+            print('deleting group: {}'.format(group))
+
+            # Warn the model that we're about to remove rows then do it
+            self.beginRemoveRows(QtCore.QModelIndex(), group[0], delete_count)
+            del self.idf_objects[group[0]:group[0] + delete_count]
+            self.endRemoveRows()
+
+            print('deleting rows {} to {}'.format(group[0], group[0] + delete_count))
 
         # Update state
         self.getLabels()
-        # self.dataChanged.emit(QtCore.QModelIndex(), QtCore.QModelIndex())
-        self.endRemoveRows()
+
         return True
 
     def insertObjects(self, index, objects=None):
@@ -212,13 +218,6 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
         # self.dataChanged.emit(QtCore.QModelIndex(), QtCore.QModelIndex())
         self.endInsertRows()
         return True
-
-    def get_row_number(self, header_name):
-        try:
-            row = self.objID_labels.index(header_name)
-            return row
-        except ValueError:
-            return None
 
     def getLabels(self):
         field_labels = []
@@ -303,8 +302,9 @@ class TransposeProxyModel(QtGui.QAbstractProxyModel):
     def insertObjects(self, index, objects):
         return self.sourceModel().insertObjects(self.mapToSource(index), objects)
 
-    def removeObjects(self, index, count):
-        return self.sourceModel().removeObjects(self.mapToSource(index), count)
+    def removeObjects(self, indexes):
+        indexes_src = [self.mapToSource(index) for index in indexes]
+        return self.sourceModel().removeObjects(indexes_src)
 
     def setData(self, index, value, role):
         return self.sourceModel().setData(self.mapToSource(index), value, role)
@@ -377,16 +377,16 @@ class SortFilterProxyModel(QtGui.QSortFilterProxyModel):
     #         return QtCore.QModelIndex()
     #     return self.sourceModel().index(proxyIndex.row(), proxyIndex.column())
 
-    def mapSelectionToSource(self, selection):
-        return_selection = QtGui.QItemSelection()
-        for sel in selection:
-            # print('mapped from: {}'.format(sel.topLeft().column()))
-            # print('mapped to: {}'.format(self.mapToSource(sel.topLeft()).column()))
-            top_left = self.mapToSource(sel.topLeft())
-            bottom_right = self.mapToSource(sel.bottomRight())
-            sel_range = QtGui.QItemSelectionRange(top_left, bottom_right)
-            return_selection.append(sel_range)
-        return return_selection
+    # def mapSelectionToSource(self, selection):
+    #     return_selection = QtGui.QItemSelection()
+    #     for sel in selection:
+    #         # print('mapped from: {}'.format(sel.topLeft().column()))
+    #         # print('mapped to: {}'.format(self.mapToSource(sel.topLeft()).column()))
+    #         top_left = self.mapToSource(sel.topLeft())
+    #         bottom_right = self.mapToSource(sel.bottomRight())
+    #         sel_range = QtGui.QItemSelectionRange(top_left, bottom_right)
+    #         return_selection.append(sel_range)
+    #     return return_selection
     #
     # def mapSelectionFromSource(self, selection):
     #     returnSelection = QtGui.QItemSelection()
@@ -416,7 +416,7 @@ class SortFilterProxyModel(QtGui.QSortFilterProxyModel):
     def insertObjects(self, index, objects):
         return self.sourceModel().insertObjects(self.mapToSource(index), objects)
 
-    def removeObjects(self, index, count):
+    def removeObjects(self, indexes):
         # print('source ind: {}'.format(self.sourceModel().headerData(index.column(),
         #                                     QtCore.Qt.Horizontal,
         #                                     QtCore.Qt.DisplayRole)))
@@ -428,11 +428,13 @@ class SortFilterProxyModel(QtGui.QSortFilterProxyModel):
         # print('vis index: {}, log index: {}, count: {}'.format(index.column(), test, count123))
         # print(self.persistent_indexes)
 
-        print('mapped from: {}'.format(index.column()))
-        print('removing: {}'.format(self.mapToSource(index).column()))
+        # print('mapped from: {}'.format(index.column()))
+        # print('removing: {}'.format(self.mapToSource(index).column()))
 
         # self.dataChanged.emit(top_left, bottom_right)
-        return self.sourceModel().removeObjects(self.mapToSource(index), count)
+        indexes_src = [self.mapToSource(index) for index in indexes]
+        return self.sourceModel().removeObjects(indexes_src)
+        # return self.sourceModel().removeObjects(self.mapToSource(index), count)
 
 
 # class TableView(QtGui.QTableView):

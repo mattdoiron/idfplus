@@ -263,8 +263,7 @@ class DeleteObjectCmd(ObjectCmd):
         selection_model.select(selection, QtGui.QItemSelectionModel.SelectCurrent)
 
         # Notify everyone that data has changed
-        self.model.dataChanged.emit(self.model.mapToSource(top_left),
-                                    self.model.mapToSource(bottom_right))
+        self.model.dataChanged.emit(top_left, bottom_right)
         self.main_window.classTree.expandAll()
 
     def redo(self, *args, **kwargs):
@@ -277,20 +276,7 @@ class DeleteObjectCmd(ObjectCmd):
         if self.old_objects is None:
             self.old_objects = self.main_window.copyObject(save=False)
 
-        # Make a set to find unique columns/rows - use to find number to be deleted
-        # if self.obj_orientation == QtCore.Qt.Vertical:
-        #     index_set = set([index.column() for index in self.indexes])
-        # else:
-        #     index_set = set([index.row() for index in self.indexes])
-        # self.delete_count = len(list(index_set))
-        self.delete_count = len(self.old_objects)
-        print('delete count: {}'.format(self.delete_count))
-
-        # Get the table's model and call its remove method
-        self.model.removeObjects(self.indexes[0], self.delete_count)
-
         # Find the top and bottom corners of the selection in the new model
-        #use mapto/fromsource here?
         top_left = self.model.index(self.index_list[0][0],
                                     self.index_list[0][1])
         bottom_right = self.model.index(self.index_list[-1][0],
@@ -302,8 +288,8 @@ class DeleteObjectCmd(ObjectCmd):
         selection_model.select(self.indexes[0], QtGui.QItemSelectionModel.SelectCurrent)
 
         # Notify everyone that data has changed
-        self.model.dataChanged.emit(self.model.mapToSource(top_left),
-                                    self.model.mapToSource(bottom_right))
+        self.model.dataChanged.emit(top_left, bottom_right)
+        self.main_window.classTable.model().invalidateFilter()
         self.main_window.classTree.expandAll()
 
 

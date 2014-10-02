@@ -81,7 +81,7 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow, idfsettings.Settings):
         self.current_obj_class = None
         # self.com = Communicate()
         # self.clipboard = QtGui.QApplication.instance().clipboard()
-        # self.obj_clipboard = []
+        self.obj_clipboard = []
 
         # Create main application elements
         self.create_actions()
@@ -584,40 +584,35 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow, idfsettings.Settings):
 
     def copyObject(self, save=None):
         """Copies object(s) to the clipboard for pasting to other programs."""
-        # indexes = self.classTable.selectedIndexes()
-        selection_model = self.classTable.selectionModel()
-        # if len(indexes) <= 0:
-        if not selection_model.hasSelection():
+
+        # Get the selected indexes then map them to the source model
+        indexes = self.classTable.selectedIndexes()
+        source_model = self.classTable.model()
+        indexes_src = [source_model.mapToSource(ind) for ind in indexes]
+
+        # Make sure there was something selected
+        if len(indexes) <= 0:
             return False
 
-        # The model may be filtered, so map the selection to the source model
-        # source_model = self.classTable.model()#.sourceModel()
-        # selection = source_model.mapSelectionToSource(selection_model.selection())
-        selection = selection_model.selection()
-        # print(selection[0].width())
         # Make a set to find unique columns/rows
-        # if self.obj_orientation == QtCore.Qt.Vertical:
-        #     index_set = set([self.classTable.model().mapToSource(index).column() for index in indexes])
-        # else:
-        #     index_set = set([self.classTable.model().mapToSource(index).row() for index in indexes])
-        # count = len(list(index_set))
-        # start = list(index_set)[0]
         if self.obj_orientation == QtCore.Qt.Vertical:
-            count = selection[0].width()
-            start = selection[0].left()
+            index_set = set([index.column() for index in indexes_src])
         else:
-            count = selection[0].height()
-            start = selection[0].top()
-        end = start + count
-        print('start: {}, count: {}, end: {}'.format(start, count, end))
-        print(self.idf[self.current_obj_class][start:end][0][0].value)
+            index_set = set([index.row() for index in indexes_src])
 
-        # Copy object(s) to the clipboard or return the object(s)
-        if save is None:
-            self.obj_clipboard = self.idf[self.current_obj_class][start:end]
-            return True
+        # Grab each object and store it.
+        obj_list = [self.idf[self.current_obj_class][ind] for ind in index_set]
+
+        # Copy the object(s) to the clipboard or delete them
+        if save is False:
+            # for ind in index_set:
+            print('calling removeOjbects for {} objects'.format(len(indexes_src)))
+            source_model.removeObjects(indexes)
+                # del self.idf[self.current_obj_class][ind]
+            return obj_list
         else:
-            return self.idf[self.current_obj_class][start:end]
+            self.obj_clipboard = obj_list
+            return True
 
     def copySelected(self):
         """Copies the selected cells to the clipboard for pasting to other programs."""
@@ -700,6 +695,7 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow, idfsettings.Settings):
 
         # Assign model to table (enable sorting FIRST)
         table.setSortingEnabled(True)
+        # sortable.setDynamicSortFilter(True)
         table.setModel(sortable)
 
         # Create generic delegates for table cells
