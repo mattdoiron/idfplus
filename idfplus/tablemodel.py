@@ -169,6 +169,7 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
         print('received {} objects to delete on {} rows'.format(len(indexes), len(row_set)))
         print('deleting rows: {}'.format(row_set))
 
+        # Create groups of contiguous row indexes then delete each group
         for key, g in groupby(enumerate(row_set), lambda (i, x): i-x):
             group = map(itemgetter(1), g)
             delete_count = len(group)
@@ -176,7 +177,7 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
             print('deleting group: {}'.format(group))
 
             # Warn the model that we're about to remove rows then do it
-            self.beginRemoveRows(QtCore.QModelIndex(), group[0], delete_count)
+            self.beginRemoveRows(QtCore.QModelIndex(), group[0], group[-1])
             del self.idf_objects[group[0]:group[0] + delete_count]
             self.endRemoveRows()
 
@@ -184,7 +185,8 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
 
         # Update state
         self.getLabels()
-
+        # self.dataChanged.emit(QtCore.QModelIndex(), QtCore.QModelIndex())
+        # self.dataChanged.emit(indexes[0], indexes[-1])
         return True
 
     def insertObjects(self, index, objects=None):
@@ -367,74 +369,12 @@ class SortFilterProxyModel(QtGui.QSortFilterProxyModel):
 
         return False
 
-    # def mapFromSource(self, sourceIndex):
-    #     if not sourceIndex.isValid():
-    #         return QtCore.QModelIndex()
-    #     return self.index(sourceIndex.row(), sourceIndex.column())
-    #
-    # def mapToSource(self, proxyIndex):
-    #     if not proxyIndex.isValid():
-    #         return QtCore.QModelIndex()
-    #     return self.sourceModel().index(proxyIndex.row(), proxyIndex.column())
-
-    # def mapSelectionToSource(self, selection):
-    #     return_selection = QtGui.QItemSelection()
-    #     for sel in selection:
-    #         # print('mapped from: {}'.format(sel.topLeft().column()))
-    #         # print('mapped to: {}'.format(self.mapToSource(sel.topLeft()).column()))
-    #         top_left = self.mapToSource(sel.topLeft())
-    #         bottom_right = self.mapToSource(sel.bottomRight())
-    #         sel_range = QtGui.QItemSelectionRange(top_left, bottom_right)
-    #         return_selection.append(sel_range)
-    #     return return_selection
-    #
-    # def mapSelectionFromSource(self, selection):
-    #     returnSelection = QtGui.QItemSelection()
-    #     for sel in selection:
-    #         top_left = self.mapFromSource(sel.topLeft())
-    #         bottom_right = self.mapFromSource(sel.bottomRight())
-    #         sel_range = QtGui.QItemSelectionRange(top_left, bottom_right)
-    #         returnSelection.append(sel_range)
-    #     return returnSelection
-
-    # def index(self, row, col, parent=None):
-        # ind = self.sourceModel().index(row, col)
-        # ind = self.createIndex(row, col, parent)
-        # return self.mapFromSource(ind)
-        # return self.mapFromSource(ind)
-        # return self.createIndex(row, col, parent)
-    #
-    # def parent(self, index):
-    #     return QtCore.QModelIndex()
-    #
-    # def rowCount(self, parent=None):
-    #     return self.sourceModel().rowCount(parent)
-    #
-    # def columnCount(self, parent=None):
-    #     return self.sourceModel().columnCount(parent)
-
     def insertObjects(self, index, objects):
         return self.sourceModel().insertObjects(self.mapToSource(index), objects)
 
     def removeObjects(self, indexes):
-        # print('source ind: {}'.format(self.sourceModel().headerData(index.column(),
-        #                                     QtCore.Qt.Horizontal,
-        #                                     QtCore.Qt.DisplayRole)))
-        # print('sections hidden: {}'.format(self.model().header().sectionsHidden()))
-        # test = self.parent_view.horizontalHeader().logicalIndex(index.column())
-        # test = self.parent_view.horizontalHeader()[index.column()]
-        # test = self.parent_view.horizontalHeader().hiddenSectionCount()
-        # count123 = self.parent_view.horizontalHeader().count()
-        # print('vis index: {}, log index: {}, count: {}'.format(index.column(), test, count123))
-        # print(self.persistent_indexes)
-
-        # print('mapped from: {}'.format(index.column()))
-        # print('removing: {}'.format(self.mapToSource(index).column()))
-
-        # self.dataChanged.emit(top_left, bottom_right)
         indexes_src = [self.mapToSource(index) for index in indexes]
         return self.sourceModel().removeObjects(indexes_src)
-        # return self.sourceModel().removeObjects(self.mapToSource(index), count)
 
 
 # class TableView(QtGui.QTableView):

@@ -68,7 +68,7 @@ class ObjectCmd(QtGui.QUndoCommand):
             self.main_window.classTree.setCurrentIndex(self.obj_class_index)
 
             # Get the new table's model
-            self.model = self.main_window.classTable.model().sourceModel()
+            self.model = self.main_window.classTable.model()#.sourceModel()
 
             # Recreate the index for the new model
             self.indexes = []
@@ -288,8 +288,11 @@ class DeleteObjectCmd(ObjectCmd):
         selection_model.select(self.indexes[0], QtGui.QItemSelectionModel.SelectCurrent)
 
         # Notify everyone that data has changed
-        self.model.dataChanged.emit(top_left, bottom_right)
-        self.main_window.classTable.model().invalidateFilter()
+
+        # seems I don't need this... why!?
+        # self.model.dataChanged.emit(top_left, bottom_right)
+
+        # self.main_window.classTable.model().invalidateFilter()
         self.main_window.classTree.expandAll()
 
 
