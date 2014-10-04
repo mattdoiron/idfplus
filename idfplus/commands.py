@@ -58,7 +58,11 @@ class ObjectCmd(QtGui.QUndoCommand):
         self.from_selection = kwargs.get('from_selection', False)
         self.value = kwargs.get('value', None)
         self.old_value = None
-        self.model = self.main_window.classTable.model()#.sourceModel()
+        self.index_groups = []
+        self.model = self.main_window.classTable.model()
+
+        # Convert indexes to source indexes for storage, then convert back later
+        self.indexes_source = [self.model.mapToSource(ind) for ind in self.indexes]
 
     def update_model(self):
 
@@ -68,12 +72,12 @@ class ObjectCmd(QtGui.QUndoCommand):
             self.main_window.classTree.setCurrentIndex(self.obj_class_index)
 
             # Get the new table's model
-            self.model = self.main_window.classTable.model()#.sourceModel()
+            self.model = self.main_window.classTable.model()
 
             # Recreate the index for the new model
             self.indexes = []
             for i in self.index_list:
-                self.indexes.append(self.model.index(i[0], i[1], QtCore.QModelIndex()))
+                self.indexes.append(self.model.index(i[0], i[1]))
 
 
 class NewObjectCmd(ObjectCmd):
@@ -126,32 +130,32 @@ class NewObjectCmd(ObjectCmd):
 
         # Define which (if any) new objects to insert
         if self.new_objects is None:
-            new_objects = None
+            # new_objects = None
             if self.from_clipboard is True:
                 if not self.copied_objects:
                     self.copied_objects = self.main_window.obj_clipboard
-                new_objects = self.copied_objects
+                self.new_objects = self.copied_objects
             elif self.from_selection is True:
                 if not self.copied_objects:
                     if not self.main_window.copyObject():
                         return False
                     self.copied_objects = self.main_window.obj_clipboard
-                new_objects = self.copied_objects
+                self.new_objects = self.copied_objects
 
             # Save the new objects for later use by undo
-            self.new_objects = new_objects
-            self.delete_count = len(new_objects or [0])
+            # self.new_objects = new_objects
+            self.delete_count = len(self.new_objects or [0])
 
         # Define the index at which the objects will be inserted, deleted
         if not self.indexes:
-            index = QtCore.QModelIndex()
+            indexes = []
             self.index_to_delete = QtCore.QModelIndex()
         else:
-            index = self.indexes[-1]
+            indexes = self.indexes[-1]
             self.index_to_delete = self.indexes[0]
 
         # Call the table's insert method
-        self.model.insertObjects(index, self.new_objects)
+        self.model.insertObjects(indexes, self.new_objects)
 
         # Notify everyone that data has changed
         self.model.dataChanged.emit(index, index)
@@ -235,35 +239,19 @@ class DeleteObjectCmd(ObjectCmd):
     def undo(self):
         self.update_model()
 
-        # Define the offset from the index to delete
-        if self.main_window.obj_orientation == QtCore.Qt.Vertical:
-            row_offset = 0
-            col_offset = -1
-        else:
-            row_offset = -1
-            col_offset = 0
-
-        # Recreate index for new model, but with an offset, or use the last row
-        index = self.model.index(self.index_list[0][0] + row_offset,
-                                 self.index_list[0][1] + col_offset)
-
-        # Find the top and bottom corners of the selection in the new model
-        top_left = self.model.index(self.index_list[0][0],
-                                    self.index_list[0][1])
-        bottom_right = self.model.index(self.index_list[-1][0],
-                                        self.index_list[-1][1])
+        # Remap indexes back to current model (because it may have changed)
+        indexes_mapped = [self.model.mapFromSource(ind) for ind in self.indexes_source]
+        groups, obj_list = self.model.get_contiguous(indexes_mapped, False)
 
         # Call the table's insert method
-        self.model.insertObjects(index, self.old_objects)
+        self.model.insertObjects(groups, self.old_objects)
 
         # Reselect the previously deleted range
-        selection = QtGui.QItemSelection(top_left, bottom_right)
+        selection = QtGui.QItemSelection(indexes_mapped[0], indexes_mapped[-1])
         selection_model = self.main_window.classTable.selectionModel()
         selection_model.reset()
         selection_model.select(selection, QtGui.QItemSelectionModel.SelectCurrent)
-
-        # Notify everyone that data has changed
-        self.model.dataChanged.emit(top_left, bottom_right)
+        self.model.dataChanged.emit(indexes_mapped[0], indexes_mapped[-1])
         self.main_window.classTree.expandAll()
 
     def redo(self, *args, **kwargs):
@@ -274,25 +262,15 @@ class DeleteObjectCmd(ObjectCmd):
 
         # Make a copy of the object(s) about to be deleted (only once)
         if self.old_objects is None:
-            self.old_objects = self.main_window.copyObject(save=False)
+            self.index_groups, self.old_objects = self.main_window.copyObject(save=False)
 
-        # Find the top and bottom corners of the selection in the new model
-        top_left = self.model.index(self.index_list[0][0],
-                                    self.index_list[0][1])
-        bottom_right = self.model.index(self.index_list[-1][0],
-                                        self.index_list[-1][1])
+        # Delete the objects
+        self.model.removeObjects(self.indexes)
 
         # Clear any current selection and select the next item
         selection_model = self.main_window.classTable.selectionModel()
         selection_model.reset()
         selection_model.select(self.indexes[0], QtGui.QItemSelectionModel.SelectCurrent)
-
-        # Notify everyone that data has changed
-
-        # seems I don't need this... why!?
-        # self.model.dataChanged.emit(top_left, bottom_right)
-
-        # self.main_window.classTable.model().invalidateFilter()
         self.main_window.classTree.expandAll()
 
 

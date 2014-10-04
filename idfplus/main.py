@@ -441,6 +441,7 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow, idfsettings.Settings):
             return
         self.classTable.model().setFilterRegExp(pattern)
         self.classTable.model().invalidateFilter()
+        self.classTable.selectionModel().reset()
 
     def treeFilterRegExpChanged(self):
         pattern = self.filterTreeBox.text()
@@ -587,32 +588,21 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow, idfsettings.Settings):
 
         # Get the selected indexes then map them to the source model
         indexes = self.classTable.selectedIndexes()
-        source_model = self.classTable.model()
-        indexes_src = [source_model.mapToSource(ind) for ind in indexes]
+        model = self.classTable.model()
 
         # Make sure there was something selected
         if len(indexes) <= 0:
-            return False
+            return False, None
 
-        # Make a set to find unique columns/rows
-        if self.obj_orientation == QtCore.Qt.Vertical:
-            index_set = set([index.column() for index in indexes_src])
-        else:
-            index_set = set([index.row() for index in indexes_src])
-
-        # Grab each object and store it.
-        obj_list = [self.idf[self.current_obj_class][ind] for ind in index_set]
+        # Get list of contiguous indexes and objects
+        groups, obj_list = model.get_contiguous(indexes, False)
 
         # Copy the object(s) to the clipboard or delete them
         if save is False:
-            # for ind in index_set:
-            print('calling removeOjbects for {} objects'.format(len(indexes_src)))
-            source_model.removeObjects(indexes)
-                # del self.idf[self.current_obj_class][ind]
-            return obj_list
+            return groups, obj_list
         else:
             self.obj_clipboard = obj_list
-            return True
+            return True, None
 
     def copySelected(self):
         """Copies the selected cells to the clipboard for pasting to other programs."""

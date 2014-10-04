@@ -163,63 +163,78 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
 
     def removeObjects(self, indexes):
 
-        # Make a unique set of rows to be deleted
-        row_set = list(set(index.row() for index in indexes))
+        # Get contiguous, groups of unique indexes in reverse order
+        groups = self.get_contiguous_rows(indexes, True)
 
-        print('received {} objects to delete on {} rows'.format(len(indexes), len(row_set)))
-        print('deleting rows: {}'.format(row_set))
-
-        # Create groups of contiguous row indexes then delete each group
-        for key, g in groupby(enumerate(row_set), lambda (i, x): i-x):
-            group = map(itemgetter(1), g)
+        # Delete index ranges
+        for group in groups:
             delete_count = len(group)
-
-            print('deleting group: {}'.format(group))
 
             # Warn the model that we're about to remove rows then do it
             self.beginRemoveRows(QtCore.QModelIndex(), group[0], group[-1])
             del self.idf_objects[group[0]:group[0] + delete_count]
+            self.getLabels()
             self.endRemoveRows()
 
-            print('deleting rows {} to {}'.format(group[0], group[0] + delete_count))
-
-        # Update state
-        self.getLabels()
-        # self.dataChanged.emit(QtCore.QModelIndex(), QtCore.QModelIndex())
-        # self.dataChanged.emit(indexes[0], indexes[-1])
         return True
 
-    def insertObjects(self, index, objects=None):
+    def insertObjects(self, indexes, objects=None):
 
-        # Set the position for the insertion
-        if index.row() == -1:
-            position = len(self.idf_objects)
-        else:
-            position = index.row() + 1
+        # print('inserting groups: {}'.format(indexes))
 
         # If there are no objects to add, make new blank ones
         if objects is None:
             new_obj = IDFObject(self.idf, obj_class=self.obj_class)
             new_obj.set_defaults(self.idd)
-            obj_to_insert = [new_obj]
-            count = 1
+            objs_to_insert = [[new_obj]]
         else:
-            obj_to_insert = objects
-            count = len(objects)
+            objs_to_insert = objects
 
-        # Warn the model that we're about to add rows
-        self.beginInsertRows(QtCore.QModelIndex(),
-                             position,
-                             position - 1 + count)
+        # Cycle through each index in the object dictionary
+        for row, obj_list in enumerate(objs_to_insert):
 
-        # Insert the new object(s)
-        self.idf_objects[position:position] = obj_to_insert
+            count = len(obj_list)
+            if indexes:
+                first_row = indexes[row][0]
+            else:
+                first_row = len(self.idf_objects)
+            insert_count = first_row - 1 + count
 
-        # Update state
-        self.getLabels()
-        # self.dataChanged.emit(QtCore.QModelIndex(), QtCore.QModelIndex())
-        self.endInsertRows()
+            # Warn the model that we're about to add rows, then do it
+            self.beginInsertRows(QtCore.QModelIndex(), first_row, insert_count)
+            self.idf_objects[first_row:first_row] = obj_list
+            self.getLabels()
+            self.endInsertRows()
+
         return True
+
+    def get_contiguous_rows(self, indexes, reverse):
+
+        # Make a unique set of rows to be deleted
+        row_set = set(index.row() for index in indexes)
+
+        # Create groups of contiguous row indexes in reverse order
+        groups = []
+        for key, g in groupby(enumerate(row_set), lambda (i, x): i-x):
+            groups.append(map(itemgetter(1), g))
+        groups.sort(reverse=reverse)
+        return groups
+
+    def get_contiguous(self, indexes, reverse):
+
+        # Get contiguous, groups of unique indexes
+        groups = self.get_contiguous_rows(indexes, reverse)
+
+        # Cycle through each group of row indexes
+        sub_list = []
+        obj_list = []
+        for group in groups:
+            # Cycle through each index in the group
+            for ind in group:
+                sub_list.append(self.idf_objects[ind])
+            obj_list.append(sub_list)
+            sub_list = []
+        return groups, obj_list
 
     def getLabels(self):
         field_labels = []
@@ -301,12 +316,16 @@ class TransposeProxyModel(QtGui.QAbstractProxyModel):
             new_orientation = QtCore.Qt.Horizontal
         return self.sourceModel().headerData(section, new_orientation, role, orientation)
 
-    def insertObjects(self, index, objects):
-        return self.sourceModel().insertObjects(self.mapToSource(index), objects)
+    def insertObjects(self, indexes, objects):
+        return self.sourceModel().insertObjects(indexes, objects)
 
     def removeObjects(self, indexes):
         indexes_src = [self.mapToSource(index) for index in indexes]
         return self.sourceModel().removeObjects(indexes_src)
+
+    def get_contiguous(self, indexes, reverse):
+        indexes_src = [self.mapToSource(index) for index in indexes]
+        return self.sourceModel().get_contiguous(indexes_src, reverse)
 
     def setData(self, index, value, role):
         return self.sourceModel().setData(self.mapToSource(index), value, role)
@@ -369,13 +388,16 @@ class SortFilterProxyModel(QtGui.QSortFilterProxyModel):
 
         return False
 
-    def insertObjects(self, index, objects):
-        return self.sourceModel().insertObjects(self.mapToSource(index), objects)
+    def insertObjects(self, indexes, objects):
+        return self.sourceModel().insertObjects(indexes, objects)
 
     def removeObjects(self, indexes):
         indexes_src = [self.mapToSource(index) for index in indexes]
         return self.sourceModel().removeObjects(indexes_src)
 
+    def get_contiguous(self, indexes, reverse):
+        indexes_src = [self.mapToSource(index) for index in indexes]
+        return self.sourceModel().get_contiguous(indexes_src, reverse)
 
 # class TableView(QtGui.QTableView):
 #     '''Subclass of QTableView used to override mousePressEvent'''
