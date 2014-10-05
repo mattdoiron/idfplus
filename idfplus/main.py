@@ -543,7 +543,7 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow, idfsettings.Settings):
 
     def duplicateObject(self):
 
-        if len(self.classTable.selectedIndexes()) <= 0:
+        if not self.classTable.selectedIndexes():
             return False
 
         # Create undo command and push it to the undo stack
@@ -592,20 +592,36 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow, idfsettings.Settings):
 
         # Make sure there was something selected
         if len(indexes) <= 0:
-            return False, None
+            return False
+
+        # Define the offset from the index to delete
+        # if self.obj_orientation == QtCore.Qt.Vertical:
+        #     row_offset = 0
+        #     col_offset = 1
+        # else:
+        #     row_offset = 1
+        #     col_offset = 0
 
         # Map indexes to the source model because they need to be stored
-        indexes_source = [model.mapToSource(ind) for ind in indexes]
+        # indexes_offset = [model.index(i.row() + row_offset, i.column() + col_offset)
+        #                   for i in indexes]
+        # indexes_partial = [model.mapToSource(ind) for ind in indexes_offset]
+        # indexes_source = [model.sourceModel().mapToSource(ind) for ind in indexes_partial]
+
+        indexes_partial = [model.mapToSource(ind) for ind in indexes]
+        indexes_source = [model.sourceModel().mapToSource(ind) for ind in indexes_partial]
+        # print('indexes_source: {}'.format([i.row() for i in indexes_source]))
 
         # Get list of contiguous indexes and objects
         groups, obj_list = model.get_contiguous(indexes_source, False)
 
+        print('created group: {}'.format(groups))
         # Copy the object(s) to the clipboard or delete them
-        if save is False:
-            return groups, obj_list
-        else:
-            self.obj_clipboard = obj_list
-            return True, None
+        # if save is False:
+        #     return groups, obj_list
+        # else:
+        self.obj_clipboard = (groups, obj_list)
+        return True
 
     def copySelected(self):
         """Copies the selected cells to the clipboard for pasting to other programs."""

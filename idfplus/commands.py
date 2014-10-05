@@ -53,7 +53,7 @@ class ObjectCmd(QtGui.QUndoCommand):
         self.mime_data = None
         self.new_objects = None
         self.old_objects = None
-        self.copied_objects = None
+        # self.copied_objects = None
         self.from_clipboard = kwargs.get('from_clipboard', False)
         self.from_selection = kwargs.get('from_selection', False)
         self.value = kwargs.get('value', None)
@@ -79,11 +79,6 @@ class ObjectCmd(QtGui.QUndoCommand):
             # Get the new table's model
             self.model = self.main_window.classTable.model()
             self.selection_model = self.main_window.classTable.selectionModel()
-
-            # Recreate the index for the new model
-            # self.indexes = []
-            # for i in self.index_list:
-            #     self.indexes.append(self.model.index(i[0], i[1]))
 
     def update_selection(self, single=None, offset=None):
 
@@ -116,6 +111,7 @@ class ObjectCmd(QtGui.QUndoCommand):
             selection = QtGui.QItemSelection(self.indexes[0], self.indexes[-1])
 
         # Clear the selection model and reselect the appropriate indexes if necessary
+        # TODO: this is broken!
         self.selection_model.reset()
         if selection:
             self.selection_model.select(selection,
@@ -132,43 +128,20 @@ class NewObjectCmd(ObjectCmd):
         # Ensure that we have the right model available
         self.update_model()
 
-        # Define the offset from the index to delete
-        if self.main_window.obj_orientation == QtCore.Qt.Vertical:
-            row_offset = 0
-            col_offset = 1
-        else:
-            row_offset = 1
-            col_offset = 0
-
-        # Recreate index for new model, but with an offset, or use the last row
-        if self.index_to_delete.row() == -1:
-            index = self.index_to_delete
-            top_left = self.model.index(0, 0)
-            bottom_right = top_left
-        else:
-            index = self.model.index(self.index_list[-1][0] + row_offset,
-                                           self.index_list[-1][1] + col_offset)
-
-            # Find the top and bottom corners of the selection in the new model
-            top_left = self.model.index(self.index_list[0][0],
-                                              self.index_list[0][1])
-            bottom_right = self.model.index(self.index_list[-1][0],
-                                                  self.index_list[-1][1])
-
         # Get the table's model and call its remove method
-        self.model.removeObjects(index, self.delete_count)
-
-        # Reselect the previously deleted range
-        selection = QtGui.QItemSelection(top_left, bottom_right)
-        selection_model = self.main_window.classTable.selectionModel()
-        selection_model.reset()
-        selection_model.select(selection, QtGui.QItemSelectionModel.SelectCurrent)
+        self.model.removeObjects(self.indexes_source, offset=1)
 
         # Notify everyone that data has changed
-        self.model.dataChanged.emit(top_left, bottom_right)
-        self.main_window.classTree.expandAll()
+        self.model.dataChanged.emit(self.indexes[0], self.indexes[-1])
 
-    def redo(self, from_clipboard=False, *args, **kwargs):
+        # Clear any current selection and select the next item
+        if len(self.indexes) > 1:
+            single = False
+        else:
+            single = True
+        self.update_selection(single=single, offset=True)
+
+    def redo(self, *args, **kwargs):
 
         # Ensure that we have the right model available
         self.update_model()
@@ -179,32 +152,40 @@ class NewObjectCmd(ObjectCmd):
         # Define which (if any) new objects to insert
         if self.new_objects is None:
             if self.from_clipboard is True:
-                if not self.copied_objects:
-                    self.copied_objects = self.main_window.obj_clipboard
-                self.new_objects = self.copied_objects
+                print('copying from clipboard')
+                self.new_objects = self.main_window.obj_clipboard[1]
+                self.new_object_groups = self.main_window.obj_clipboard[0]
             elif self.from_selection is True:
-                if not self.copied_objects:
-                    if not self.main_window.copyObject():
-                        return False
-                    self.copied_objects = self.main_window.obj_clipboard
-                self.new_objects = self.copied_objects
-            self.delete_count = len(self.new_objects or [0])
+                print('copying from selection')
+                if not self.main_window.copyObject():
+                    return False
+                self.new_objects = self.main_window.obj_clipboard[1]
+                self.new_object_groups = self.main_window.obj_clipboard[0]
 
-        # Define the index at which the objects will be inserted, deleted
-        if not self.indexes:
-            indexes = []
-            self.index_to_delete = QtCore.QModelIndex()
-        else:
-            indexes = self.indexes[-1]
-            self.index_to_delete = self.indexes[0]
+                print('objects to insert: {}'.format(self.new_objects))
+                print('groups to insert: {}'.format(self.new_object_groups))
+            else:
+                print('inserting blank object')
+                if self.indexes_source:
+                    self.new_object_groups = [[self.indexes_source[0].row() + 0]]
+                else:
+                    self.new_object_groups = None
 
         # Call the table's insert method
-        # self.model.insertObjects(indexes, self.new_objects)
-        self.model.insertObjects(self.index_groups, self.new_objects)
+        self.model.insertObjects(self.new_object_groups, self.new_objects, offset=1)
 
         # Notify everyone that data has changed
-        self.model.dataChanged.emit(indexes[0], indexes[-1])
-        self.main_window.classTree.expandAll()
+        if self.indexes:
+            self.model.dataChanged.emit(self.indexes[0], self.indexes[-1])
+        else:
+            self.model.dataChanged.emit(QtCore.QModelIndex(), QtCore.QModelIndex())
+
+        # Clear any current selection and select the next item
+        if len(self.indexes) > 1:
+            single = False
+        else:
+            single = True
+        self.update_selection(single=single, offset=True)
 
 
 class PasteSelectedCmd(ObjectCmd):
@@ -303,7 +284,7 @@ class DeleteObjectCmd(ObjectCmd):
         self.setText('Delete object')
 
         # Make a copy of the object(s) about to be deleted (only once)
-        if self.old_objects is None:
+        if not self.old_objects:
             self.index_groups, self.old_objects = self.model.get_contiguous(self.indexes_source, False)
 
         # Delete the objects. Note that these indexes are source indexes only
