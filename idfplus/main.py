@@ -594,8 +594,11 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow, idfsettings.Settings):
         if len(indexes) <= 0:
             return False, None
 
+        # Map indexes to the source model because they need to be stored
+        indexes_source = [model.mapToSource(ind) for ind in indexes]
+
         # Get list of contiguous indexes and objects
-        groups, obj_list = model.get_contiguous(indexes, False)
+        groups, obj_list = model.get_contiguous(indexes_source, False)
 
         # Copy the object(s) to the clipboard or delete them
         if save is False:
@@ -718,22 +721,25 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow, idfsettings.Settings):
     def load_tree_view(self):
         """Loads the tree of class type names."""
 
+        # Define the source model
         source_model = treemodel.ObjectClassTreeModel(self.idf,
                                                       ("Object Class", "Count"),
                                                       self.classTree)
 
-        # Create additional proxy for sorting and filtering
+        # Create additional proxy model for sorting and filtering
         proxy_model = treemodel.TreeSortFilterProxyModel()
         proxy_model.setSourceModel(source_model)
 
+        # Assign the model and modify some settings
         self.classTree.setModel(proxy_model)
         self.classTree.setRootIsDecorated(False)
         self.classTree.expandAll()
         self.classTree.setColumnWidth(0, 280)
         self.classTree.setColumnWidth(1, 10)
 
+        # Connect some signals
         selection_model = self.classTree.selectionModel()
-        selection_model.selectionChanged.connect(self.classSelected)
+        selection_model.selectionChanged.connect(self.class_selected)
 
     def transpose_table(self):
         """Transposes the table"""
@@ -752,7 +758,7 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow, idfsettings.Settings):
 
         self.load_table_view(self.current_obj_class)
 
-    def classSelected(self, current):
+    def class_selected(self, current):
         """Loads the table view when a new class is selected"""
 
         # If nothing is selected, return

@@ -46,7 +46,7 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
         self.idf_objects = idf.get(obj_class, PersistentList())
         self.idd_object = idf._idd.get(obj_class, PersistentList())
         # self.dirty = False
-        self.getLabels()
+        self.get_labels()
         super(IDFObjectTableModel, self).__init__(parent)
 
     def flags(self, index):
@@ -146,25 +146,29 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
                 new_field.value = value
                 self.idf_objects[row][column] = new_field
 
-            # Note: We do NOT commit the transaction here. This allows multiple fields
-            # to be edited within a single transaction. The transaction is committed
-            # by the function calling setData.
             return True
         return False
 
-    def commitData(self, *args, **kwargs):
-        print('item committed')
-        super(IDFObjectTableModel, self).submit(*args, **kwargs)
+    def mapToSource(self, indexes):
+        """Dummy to ensure there is always a mapToSource method even when there is no
+        proxy layer."""
+        return indexes
+
+    def mapFromSource(self, indexes):
+        """Dummy to ensure there is always a mapFromSource method even when there is no
+        proxy layer."""
+        return indexes
 
     def sourceModel(self):
-        """Ensures that the sourceModel method is always available as a method even
-        when there is no proxy layer."""
+        """Dummy to ensure there is always a sourceModel method even when there is no
+         proxy layer."""
         return self
 
     def removeObjects(self, indexes):
 
         # Get contiguous, groups of unique indexes in reverse order
         groups = self.get_contiguous_rows(indexes, True)
+        # print('removing groups: {}'.format(groups))
 
         # Delete index ranges
         for group in groups:
@@ -173,7 +177,7 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
             # Warn the model that we're about to remove rows then do it
             self.beginRemoveRows(QtCore.QModelIndex(), group[0], group[-1])
             del self.idf_objects[group[0]:group[0] + delete_count]
-            self.getLabels()
+            self.get_labels()
             self.endRemoveRows()
 
         return True
@@ -203,7 +207,7 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
             # Warn the model that we're about to add rows, then do it
             self.beginInsertRows(QtCore.QModelIndex(), first_row, insert_count)
             self.idf_objects[first_row:first_row] = obj_list
-            self.getLabels()
+            self.get_labels()
             self.endInsertRows()
 
         return True
@@ -236,7 +240,7 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
             sub_list = []
         return groups, obj_list
 
-    def getLabels(self):
+    def get_labels(self):
         field_labels = []
         obj_count = len(self.idf_objects)
         objID_labels = ['Obj{}'.format(i) for i in range(1, obj_count + 1)]
@@ -317,15 +321,18 @@ class TransposeProxyModel(QtGui.QAbstractProxyModel):
         return self.sourceModel().headerData(section, new_orientation, role, orientation)
 
     def insertObjects(self, indexes, objects):
+        # Do NOT map to source. Pass through only.
         return self.sourceModel().insertObjects(indexes, objects)
 
     def removeObjects(self, indexes):
-        indexes_src = [self.mapToSource(index) for index in indexes]
-        return self.sourceModel().removeObjects(indexes_src)
+        # indexes_src = [self.mapToSource(index) for index in indexes]
+        # Do NOT map to source. Pass through only.
+        return self.sourceModel().removeObjects(indexes)
 
     def get_contiguous(self, indexes, reverse):
-        indexes_src = [self.mapToSource(index) for index in indexes]
-        return self.sourceModel().get_contiguous(indexes_src, reverse)
+        # indexes_src = [self.mapToSource(index) for index in indexes]
+        # Do NOT map to source. Pass through only.
+        return self.sourceModel().get_contiguous(indexes, reverse)
 
     def setData(self, index, value, role):
         return self.sourceModel().setData(self.mapToSource(index), value, role)
@@ -389,15 +396,16 @@ class SortFilterProxyModel(QtGui.QSortFilterProxyModel):
         return False
 
     def insertObjects(self, indexes, objects):
+        # Do NOT map to source. Pass through only.
         return self.sourceModel().insertObjects(indexes, objects)
 
     def removeObjects(self, indexes):
-        indexes_src = [self.mapToSource(index) for index in indexes]
-        return self.sourceModel().removeObjects(indexes_src)
+        # Do NOT map to source. Pass through only.
+        return self.sourceModel().removeObjects(indexes)
 
     def get_contiguous(self, indexes, reverse):
-        indexes_src = [self.mapToSource(index) for index in indexes]
-        return self.sourceModel().get_contiguous(indexes_src, reverse)
+        # Do NOT map to source. Pass through only.
+        return self.sourceModel().get_contiguous(indexes, reverse)
 
 # class TableView(QtGui.QTableView):
 #     '''Subclass of QTableView used to override mousePressEvent'''

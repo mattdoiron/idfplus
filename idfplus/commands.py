@@ -41,9 +41,9 @@ class ObjectCmd(QtGui.QUndoCommand):
 
     def __init__(self, main_window, **kwargs):
         super(ObjectCmd, self).__init__()
-        self.selectedIndexes = main_window.classTable.selectedIndexes()
+        # self.selectedIndexes = main_window.classTable.selectedIndexes()
         self.indexes = main_window.classTable.selectedIndexes()
-        self.index_list = [(index.row(), index.column()) for index in self.selectedIndexes]
+        # self.index_list = [(index.row(), index.column()) for index in self.selectedIndexes]
         self.main_window = main_window
         obj_class_index = main_window.classTree.selectedIndexes()[0]
         self.obj_class_index = QtCore.QPersistentModelIndex(obj_class_index)
@@ -59,31 +59,77 @@ class ObjectCmd(QtGui.QUndoCommand):
         self.value = kwargs.get('value', None)
         self.old_value = None
         self.index_groups = []
+
         self.model = self.main_window.classTable.model()
+        self.selection_model = self.main_window.classTable.selectionModel()
 
         # Convert indexes to source indexes for storage, then convert back later
-        self.indexes_source = [self.model.mapToSource(ind) for ind in self.indexes]
+        indexes_source_partial = [self.model.mapToSource(ind)
+                                  for ind in self.indexes]
+        self.indexes_source = [self.model.sourceModel().mapToSource(ind)
+                               for ind in indexes_source_partial]
 
     def update_model(self):
 
         # Make sure the table view is updated so we grab the right model
         if self.main_window.current_obj_class != self.obj_class:
-            self.main_window.load_table_view(self.obj_class)
+            # self.main_window.load_table_view(self.obj_class)
             self.main_window.classTree.setCurrentIndex(self.obj_class_index)
 
             # Get the new table's model
             self.model = self.main_window.classTable.model()
+            self.selection_model = self.main_window.classTable.selectionModel()
 
             # Recreate the index for the new model
-            self.indexes = []
-            for i in self.index_list:
-                self.indexes.append(self.model.index(i[0], i[1]))
+            # self.indexes = []
+            # for i in self.index_list:
+            #     self.indexes.append(self.model.index(i[0], i[1]))
 
+    def update_selection(self, single=None, offset=None):
+
+        # Define what to select based on the single keyword
+        if single is True:
+
+            # Define the offset from the index to delete
+            if self.main_window.obj_orientation == QtCore.Qt.Vertical:
+                row_offset = 0
+                col_offset = 1
+            else:
+                row_offset = 1
+                col_offset = 0
+
+            # Create a new selection index with an offset
+            selection = self.model.index(self.indexes[0].row() - row_offset,
+                                         self.indexes[0].column() - col_offset)
+
+            # If the index is not valid, use a non-offset index
+            if not selection.isValid():
+                selection = self.indexes[0]
+
+                # If it's still not valid, don't select anything
+                if not selection.isValid():
+                    selection = None
+        elif offset is True:
+            selection = self.indexes[0]
+        else:
+            # Construct a selection from the saved indexes
+            selection = QtGui.QItemSelection(self.indexes[0], self.indexes[-1])
+
+        # Clear the selection model and reselect the appropriate indexes if necessary
+        self.selection_model.reset()
+        if selection:
+            self.selection_model.select(selection,
+                                        QtGui.QItemSelectionModel.SelectCurrent)
+
+        # Hack to 'refresh' the class tree
+        self.main_window.classTree.expandAll()
 
 class NewObjectCmd(ObjectCmd):
     """Class that handles creating new objects, and undo of that creation."""
 
     def undo(self, *args, **kwargs):
+
+        # Ensure that we have the right model available
         self.update_model()
 
         # Define the offset from the index to delete
@@ -123,6 +169,8 @@ class NewObjectCmd(ObjectCmd):
         self.main_window.classTree.expandAll()
 
     def redo(self, from_clipboard=False, *args, **kwargs):
+
+        # Ensure that we have the right model available
         self.update_model()
 
         # Set a name for the undo/redo action
@@ -130,7 +178,6 @@ class NewObjectCmd(ObjectCmd):
 
         # Define which (if any) new objects to insert
         if self.new_objects is None:
-            # new_objects = None
             if self.from_clipboard is True:
                 if not self.copied_objects:
                     self.copied_objects = self.main_window.obj_clipboard
@@ -141,9 +188,6 @@ class NewObjectCmd(ObjectCmd):
                         return False
                     self.copied_objects = self.main_window.obj_clipboard
                 self.new_objects = self.copied_objects
-
-            # Save the new objects for later use by undo
-            # self.new_objects = new_objects
             self.delete_count = len(self.new_objects or [0])
 
         # Define the index at which the objects will be inserted, deleted
@@ -155,10 +199,11 @@ class NewObjectCmd(ObjectCmd):
             self.index_to_delete = self.indexes[0]
 
         # Call the table's insert method
-        self.model.insertObjects(indexes, self.new_objects)
+        # self.model.insertObjects(indexes, self.new_objects)
+        self.model.insertObjects(self.index_groups, self.new_objects)
 
         # Notify everyone that data has changed
-        self.model.dataChanged.emit(index, index)
+        self.model.dataChanged.emit(indexes[0], indexes[-1])
         self.main_window.classTree.expandAll()
 
 
@@ -166,6 +211,8 @@ class PasteSelectedCmd(ObjectCmd):
     """Pastes clipboard into cells starting at selected cell."""
 
     def undo(self):
+
+        # Ensure that we have the right model available
         self.update_model()
 
         # insert rest here
@@ -190,6 +237,8 @@ class PasteSelectedCmd(ObjectCmd):
 
 
     def redo(self, *args, **kwargs):
+
+        # Ensure that we have the right model available
         self.update_model()
 
         # Set a name for the undo/redo action
@@ -237,24 +286,17 @@ class DeleteObjectCmd(ObjectCmd):
     """Class that handles deleting objects, and undo of that deletion."""
 
     def undo(self):
+        # Ensure that we have the right model available
         self.update_model()
 
-        # Remap indexes back to current model (because it may have changed)
-        indexes_mapped = [self.model.mapFromSource(ind) for ind in self.indexes_source]
-        groups, obj_list = self.model.get_contiguous(indexes_mapped, False)
+        # Call the model's insert method with the previously-saved groups and objects
+        self.model.insertObjects(self.index_groups, self.old_objects)
 
-        # Call the table's insert method
-        self.model.insertObjects(groups, self.old_objects)
-
-        # Reselect the previously deleted range
-        selection = QtGui.QItemSelection(indexes_mapped[0], indexes_mapped[-1])
-        selection_model = self.main_window.classTable.selectionModel()
-        selection_model.reset()
-        selection_model.select(selection, QtGui.QItemSelectionModel.SelectCurrent)
-        self.model.dataChanged.emit(indexes_mapped[0], indexes_mapped[-1])
-        self.main_window.classTree.expandAll()
+        # Clear any current selection and select the next item
+        self.update_selection()
 
     def redo(self, *args, **kwargs):
+        # Ensure that we have the right model available
         self.update_model()
 
         # Set a name for the undo/redo action
@@ -262,22 +304,21 @@ class DeleteObjectCmd(ObjectCmd):
 
         # Make a copy of the object(s) about to be deleted (only once)
         if self.old_objects is None:
-            self.index_groups, self.old_objects = self.main_window.copyObject(save=False)
+            self.index_groups, self.old_objects = self.model.get_contiguous(self.indexes_source, False)
 
-        # Delete the objects
-        self.model.removeObjects(self.indexes)
+        # Delete the objects. Note that these indexes are source indexes only
+        # They must have been converted already!
+        self.model.removeObjects(self.indexes_source)
 
         # Clear any current selection and select the next item
-        selection_model = self.main_window.classTable.selectionModel()
-        selection_model.reset()
-        selection_model.select(self.indexes[0], QtGui.QItemSelectionModel.SelectCurrent)
-        self.main_window.classTree.expandAll()
+        self.update_selection(single=True)
 
 
 class ModifyObjectCmd(ObjectCmd):
     """Class that handles modifying a single field value, and undo of that change."""
 
     def undo(self):
+        # Ensure that we have the right model available
         self.update_model()
 
         # Call the setData method to change the values
@@ -286,7 +327,11 @@ class ModifyObjectCmd(ObjectCmd):
         # Notify everyone that data has changed
         self.model.dataChanged.emit(self.indexes[0], self.indexes[0])
 
+        # Clear any current selection and select the next item
+        # self.update_selection(offset=True)
+
     def redo(self, *args, **kwargs):
+        # Ensure that we have the right model available
         self.update_model()
 
         # Set a name for the undo/redo action
@@ -300,3 +345,6 @@ class ModifyObjectCmd(ObjectCmd):
 
         # Notify everyone that data has changed
         self.model.dataChanged.emit(self.indexes[0], self.indexes[0])
+
+        # Clear any current selection and select the next item
+        # self.update_selection(offset=True)
