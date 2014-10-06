@@ -594,20 +594,7 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow, idfsettings.Settings):
         if len(indexes) <= 0:
             return False
 
-        # Define the offset from the index to delete
-        # if self.obj_orientation == QtCore.Qt.Vertical:
-        #     row_offset = 0
-        #     col_offset = 1
-        # else:
-        #     row_offset = 1
-        #     col_offset = 0
-
-        # Map indexes to the source model because they need to be stored
-        # indexes_offset = [model.index(i.row() + row_offset, i.column() + col_offset)
-        #                   for i in indexes]
-        # indexes_partial = [model.mapToSource(ind) for ind in indexes_offset]
-        # indexes_source = [model.sourceModel().mapToSource(ind) for ind in indexes_partial]
-
+        # Convert indexes to source indexes for storage
         indexes_partial = [model.mapToSource(ind) for ind in indexes]
         indexes_source = [model.sourceModel().mapToSource(ind) for ind in indexes_partial]
         # print('indexes_source: {}'.format([i.row() for i in indexes_source]))
@@ -615,11 +602,7 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow, idfsettings.Settings):
         # Get list of contiguous indexes and objects
         groups, obj_list = model.get_contiguous(indexes_source, False)
 
-        print('created group: {}'.format(groups))
-        # Copy the object(s) to the clipboard or delete them
-        # if save is False:
-        #     return groups, obj_list
-        # else:
+        # print('created group: {}'.format(groups))
         self.obj_clipboard = (groups, obj_list)
         return True
 

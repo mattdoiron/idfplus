@@ -168,19 +168,17 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
 
         # Get contiguous, groups of unique indexes in reverse order
         groups = self.get_contiguous_rows(indexes, True)
-        print('removing groups: {}'.format(groups))
+        # print('removing groups: {}'.format(groups))
 
         # Ensure there is a row_offset
-        if offset:
-            row_offset = offset
-        else:
-            row_offset = 0
+        if not offset:
+            offset = 0
 
         # Delete index ranges
         for group in groups:
             delete_count = len(group)
-            first_row = group[0] + row_offset
-            last_row = group[0] + row_offset + delete_count
+            first_row = group[0] + offset
+            last_row = group[0] + offset + delete_count
 
             # Warn the model that we're about to remove rows then do it
             self.beginRemoveRows(QtCore.QModelIndex(), group[0], group[-1])
@@ -192,7 +190,7 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
 
     def insertObjects(self, indexes, objects=None, offset=None):
 
-        print('inserting groups: {}'.format(indexes))
+        # print('inserting groups: {}'.format(indexes))
 
         # If there are no objects to add, make new blank ones
         if objects is None:
@@ -220,11 +218,11 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
                 first_row = len(self.idf_objects)
             insert_count = first_row - 1 + count
 
-            for o in obj_list:
-                if o[0]:
-                    print('inserting {} at row: {}'.format(o[0].value, first_row))
-                else:
-                    print('inserting {} at row: {}'.format('Blank', first_row))
+            # for o in obj_list:
+            #     if o[0]:
+            #         print('inserting {} at row: {}'.format(o[0].value, first_row))
+            #     else:
+            #         print('inserting {} at row: {}'.format('Blank', first_row))
 
             # Warn the model that we're about to add rows, then do it
             self.beginInsertRows(QtCore.QModelIndex(), first_row, insert_count)

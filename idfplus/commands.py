@@ -52,6 +52,7 @@ class ObjectCmd(QtGui.QUndoCommand):
         self.tx_id = None
         self.mime_data = None
         self.new_objects = None
+        self.new_object_groups = None
         self.old_objects = None
         # self.copied_objects = None
         self.from_clipboard = kwargs.get('from_clipboard', False)
@@ -59,7 +60,7 @@ class ObjectCmd(QtGui.QUndoCommand):
         self.value = kwargs.get('value', None)
         self.old_value = None
         self.index_groups = []
-
+        self.delete_count = 1
         self.model = self.main_window.classTable.model()
         self.selection_model = self.main_window.classTable.selectionModel()
 
@@ -81,6 +82,12 @@ class ObjectCmd(QtGui.QUndoCommand):
             self.selection_model = self.main_window.classTable.selectionModel()
 
     def update_selection(self, single=None, offset=None):
+        # self.selection_model.reset()
+        # return
+
+        # Ensure there is an offset
+        if offset is None:
+            offset = 0
 
         # Define what to select based on the single keyword
         if single is True:
@@ -88,30 +95,31 @@ class ObjectCmd(QtGui.QUndoCommand):
             # Define the offset from the index to delete
             if self.main_window.obj_orientation == QtCore.Qt.Vertical:
                 row_offset = 0
-                col_offset = 1
+                col_offset = offset
             else:
-                row_offset = 1
+                row_offset = offset
                 col_offset = 0
 
             # Create a new selection index with an offset
-            selection = self.model.index(self.indexes[0].row() - row_offset,
-                                         self.indexes[0].column() - col_offset)
+            selection = self.model.index(self.indexes[-1].row() + row_offset,
+                                         self.indexes[-1].column() + col_offset)
 
             # If the index is not valid, use a non-offset index
             if not selection.isValid():
-                selection = self.indexes[0]
+                selection = self.indexes[-1]
 
                 # If it's still not valid, don't select anything
-                if not selection.isValid():
+                if not self.indexes[-1].isValid():
                     selection = None
-        elif offset is True:
-            selection = self.indexes[0]
+
+            # print('single selection: {}, {}'.format(selection.row(), selection.column()))
         else:
             # Construct a selection from the saved indexes
             selection = QtGui.QItemSelection(self.indexes[0], self.indexes[-1])
+            # print('range selection top: {}, {}'.format(self.indexes[0].row(), self.indexes[0].column()))
+            # print('range selection bottom: {}, {}'.format(self.indexes[-1].row(), self.indexes[-1].column()))
 
         # Clear the selection model and reselect the appropriate indexes if necessary
-        # TODO: this is broken!
         self.selection_model.reset()
         if selection:
             self.selection_model.select(selection,
@@ -129,17 +137,17 @@ class NewObjectCmd(ObjectCmd):
         self.update_model()
 
         # Get the table's model and call its remove method
-        self.model.removeObjects(self.indexes_source, offset=1)
+        self.model.removeObjects(self.indexes_source[-self.delete_count:], offset=1)
 
         # Notify everyone that data has changed
         self.model.dataChanged.emit(self.indexes[0], self.indexes[-1])
 
         # Clear any current selection and select the next item
-        if len(self.indexes) > 1:
+        if self.delete_count > 1:
             single = False
         else:
             single = True
-        self.update_selection(single=single, offset=True)
+        self.update_selection(single=single)
 
     def redo(self, *args, **kwargs):
 
@@ -152,25 +160,29 @@ class NewObjectCmd(ObjectCmd):
         # Define which (if any) new objects to insert
         if self.new_objects is None:
             if self.from_clipboard is True:
-                print('copying from clipboard')
+                # print('copying from clipboard')
                 self.new_objects = self.main_window.obj_clipboard[1]
-                self.new_object_groups = self.main_window.obj_clipboard[0]
+                # self.new_object_groups = self.main_window.obj_clipboard[0]
+                self.new_object_groups = [[self.indexes_source[-1].row()]]
+                self.delete_count = sum([len(i) for i in self.new_object_groups])
             elif self.from_selection is True:
-                print('copying from selection')
+                # print('copying from selection')
                 if not self.main_window.copyObject():
                     return False
                 self.new_objects = self.main_window.obj_clipboard[1]
                 self.new_object_groups = self.main_window.obj_clipboard[0]
-
-                print('objects to insert: {}'.format(self.new_objects))
-                print('groups to insert: {}'.format(self.new_object_groups))
+                self.delete_count = sum([len(i) for i in self.new_object_groups])
+                # print('objects to insert: {}'.format(self.new_objects))
+                # print('groups to insert: {}'.format(self.new_object_groups))
             else:
-                print('inserting blank object')
+                # print('inserting blank object')
                 if self.indexes_source:
-                    self.new_object_groups = [[self.indexes_source[0].row() + 0]]
+                    self.new_object_groups = [[self.indexes_source[-1].row()]]
                 else:
                     self.new_object_groups = None
+                self.delete_count = 1
 
+        # print('delete_count: {}'.format(self.delete_count))
         # Call the table's insert method
         self.model.insertObjects(self.new_object_groups, self.new_objects, offset=1)
 
@@ -181,11 +193,11 @@ class NewObjectCmd(ObjectCmd):
             self.model.dataChanged.emit(QtCore.QModelIndex(), QtCore.QModelIndex())
 
         # Clear any current selection and select the next item
-        if len(self.indexes) > 1:
+        if self.delete_count > 1:
             single = False
         else:
             single = True
-        self.update_selection(single=single, offset=True)
+        self.update_selection(single=single, offset=1)
 
 
 class PasteSelectedCmd(ObjectCmd):
@@ -309,7 +321,9 @@ class ModifyObjectCmd(ObjectCmd):
         self.model.dataChanged.emit(self.indexes[0], self.indexes[0])
 
         # Clear any current selection and select the next item
-        # self.update_selection(offset=True)
+        self.main_window.classTable.clearSelection()
+        self.main_window.classTable.setCurrentIndex(self.indexes[0])
+
 
     def redo(self, *args, **kwargs):
         # Ensure that we have the right model available
@@ -328,4 +342,5 @@ class ModifyObjectCmd(ObjectCmd):
         self.model.dataChanged.emit(self.indexes[0], self.indexes[0])
 
         # Clear any current selection and select the next item
-        # self.update_selection(offset=True)
+        self.main_window.classTable.clearSelection()
+        self.main_window.classTable.setCurrentIndex(self.indexes[0])
