@@ -322,21 +322,19 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow, idfsettings.Settings):
     def table_selection_changed(self, selected, deselected):
         if not selected:
             return
-        index = selected.first().topLeft()
-        if not index or not index.isValid():
+        _index = selected.first().topLeft()
+        if not _index or not _index.isValid():
             return
+
+        # Map index to source model
+        partially_mapped = self.classTable.model().mapToSource(_index)
+        index = self.classTable.model().sourceModel().mapToSource(partially_mapped)
 
         try:
             G = self.idf._graph
-            if self.obj_orientation == QtCore.Qt.Vertical:
-                node = self.idf[self.current_obj_class][index.column()][index.row()]
-            else:
-                node = self.idf[self.current_obj_class][index.row()][index.column()]
-
+            node = self.idf[self.current_obj_class][index.row()][index.column()]
             ancestors = nx.ancestors(G, node)
             descendants = nx.descendants(G, node)
-            # print('degree: {}'.format(nx.degree(G, node)))
-            # print('node value: {}'.format(node.value))
             new_model = treemodel.ReferenceTreeModel([ancestors, descendants],
                                                      ("Field", "Class"),
                                                      self.refView)
@@ -350,12 +348,8 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow, idfsettings.Settings):
             self.refView.setModel(empty_model)
 
         # Also update the infoview
-        if self.obj_orientation == QtCore.Qt.Vertical:
-            info_index = index.row()
-        else:
-            info_index = index.column()
         obj_info = self.idd[self.current_obj_class].get_info()
-        field_info = self.idd[self.current_obj_class][info_index].get_info()
+        field_info = self.idd[self.current_obj_class][index.column()].get_info()
         self.infoView.setText(obj_info + "\n\n" + field_info)
 
     def ref_tree_double_clicked(self, index):
@@ -370,11 +364,8 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow, idfsettings.Settings):
         tree_model = self.classTree.model()
         tree_selection_model = self.classTree.selectionModel()
 
-        # Create an index to serve as the starting point for the tree search
-        start_index = tree_model.index(0, 0)
-
         # Find the items in the class tree that contain the object class
-        matches = tree_model.match(start_index,
+        matches = tree_model.match(tree_model.index(0, 0),
                                    QtCore.Qt.DisplayRole,
                                    obj_class,
                                    hits=1,
@@ -386,30 +377,21 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow, idfsettings.Settings):
         tree_selection_model.setCurrentIndex(matches[0],
                                              QtGui.QItemSelectionModel.SelectCurrent)
 
-        # Scroll to the new selection
+        # Scroll to the matched selection
         self.classTree.scrollTo(matches[0], QtGui.QAbstractItemView.PositionAtCenter)
 
         # After the table is loaded, get its model and selection model
-        table_selection_model = self.classTable.selectionModel()
-        table_model = self.classTable.model().sourceModel()
+        table_source_model = self.classTable.model().sourceModel()
+        table_model = self.classTable.model()
 
         # Create an index for the target field with the table's model
-        if self.obj_orientation == QtCore.Qt.Vertical:
-            table_index = table_model.createIndex(field_index, obj_index,
-                                                  QtCore.QModelIndex().internalId())
-        else:
-            table_index = table_model.createIndex(obj_index, field_index,
-                                                  QtCore.QModelIndex().internalId())
+        table_index_source = table_source_model.sourceModel().index(obj_index, field_index)
+        table_index_partial = table_source_model.mapFromSource(table_index_source)
+        table_index = table_model.mapFromSource(table_index_partial)
 
-        # Give focus to the class table
+        # Give focus to the class table and select the target index
         self.classTable.setFocus()
-
-        # Scroll to the target field (shouldn't need this!)
-        self.classTable.selectColumn(obj_index)
-
-        # Select the target index
-        table_selection_model.setCurrentIndex(table_index,
-                                              QtGui.QItemSelectionModel.SelectCurrent)
+        self.classTable.setCurrentIndex(table_index)
 
     def custom_table_context_menu(self, position):
 
