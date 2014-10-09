@@ -208,10 +208,6 @@ class PasteSelectedCmd(ObjectCmd):
         # Ensure that we have the right model available
         self.update_model()
 
-        # insert rest here
-        # index = None
-        # value = None
-
         # Create an index to represent the start of the replacement
         start_index = self.model.index(self.old_objects[0][0],
                                        self.old_objects[0][1])
@@ -238,7 +234,7 @@ class PasteSelectedCmd(ObjectCmd):
         self.setText('Paste data')
 
         # Get the currently-selected indexes and proceed only if there are any
-        if len(self.indexes) <= 0:
+        if not self.indexes:
             return False
 
         # Find the selected cell at which to start pasting
