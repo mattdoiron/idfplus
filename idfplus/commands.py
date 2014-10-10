@@ -136,11 +136,14 @@ class NewObjectCmd(ObjectCmd):
         # Ensure that we have the right model available
         self.update_model()
 
+        # Define the range to delete
+        delete_range = self.indexes_source[-self.delete_count:]
+
         # Get the table's model and call its remove method
-        self.model.removeObjects(self.indexes_source[-self.delete_count:], offset=1)
+        self.model.removeObjects(delete_range, offset=1)
 
         # Notify everyone that data has changed
-        self.model.dataChanged.emit(self.indexes[0], self.indexes[-1])
+        self.model.dataChanged.emit(delete_range[0], delete_range[-1])
 
         # Clear any current selection and select the next item
         if self.delete_count > 1:

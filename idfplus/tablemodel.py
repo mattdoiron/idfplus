@@ -105,7 +105,11 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
             if orientation == QtCore.Qt.Horizontal:
                 return self.field_labels[section]
             if orientation == QtCore.Qt.Vertical:
-                return self.objID_labels[section]
+                try:
+                    return self.objID_labels[section]
+                except IndexError:
+                    print(section)
+                    return '123'
         elif role == QtCore.Qt.BackgroundRole:
             return QtGui.QColor(244, 244, 244)
         return None
@@ -166,13 +170,17 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
 
     def removeObjects(self, indexes, offset=None):
 
-        # Get contiguous, groups of unique indexes in reverse order
-        groups = self.get_contiguous_rows(indexes, True)
-        # print('removing groups: {}'.format(groups))
-
-        # Ensure there is a row_offset
+        # Ensure there is an offset
         if not offset:
             offset = 0
+
+        # If there is an offset because this means the whole
+        # block will be contiguous and should be removed all at once.
+        if offset:
+            groups = [[i.row() for i in indexes]]
+        else:
+            # Get contiguous, groups of unique indexes in reverse order
+            groups = self.get_contiguous_rows(indexes, True)
 
         # Delete index ranges
         for group in groups:
