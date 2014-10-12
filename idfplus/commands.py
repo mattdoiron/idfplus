@@ -23,6 +23,7 @@ from __future__ import (print_function, division, absolute_import)
 # System imports
 # import sys
 # import transaction
+from itertools import chain
 
 # PySide imports
 from PySide import QtGui
@@ -100,17 +101,20 @@ class ObjectCmd(QtGui.QUndoCommand):
                 row_offset = offset
                 col_offset = 0
 
-            # Create a new selection index with an offset
-            selection = self.model.index(self.indexes[-1].row() + row_offset,
-                                         self.indexes[-1].column() + col_offset)
+            if self.indexes:
+                # Create a new selection index with an offset
+                selection = self.model.index(self.indexes[-1].row() + row_offset,
+                                             self.indexes[-1].column() + col_offset)
 
-            # If the index is not valid, use a non-offset index
-            if not selection.isValid():
-                selection = self.indexes[-1]
+                # If the index is not valid, use a non-offset index
+                if not selection.isValid():
+                    selection = self.indexes[-1]
 
-                # If it's still not valid, don't select anything
-                if not self.indexes[-1].isValid():
-                    selection = None
+                    # If it's still not valid, don't select anything
+                    if not self.indexes[-1].isValid():
+                        selection = None
+            else:
+                selection = None
 
             # print('single selection: {}, {}'.format(selection.row(), selection.column()))
         else:
@@ -136,8 +140,9 @@ class NewObjectCmd(ObjectCmd):
         # Ensure that we have the right model available
         self.update_model()
 
-        # Define the range to delete
-        delete_range = self.indexes_source[-self.delete_count:]
+        # Define the range to delete in the form [[<flattened list here>]]
+        flat_groups = [list(set(chain.from_iterable(self.new_object_groups)))]
+        delete_range = flat_groups[-self.delete_count:]
 
         # Get the table's model and call its remove method
         self.model.removeObjects(delete_range, offset=1)
@@ -175,6 +180,13 @@ class NewObjectCmd(ObjectCmd):
                 self.new_objects = self.main_window.obj_clipboard[1]
                 self.new_object_groups = self.main_window.obj_clipboard[0]
                 self.delete_count = sum([len(i) for i in self.new_object_groups])
+                # print('delete count selection: {}'.format(self.delete_count))
+
+                flat_groups = [list(set(chain.from_iterable(self.new_object_groups)))]
+                flat_objs = [list(chain.from_iterable(self.new_objects))]
+                self.new_object_groups = flat_groups
+                self.new_objects = flat_objs
+
                 # print('objects to insert: {}'.format(self.new_objects))
                 # print('groups to insert: {}'.format(self.new_object_groups))
             else:
@@ -182,8 +194,9 @@ class NewObjectCmd(ObjectCmd):
                 if self.indexes_source:
                     self.new_object_groups = [[self.indexes_source[-1].row()]]
                 else:
-                    self.new_object_groups = None
+                    self.new_object_groups = []
                 self.delete_count = 1
+                # print('delete count blank: {}'.format(self.delete_count))
 
         # print('delete_count: {}'.format(self.delete_count))
         # Call the table's insert method

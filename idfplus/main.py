@@ -584,7 +584,7 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow, idfsettings.Settings):
         # Get list of contiguous indexes and objects
         groups, obj_list = model.get_contiguous(indexes_source, False)
 
-        # print('created group: {}'.format(groups))
+        print('created groups: {}'.format(groups))
         self.obj_clipboard = (groups, obj_list)
         return True
 
