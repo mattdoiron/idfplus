@@ -176,7 +176,7 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
         else:
             offset = 0
             groups = self.get_contiguous_rows(indexes, True)
-
+        print('removing groups: {}'.format(groups))
         # Delete index ranges in all sub-groups
         for group in groups:
             delete_count = len(group)
@@ -187,11 +187,12 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
             elif not offset:
                 first_row = group[0]
                 last_row = group[0] + delete_count
-                self.beginRemoveRows(QtCore.QModelIndex(), first_row, last_row)
+                self.beginRemoveRows(QtCore.QModelIndex(), first_row, last_row - 1)
             else:
                 first_row = group[-1] + offset
                 last_row = group[-1] + offset + delete_count
                 self.beginRemoveRows(QtCore.QModelIndex(), first_row, last_row - 1)
+            print('removing range: [{}:{}]'.format(first_row, last_row))
             del self.idf_objects[first_row:last_row]
             self.get_labels()
             self.endRemoveRows()
@@ -212,18 +213,18 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
             row_offset = offset
         else:
             row_offset = 0
-
-        # Cycle through each index in the object dictionary
+        print('inserting groups: {}'.format(indexes))
+        # Cycle through each groups of indexes in the object list
         for ind, obj_list in enumerate(objs_to_insert):
             count = len(obj_list)
             if indexes and offset:
                 first_row = indexes[ind][-1] + row_offset
             elif indexes:
-                first_row = indexes[ind][-1] + 1
+                first_row = indexes[ind][0]
             else:
                 first_row = len(self.idf_objects)
             insert_count = first_row - 1 + count
-
+            print('inserting at: [{}:{}]'.format(first_row, first_row))
             # Warn the model that we're about to add rows, then do it
             self.beginInsertRows(QtCore.QModelIndex(), first_row, insert_count)
             self.idf_objects[first_row:first_row] = obj_list

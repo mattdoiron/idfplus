@@ -38,8 +38,8 @@ log = logger.setup_logging(c.LOG_LEVEL, __name__)
 class ObjectCmd(QtGui.QUndoCommand):
     """Base class to be inherited by all classes needing QUndoCommand features"""
 
-    def __init__(self, main_window, **kwargs):
-        super(ObjectCmd, self).__init__()
+    def __init__(self, main_window, *args, **kwargs):
+        super(ObjectCmd, self).__init__(*args, **kwargs)
         self.indexes = main_window.classTable.selectedIndexes()
         self.main_window = main_window
         obj_class_index = main_window.classTree.selectedIndexes()[0]
@@ -128,7 +128,7 @@ class ObjectCmd(QtGui.QUndoCommand):
 class NewObjectCmd(ObjectCmd):
     """Class that handles creating new objects and undoing that creation."""
 
-    def undo(self, *args, **kwargs):
+    def undo(self):
         """Undo action for inserting new objects."""
 
         # Ensure that we have the right model available
@@ -137,6 +137,8 @@ class NewObjectCmd(ObjectCmd):
         # Define the range to delete in the form [[<flattened list here>]]
         flat_groups = [list(set(chain.from_iterable(self.new_object_groups)))]
         delete_range = flat_groups[-self.delete_count:]
+        print('flat_groups: {}'.format(flat_groups))
+        print('delete_range: {}'.format(delete_range))
 
         # Get the table's model and call its remove method
         self.model.removeObjects(delete_range, offset=1)
@@ -151,7 +153,7 @@ class NewObjectCmd(ObjectCmd):
             single = True
         self.update_selection(single=single)
 
-    def redo(self, *args, **kwargs):
+    def redo(self):
         """Redo action for inserting new objects."""
 
         # Ensure that we have the right model available
@@ -166,9 +168,15 @@ class NewObjectCmd(ObjectCmd):
             # Objects come from the clipboard
             if self.from_clipboard is True:
                 self.new_objects = self.main_window.obj_clipboard[1]
-                self.new_object_groups = [[self.indexes_source[-1].row()]]
-                self.delete_count = sum([len(i) for i in self.new_object_groups])
-
+                # self.new_object_groups = [[self.indexes_source[-1].row()]]
+                self.new_object_groups = self.main_window.obj_clipboard[0]
+                groups = self.main_window.obj_clipboard[0]
+                self.delete_count = sum([len(i) for i in groups])
+                print('delete count: {}'.format(self.delete_count))
+                # Flatten the provided object list (no need for groups here)
+                flat_objs = [list(chain.from_iterable(self.new_objects))]
+                self.new_objects = flat_objs
+                print('new obj count: {}'.format(len(self.new_objects[0])))
             # Objects come from the current selection
             elif self.from_selection is True:
                 if not self.main_window.copyObject():
@@ -233,7 +241,7 @@ class PasteSelectedCmd(ObjectCmd):
         # Notify everyone that data has changed
         self.model.dataChanged.emit(start_index, index)
 
-    def redo(self, *args, **kwargs):
+    def redo(self):
         """Redo action for pasting values into cells."""
 
         # Ensure that we have the right model available
@@ -295,7 +303,7 @@ class DeleteObjectCmd(ObjectCmd):
         # Clear any current selection and select the next item
         self.update_selection()
 
-    def redo(self, *args, **kwargs):
+    def redo(self):
         """Redo action for deleting objects."""
 
         # Ensure that we have the right model available
@@ -335,7 +343,7 @@ class ModifyObjectCmd(ObjectCmd):
         self.main_window.classTable.clearSelection()
         self.main_window.classTable.setCurrentIndex(self.indexes[0])
 
-    def redo(self, *args, **kwargs):
+    def redo(self):
         """Redo action for modifying individual object values."""
 
         # Ensure that we have the right model available
