@@ -45,7 +45,6 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
         self.idd = idf._idd
         self.idf_objects = idf.get(obj_class, PersistentList())
         self.idd_object = idf._idd.get(obj_class, PersistentList())
-        # self.dirty = False
         self.get_labels()
         super(IDFObjectTableModel, self).__init__(parent)
 
@@ -181,7 +180,6 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
         if delete_count is None:
             delete_count = 1
 
-        print('removing groups: {}'.format(groups))
         # Delete index ranges in all sub-groups
         for group in groups:
 
@@ -203,8 +201,8 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
                 first_row = group[-1] + offset
                 last_row = group[-1] + offset + delete_count
                 self.beginRemoveRows(QtCore.QModelIndex(), first_row, last_row - 1)
-            print('removing range: [{}:{}]'.format(first_row, last_row))
 
+            # Delete the objects and update labels
             del self.idf_objects[first_row:last_row]
             self.get_labels()
             self.endRemoveRows()
@@ -225,7 +223,6 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
             row_offset = offset
         else:
             row_offset = 0
-        print('inserting groups: {}'.format(indexes))
 
         # Cycle through each groups of indexes in the object list
         for ind, obj_list in enumerate(objs_to_insert):
@@ -236,11 +233,10 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
                 first_row = indexes[ind][0]
             else:
                 first_row = len(self.idf_objects)
-            insert_count = first_row - 1 + count
-            print('inserting at: [{}:{}]'.format(first_row, first_row))
+            last_row = first_row + count - 1
 
             # Warn the model that we're about to add rows, then do it
-            self.beginInsertRows(QtCore.QModelIndex(), first_row, insert_count)
+            self.beginInsertRows(QtCore.QModelIndex(), first_row, last_row)
             self.idf_objects[first_row:first_row] = obj_list
             self.get_labels()
             self.endInsertRows()
@@ -293,10 +289,10 @@ class TransposeProxyModel(QtGui.QAbstractProxyModel):
         super(TransposeProxyModel, self).setSourceModel(source)
 
         # Connect signals in a transposed way as well
-        self.sourceModel().columnsAboutToBeInserted.connect(self.rowsAboutToBeInserted.emit)
-        self.sourceModel().columnsInserted.connect(self.rowsInserted.emit)
-        self.sourceModel().columnsAboutToBeRemoved.connect(self.rowsAboutToBeRemoved.emit)
-        self.sourceModel().columnsRemoved.connect(self.rowsRemoved.emit)
+        # self.sourceModel().columnsAboutToBeInserted.connect(self.rowsAboutToBeInserted.emit)
+        # self.sourceModel().columnsInserted.connect(self.rowsInserted.emit)
+        # self.sourceModel().columnsAboutToBeRemoved.connect(self.rowsAboutToBeRemoved.emit)
+        # self.sourceModel().columnsRemoved.connect(self.rowsRemoved.emit)
         self.sourceModel().rowsAboutToBeInserted.connect(self.columnsAboutToBeInserted.emit)
         self.sourceModel().rowsInserted.connect(self.columnsInserted.emit)
         self.sourceModel().rowsAboutToBeRemoved.connect(self.columnsAboutToBeRemoved.emit)
@@ -322,15 +318,6 @@ class TransposeProxyModel(QtGui.QAbstractProxyModel):
             sel_range = QtGui.QItemSelectionRange(top_left, bottom_right)
             returnSelection.append(sel_range)
         return returnSelection
-
-    # def mapSelectionFromSource(self, selection):
-    #     returnSelection = QtGui.QItemSelection()
-    #     for sel in selection:
-    #         top_left = self.mapFromSource(sel.topLeft())
-    #         bottom_right = self.mapFromSource(sel.bottomRight())
-    #         sel_range = QtGui.QItemSelectionRange(top_left, bottom_right)
-    #         returnSelection.append(sel_range)
-    #     return returnSelection
 
     def index(self, row, col, parent=None):
         return self.createIndex(row, col)

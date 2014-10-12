@@ -141,16 +141,11 @@ class NewObjectCmd(ObjectCmd):
         flat_groups = [list(set(chain.from_iterable(self.new_object_groups)))]
         delete_range = [flat_groups[0][-self.delete_count:]]
 
-        print('flat_groups: {}'.format(flat_groups))
-        print('delete_range: {}'.format(delete_range))
-
         # Get the table's model and call its remove method
-        self.model.removeObjects(delete_range,
-                                 offset=1,
-                                 delete_count=self.delete_count)
+        self.model.removeObjects(delete_range, offset=1, delete_count=self.delete_count)
 
-        # Notify everyone that data has changed
-        self.model.dataChanged.emit(delete_range[0], delete_range[-1])
+        # Notify everyone that data has changed (don't seem to need it - why not!?)
+        # self.model.dataChanged.emit(delete_range[0], delete_range[-1])
 
         # Clear any current selection and select the next item
         if self.delete_count > 1:
@@ -183,8 +178,6 @@ class NewObjectCmd(ObjectCmd):
                 flat_objs = [list(chain.from_iterable(self.new_objects))]
                 self.new_objects = flat_objs
                 self.delete_count = len(flat_objs[0])
-                print('delete count: {}'.format(self.delete_count))
-                # print('new obj count: {}'.format(len(self.new_objects[0])))
 
             # Objects come from the current selection
             elif self.from_selection is True:
@@ -211,11 +204,11 @@ class NewObjectCmd(ObjectCmd):
         # Call the table's insert method
         self.model.insertObjects(self.new_object_groups, self.new_objects, offset=1)
 
-        # Notify everyone that data has changed
-        if self.indexes:
-            self.model.dataChanged.emit(self.indexes[0], self.indexes[-1])
-        else:
-            self.model.dataChanged.emit(QtCore.QModelIndex(), QtCore.QModelIndex())
+        # Notify everyone that data has changed (don't seem to need it - why not!?)
+        # if self.indexes:
+        #     self.model.dataChanged.emit(self.indexes[0], self.indexes[-1])
+        # else:
+        #     self.model.dataChanged.emit(QtCore.QModelIndex(), QtCore.QModelIndex())
 
         # Clear any current selection and select the next item
         if self.delete_count > 1:
@@ -285,10 +278,8 @@ class PasteSelectedCmd(ObjectCmd):
                 # Make an index for the data to be affected
                 index = self.model.index(start_row + i, start_col + j)
 
-                # Save the data about to be replaced (for undo)
-                self.old_objects.append((start_row + i,
-                                         start_col + j,
-                                         index.data()))
+                # Save the data about to be replaced (for undo) as a tuple
+                self.old_objects.append((start_row + i, start_col + j, index.data()))
 
                 # Replace the data
                 self.model.setData(index, value, QtCore.Qt.EditRole)
@@ -323,7 +314,8 @@ class DeleteObjectCmd(ObjectCmd):
 
         # Make a copy of the object(s) about to be deleted (only once)
         if not self.old_objects:
-            self.index_groups, self.old_objects = self.model.get_contiguous(self.indexes_source, False)
+            (self.index_groups,
+             self.old_objects) = self.model.get_contiguous(self.indexes_source, False)
 
         # Delete the objects. Note that these indexes are source indexes only
         # They must have been converted already!

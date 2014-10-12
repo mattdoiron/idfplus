@@ -3,26 +3,7 @@ TODO List for IDFPlus
 =====================
 Present
 =====================
-* when a change is made to a value in a qt table, how is that value taken
-back to the IDFObject? I don't think it currently is!
-* load different IDD file depending on IDF file version
-* make sure file saving preserves white space, add !- comments, etc
-* rethink data structures for idd and idf file!
-    * use blitzdb for idf files?
-    * use zodb for IDD?
-* Create objects to contain all data related to IDF and IDD files
-    * use these to perform all interactions with IDF and IDD files
-    * IDFFile class, IDDFile class
-* store tree-view on disk and simply populate it on loading of an idf file
-    * part of idd stored file?
-* move progress bar to status bar?
-* figure out when to load idd file into memory and how to keep it global
-    * simply use shelve call when idf is loaded. save in self.idd
-* empty class types should not show a table at all unless the new button is pushed
-* make info and comment panes update with content
-* ensure that IDD file is of proper version! (currently its not so things break!)
-* implement file locking
-* Split the IDD processing stuff from the IDF processing stuff
+See EverNote
 
 
 =====================
@@ -32,8 +13,11 @@ Future
 * Document all code
 * is it worth converting to Python 3?
 * copy and paste to/from excel (http://stackoverflow.com/questions/1230222/selected-rows-line-in-qtableview-copy-to-qclipboard)
-* implement full undo support
-
+* implement file locking?
+* move progress bar to status bar?
+* figure out when to load idd file into memory and how to keep it global
+    * simply use shelve call when idf is loaded. save in self.idd
+* add additional features to right-click menus in cells in the table and/or tree
 
 
 =====================
