@@ -170,20 +170,14 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
 
     def removeObjects(self, indexes, offset=None):
 
-        # Ensure there is an offset
-        if not offset:
-            offset = 0
-
-        # If there is an offset because this means the whole
-        # block will be contiguous and should be removed all at once.
+        # Detect groups and and offset and ensure there is a value for offset
         if offset:
             groups = indexes
         else:
-            # Get contiguous, groups of unique indexes in reverse order
+            offset = 0
             groups = self.get_contiguous_rows(indexes, True)
-        print("deleting groups: {}".format(groups))
 
-        # Delete index ranges
+        # Delete index ranges in all sub-groups
         for group in groups:
             delete_count = len(group)
             if not group:
@@ -198,20 +192,12 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
                 first_row = group[-1] + offset
                 last_row = group[-1] + offset + delete_count
                 self.beginRemoveRows(QtCore.QModelIndex(), first_row, last_row - 1)
-
-            print("deleting range: ({},{})".format(first_row, last_row))
-
-            # Warn the model that we're about to remove rows then do it
-            # self.beginRemoveRows(QtCore.QModelIndex(), first_row, last_row)
             del self.idf_objects[first_row:last_row]
             self.get_labels()
             self.endRemoveRows()
-
         return True
 
     def insertObjects(self, indexes, objects=None, offset=None):
-
-        # print('inserting groups: {}'.format(indexes))
 
         # If there are no objects to add, make new blank ones
         if not objects:
@@ -220,7 +206,7 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
             objs_to_insert = [[new_obj]]
         else:
             objs_to_insert = objects
-        print('objs to insert: {}'.format(objs_to_insert))
+
         # Ensure there is a row_offset
         if offset:
             row_offset = offset
@@ -229,8 +215,6 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
 
         # Cycle through each index in the object dictionary
         for ind, obj_list in enumerate(objs_to_insert):
-            print('ind, obj_list: {}, {}'.format(ind, obj_list))
-            print('indexes: {}'.format(indexes))
             count = len(obj_list)
             if indexes and offset:
                 first_row = indexes[ind][-1] + row_offset
@@ -240,18 +224,11 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
                 first_row = len(self.idf_objects)
             insert_count = first_row - 1 + count
 
-            for o in obj_list:
-                if o[0]:
-                    print('inserting {} at row: {}'.format(o[0].value, first_row))
-                else:
-                    print('inserting {} at row: {}'.format('Blank', first_row))
-
             # Warn the model that we're about to add rows, then do it
             self.beginInsertRows(QtCore.QModelIndex(), first_row, insert_count)
             self.idf_objects[first_row:first_row] = obj_list
             self.get_labels()
             self.endInsertRows()
-
         return True
 
     def get_contiguous_rows(self, indexes, reverse):

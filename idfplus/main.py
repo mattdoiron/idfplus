@@ -518,13 +518,16 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow, idfsettings.Settings):
         super(IDFPlus, self).setVisible(visible)
 
     def newObject(self):
+        """Creates a new, blank object."""
 
         # Create undo command and push it to the undo stack
         cmd = commands.NewObjectCmd(self)
         self.undo_stack.push(cmd)
 
     def duplicateObject(self):
+        """Duplicates a given object."""
 
+        # If there is no selection, stop
         if not self.classTable.selectedIndexes():
             return False
 
@@ -533,8 +536,10 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow, idfsettings.Settings):
         self.undo_stack.push(cmd)
 
     def deleteObject(self):
+        """Deletes a given object."""
 
-        if len(self.classTable.selectedIndexes()) <= 0:
+        # If there is no selection, stop
+        if not self.classTable.selectedIndexes():
             return False
 
         # Create undo command and push it to the undo stack
@@ -542,8 +547,10 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow, idfsettings.Settings):
         self.undo_stack.push(cmd)
 
     def cutObject(self):
+        """Cuts the object after copying it."""
 
-        if len(self.classTable.selectedIndexes()) <= 0:
+        # If there is no selection, stop
+        if not self.classTable.selectedIndexes():
             return False
 
         # Copy object then delete it
@@ -577,14 +584,13 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow, idfsettings.Settings):
             return False
 
         # Convert indexes to source indexes for storage
-        indexes_partial = [model.mapToSource(ind) for ind in indexes]
-        indexes_source = [model.sourceModel().mapToSource(ind) for ind in indexes_partial]
-        # print('indexes_source: {}'.format([i.row() for i in indexes_source]))
+        indexes_part = [model.mapToSource(ind) for ind in indexes]
+        indexes_source = [model.sourceModel().mapToSource(ind) for ind in indexes_part]
 
         # Get list of contiguous indexes and objects
         groups, obj_list = model.get_contiguous(indexes_source, False)
 
-        print('created groups: {}'.format(groups))
+        # Save to the clipboard and return success
         self.obj_clipboard = (groups, obj_list)
         return True
 

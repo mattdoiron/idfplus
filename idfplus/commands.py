@@ -21,8 +21,6 @@ along with IDFPlus. If not, see <http://www.gnu.org/licenses/>.
 from __future__ import (print_function, division, absolute_import)
 
 # System imports
-# import sys
-# import transaction
 from itertools import chain
 
 # PySide imports
@@ -42,9 +40,7 @@ class ObjectCmd(QtGui.QUndoCommand):
 
     def __init__(self, main_window, **kwargs):
         super(ObjectCmd, self).__init__()
-        # self.selectedIndexes = main_window.classTable.selectedIndexes()
         self.indexes = main_window.classTable.selectedIndexes()
-        # self.index_list = [(index.row(), index.column()) for index in self.selectedIndexes]
         self.main_window = main_window
         obj_class_index = main_window.classTree.selectedIndexes()[0]
         self.obj_class_index = QtCore.QPersistentModelIndex(obj_class_index)
@@ -55,7 +51,6 @@ class ObjectCmd(QtGui.QUndoCommand):
         self.new_objects = None
         self.new_object_groups = None
         self.old_objects = None
-        # self.copied_objects = None
         self.from_clipboard = kwargs.get('from_clipboard', False)
         self.from_selection = kwargs.get('from_selection', False)
         self.value = kwargs.get('value', None)
@@ -72,6 +67,7 @@ class ObjectCmd(QtGui.QUndoCommand):
                                for ind in indexes_source_partial]
 
     def update_model(self):
+        """Ensures that the model is up-to-date and changes it if not."""
 
         # Make sure the table view is updated so we grab the right model
         if self.main_window.current_obj_class != self.obj_class:
@@ -83,8 +79,7 @@ class ObjectCmd(QtGui.QUndoCommand):
             self.selection_model = self.main_window.classTable.selectionModel()
 
     def update_selection(self, single=None, offset=None):
-        # self.selection_model.reset()
-        # return
+        """Ensures that the selection is up-to-date and changes it if not."""
 
         # Ensure there is an offset
         if offset is None:
@@ -116,12 +111,9 @@ class ObjectCmd(QtGui.QUndoCommand):
             else:
                 selection = None
 
-            # print('single selection: {}, {}'.format(selection.row(), selection.column()))
         else:
             # Construct a selection from the saved indexes
             selection = QtGui.QItemSelection(self.indexes[0], self.indexes[-1])
-            # print('range selection top: {}, {}'.format(self.indexes[0].row(), self.indexes[0].column()))
-            # print('range selection bottom: {}, {}'.format(self.indexes[-1].row(), self.indexes[-1].column()))
 
         # Clear the selection model and reselect the appropriate indexes if necessary
         self.selection_model.reset()
@@ -132,10 +124,12 @@ class ObjectCmd(QtGui.QUndoCommand):
         # Hack to 'refresh' the class tree
         self.main_window.classTree.expandAll()
 
+
 class NewObjectCmd(ObjectCmd):
-    """Class that handles creating new objects, and undo of that creation."""
+    """Class that handles creating new objects and undoing that creation."""
 
     def undo(self, *args, **kwargs):
+        """Undo action for inserting new objects."""
 
         # Ensure that we have the right model available
         self.update_model()
@@ -158,6 +152,7 @@ class NewObjectCmd(ObjectCmd):
         self.update_selection(single=single)
 
     def redo(self, *args, **kwargs):
+        """Redo action for inserting new objects."""
 
         # Ensure that we have the right model available
         self.update_model()
@@ -167,38 +162,35 @@ class NewObjectCmd(ObjectCmd):
 
         # Define which (if any) new objects to insert
         if self.new_objects is None:
+
+            # Objects come from the clipboard
             if self.from_clipboard is True:
-                # print('copying from clipboard')
                 self.new_objects = self.main_window.obj_clipboard[1]
-                # self.new_object_groups = self.main_window.obj_clipboard[0]
                 self.new_object_groups = [[self.indexes_source[-1].row()]]
                 self.delete_count = sum([len(i) for i in self.new_object_groups])
+
+            # Objects come from the current selection
             elif self.from_selection is True:
-                # print('copying from selection')
                 if not self.main_window.copyObject():
                     return False
                 self.new_objects = self.main_window.obj_clipboard[1]
                 self.new_object_groups = self.main_window.obj_clipboard[0]
                 self.delete_count = sum([len(i) for i in self.new_object_groups])
-                # print('delete count selection: {}'.format(self.delete_count))
 
+                # Flatten the provided groups (no need for groups here)
                 flat_groups = [list(set(chain.from_iterable(self.new_object_groups)))]
                 flat_objs = [list(chain.from_iterable(self.new_objects))]
                 self.new_object_groups = flat_groups
                 self.new_objects = flat_objs
 
-                # print('objects to insert: {}'.format(self.new_objects))
-                # print('groups to insert: {}'.format(self.new_object_groups))
+            # Blank object to be inserted
             else:
-                # print('inserting blank object')
                 if self.indexes_source:
                     self.new_object_groups = [[self.indexes_source[-1].row()]]
                 else:
                     self.new_object_groups = []
                 self.delete_count = 1
-                # print('delete count blank: {}'.format(self.delete_count))
 
-        # print('delete_count: {}'.format(self.delete_count))
         # Call the table's insert method
         self.model.insertObjects(self.new_object_groups, self.new_objects, offset=1)
 
@@ -217,9 +209,10 @@ class NewObjectCmd(ObjectCmd):
 
 
 class PasteSelectedCmd(ObjectCmd):
-    """Pastes clipboard into cells starting at selected cell."""
+    """Class to paste a group of values into cells and undo that paste."""
 
     def undo(self):
+        """Undo action for pasting values into cells."""
 
         # Ensure that we have the right model available
         self.update_model()
@@ -240,8 +233,8 @@ class PasteSelectedCmd(ObjectCmd):
         # Notify everyone that data has changed
         self.model.dataChanged.emit(start_index, index)
 
-
     def redo(self, *args, **kwargs):
+        """Redo action for pasting values into cells."""
 
         # Ensure that we have the right model available
         self.update_model()
@@ -288,9 +281,11 @@ class PasteSelectedCmd(ObjectCmd):
 
 
 class DeleteObjectCmd(ObjectCmd):
-    """Class that handles deleting objects, and undo of that deletion."""
+    """Class that handles deleting objects and undo of that deletion."""
 
     def undo(self):
+        """Undo action for deleting objects."""
+
         # Ensure that we have the right model available
         self.update_model()
 
@@ -301,6 +296,8 @@ class DeleteObjectCmd(ObjectCmd):
         self.update_selection()
 
     def redo(self, *args, **kwargs):
+        """Redo action for deleting objects."""
+
         # Ensure that we have the right model available
         self.update_model()
 
@@ -320,9 +317,11 @@ class DeleteObjectCmd(ObjectCmd):
 
 
 class ModifyObjectCmd(ObjectCmd):
-    """Class that handles modifying a single field value, and undo of that change."""
+    """Class that handles modifying a single field value and undo of that change."""
 
     def undo(self):
+        """Undo action for modifying individual object values."""
+
         # Ensure that we have the right model available
         self.update_model()
 
@@ -336,8 +335,9 @@ class ModifyObjectCmd(ObjectCmd):
         self.main_window.classTable.clearSelection()
         self.main_window.classTable.setCurrentIndex(self.indexes[0])
 
-
     def redo(self, *args, **kwargs):
+        """Redo action for modifying individual object values."""
+
         # Ensure that we have the right model available
         self.update_model()
 
