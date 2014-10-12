@@ -566,7 +566,11 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow, idfsettings.Settings):
         self.undo_stack.push(cmd)
 
     def pasteObject(self):
-        """Pastes the currently copies object(s)."""
+        """Pastes the currently copied object(s)."""
+
+        # If there is nothing in the clipboard, stop
+        if not self.obj_clipboard:
+            return False
 
         # Create undo command and push it to the undo stack
         cmd = commands.NewObjectCmd(self, from_clipboard=True)

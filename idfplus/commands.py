@@ -112,8 +112,11 @@ class ObjectCmd(QtGui.QUndoCommand):
                 selection = None
 
         else:
-            # Construct a selection from the saved indexes
-            selection = QtGui.QItemSelection(self.indexes[0], self.indexes[-1])
+            if self.indexes:
+                # Construct a selection from the saved indexes
+                selection = QtGui.QItemSelection(self.indexes[0], self.indexes[-1])
+            else:
+                selection = None
 
         # Clear the selection model and reselect the appropriate indexes if necessary
         self.selection_model.reset()
@@ -136,12 +139,15 @@ class NewObjectCmd(ObjectCmd):
 
         # Define the range to delete in the form [[<flattened list here>]]
         flat_groups = [list(set(chain.from_iterable(self.new_object_groups)))]
-        delete_range = flat_groups[-self.delete_count:]
+        delete_range = [flat_groups[0][-self.delete_count:]]
+
         print('flat_groups: {}'.format(flat_groups))
         print('delete_range: {}'.format(delete_range))
 
         # Get the table's model and call its remove method
-        self.model.removeObjects(delete_range, offset=1)
+        self.model.removeObjects(delete_range,
+                                 offset=1,
+                                 delete_count=self.delete_count)
 
         # Notify everyone that data has changed
         self.model.dataChanged.emit(delete_range[0], delete_range[-1])
@@ -168,15 +174,18 @@ class NewObjectCmd(ObjectCmd):
             # Objects come from the clipboard
             if self.from_clipboard is True:
                 self.new_objects = self.main_window.obj_clipboard[1]
-                # self.new_object_groups = [[self.indexes_source[-1].row()]]
-                self.new_object_groups = self.main_window.obj_clipboard[0]
-                groups = self.main_window.obj_clipboard[0]
-                self.delete_count = sum([len(i) for i in groups])
-                print('delete count: {}'.format(self.delete_count))
+                if self.indexes_source:
+                    self.new_object_groups = [[self.indexes_source[-1].row()]]
+                else:
+                    self.new_object_groups = []
+
                 # Flatten the provided object list (no need for groups here)
                 flat_objs = [list(chain.from_iterable(self.new_objects))]
                 self.new_objects = flat_objs
-                print('new obj count: {}'.format(len(self.new_objects[0])))
+                self.delete_count = len(flat_objs[0])
+                print('delete count: {}'.format(self.delete_count))
+                # print('new obj count: {}'.format(len(self.new_objects[0])))
+
             # Objects come from the current selection
             elif self.from_selection is True:
                 if not self.main_window.copyObject():
