@@ -21,7 +21,7 @@ along with IDFPlus. If not, see <http://www.gnu.org/licenses/>.
 from __future__ import (print_function, division, absolute_import)
 
 # System imports
-# from pint import UnitRegistry
+from pint import UnitRegistry
 from collections import OrderedDict
 # from persistent import Persistent
 # from persistent.list import PersistentList
@@ -90,10 +90,7 @@ class IDDFile(PODict):
         self.options = list()
         self.tags = dict()
         self.object_lists = dict()
-        # compiled_idd_file_name = 'EnergyPlus_IDD_v{}.dat'
-        # data_dir = 'data'
-        # units_file = 'units.dat'
-        self._ureg = None #UnitRegistry(os.path.join(APP_ROOT, data_dir, units_file))
+        self._ureg = UnitRegistry(c.UNITS_REGISTRY_PATH)
 
         # Call the parent class' init method
         super(IDDFile, self).__init__(data, **kwargs)
@@ -291,19 +288,19 @@ class IDDField(object):
         """
         return self._outer._obj_class
 
-    # @property
-    # def units(self):
-    #     """Read-only property containing idd field's SI units.
-    #     :rtype : str
-    #     """
-    #     return self._value # .units
-    #
-    # @property
-    # def ip_units(self):
-    #     """Read-only property containing idd field's IP units.
-    #     :rtype : str
-    #     """
-    #     return self._value # _ip_units
+    @property
+    def units(self):
+        """Read-only property containing idd field's SI units.
+        :rtype : str
+        """
+        return self.tags.get('units')
+
+    @property
+    def ip_units(self):
+        """Read-only property containing idd field's IP units.
+        :rtype : str
+        """
+        return self.tags.get('ip-units')
 
 
 class IDFFile(OrderedDict):
@@ -337,6 +334,7 @@ class IDFFile(OrderedDict):
         self.options = list()
         # self.object_lists = dict()
         self._version = None
+        self.si_units = False
 
         # Call the parent class' init method
         super(IDFFile, self).__init__(data, **kwargs)

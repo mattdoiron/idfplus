@@ -45,6 +45,7 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
         self.idd = idf._idd
         self.idf_objects = idf.get(obj_class, PersistentList())
         self.idd_object = idf._idd.get(obj_class, PersistentList())
+        self.ureg = idd._ureg
         self.get_labels()
         super(IDFObjectTableModel, self).__init__(parent)
 
@@ -72,7 +73,8 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
         # Detect the role being request and return the correct data
         if role == QtCore.Qt.DisplayRole or role == QtCore.Qt.EditRole:
             try:
-                data = self.idf_objects[row][column].value
+                # si_data = self.idf_objects[row][column].value
+                data = self.get_data(row, column)
             except (AttributeError, IndexError):
                 data = None
         elif role == QtCore.Qt.ToolTipRole:
@@ -280,6 +282,39 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
 
         self.objID_labels = objID_labels
         self.field_labels = field_labels
+
+    def get_data(self, row, col):
+        field = self.idf_objects[row][col]
+
+        # If SI units are requested, return (SI is always the default)
+        if self.idf.si_units:
+            return field.value
+
+        # Manually search for idd field with same key. This is silly...
+        # IDDObject should be a dict with keys (A1, N2) as keys
+        # TODO restructure IDDObject to be a dict
+        for f in self.idd_object:
+            if f.key == field.key:
+                idd_field = f
+                break
+        # pos = field.position
+        # idd_field = self.idd_object[pos]
+
+        # Check if there is a special ip_units to use
+        ip_units = idd_field.tags.get('ip-units')
+
+        # Other wise look-up the default
+        if not ip_units:
+            # Get table of conversions and look-up the units for this field
+            units = {}
+            si_units = idd_field.tags.get('units')
+            ip_units = units.get(si_units)
+
+        # Convert units
+        pass
+        data = 123
+
+        return data
 
 
 class TransposeProxyModel(QtGui.QAbstractProxyModel):

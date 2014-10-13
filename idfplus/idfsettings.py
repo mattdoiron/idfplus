@@ -41,6 +41,7 @@ LOG_FILE_NAME = "idfplus.log"
 DATA_DIR = appdirs.user_data_dir(APP_NAME, COMPANY_NAME)
 LOG_DIR = appdirs.user_log_dir(APP_NAME, COMPANY_NAME)
 MAX_OBJ_HISTORY = 100
+UNITS_REGISTRY_PATH = os.path.join(APP_ROOT, DATA_DIR, 'units.dat')
 
 # Make sure necessary folders exist
 for dir in [DATA_DIR, LOG_DIR]:
