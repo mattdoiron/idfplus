@@ -293,7 +293,29 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
         self.objID_labels = objID_labels
         self.field_labels = field_labels
 
+    def get_units(self, idd_field):
+        """Returns the given index's current units."""
+
+        # Look-up the default units
+        units = idd_field.tags.get('units')
+
+        # If SI units are requested, return now (SI is always the default)
+        if self.idf.si_units is True:
+            return units
+        else:
+            # Otherwise check for special ip-units exceptions
+            ip_units = idd_field.tags.get('ip-units')
+            if ip_units:
+                return ip_units
+            else:
+                unit_dict = self.ureg.get(units)
+                if unit_dict:
+                    return unit_dict.keys()[0]
+                else:
+                    return units
+
     def get_data(self, row, col):
+
         # Grab the correct field
         field = self.idf_objects[row][col]
 
@@ -311,36 +333,41 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
         # pos = field.position
         # idd_field = self.idd_object[pos]
 
-        # Check if there is a special ip_units to use
-        units = idd_field.tags.get('ip-units')
-
-        # Other wise look-up the default
-        if not units:
-            units = idd_field.tags.get('units')
+        # Look-up the default units and any ip-unit exceptions
+        units = idd_field.tags.get('units')
+        ip_units = idd_field.tags.get('ip-units')
 
         # If there are units defined, proceed, otherwise return the unconverted value
         if units:
-            # Lookup the conversion factor.
-            # Returns ("ip units", multiplier[, adder]) or (str, float[, float])
-            ip_unit_conversion = self.ureg.get(units)
+            # Lookup the dict of unit conversions for this SI unit.
+            conv = self.ureg.get(units)
+
+            # Lookup the desired ip_units in the dict if specified, otherwise get the
+            # 'first' (only) one in the dict.
+            ip_unit_conversion = conv.get(ip_units, conv.get(conv.keys()[0]))
 
             # If the units were found, perform the conversion
             if ip_unit_conversion:
-                multiplier = ip_unit_conversion[1]
-                if len(ip_unit_conversion) > 2:
-                    adder = ip_unit_conversion[2]
-                else:
-                    adder = 0
+                try:
+                    # Convert units and force it back to a string
+                    data = str(float(field.value) * ip_unit_conversion)
+                except TypeError:
+                    # If there is a type error, it's actually a tuple (for temperatures)
+                    multiplier = ip_unit_conversion[0]
+                    adder = ip_unit_conversion[1]
+                    data = str(float(field.value) * multiplier + adder)
 
-                # Convert units and force it back to a string
-                data = str(float(field.value) * multiplier + adder)
-                # print('converting {}{} to {}{}'.format(field.value,
-                #                                        ip_unit_conversion[0],
-                #                                        data, units))
+                    # print('converting {}{} to {}{}'.format(field.value,
+                    #                                    ip_unit_conversion[0],
+                    #                                    data, units))
+
             else:
                 data = field.value
         else:
             data = field.value
+
+        if not data:
+            print('data {} units = {}'.format(data, units))
         return data
 
 
@@ -429,6 +456,9 @@ class TransposeProxyModel(QtGui.QAbstractProxyModel):
             new_orientation = QtCore.Qt.Horizontal
         self.headerDataChanged.emit(new_orientation, first, last)
 
+    def get_units(self, *args, **kwargs):
+        return self.sourceModel().get_units(*args, **kwargs)
+
 
 class SortFilterProxyModel(QtGui.QSortFilterProxyModel):
     """Proxy layer to sort and filter"""
@@ -487,6 +517,9 @@ class SortFilterProxyModel(QtGui.QSortFilterProxyModel):
     def get_contiguous(self, *args, **kwargs):
         # Do NOT map to source. Pass through only.
         return self.sourceModel().get_contiguous(*args, **kwargs)
+
+    def get_units(self, *args, **kwargs):
+        return self.sourceModel().get_units(*args, **kwargs)
 
 # class TableView(QtGui.QTableView):
 #     '''Subclass of QTableView used to override mousePressEvent'''

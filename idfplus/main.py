@@ -292,7 +292,11 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow, idfsettings.Settings):
         pass
 
     def toggle_units(self):
-        pass
+        # Toggle the units
+        self.idf.si_units = not self.idf.si_units
+
+        # Refresh the view
+        self.load_table_view(self.current_obj_class)
 
     def update_file_menu(self):
         """Called to update the recent files portion of the file menu"""
@@ -352,8 +356,13 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow, idfsettings.Settings):
 
         # Also update the infoview
         obj_info = self.idd[self.current_obj_class].get_info()
-        field_info = self.idd[self.current_obj_class][index.column()].get_info()
+        idd_field = self.idd[self.current_obj_class][index.column()]
+        field_info = idd_field.get_info()
         self.infoView.setText(obj_info + "\n\n" + field_info)
+
+        # Also update the units label
+        units = self.classTable.model().get_units(idd_field)
+        self.unitsLabel.setText('Display Units: {}'.format(units))
 
     def ref_tree_double_clicked(self, index):
         """Responds when the reference tree widget is double-clicked.
@@ -711,6 +720,7 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow, idfsettings.Settings):
         self.infoView.setText(self.idd[obj_class].get_info())
         self.commentView.setText(comments)
         self.current_obj_class = obj_class
+        self.unitsLabel.setText(None)
 
     def load_tree_view(self):
         """Loads the tree of class type names."""

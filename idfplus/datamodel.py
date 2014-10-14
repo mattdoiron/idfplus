@@ -265,7 +265,7 @@ class IDDField(object):
         info += '\nDefault: {}'.format(default or 'n/a')
         info += '\nRequired: {}'.format(required or 'No')
         if units:
-            info += '\nUnits: {}'.format(units)
+            info += '\nDefault Units: {}'.format(units)
             if ip_units:
                 info += ' ({})'.format(ip_units)
         info += '\nMinimum: {}'.format(minimum) if minimum else ''

@@ -232,6 +232,11 @@ class UI_MainWindow(object):
         # Status bar setup
         self.statusBar().showMessage('Status: Ready')
         self.statusBar().setSizeGripEnabled(True)
+        self.unitsLabel = QtGui.QLabel()
+        self.unitsLabel.setAlignment(QtCore.Qt.AlignCenter)
+        self.unitsLabel.setMinimumSize(self.unitsLabel.sizeHint())
+        self.unitsLabel.setFrameStyle(QtGui.QFrame.StyledPanel | QtGui.QFrame.Sunken)
+        self.statusBar().addPermanentWidget(self.unitsLabel)
         self.versionLabel = QtGui.QLabel()
         self.versionLabel.setAlignment(QtCore.Qt.AlignCenter)
         self.versionLabel.setMinimumSize(self.versionLabel.sizeHint())
