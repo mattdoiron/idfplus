@@ -82,11 +82,7 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
 
         # Detect the role being request and return the correct data
         if role == QtCore.Qt.DisplayRole or role == QtCore.Qt.EditRole:
-            try:
-                # si_data = self.idf_objects[row][column].value
-                data = self.get_data(row, column)
-            except (AttributeError, IndexError):
-                data = None
+            data = self.get_data(row, column)
         elif role == QtCore.Qt.ToolTipRole:
             data = self.idd_object.tags.get('units', '')
         elif role == QtCore.Qt.DecorationRole:
@@ -116,11 +112,7 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
             if orientation == QtCore.Qt.Horizontal:
                 return self.field_labels[section]
             if orientation == QtCore.Qt.Vertical:
-                try:
-                    return self.objID_labels[section]
-                except IndexError:
-                    print(section)
-                    return '123'
+                return self.objID_labels[section]
         elif role == QtCore.Qt.BackgroundRole:
             return QtGui.QColor(244, 244, 244)
         return None
@@ -314,14 +306,26 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
                 else:
                     return units
 
-    def get_data(self, row, col):
+    def get_unit_conversion(self, row, col):
+        """Gets the appropriate unit conversion value(s)"""
 
-        # Grab the correct field
-        field = self.idf_objects[row][col]
+        # TODO Use this to get the conversion factor, then have both setData and
+        # get_data use it.
+        pass
+
+    def get_data(self, row, col):
+        """Retrieves data from the model and converts it to the desired units."""
+
+        # Grab the correct field. Return None if it's blank.
+        try:
+            field = self.idf_objects[row][col]
+            data = field.value
+        except IndexError:
+            return None
 
         # If SI units are requested, return now (SI is always the default)
         if self.idf.si_units is True:
-            return field.value
+            return data
 
         # Manually search for idd field with same key. This is silly...
         # IDDObject should be a dict with keys (A1, N2) as keys
@@ -337,37 +341,30 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
         units = idd_field.tags.get('units')
         ip_units = idd_field.tags.get('ip-units')
 
-        # If there are units defined, proceed, otherwise return the unconverted value
+        # If there are units defined, proceed
         if units:
+
             # Lookup the dict of unit conversions for this SI unit.
             conv = self.ureg.get(units)
+            if conv:
+                # Lookup the desired ip_units in the dict if specified, otherwise get the
+                # 'first' (only) one in the dict.
+                ip_unit_conversion = conv.get(ip_units, conv.get(conv.keys()[0]))
 
-            # Lookup the desired ip_units in the dict if specified, otherwise get the
-            # 'first' (only) one in the dict.
-            ip_unit_conversion = conv.get(ip_units, conv.get(conv.keys()[0]))
+                # If the units were found, perform the conversion
+                if ip_unit_conversion:
+                    try:
+                        # Convert units and force it back to a string
+                        data = str(float(field.value) * ip_unit_conversion)
+                    except TypeError:
+                        # If there is a type error, it's actually a tuple (for temperatures)
+                        multiplier = ip_unit_conversion[0]
+                        adder = ip_unit_conversion[1]
+                        data = str(float(field.value) * multiplier + adder)
 
-            # If the units were found, perform the conversion
-            if ip_unit_conversion:
-                try:
-                    # Convert units and force it back to a string
-                    data = str(float(field.value) * ip_unit_conversion)
-                except TypeError:
-                    # If there is a type error, it's actually a tuple (for temperatures)
-                    multiplier = ip_unit_conversion[0]
-                    adder = ip_unit_conversion[1]
-                    data = str(float(field.value) * multiplier + adder)
-
-                    # print('converting {}{} to {}{}'.format(field.value,
-                    #                                    ip_unit_conversion[0],
-                    #                                    data, units))
-
-            else:
-                data = field.value
-        else:
-            data = field.value
-
-        if not data:
-            print('data {} units = {}'.format(data, units))
+                        # print('converting {}{} to {}{}'.format(field.value,
+                        #                                    ip_unit_conversion[0],
+                        #                                    data, units))
         return data
 
 
