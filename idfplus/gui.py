@@ -286,8 +286,8 @@ class UI_MainWindow(object):
                 "E&xit", self, shortcut="Ctrl+Q",
                 statusTip="Exit the application", triggered=self.close)
 
-        self.cutAct = QtGui.QAction(QtGui.QIcon(':/images/cut.png'),
-                "Cu&t", self, shortcut=QtGui.QKeySequence.Cut,
+        self.cutObjAct = QtGui.QAction(QtGui.QIcon(':/images/cut.png'),
+                "Cu&t Obj", self, shortcut=QtGui.QKeySequence.Cut,
                 statusTip="Cut the current selection's contents to the clipboard",
                 triggered=self.cutObject)
 
@@ -361,6 +361,12 @@ class UI_MainWindow(object):
         self.showPrefsAction = QtGui.QAction("&Preferences", self,
                 triggered=self.show_prefs_dialog)
 
+        self.setIPUnitsAction = QtGui.QAction("&IP Units", self,
+                triggered=self.toggle_units, checkable=True)
+
+        self.setSIUnitsAction = QtGui.QAction("&SI Units", self,
+                triggered=self.toggle_units, checkable=True)
+
         self.undoAct = self.undo_stack.createUndoAction(self.undo_stack)
         self.undoAct.setShortcut(QtGui.QKeySequence.Undo)
         self.undoAct.setIcon(QtGui.QIcon(':/images/undo.png'))
@@ -370,6 +376,7 @@ class UI_MainWindow(object):
         self.redoAct.setIcon(QtGui.QIcon(':/images/redo.png'))
 
         self.transposeAct.setEnabled(False)
+        self.setSIUnitsAction.setChecked(True)
 
     def create_menus(self):
         """Create all required items for menus."""
@@ -385,15 +392,16 @@ class UI_MainWindow(object):
         self.editMenu = self.menuBar().addMenu("&Edit")
         self.editMenu.addAction(self.undoAct)
         self.editMenu.addAction(self.redoAct)
-        self.editMenu.addSeparator()
+        self.editMenu.addSeparator().setText('Objects')
         self.editMenu.addAction(self.newObjAct)
         self.editMenu.addAction(self.dupObjAct)
         self.editMenu.addAction(self.delObjAct)
-        self.editMenu.addAction(self.cutAct)
-        self.editMenu.addAction(self.copyAct)
+        self.editMenu.addAction(self.cutObjAct)
         self.editMenu.addAction(self.copyObjAct)
-        self.editMenu.addAction(self.pasteAct)
         self.editMenu.addAction(self.pasteObjAct)
+        self.editMenu.addSeparator().setText('Values')
+        self.editMenu.addAction(self.copyAct)
+        self.editMenu.addAction(self.pasteAct)
         self.editMenu.addSeparator()
         self.editMenu.addAction(self.showPrefsAction)
 
@@ -404,11 +412,15 @@ class UI_MainWindow(object):
         self.viewMenu.addAction(self.commentView.parent().toggleViewAction())
         self.viewMenu.addAction(self.logView.parent().toggleViewAction())
         self.viewMenu.addAction(self.undoView.parent().toggleViewAction())
-        self.viewMenu.addSeparator()
+        self.viewMenu.addSeparator().setText('Toolbars')
         self.viewMenu.addAction(self.fileToolBar.toggleViewAction())
         self.viewMenu.addAction(self.editToolBar.toggleViewAction())
         self.viewMenu.addAction(self.navToolBar.toggleViewAction())
         self.viewMenu.addAction(self.filterToolBar.toggleViewAction())
+        self.viewMenu.addSeparator().setText('Display Units')
+        action_group = QtGui.QActionGroup(self)
+        self.viewMenu.addAction(action_group.addAction(self.setSIUnitsAction))
+        self.viewMenu.addAction(action_group.addAction(self.setIPUnitsAction))
         self.viewMenu.addSeparator()
         self.viewMenu.addAction(self.transposeAct)
 
@@ -435,7 +447,7 @@ class UI_MainWindow(object):
         self.editToolBar.addAction(self.newObjAct)
         self.editToolBar.addAction(self.dupObjAct)
         self.editToolBar.addAction(self.delObjAct)
-        self.editToolBar.addAction(self.cutAct)
+        self.editToolBar.addAction(self.cutObjAct)
         self.editToolBar.addAction(self.copyObjAct)
         self.editToolBar.addAction(self.pasteObjAct)
         self.editToolBar.setToolButtonStyle(QtCore.Qt.ToolButtonTextBesideIcon)

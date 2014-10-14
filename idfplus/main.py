@@ -291,6 +291,9 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow, idfsettings.Settings):
     def navBack(self):
         pass
 
+    def toggle_units(self):
+        pass
+
     def update_file_menu(self):
         """Called to update the recent files portion of the file menu"""
         self.fileMenu.clear()
@@ -411,7 +414,7 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow, idfsettings.Settings):
         """Helper to add actions or a separator easily."""
         for action in actions:
             if action is None:
-                target.addSeparator()
+                target.addSeparator().setText('Recent Files')
             else:
                 target.addAction(action)
 

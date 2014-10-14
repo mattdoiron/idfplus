@@ -33,6 +33,15 @@ from PySide import QtCore
 from .datamodel import IDFObject
 from .datamodel import IDFField
 
+# Package imports
+from . import logger
+
+# Constants
+from . import idfsettings as c
+
+# Setup logging
+log = logger.setup_logging(c.LOG_LEVEL, __name__)
+
 
 class IDFObjectTableModel(QtCore.QAbstractTableModel):
     """Qt object that handles interaction between the table and the data
@@ -45,7 +54,8 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
         self.idd = idf._idd
         self.idf_objects = idf.get(obj_class, PersistentList())
         self.idd_object = idf._idd.get(obj_class, PersistentList())
-        self.ureg = idd._ureg
+        # self.ureg = self.idd._ureg
+        self.ureg = c.UNITS_REGISTRY
         self.get_labels()
         super(IDFObjectTableModel, self).__init__(parent)
 
@@ -284,10 +294,11 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
         self.field_labels = field_labels
 
     def get_data(self, row, col):
+        # Grab the correct field
         field = self.idf_objects[row][col]
 
-        # If SI units are requested, return (SI is always the default)
-        if self.idf.si_units:
+        # If SI units are requested, return now (SI is always the default)
+        if self.idf.si_units is True:
             return field.value
 
         # Manually search for idd field with same key. This is silly...
@@ -301,19 +312,35 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
         # idd_field = self.idd_object[pos]
 
         # Check if there is a special ip_units to use
-        ip_units = idd_field.tags.get('ip-units')
+        units = idd_field.tags.get('ip-units')
 
         # Other wise look-up the default
-        if not ip_units:
-            # Get table of conversions and look-up the units for this field
-            units = {}
-            si_units = idd_field.tags.get('units')
-            ip_units = units.get(si_units)
+        if not units:
+            units = idd_field.tags.get('units')
 
-        # Convert units
-        pass
-        data = 123
+        # If there are units defined, proceed, otherwise return the unconverted value
+        if units:
+            # Lookup the conversion factor.
+            # Returns ("ip units", multiplier[, adder]) or (str, float[, float])
+            ip_unit_conversion = self.ureg.get(units)
 
+            # If the units were found, perform the conversion
+            if ip_unit_conversion:
+                multiplier = ip_unit_conversion[1]
+                if len(ip_unit_conversion) > 2:
+                    adder = ip_unit_conversion[2]
+                else:
+                    adder = 0
+
+                # Convert units and force it back to a string
+                data = str(float(field.value) * multiplier + adder)
+                # print('converting {}{} to {}{}'.format(field.value,
+                #                                        ip_unit_conversion[0],
+                #                                        data, units))
+            else:
+                data = field.value
+        else:
+            data = field.value
         return data
 
 

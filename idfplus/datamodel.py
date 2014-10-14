@@ -21,7 +21,6 @@ along with IDFPlus. If not, see <http://www.gnu.org/licenses/>.
 from __future__ import (print_function, division, absolute_import)
 
 # System imports
-from pint import UnitRegistry
 from collections import OrderedDict
 # from persistent import Persistent
 # from persistent.list import PersistentList
@@ -85,12 +84,11 @@ class IDDFile(PODict):
         self._groups = list()
         self._conversions = list()
         self._version_set = False
-        # self._data = OrderedDict()
         self._version = version
         self.options = list()
         self.tags = dict()
         self.object_lists = dict()
-        self._ureg = UnitRegistry(c.UNITS_REGISTRY_PATH)
+        self._ureg = c.UNITS_REGISTRY
 
         # Call the parent class' init method
         super(IDDFile, self).__init__(data, **kwargs)
@@ -332,9 +330,8 @@ class IDFFile(OrderedDict):
         self._eol_char = None
         self.file_path = None
         self.options = list()
-        # self.object_lists = dict()
         self._version = None
-        self.si_units = False
+        self.si_units = True
 
         # Call the parent class' init method
         super(IDFFile, self).__init__(data, **kwargs)
