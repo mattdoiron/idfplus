@@ -82,7 +82,12 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
 
         # Detect the role being request and return the correct data
         if role == QtCore.Qt.DisplayRole or role == QtCore.Qt.EditRole:
-            data = self.get_data(row, column)
+            # Grab the correct field. Return None if it's blank.
+            try:
+                field = self.idf_objects[row][column]
+                data = self.get_data(field)
+            except IndexError:
+                return None
         elif role == QtCore.Qt.ToolTipRole:
             data = self.idd_object.tags.get('units', '')
         elif role == QtCore.Qt.DecorationRole:
@@ -132,11 +137,12 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
 
             # Try to assign the value
             try:
-                self.idf_objects[row][column].value = value
+                field = self.idf_objects[row][column]
+                self.set_data(field, value)
             except (AttributeError, IndexError):
-                # An invalid index could mean that we're trying to assign a value
+                # An invalid index means that we're trying to assign a value
                 # to a field that has not yet been 'allocated'. Check for max
-                # allowable fields
+                # allowable fields and allocate more if necessary.
                 max_field_count = len(self.idd.get(self.obj_class, []))
                 current_field_count = len(self.idf_objects[row])
 
@@ -150,9 +156,8 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
 
                 # Create a new field object, give it a value and save it
                 new_field = IDFField(self.idf_objects[row])
-                new_field.value = value
                 self.idf_objects[row][column] = new_field
-
+                self.set_data(new_field, value)
             return True
         return False
 
@@ -285,18 +290,18 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
         self.objID_labels = objID_labels
         self.field_labels = field_labels
 
-    def get_units(self, idd_field):
-        """Returns the given index's current units."""
+    def get_units(self, field):
+        """Returns the given IDDField's current units."""
 
         # Look-up the default units
-        units = idd_field.tags.get('units')
+        units = field.tags.get('units')
 
         # If SI units are requested, return now (SI is always the default)
         if self.idf.si_units is True:
             return units
         else:
             # Otherwise check for special ip-units exceptions
-            ip_units = idd_field.tags.get('ip-units')
+            ip_units = field.tags.get('ip-units')
             if ip_units:
                 return ip_units
             else:
@@ -306,26 +311,10 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
                 else:
                     return units
 
-    def get_unit_conversion(self, row, col):
-        """Gets the appropriate unit conversion value(s)"""
-
-        # TODO Use this to get the conversion factor, then have both setData and
-        # get_data use it.
-        pass
-
-    def get_data(self, row, col):
-        """Retrieves data from the model and converts it to the desired units."""
-
-        # Grab the correct field. Return None if it's blank.
-        try:
-            field = self.idf_objects[row][col]
-            data = field.value
-        except IndexError:
-            return None
-
-        # If SI units are requested, return now (SI is always the default)
-        if self.idf.si_units is True:
-            return data
+    def get_unit_conversion(self, field):
+        """Gets the appropriate unit conversion value(s)
+        :param field: IDFField object for which the conversion factor will be returned
+        """
 
         # Manually search for idd field with same key. This is silly...
         # IDDObject should be a dict with keys (A1, N2) as keys
@@ -334,6 +323,7 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
             if f.key == field.key:
                 idd_field = f
                 break
+        # Alternative method (slow?):
         # pos = field.position
         # idd_field = self.idd_object[pos]
 
@@ -349,23 +339,82 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
             if conv:
                 # Lookup the desired ip_units in the dict if specified, otherwise get the
                 # 'first' (only) one in the dict.
-                ip_unit_conversion = conv.get(ip_units, conv.get(conv.keys()[0]))
+                return conv.get(ip_units, conv.get(conv.keys()[0]))
 
-                # If the units were found, perform the conversion
-                if ip_unit_conversion:
-                    try:
-                        # Convert units and force it back to a string
-                        data = str(float(field.value) * ip_unit_conversion)
-                    except TypeError:
-                        # If there is a type error, it's actually a tuple (for temperatures)
-                        multiplier = ip_unit_conversion[0]
-                        adder = ip_unit_conversion[1]
-                        data = str(float(field.value) * multiplier + adder)
+        return None
 
-                        # print('converting {}{} to {}{}'.format(field.value,
-                        #                                    ip_unit_conversion[0],
-                        #                                    data, units))
+    @staticmethod
+    def to_si(value, conv):
+        """Accepts a value and a conversion factor, and returns the value in SI units.
+        :param conv: Conversion factor to use to convert units
+        :param value: string value from IDFField object
+        """
+
+        # If the units were found, perform the conversion
+        try:
+            # Convert units and force it back to a string
+            data = str(float(value) / conv)
+        except TypeError:
+            # If there is a type error, it's actually a tuple (for temperatures)
+            multiplier = conv[0]
+            adder = conv[1]
+            data = str((float(value) - adder) / multiplier)
         return data
+
+    @staticmethod
+    def to_ip(value, conv):
+        """Accepts a value and a conversion factor, and returns the value in IP units.
+        :param value: string value from IDFField object
+        :param conv: Conversion factor to use to convert units
+        """
+
+        # If the units were found, perform the conversion
+        try:
+            # Convert units and force it back to a string
+            data = str(float(value) * conv)
+        except TypeError:
+            # If there is a type error, it's actually a tuple (for temperatures)
+            multiplier = conv[0]
+            adder = conv[1]
+            data = str(float(value) * multiplier + adder)
+        return data
+
+    def set_data(self, field, value):
+        """Sets the value of the specified field taking into account units
+        :param field: IDFField object whose value will be updated
+        :param value: string value from IDFField object
+        """
+
+        # If SI units are requested, return now (SI is always the default)
+        if self.idf.si_units is True:
+            field.value = value
+            return True
+
+        # Get the unit conversion
+        ip_unit_conversion = self.get_unit_conversion(field)
+
+        # If the units were found, perform the conversion
+        if ip_unit_conversion:
+            field.value = self.to_si(value, ip_unit_conversion)
+            return True
+        return False
+
+    def get_data(self, field):
+        """Retrieves data from the model and converts it to the desired units.
+        :param field: IDFField object for which the value will be returned
+        """
+
+        # If SI units are requested, return now (SI is always the default)
+        if self.idf.si_units is True:
+            return field.value
+
+        # Get the unit conversion
+        ip_unit_conversion = self.get_unit_conversion(field)
+
+        # If the units were found, perform the conversion
+        if ip_unit_conversion:
+            return self.to_ip(field.value, ip_unit_conversion)
+        return field.value
 
 
 class TransposeProxyModel(QtGui.QAbstractProxyModel):

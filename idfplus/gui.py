@@ -412,6 +412,10 @@ class UI_MainWindow(object):
 
         # View Menu
         self.viewMenu = self.menuBar().addMenu("&View")
+        action_group = QtGui.QActionGroup(self)
+        self.viewMenu.addAction(action_group.addAction(self.setSIUnitsAction))
+        self.viewMenu.addAction(action_group.addAction(self.setIPUnitsAction))
+        self.viewMenu.addSeparator().setText('Dockable Widgets')
         self.viewMenu.addAction(self.classTreeDockWidget.toggleViewAction())
         self.viewMenu.addAction(self.infoView.parent().toggleViewAction())
         self.viewMenu.addAction(self.commentView.parent().toggleViewAction())
@@ -422,10 +426,6 @@ class UI_MainWindow(object):
         self.viewMenu.addAction(self.editToolBar.toggleViewAction())
         self.viewMenu.addAction(self.navToolBar.toggleViewAction())
         self.viewMenu.addAction(self.filterToolBar.toggleViewAction())
-        self.viewMenu.addSeparator().setText('Display Units')
-        action_group = QtGui.QActionGroup(self)
-        self.viewMenu.addAction(action_group.addAction(self.setSIUnitsAction))
-        self.viewMenu.addAction(action_group.addAction(self.setIPUnitsAction))
         self.viewMenu.addSeparator()
         self.viewMenu.addAction(self.transposeAct)
 

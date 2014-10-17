@@ -416,7 +416,7 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow, idfsettings.Settings):
         menu.addAction(self.dupObjAct)
         menu.addAction(self.delObjAct)
         menu.addAction(self.newObjAct)
-        menu.addAction(self.cutAct)
+        menu.addAction(self.cutObjAct)
         menu.popup(self.classTable.viewport().mapToGlobal(position))
 
     def addActions(self, target, actions):
