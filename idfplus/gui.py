@@ -352,15 +352,15 @@ class UI_MainWindow(object):
                 statusTip="Redo previous action",
                 triggered=self.undo_stack.redo)
 
-        self.navForwardAct = QtGui.QAction("Forward", self,
-                shortcut=QtGui.QKeySequence('Ctrl+Plus'),
-                statusTip="Go forward to the next object",
-                triggered=self.navForward)
-
-        self.navBackAct = QtGui.QAction("Back", self,
-                shortcut=QtGui.QKeySequence('Ctrl+Minus'),
-                statusTip="Go back to the previous object",
-                triggered=self.navBack)
+        # self.navForwardAct = QtGui.QAction("Forward", self,
+        #         shortcut=QtGui.QKeySequence('Ctrl+Plus'),
+        #         statusTip="Go forward to the next object",
+        #         triggered=self.navForward)
+        #
+        # self.navBackAct = QtGui.QAction("Back", self,
+        #         shortcut=QtGui.QKeySequence('Ctrl+Minus'),
+        #         statusTip="Go back to the previous object",
+        #         triggered=self.navBack)
 
         self.aboutAct = QtGui.QAction("&About", self,
                 statusTip="Show the application's About box",
@@ -450,7 +450,7 @@ class UI_MainWindow(object):
         self.viewMenu.addSeparator().setText('Toolbars')
         self.viewMenu.addAction(self.fileToolBar.toggleViewAction())
         self.viewMenu.addAction(self.editToolBar.toggleViewAction())
-        self.viewMenu.addAction(self.navToolBar.toggleViewAction())
+        # self.viewMenu.addAction(self.navToolBar.toggleViewAction())
         self.viewMenu.addAction(self.filterToolBar.toggleViewAction())
         self.viewMenu.addSeparator()
         self.viewMenu.addAction(self.transposeAct)
@@ -484,11 +484,11 @@ class UI_MainWindow(object):
         self.editToolBar.setToolButtonStyle(QtCore.Qt.ToolButtonTextBesideIcon)
 
         # Object history navigation toolbar
-        self.navToolBar = self.addToolBar("Navigation Toolbar")
-        self.navToolBar.setObjectName('viewToolBar')
-        self.navToolBar.addAction(self.navForwardAct)
-        self.navToolBar.addAction(self.navBackAct)
-        self.navToolBar.setToolButtonStyle(QtCore.Qt.ToolButtonTextBesideIcon)
+        # self.navToolBar = self.addToolBar("Navigation Toolbar")
+        # self.navToolBar.setObjectName('viewToolBar')
+        # self.navToolBar.addAction(self.navForwardAct)
+        # self.navToolBar.addAction(self.navBackAct)
+        # self.navToolBar.setToolButtonStyle(QtCore.Qt.ToolButtonTextBesideIcon)
 
         # Object filter toolbar
         self.filterToolBar = self.addToolBar("Filter Toolbar")
