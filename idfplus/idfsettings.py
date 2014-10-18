@@ -366,6 +366,7 @@ UNITS_REGISTRY = {
     'N-m': {'lbf-in': 8.85074900525547},
     'N-s/m2': {'lbf-s/ft2': 0.0208857913669065},
     'Pa': {'psi': 0.000145037743897283, 'ftH2O': 0.00033455, 'inH2O': 0.00401463, 'inHg': 0.00029613, 'Pa': 1},
+    'Percent': {'Percent': 1.0},
     'percent/K': {'percent/F': 0.555555555555556},
     'person/m2': {'person/ft2': 0.0928939733269818},
     's/m': {'s/ft': 0.3048},
@@ -381,4 +382,21 @@ UNITS_REGISTRY = {
     'W/m-K2': {'Btu/h-F2-ft': 0.321418310071648},
     'W/m-K3': {'Btu/h-F3-ft': 0.178565727817582},
     'W/person': {'Btu/h-person': 3.4121412858518, 'W/person': 1},
+}
+
+UNIT_TYPES = {
+    'Dimensionless': 'dimensionless',
+    'Temperature': 'C',
+    'DeltaTemperature': 'C',
+    'PrecipitationRate': 'm/hr',
+    'Angle': 'degrees',
+    'ConvectionCoefficient': 'W/m2-K',
+    'ActivityLevel': 'W/person',
+    'Velocity': 'm/s',
+    'Capacity': 'W',
+    'Power': 'W',
+    'Availability': 'Availability',
+    'Percent': 'Percent',
+    'Control': 'Control',
+    'Mode': 'Mode'
 }

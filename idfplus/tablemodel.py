@@ -85,15 +85,16 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
             # Grab the correct field. Return None if it's blank.
             try:
                 field = self.idf_objects[row][column]
-                data = self.get_data(field)
+                data = self.get_data(field, row, column)
             except IndexError:
                 return None
         elif role == QtCore.Qt.ToolTipRole:
-            data = self.idd_object.tags.get('units', '')
+            field = self.idf_objects[row][column]
+            data = self.get_units(field)
         elif role == QtCore.Qt.DecorationRole:
             pass
         elif role == QtCore.Qt.StatusTipRole:
-            data = self.idd_object.tags.get('units', '')
+            pass
         elif role == QtCore.Qt.TextAlignmentRole:
             data = int(QtCore.Qt.AlignLeft | QtCore.Qt.AlignVCenter)
         elif role == QtCore.Qt.TextColorRole or role == QtCore.Qt.ForegroundRole:
@@ -138,7 +139,7 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
             # Try to assign the value
             try:
                 field = self.idf_objects[row][column]
-                self.set_data(field, value)
+                self.set_data(field, value, row, column)
             except (AttributeError, IndexError):
                 # An invalid index means that we're trying to assign a value
                 # to a field that has not yet been 'allocated'. Check for max
@@ -155,9 +156,12 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
                     return False
 
                 # Create a new field object, give it a value and save it
+                # TODO FIXME this new field needs a key! Once IDDObjects are dicts
+                # should be able to lookup the key. Until then, unit conversion
+                # is broken because all fields need a key to lookup units,
                 new_field = IDFField(self.idf_objects[row])
                 self.idf_objects[row][column] = new_field
-                self.set_data(new_field, value)
+                self.set_data(new_field, value, row, column)
             return True
         return False
 
@@ -311,28 +315,40 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
                 else:
                     return units
 
-    def get_unit_conversion(self, field):
+    def get_unit_conversion(self, row, column):
         """Gets the appropriate unit conversion value(s)
-        :param field: IDFField object for which the conversion factor will be returned
         """
 
-        # Manually search for idd field with same key. This is silly...
-        # IDDObject should be a dict with keys (A1, N2) as keys
-        # TODO restructure IDDObject to be a dict
-        for f in self.idd_object:
-            if f.key == field.key:
-                idd_field = f
-                break
-        # Alternative method (slow?):
-        # pos = field.position
-        # idd_field = self.idd_object[pos]
+        # Get the idd field corresponding to this idf field
+        idd_field = self.idd_object[column]
 
         # Look-up the default units and any ip-unit exceptions
         units = idd_field.tags.get('units')
         ip_units = idd_field.tags.get('ip-units')
 
-        # If there are units defined, proceed
         if units:
+            # Check for the special case of units based on another field
+            if units.startswith('BasedOnField'):
+                based_on_field_key = units.split()[-1]
+                # print('based on field key: "{}"'.format(based_on_field_key))
+                for f in self.idd_object:
+                    # print('key: {}'.format(f.key))
+                    if f.key == based_on_field_key:
+                        # print('found key: {}'.format(f.key))
+                        ind = self.idd_object.index(f)
+                        based_on_field = self.idf_objects[row][ind]
+                        # print('based on field value: "{}"'.format(based_on_field.value))
+                        break
+
+                # Use these results to find the actual units to use
+                # print('based_on_field value: {}'.format(based_on_field.value))
+                actual_units = c.UNIT_TYPES.get(based_on_field.value)
+                # print('actual units: {}'.format(actual_units))
+
+                if actual_units:
+                    units = actual_units
+                else:
+                    return None
 
             # Lookup the dict of unit conversions for this SI unit.
             conv = self.ureg.get(units)
@@ -379,7 +395,7 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
             data = str(float(value) * multiplier + adder)
         return data
 
-    def set_data(self, field, value):
+    def set_data(self, field, value, row, column):
         """Sets the value of the specified field taking into account units
         :param field: IDFField object whose value will be updated
         :param value: string value from IDFField object
@@ -391,15 +407,16 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
             return True
 
         # Get the unit conversion
-        ip_unit_conversion = self.get_unit_conversion(field)
+        ip_unit_conversion = self.get_unit_conversion(row, column)
 
         # If the units were found, perform the conversion
         if ip_unit_conversion:
             field.value = self.to_si(value, ip_unit_conversion)
-            return True
-        return False
+        else:
+            field.value = value
+        return True
 
-    def get_data(self, field):
+    def get_data(self, field, row, column):
         """Retrieves data from the model and converts it to the desired units.
         :param field: IDFField object for which the value will be returned
         """
@@ -409,7 +426,7 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
             return field.value
 
         # Get the unit conversion
-        ip_unit_conversion = self.get_unit_conversion(field)
+        ip_unit_conversion = self.get_unit_conversion(row, column)
 
         # If the units were found, perform the conversion
         if ip_unit_conversion:
