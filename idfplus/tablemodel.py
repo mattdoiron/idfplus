@@ -89,8 +89,11 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
             except IndexError:
                 return None
         elif role == QtCore.Qt.ToolTipRole:
-            field = self.idf_objects[row][column]
-            data = self.get_units(field)
+            try:
+                field = self.idf_objects[row][column]
+                data = self.get_units(field)
+            except IndexError:
+                return None
         elif role == QtCore.Qt.DecorationRole:
             pass
         elif role == QtCore.Qt.StatusTipRole:
@@ -330,25 +333,22 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
             # Check for the special case of units based on another field
             if units.startswith('BasedOnField'):
                 based_on_field_key = units.split()[-1]
-                # print('based on field key: "{}"'.format(based_on_field_key))
+                based_on_field = None
+
+                # Find which idd object has the specified key
                 for f in self.idd_object:
-                    # print('key: {}'.format(f.key))
                     if f.key == based_on_field_key:
-                        # print('found key: {}'.format(f.key))
                         ind = self.idd_object.index(f)
+                        if ind >= len(self.idf_objects[row]):
+                            return None
                         based_on_field = self.idf_objects[row][ind]
-                        # print('based on field value: "{}"'.format(based_on_field.value))
                         break
 
                 # Use these results to find the actual units to use
-                # print('based_on_field value: {}'.format(based_on_field.value))
                 actual_units = c.UNIT_TYPES.get(based_on_field.value)
-                # print('actual units: {}'.format(actual_units))
 
                 if actual_units:
                     units = actual_units
-                else:
-                    return None
 
             # Lookup the dict of unit conversions for this SI unit.
             conv = self.ureg.get(units)
