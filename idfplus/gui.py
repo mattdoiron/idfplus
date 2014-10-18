@@ -275,42 +275,42 @@ class UI_MainWindow(object):
 
         self.newAct = QtGui.QAction(QtGui.QIcon(':/images/new1.png'),
                 "&New", self, shortcut=QtGui.QKeySequence.New,
-                statusTip="Create a new file",
+                statusTip="Create a new file", iconVisibleInMenu=True,
                 triggered=self.new_file)
 
         self.openAct = QtGui.QAction(QtGui.QIcon(':/images/open.png'),
                 "&Open...", self, shortcut=QtGui.QKeySequence.Open,
-                statusTip="Open an existing file",
+                statusTip="Open an existing file", iconVisibleInMenu=True,
                 triggered=self.open_file)
 
         self.saveAct = QtGui.QAction(QtGui.QIcon(':/images/save.png'),
                 "&Save", self, shortcut=QtGui.QKeySequence.Save,
-                statusTip="Save the document to disk",
+                statusTip="Save the document to disk", iconVisibleInMenu=True,
                 triggered=self.save)
 
         self.saveAsAct = QtGui.QAction(QtGui.QIcon(':/images/saveas.png'),
                 "Save &As...", self, shortcut=QtGui.QKeySequence.SaveAs,
-                statusTip="Save the document under a new name",
+                statusTip="Save the document under a new name", iconVisibleInMenu=True,
                 triggered=self.save_as)
 
         self.exitAct = QtGui.QAction(QtGui.QIcon(':/images/quit.png'),
-                "E&xit", self, shortcut="Ctrl+Q",
+                "E&xit", self, shortcut="Ctrl+Q", iconVisibleInMenu=True,
                 statusTip="Exit the application", triggered=self.close)
 
         self.cutObjAct = QtGui.QAction(QtGui.QIcon(':/images/cut.png'),
-                "Cu&t Obj", self, shortcut=QtGui.QKeySequence.Cut,
+                "Cu&t Object", self, shortcut=QtGui.QKeySequence.Cut,
                 statusTip="Cut the current selection's contents to the clipboard",
-                triggered=self.cutObject)
+                iconVisibleInMenu=True, triggered=self.cutObject, iconText='Cut Obj')
 
         self.copyAct = QtGui.QAction(QtGui.QIcon(':/images/copy.png'),
-                "&Copy", self, shortcut=QtGui.QKeySequence('Ctrl+Shift+c'),
+                "&Copy Values", self, shortcut=QtGui.QKeySequence('Ctrl+Shift+c'),
                 statusTip="Copy the current selection's contents to the clipboard",
-                triggered=self.copySelected)
+                iconVisibleInMenu=True, triggered=self.copySelected)
 
         self.pasteAct = QtGui.QAction(QtGui.QIcon(':/images/paste.png'),
-                "&Paste", self, shortcut=QtGui.QKeySequence('Ctrl+Shift+v'),
+                "&Paste Values", self, shortcut=QtGui.QKeySequence('Ctrl+Shift+v'),
                 statusTip="Paste the clipboard's contents into the current selection",
-                triggered=self.pasteSelected)
+                iconVisibleInMenu=True, triggered=self.pasteSelected)
 
         self.transposeAct = QtGui.QAction("Transpose", self,
                 shortcut=QtGui.QKeySequence('Ctrl+t'),
@@ -318,38 +318,38 @@ class UI_MainWindow(object):
                 triggered=self.transpose_table)
 
         self.newObjAct = QtGui.QAction(QtGui.QIcon(':/images/new2.png'),
-                "New Obj", self, shortcut=QtGui.QKeySequence('Ctrl+Shift+n'),
+                "New Object", self, shortcut=QtGui.QKeySequence('Ctrl+Shift+n'),
                 statusTip="Create a new object in the current class",
-                triggered=self.newObject)
+                iconVisibleInMenu=True, triggered=self.newObject, iconText='New Obj')
 
         self.copyObjAct = QtGui.QAction(QtGui.QIcon(':/images/copy.png'),
-                "Copy Obj", self, shortcut=QtGui.QKeySequence.Copy,
-                statusTip="Copy the current Object(s)",
-                triggered=self.copyObject)
+                "Copy Object", self, shortcut=QtGui.QKeySequence.Copy,
+                statusTip="Copy the current Object(s)", iconVisibleInMenu=True,
+                triggered=self.copyObject, iconText='Copy Obj')
 
         self.pasteObjAct = QtGui.QAction(QtGui.QIcon(':/images/paste.png'),
-                "Paste Obj", self, shortcut=QtGui.QKeySequence.Paste,
-                statusTip="Paste the currently copies Object(s)",
-                triggered=self.pasteObject)
+                "Paste Object", self, shortcut=QtGui.QKeySequence.Paste,
+                statusTip="Paste the currently copies Object(s)", iconVisibleInMenu=True,
+                triggered=self.pasteObject, iconText='Paste Obj')
 
         self.dupObjAct = QtGui.QAction(QtGui.QIcon(':/images/copy.png'),
-                "Dup Obj", self, shortcut=QtGui.QKeySequence('Ctrl+d'),
-                statusTip="Duplicate the current Object(s)",
-                triggered=self.duplicateObject)
+                "Duplicate Object", self, shortcut=QtGui.QKeySequence('Ctrl+d'),
+                statusTip="Duplicate the current Object(s)", iconVisibleInMenu=True,
+                triggered=self.duplicateObject, iconText='Dup Obj')
 
         self.delObjAct = QtGui.QAction(QtGui.QIcon(':/images/delete.png'),
-                "Del Obj", self, shortcut=QtGui.QKeySequence('Del'),
-                statusTip="Delete the current Object(s)",
-                triggered=self.deleteObject)
+                "Delete Object", self, shortcut=QtGui.QKeySequence('Del'),
+                statusTip="Delete the current Object(s)", iconVisibleInMenu=True,
+                triggered=self.deleteObject, iconText='Del Obj')
 
         self.undoAct = QtGui.QAction(QtGui.QIcon(':/images/undo.png'),
                 "&Undo", self, shortcut=QtGui.QKeySequence.Undo,
-                statusTip="Undo previous action",
+                statusTip="Undo previous action", iconVisibleInMenu=True,
                 triggered=self.undo_stack.undo)
 
         self.redoAct = QtGui.QAction(QtGui.QIcon(':/images/redo.png'),
                 "&Redo", self, shortcut=QtGui.QKeySequence.Redo,
-                statusTip="Redo previous action",
+                statusTip="Redo previous action", iconVisibleInMenu=True,
                 triggered=self.undo_stack.redo)
 
         # self.navForwardAct = QtGui.QAction("Forward", self,
@@ -387,6 +387,11 @@ class UI_MainWindow(object):
 
         self.setSIUnitsAction = QtGui.QAction("&SI Units", self,
                 triggered=self.toggle_units, checkable=True)
+
+        self.classWithObjsAction = QtGui.QAction("Show Only Classes With Objects", self,
+                shortcut=QtGui.QKeySequence('Ctrl+l'),
+                statusTip="Show Only Classes With Objects",
+                triggered=self.toggle_full_tree)
 
         self.transposeAct.setEnabled(False)
         self.setSIUnitsAction.setChecked(True)
@@ -426,10 +431,12 @@ class UI_MainWindow(object):
         self.editMenu.addSeparator().setText('Objects')
         self.editMenu.addAction(self.newObjAct)
         self.editMenu.addAction(self.dupObjAct)
-        self.editMenu.addAction(self.delObjAct)
+        self.editMenu.addSeparator()
         self.editMenu.addAction(self.cutObjAct)
         self.editMenu.addAction(self.copyObjAct)
         self.editMenu.addAction(self.pasteObjAct)
+        self.editMenu.addSeparator()
+        self.editMenu.addAction(self.delObjAct)
         self.editMenu.addSeparator().setText('Values')
         self.editMenu.addAction(self.copyAct)
         self.editMenu.addAction(self.pasteAct)
@@ -452,6 +459,8 @@ class UI_MainWindow(object):
         self.viewMenu.addAction(self.editToolBar.toggleViewAction())
         # self.viewMenu.addAction(self.navToolBar.toggleViewAction())
         self.viewMenu.addAction(self.filterToolBar.toggleViewAction())
+        self.viewMenu.addSeparator()
+        self.viewMenu.addAction(self.classWithObjsAction)
         self.viewMenu.addSeparator()
         self.viewMenu.addAction(self.transposeAct)
 
@@ -515,7 +524,7 @@ class UI_MainWindow(object):
 
     def create_shortcuts(self):
         """Creates keyboard shortcuts."""
-        QtGui.QShortcut(QtGui.QKeySequence('Ctrl+l'),self).activated.connect(self.toggle_full_tree)
+        # QtGui.QShortcut(QtGui.QKeySequence('Ctrl+l'),self).activated.connect(self.toggle_full_tree)
 
 #    def createAction(self, text, slot=None, shortcut=None, icon=None,
 #                     tip=None, checkable=False, signal="triggered()"):
