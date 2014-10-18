@@ -316,7 +316,7 @@ class IDFFile(OrderedDict):
     :attr str file_path: full, absolute path to idf file
     """
 
-    def __init__(self, data=(), **kwargs):
+    def __init__(self, *args, **kwargs):
         """Initializes a new idf, blank or opens the given file_path
 
         :param str file_path:
@@ -324,17 +324,37 @@ class IDFFile(OrderedDict):
         :param **kwargs: keyword arguments to pass to base dictionary type
         """
 
+        # Call the parent class' init method
+        super(IDFFile, self).__init__(*args, **kwargs)
+
         # Various attributes of the idf file
-        self._version_set = False
+        # self._version_set = False
         self._idd = None
-        self._eol_char = None
+        self._eol_char = '\n'
         self.file_path = None
         self.options = list()
         self._version = None
         self.si_units = True
 
-        # Call the parent class' init method
-        super(IDFFile, self).__init__(data, **kwargs)
+    def init_blank(self):
+        """Sets up a blank idf file"""
+
+        # Prepare the idd file
+        from . import parser
+        idd_parser = parser.IDDParser()
+        self._idd = idd_parser.load_idd(c.DEFAULT_IDD_VERSION)
+        self.update((k, list()) for k, v in self._idd.iteritems())
+
+        # Create the only mandatory object (version)
+        version_obj = IDFObject(self)
+        version_field = IDFField(version_obj)
+        version_field.value = c.DEFAULT_IDD_VERSION
+        version_obj.append(version_field)
+        self['Version'].append(version_obj)
+
+        # Setup graph
+        import networkx as nx
+        self._graph = nx.DiGraph()
 
     # def __setitem__(self, key, value, dict_setitem=dict.__setitem__):
     #     """Override the default __setitem__ to ensure that only certain
@@ -403,7 +423,7 @@ class IDFObject(list):
         self._graph = None
         self._group = kwargs.pop('group', None)
         self._obj_class = kwargs.pop('obj_class', None)
-        self.comments = kwargs.pop('comments', None)
+        self.comments = kwargs.pop('comments', [])
         self._outer = idf
 
         # Call the parent class' init method

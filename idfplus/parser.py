@@ -173,7 +173,7 @@ class Writer(object):
         idd = idf._idd
         options = idf.options
         eol_char = idf._eol_char
-        file_path = idf.file_path + '_test' # just for testing, don't overwrite!
+        file_path = idf.file_path # + '_test' # just for testing, don't overwrite!
 
         log.info('Saving file: {}'.format(file_path))
 
@@ -187,12 +187,12 @@ class Writer(object):
         try:
             with codecs.open(file_path, 'w',
                              encoding=c.FILE_ENCODING,
-                             errors='backslashreplace') as file:
+                             errors='backslashreplace') as idf_file:
 
-                file.write("!-Generator IDFPlus v0.0.1{}".format(eol_char))
-                file.write("!-Option{}".format(eol_char))
-                file.write("!-NOTE: All comments with '!-' are ignored by the IDFEditor and are generated automatically.{}".format(eol_char))
-                file.write("!-      Use '!' comments if they need to be retained when using the IDFEditor.{}".format(eol_char))
+                idf_file.write("!-Generator IDFPlus v0.0.1{}".format(eol_char))
+                idf_file.write("!-Option{}".format(eol_char))
+                idf_file.write("!-NOTE: All comments with '!-' are ignored by the IDFEditor and are generated automatically.{}".format(eol_char))
+                idf_file.write("!-      Use '!' comments if they need to be retained when using the IDFEditor.{}".format(eol_char))
 
                 for obj_class, obj_list in idf.iteritems():
 
@@ -207,7 +207,7 @@ class Writer(object):
 
                             # Don't use '.format' here due to potential incorrect
                             # encodings introduced by user
-                            file.write("!"+comment)
+                            idf_file.write("!"+comment)
 
                         # Some objects are on one line and some fields are grouped!
                         # If enabled, check IDD file for special formatting instructions
@@ -215,7 +215,7 @@ class Writer(object):
                             pass
 
                         # Write the object name
-                        file.write("  {},{}".format(obj_class, eol_char))
+                        idf_file.write("  {},{}".format(obj_class, eol_char))
 
                         # Write the fields
                         # if obj['fields']:
@@ -238,10 +238,10 @@ class Writer(object):
                             else:
                                 value = sep
                             line = "    {!s:23}{}{}".format(value, note, eol_char)
-                            file.write(line)
+                            idf_file.write(line)
 
                         # Add newline at the end of the object
-                        file.write(eol_char)
+                        idf_file.write(eol_char)
 
             log.info('File written!')
             return True

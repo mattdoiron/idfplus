@@ -28,7 +28,7 @@ from PySide import QtGui
 from PySide import QtCore
 
 # Package imports
-from . import tablemodel
+# from . import tablemodel
 from . import idfsettings as c
 from . import logger
 from . import treemodel

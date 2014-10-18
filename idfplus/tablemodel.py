@@ -423,7 +423,10 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
 
         # If SI units are requested, return now (SI is always the default)
         if self.idf.si_units is True:
-            return field.value
+            if field:
+                return field.value
+            else:
+                return None
 
         # Get the unit conversion
         ip_unit_conversion = self.get_unit_conversion(row, column)

@@ -78,7 +78,10 @@ class TreeItem(BaseTreeItem):
             if column == 1:
                 if data == 'Count':
                     return data
-                count = len(data)
+                if data:
+                    count = len(data)
+                else:
+                    count = 0
                 if count <= 0:
                     return ''
                 else:

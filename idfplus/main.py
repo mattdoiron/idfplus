@@ -46,6 +46,9 @@ from . import commands
 from . import treemodel
 from . import gui
 
+# Constants
+from . import idfsettings as c
+
 # Resource imports for icons
 from . import icons_rc
 
@@ -115,6 +118,7 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow, idfsettings.Settings):
         if self.ok_to_continue():
             self.add_recent_file(self.file_path)
             self.set_current_file('')
+            self.load_file(None)
 
     def open_file(self):
         """Called by the open file action."""
@@ -158,9 +162,7 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow, idfsettings.Settings):
         self.progressDialogIDD.show()
         self.statusBar().showMessage(message, 5000)
 
-        # idd = datamodel.IDDFile()
         idd_parser = parser.IDDParser()
-
         for progress in idd_parser.parse_idd(file_path):
             self.progressDialogIDD.setValue(progress)
 
@@ -171,15 +173,18 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow, idfsettings.Settings):
 
         idf = datamodel.IDFFile()
         # self.files.update({0:idf})
-        idf_parser = parser.IDFParser(idf)
 
-        for progress in idf_parser.parse_idf(file_path):
-            self.progressDialogIDF.setValue(progress)
-
+        if file_path:
+            idf_parser = parser.IDFParser(idf)
+            for progress in idf_parser.parse_idf(file_path):
+                self.progressDialogIDF.setValue(progress)
+        else:
+            log.info('Loading blank IDF file...')
+            idf.init_blank()
         log.info('IDF version detected as: {}'.format(idf.version))
-
         self.idf = idf
-        self.idd = idf.idd
+        self.idd = idf._idd
+
 
     def load_file(self, file_path=None):
         """Loads a specified file or gets the file_path from the sender.
@@ -192,17 +197,19 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow, idfsettings.Settings):
         if file_path is None:
             action = self.sender()
             if isinstance(action, QtGui.QAction):
-                file_path = action.data()
-                log.debug('Loading file from recent file menu: {}'.format(file_path))
-                if not self.ok_to_continue():
-                    return False
+                if action.text() != "&New":
+                    file_path = action.data()
+                    log.debug('Loading file from recent file menu: {}'.format(file_path))
+                    if not self.ok_to_continue():
+                        return False
             else:
                 return False
 
-        message = "Loading {}...".format(file_path)
-        self.progressDialogIDF.setLabelText(message)
-        self.progressDialogIDF.show()
+        message = "Loading {}...".format(file_path or 'New File')
         self.statusBar().showMessage(message, 5000)
+        if file_path:
+            self.progressDialogIDF.setLabelText(message)
+            self.progressDialogIDF.show()
 
         # Try to load the specified IDF file
         try:
@@ -228,15 +235,11 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow, idfsettings.Settings):
         self.load_tree_view()
         log.debug('Setting class table model...')
         self.classTable.setModel(None)
-        self.commentView.setText("".join(self.idf['Version'][0].comments))
-        self.dirty = False  # Move this into tablemodelContainer?
+        self.commentView.setText("".join(self.idf['Version'][0].comments or ''))
         self.file_path = file_path
-        log.debug('Updating recent file list...')
-        self.add_recent_file(file_path)
-        message = "Loaded %s" % os.path.basename(file_path)
-        self.update_status(message)
         self.set_current_file(file_path)
-        log.debug('File Loaded Successfully!')
+        log.debug('Updating recent file list...')
+        log.debug('File Loaded Successfully! ({})'.format(file_path or "New File"))
         return True
 
     def save(self):
@@ -251,8 +254,13 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow, idfsettings.Settings):
         directory = os.path.dirname(self.file_path) if self.file_path else home_dir
         formats = 'EnergyPlus Files (*.idf)'
         file_name, filtr = QtGui.QFileDialog.getSaveFileName(self, 'Save As',
-                                                            directory, formats)
+                                                             directory, formats)
         if file_name:
+            if not (file_name.endswith('.idf') or file_name.endswith('.imf')):
+                file_name += '.idf'
+
+            self.file_path = file_name
+            self.idf.file_path = file_name
             return self.save_file()
         return False
 
@@ -474,8 +482,11 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow, idfsettings.Settings):
         else:
             shownName = 'Untitled'
 
-        self.setWindowTitle("%s[*] - Application" % shownName)
-        self.update_status(shownName)
+        self.setWindowTitle('IDFPlus Editor - {}*'.format(shownName))
+
+        if self.idd:
+            self.versionLabel.setText('EnergyPlus IDD v{}'.format(self.idd.version))
+        # self.update_status(shownName)
 
     def ok_to_continue(self):
         """Checks if there are unsaved changes and prompts for action."""
@@ -511,13 +522,11 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow, idfsettings.Settings):
         :param message:
         """
         self.statusBar().showMessage(message, 5000)
-        if self.idd:
-            self.versionLabel.setText('EnergyPlus IDD v{}'.format(self.idd.version))
         if self.file_path is not None:
             basename = os.path.basename(self.file_path)
-            self.setWindowTitle("IDFPlus Editor - %s[*]" % basename)
+            self.setWindowTitle('IDFPlus Editor - {}*'.format(basename))
         else:
-            self.setWindowTitle("IDFPlus Editor[*]")
+            self.setWindowTitle('IDFPlus Editor')
             self.setWindowModified(self.dirty)
 
     def setVisible(self, visible):
