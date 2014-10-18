@@ -342,6 +342,16 @@ class UI_MainWindow(object):
                 statusTip="Delete the current Object(s)",
                 triggered=self.deleteObject)
 
+        self.undoAct = QtGui.QAction(QtGui.QIcon(':/images/undo.png'),
+                "&Undo", self, shortcut=QtGui.QKeySequence.Undo,
+                statusTip="Undo previous action",
+                triggered=self.undo_stack.undo)
+
+        self.redoAct = QtGui.QAction(QtGui.QIcon(':/images/redo.png'),
+                "&Redo", self, shortcut=QtGui.QKeySequence.Redo,
+                statusTip="Redo previous action",
+                triggered=self.undo_stack.redo)
+
         self.navForwardAct = QtGui.QAction("Forward", self,
                 shortcut=QtGui.QKeySequence('Ctrl+Plus'),
                 statusTip="Go forward to the next object",
@@ -378,16 +388,26 @@ class UI_MainWindow(object):
         self.setSIUnitsAction = QtGui.QAction("&SI Units", self,
                 triggered=self.toggle_units, checkable=True)
 
-        self.undoAct = self.undo_stack.createUndoAction(self.undo_stack)
-        self.undoAct.setShortcut(QtGui.QKeySequence.Undo)
-        self.undoAct.setIcon(QtGui.QIcon(':/images/undo.png'))
-
-        self.redoAct = self.undo_stack.createRedoAction(self.undo_stack)
-        self.redoAct.setShortcut(QtGui.QKeySequence.Redo)
-        self.redoAct.setIcon(QtGui.QIcon(':/images/redo.png'))
-
         self.transposeAct.setEnabled(False)
         self.setSIUnitsAction.setChecked(True)
+        self.undoAct.setEnabled(False)
+        self.redoAct.setEnabled(False)
+        self.undo_stack.canUndoChanged.connect(self.toggle_can_undo)
+        self.undo_stack.canRedoChanged.connect(self.toggle_can_redo)
+
+    def toggle_can_undo(self):
+        if self.undo_stack.canUndo():
+            new_state = True
+        else:
+            new_state = False
+        self.undoAct.setEnabled(new_state)
+
+    def toggle_can_redo(self):
+        if self.undo_stack.canRedo():
+            new_state = True
+        else:
+            new_state = False
+        self.redoAct.setEnabled(new_state)
 
     def create_menus(self):
         """Create all required items for menus."""
