@@ -74,11 +74,9 @@ class UI_MainWindow(object):
         classTable.horizontalHeader().setDefaultSectionSize(c.DEFAULT_COLUMN_WIDTH)
         classTable.verticalHeader().setDefaultSectionSize(fm.height() + 5)
         # classTable.setStyleSheet("QTableView {padding: 0px; border: 0px;} ")
-
         # classTable.clicked.connect(self.table_clicked)
         # classTable.selectionModel().currentChanged.connect(self.table_clicked)
         classTable.setSelectionMode(QtGui.QAbstractItemView.ContiguousSelection)
-
         classTable.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
         classTable.customContextMenuRequested.connect(self.custom_table_context_menu)
 
@@ -543,12 +541,26 @@ class UI_MainWindow(object):
 #        return action
 #
 
-    def create_context_menu(self, pos):
-        menu = QtGui.QMenu()
-        openAction = menu.addAction("Test 1")
-        delAction = menu.addAction("Clear")
-        renaAction = menu.addAction("Test 2")
-        self.classTable.setContextMenuPolicy()
+    # def create_context_menu(self, pos):
+    #     menu = QtGui.QMenu()
+    #     openAction = menu.addAction("Test 1")
+    #     delAction = menu.addAction("Clear")
+    #     renaAction = menu.addAction("Test 2")
+    #     self.classTable.setContextMenuPolicy()
+
+    def custom_table_context_menu(self, position):
+
+        # Create a menu and populate it with actions
+        menu = QtGui.QMenu(self)
+        menu.addAction(self.undoAct)
+        menu.addAction(self.redoAct)
+        menu.addSeparator()
+        menu.addAction(self.copyObjAct)
+        menu.addAction(self.dupObjAct)
+        menu.addAction(self.delObjAct)
+        menu.addAction(self.newObjAct)
+        menu.addAction(self.cutObjAct)
+        menu.popup(self.classTable.viewport().mapToGlobal(position))
 
     def create_progress_bar(self):
 

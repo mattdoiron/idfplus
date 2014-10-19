@@ -258,7 +258,6 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow, idfsettings.Settings):
         if file_name:
             if not (file_name.endswith('.idf') or file_name.endswith('.imf')):
                 file_name += '.idf'
-
             self.file_path = file_name
             self.idf.file_path = file_name
             return self.save_file()
@@ -413,20 +412,6 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow, idfsettings.Settings):
         self.classTable.setFocus()
         self.classTable.setCurrentIndex(table_index)
 
-    def custom_table_context_menu(self, position):
-
-        # Create a menu and populate it with actions
-        menu = QtGui.QMenu(self)
-        menu.addAction(self.undoAct)
-        menu.addAction(self.redoAct)
-        menu.addSeparator()
-        menu.addAction(self.copyObjAct)
-        menu.addAction(self.dupObjAct)
-        menu.addAction(self.delObjAct)
-        menu.addAction(self.newObjAct)
-        menu.addAction(self.cutObjAct)
-        menu.popup(self.classTable.viewport().mapToGlobal(position))
-
     def addActions(self, target, actions):
         """Helper to add actions or a separator easily."""
         for action in actions:
@@ -451,9 +436,15 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow, idfsettings.Settings):
             pattern = None
         if not self.classTree.model():
             return
+        current_class = QtCore.QPersistentModelIndex(self.classTree.currentIndex())
         self.classTree.model().setFilterRegExp(pattern)
         self.classTree.model().invalidateFilter()
         self.classTree.expandAll()
+        self.classTree.scrollTo(current_class, QtGui.QAbstractItemView.PositionAtCenter)
+
+        # If the current class was hidden by the filter, clear the tableView
+        if not current_class.isValid():
+            self.classTable.setModel(None)
 
     def clearFilterClicked(self):
         self.filterBox.clear()
@@ -673,6 +664,9 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow, idfsettings.Settings):
         :param obj_class:
         """
         #TODO instantiate TransposeProxyModel and IDFObjectTableModel elsewhere?
+
+        # if obj_class is None:
+        #     QtGui.QTableView(self)
 
         # Filter out group headers
         if obj_class not in self.idd:
