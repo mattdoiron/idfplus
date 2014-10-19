@@ -33,16 +33,16 @@ from . import logger
 log = logger.setup_logging(c.LOG_LEVEL, __name__)
 
 
-class GenericDelegate(QtGui.QItemDelegate):
+class GenericDelegate(QtGui.QStyledItemDelegate):
     """Template delegate for the table view."""
 
-    def __init__(self, main_window, obj_class, idd, obj_orientation):
-        super(GenericDelegate, self).__init__(main_window.classTable)
+    def __init__(self, main_window, obj_class, idd, obj_orientation, *args, **kwargs):
+        super(GenericDelegate, self).__init__(main_window.classTable, *args, **kwargs)
         self.obj_class = obj_class
         self.idd = idd
         self.delegates = {}
         self.main_window = main_window
-        self.parent = main_window.classTable
+        # self.parent = main_window.classTable
         self.obj_orientation = obj_orientation
         self.assignDelegates(idd[obj_class])
 
@@ -89,35 +89,16 @@ class GenericDelegate(QtGui.QItemDelegate):
         else:
             QtGui.QItemDelegate.setModelData(self, editor, model, index)
 
-    # def sizeHint(self, option, index):
-    #     fm = option.fontMetrics()
-    #     delegate = self.delegates.get(self.getRowOrCol(index))
-    #     if delegate is not None:
-    #         return QtCore.QSize(c.DEFAULT_COLUMN_WIDTH, fm.height() + 2)
-    #         # return delegate.sizeHint(option, index)
-    #     else:
-    #         return QtGui.QItemDelegate.sizeHint(self, option, index)
-
     def assignDelegates(self, idd_obj):
         # Cycle through table and assign delegates as needed
         # This will depend on the type of idd object!
 
-        # Other fields to be passed to the delegate include:
-        #       field, note, units, ip-units, required-field, key(s)
-
-        #TODO all delegates should be choice delegates if they have comboFields
-        #tags in them!
-
         # List of tags that would go in a combobox
-        comboFields = ['minimum',
-                       'minimum>',
-                       'maximum',
-                       'maximum<',
+        combo_fields = ['minimum', 'minimum>',
+                       'maximum', 'maximum<',
                        'default',
-                       'autosizeable',
-                       'autocalculatable',
-                       'key',
-                       'object-list']
+                       'autosizeable', 'autocalculatable',
+                       'key', 'object-list']
 
         # Cycle through field tags
         for i, field in enumerate(idd_obj):
@@ -127,7 +108,7 @@ class GenericDelegate(QtGui.QItemDelegate):
             field_type = ''
 
             # Create a list of tags which would go in a combo box
-            matches = set(comboFields).intersection(set(field.tags))
+            matches = set(combo_fields).intersection(set(field.tags))
 
             for key in matches:
                 tag_list.append(key)
@@ -162,10 +143,10 @@ class GenericDelegate(QtGui.QItemDelegate):
                     self.insertDelegate(i, AlphaDelegate(field, self.main_window))
 
 
-class IntegerDelegate(QtGui.QItemDelegate):
+class IntegerDelegate(QtGui.QStyledItemDelegate):
 
-    def __init__(self, field, main_window, minimum, maximum):
-        super(IntegerDelegate, self).__init__()
+    def __init__(self, field, main_window, minimum, maximum, *args, **kwargs):
+        super(IntegerDelegate, self).__init__(main_window.classTable, *args, **kwargs)
         self.main_window = main_window
         self.minimum = int(minimum)
         self.maximum = int(maximum)
@@ -192,10 +173,10 @@ class IntegerDelegate(QtGui.QItemDelegate):
         self.main_window.undo_stack.push(cmd)
 
 
-class RealDelegate(QtGui.QItemDelegate):
+class RealDelegate(QtGui.QStyledItemDelegate):
 
-    def __init__(self, field, main_window, minimum, maximum):
-        super(RealDelegate, self).__init__()
+    def __init__(self, field, main_window, minimum, maximum, *args, **kwargs):
+        super(RealDelegate, self).__init__(main_window.classTable, *args, **kwargs)
         self.main_window = main_window
         self.minimum = minimum
         self.maximum = maximum
@@ -206,10 +187,10 @@ class RealDelegate(QtGui.QItemDelegate):
     def createEditor(self, parent, option, index):
         lineedit = QtGui.QLineEdit(parent)
         lineedit.setStyleSheet("QLineEdit { qproperty-frame: false; }")
-        validator = QtGui.QDoubleValidator(self)
-        validator.setRange(self.minimum, self.maximum, 10)
-        validator.setNotation(QtGui.QDoubleValidator.Notation.StandardNotation)
-        lineedit.setValidator(validator)
+        # validator = QtGui.QDoubleValidator(self)
+        # validator.setRange(self.minimum, self.maximum, 10)
+        # validator.setNotation(QtGui.QDoubleValidator.Notation.StandardNotation)
+        # lineedit.setValidator(validator)
         print('creating real delegate')
         return lineedit
 
@@ -225,20 +206,16 @@ class RealDelegate(QtGui.QItemDelegate):
         self.main_window.undo_stack.push(cmd)
 
 
-class AlphaDelegate(QtGui.QItemDelegate):
+class AlphaDelegate(QtGui.QStyledItemDelegate):
 
-    def __init__(self, field, main_window):
-        super(AlphaDelegate, self).__init__()
+    def __init__(self, field, main_window, *args, **kwargs):
+        super(AlphaDelegate, self).__init__(main_window.classTable, *args, **kwargs)
         self.main_window = main_window
 
     def createEditor(self, parent, option, index):
         lineedit = QtGui.QLineEdit(parent)
         lineedit.setFrame(False)
         lineedit.setStyleSheet("QLineEdit { qproperty-frame: false; }")
-        # validator = QtGui.QDoubleValidator(self)
-        # validator.setRange(self.minimum, self.maximum, self.decimals)
-        # validator.setNotation(QtGui.QDoubleValidator.Notation.StandardNotation)
-        # lineedit.setValidator(validator)
         print('creating alpha delegate')
         return lineedit
 
@@ -253,21 +230,11 @@ class AlphaDelegate(QtGui.QItemDelegate):
         cmd = commands.ModifyObjectCmd(self.main_window, value=editor.text())
         self.main_window.undo_stack.push(cmd)
 
-    # def sizeHint(self, option, index):
-    #     fm = option.fontMetrics
-    #     # log.debug('size hint called')
-    #     # print('size hint called')
-    #     delegate = self.delegates.get(self.getRowOrCol(index))
-    #     if delegate is not None:
-    #         # return QtCore.QSize(fm.width("9,999,999,999"), fm.height())
-    #         return delegate.sizeHint(self, option, index)
-    #     else:
-    #         return QtGui.QItemDelegate.sizeHint(self, option, index)
 
-class ChoiceDelegate(QtGui.QItemDelegate):
+class ChoiceDelegate(QtGui.QStyledItemDelegate):
 
-    def __init__(self, field, main_window, minimum, maximum):
-        super(ChoiceDelegate, self).__init__()
+    def __init__(self, field, main_window, minimum, maximum, *args, **kwargs):
+        super(ChoiceDelegate, self).__init__(main_window.classTable, *args, **kwargs)
         self.field = field
         self.model = None
         self.main_window = main_window

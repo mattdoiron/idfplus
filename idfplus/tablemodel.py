@@ -587,14 +587,15 @@ class SortFilterProxyModel(QtGui.QSortFilterProxyModel):
     def get_units(self, *args, **kwargs):
         return self.sourceModel().get_units(*args, **kwargs)
 
+
 class TableView(QtGui.QTableView):
-    '''Subclass of QTableView used to override mousePressEvent'''
+    """Subclass of QTableView used to allow editing with return/enter keys."""
 
-    def __init__(self, *args, **kwargs):
-        super(TableView, self).__init__(*args, **kwargs)
+    # def __init__(self, *args, **kwargs):
+    #     super(TableView, self).__init__(*args, **kwargs)
 
-    def visualIndex(self, index):
-        super(TableView, self).visualIndex(index)
+    # def visualIndex(self, index):
+    #     super(TableView, self).visualIndex(index)
 
    # # Ads single-click editing
    # def mousePressEvent(self, event):
@@ -614,8 +615,8 @@ class TableView(QtGui.QTableView):
     #     self.model().endResetModel()
 
     def keyPressEvent(self, event):
-        if event.key() == QtCore.Qt.Key_Return or event.key() == QtCore.Qt.Key_Enter:
-            selected_indexes = self.selectionModel().selectedIndexes()
-            self.edit(selected_indexes[0])
-        else:
-            super(TableView, self).keyPressEvent(event)
+        if (event.key() == QtCore.Qt.Key_Return or event.key() == QtCore.Qt.Key_Enter) \
+                and (self.state() != QtGui.QAbstractItemView.EditingState):
+            self.edit(self.selectedIndexes()[0])
+        # else:
+        super(TableView, self).keyPressEvent(event)
