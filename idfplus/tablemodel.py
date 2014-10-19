@@ -587,28 +587,35 @@ class SortFilterProxyModel(QtGui.QSortFilterProxyModel):
     def get_units(self, *args, **kwargs):
         return self.sourceModel().get_units(*args, **kwargs)
 
-# class TableView(QtGui.QTableView):
-#     '''Subclass of QTableView used to override mousePressEvent'''
-#
-#     def __init__(self, *args, **kwargs):
-#         super(TableView, self).__init__(*args, **kwargs)
-#
-#     def visualIndex(self, index):
-#         super(TableView, self).visualIndex(index)
-#
-#    # # Ads single-click editing
-#    # def mousePressEvent(self, event):
-#    #     if event.button() == QtCore.Qt.LeftButton:
-#    #         index = self.indexAt(event.pos())
-#    #         if index.isValid():
-#    #             self.edit(index)
-#    #     QtGui.QTableView.mousePressEvent(self, event)
-#
-#    # def commitData(self, *args, **kwargs):
-#    #     print('data committed')
-#    #     super(TableView, self).commitData(*args, **kwargs)
-#
-#     # def clear(self):
-#     #     self.model().beginResetModel()
-#     #     self.model().clear()
-#     #     self.model().endResetModel()
+class TableView(QtGui.QTableView):
+    '''Subclass of QTableView used to override mousePressEvent'''
+
+    def __init__(self, *args, **kwargs):
+        super(TableView, self).__init__(*args, **kwargs)
+
+    def visualIndex(self, index):
+        super(TableView, self).visualIndex(index)
+
+   # # Ads single-click editing
+   # def mousePressEvent(self, event):
+   #     if event.button() == QtCore.Qt.LeftButton:
+   #         index = self.indexAt(event.pos())
+   #         if index.isValid():
+   #             self.edit(index)
+   #     QtGui.QTableView.mousePressEvent(self, event)
+
+   # def commitData(self, *args, **kwargs):
+   #     print('data committed')
+   #     super(TableView, self).commitData(*args, **kwargs)
+
+    # def clear(self):
+    #     self.model().beginResetModel()
+    #     self.model().clear()
+    #     self.model().endResetModel()
+
+    def keyPressEvent(self, event):
+        if event.key() == QtCore.Qt.Key_Return or event.key() == QtCore.Qt.Key_Enter:
+            selected_indexes = self.selectionModel().selectedIndexes()
+            self.edit(selected_indexes[0])
+        else:
+            super(TableView, self).keyPressEvent(event)

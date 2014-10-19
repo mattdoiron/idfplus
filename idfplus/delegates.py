@@ -135,15 +135,16 @@ class GenericDelegate(QtGui.QItemDelegate):
                 if key == 'type':
                     field_type = field.tags[key]
 
-            # If there are choices then use the choiceDelegate
+            min = float(field.tags.get('minimum', 0))
+            max = float(field.tags.get('maximum', 100))
+            min_inc = float(field.tags.get('minimum>', min))
+            max_inc = float(field.tags.get('maximum<', max))
+
+            # If there are choices then use the choiceDelegate, otherwise check type
             if tag_count > 0:
-                self.insertDelegate(i, ChoiceDelegate(field, self.main_window))
+                self.insertDelegate(i, ChoiceDelegate(field, self.main_window,
+                                                      min_inc, max_inc))
             else:
-                # Otherwise check the type field
-                min = field.tags.get('minimum', 0)
-                max = field.tags.get('maximum', 100)
-                min_inc = field.tags.get('minimum>', min)
-                max_inc = field.tags.get('maximum<', max)
                 if field_type == 'integer':
                     self.insertDelegate(i, IntegerDelegate(field, self.main_window,
                                                            min_inc, max_inc))
@@ -152,25 +153,22 @@ class GenericDelegate(QtGui.QItemDelegate):
                                                         min_inc, max_inc))
                 elif field_type == 'alpha':
                     self.insertDelegate(i, AlphaDelegate(field, self.main_window))
+                elif field.key.startswith('A'):
+                    self.insertDelegate(i, AlphaDelegate(field, self.main_window))
+                elif field.key.startswith('N'):
+                    self.insertDelegate(i, RealDelegate(field, self.main_window,
+                                                        min_inc, max_inc))
                 else:
-                    # The type field is not always present so check fieldname
-                    idd_field = idd_obj[i - 1]
-                    if idd_field.key.startswith('A'):
-                        self.insertDelegate(i, AlphaDelegate(field, self.main_window))
-                    elif idd_field.key.startswith('N'):
-                        self.insertDelegate(i, RealDelegate(field, self.main_window,
-                                                            min_inc, max_inc))
-                    else:
-                        self.insertDelegate(i, AlphaDelegate(field, self.main_window))
+                    self.insertDelegate(i, AlphaDelegate(field, self.main_window))
 
 
 class IntegerDelegate(QtGui.QItemDelegate):
 
-    def __init__(self, field, main_window, minimum=0, maximum=100):
+    def __init__(self, field, main_window, minimum, maximum):
         super(IntegerDelegate, self).__init__()
         self.main_window = main_window
-        self.minimum = minimum
-        self.maximum = maximum
+        self.minimum = int(minimum)
+        self.maximum = int(maximum)
         # use idd object to define min, max, etc
 
     def createEditor(self, parent, option, index):
@@ -178,6 +176,7 @@ class IntegerDelegate(QtGui.QItemDelegate):
         spinbox.setRange(self.minimum, self.maximum)
         spinbox.setAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignVCenter)
         spinbox.setStyleSheet("QSpinBox { qproperty-frame: false; }")
+        print('creating integer delegate')
         return spinbox
 
     def setEditorData(self, editor, index):
@@ -195,22 +194,23 @@ class IntegerDelegate(QtGui.QItemDelegate):
 
 class RealDelegate(QtGui.QItemDelegate):
 
-    def __init__(self, field, main_window, minimum=0, maximum=100, default=0, decimals=10):
+    def __init__(self, field, main_window, minimum, maximum):
         super(RealDelegate, self).__init__()
         self.main_window = main_window
         self.minimum = minimum
         self.maximum = maximum
-        self.decimals = decimals
-        self.default = default
+        # self.decimals = decimals
+        # self.default = default
         # use idd object to define min, max, etc
 
     def createEditor(self, parent, option, index):
         lineedit = QtGui.QLineEdit(parent)
         lineedit.setStyleSheet("QLineEdit { qproperty-frame: false; }")
         validator = QtGui.QDoubleValidator(self)
-        validator.setRange(self.minimum, self.maximum, self.decimals)
+        validator.setRange(self.minimum, self.maximum, 10)
         validator.setNotation(QtGui.QDoubleValidator.Notation.StandardNotation)
         lineedit.setValidator(validator)
+        print('creating real delegate')
         return lineedit
 
     def setEditorData(self, editor, index):
@@ -235,6 +235,11 @@ class AlphaDelegate(QtGui.QItemDelegate):
         lineedit = QtGui.QLineEdit(parent)
         lineedit.setFrame(False)
         lineedit.setStyleSheet("QLineEdit { qproperty-frame: false; }")
+        # validator = QtGui.QDoubleValidator(self)
+        # validator.setRange(self.minimum, self.maximum, self.decimals)
+        # validator.setNotation(QtGui.QDoubleValidator.Notation.StandardNotation)
+        # lineedit.setValidator(validator)
+        print('creating alpha delegate')
         return lineedit
 
     def setEditorData(self, editor, index):
@@ -261,11 +266,13 @@ class AlphaDelegate(QtGui.QItemDelegate):
 
 class ChoiceDelegate(QtGui.QItemDelegate):
 
-    def __init__(self, field, main_window):
+    def __init__(self, field, main_window, minimum, maximum):
         super(ChoiceDelegate, self).__init__()
         self.field = field
         self.model = None
         self.main_window = main_window
+        self.minimum = float(minimum)
+        self.maximum = float(maximum)
         self.comboFields = ['minimum>',
                             'minimum',
                             'maximum<',
@@ -280,7 +287,37 @@ class ChoiceDelegate(QtGui.QItemDelegate):
         self.comboBox = QtGui.QComboBox(parent)
         self.comboBox.setEditable(True)
         self.comboBox.setStyleSheet("QComboBox { border: 0px; }")
-        self.comboBox.setFrame(False)
+        # self.comboBox.setFrame(False)
+        self.comboBox.setContentsMargins(0, 0, 0, 0)
+        # self.comboBox.setInsertPolicy(QtGui.QComboBox.NoInsert)
+        self.comboBox.setSizeAdjustPolicy(QtGui.QComboBox.AdjustToMinimumContentsLengthWithIcon)
+
+        print('creating choice delegate')
+
+        # Detect field type
+        field_type = self.field.tags.get('type')
+        if not field_type:
+            if self.field.key.startswith('N'):
+                field_type = 'real'
+            else:
+                field_type = 'alpha'
+        # print('field type: {}'.format(field_type))
+
+        # Set an appropriate validator
+        validator = None
+        if field_type == 'real':
+            # validator = QtGui.QDoubleValidator(self.minimum, self.maximum, 10, self)
+            validator = CustomValidator(self.minimum, self.maximum, self)
+            # validator.setNotation(QtGui.QDoubleValidator.Notation.StandardNotation)
+            # print('min: {}, max: {}'.format(self.minimum, self.maximum))
+            # print('validator set to real')
+        elif field_type == 'integer':
+            validator = QtGui.QIntValidator(int(self.minimum), int(self.maximum), self)
+            print('validator set to integer')
+        if validator:
+            self.comboBox.setValidator(validator)
+
+        # self.comboBox.setValidator(CustomValidator(self))
 
         if not self.model:
 
@@ -320,7 +357,7 @@ class ChoiceDelegate(QtGui.QItemDelegate):
                     else:
                         # Need to check if it's a list...is there a better way?
                         # Could make them all lists...would be annoying.
-                        if type(value) is list:
+                        if isinstance(value, list):
                             for val in value:
                                 self.model.appendRow([QtGui.QStandardItem(val),
                                                       QtGui.QStandardItem(tag)])
@@ -337,8 +374,17 @@ class ChoiceDelegate(QtGui.QItemDelegate):
         value_item = QtGui.QStandardItem(value)
         self.model.insertRow(0, [value_item, current_item])
 
+        # Table AND combo get same model (table first!)
         self.tableView = QtGui.QTableView(self.comboBox)
         self.tableView.setModel(self.model)
+        self.comboBox.setModel(self.model)
+        self.comboBox.setView(self.tableView)
+
+        # Set properties of tableView
+        # self.tableView.setFrameStyle(QtGui.QFrame.NoFrame)
+        # self.tableView.setFrameShape(QtGui.QFrame.NoFrame)
+        # self.tableView.setLineWidth(0)
+        # self.tableView.setContentsMargins(0, 0, 0, 0)
         self.tableView.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAsNeeded)
         self.tableView.setSelectionMode(QtGui.QAbstractItemView.SingleSelection)
         self.tableView.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
@@ -348,11 +394,7 @@ class ChoiceDelegate(QtGui.QItemDelegate):
         self.tableView.resizeColumnsToContents()
         self.tableView.resizeRowsToContents()
         self.tableView.setMinimumWidth(self.tableView.horizontalHeader().length())
-        self.tableView.setFrameShape(QtGui.QFrame.NoFrame)
-
-        # Table AND combo get same model (table first!)
-        self.comboBox.setModel(self.model)
-        self.comboBox.setView(self.tableView)
+        self.tableView.setMinimumHeight(self.tableView.verticalHeader().length())
 
         return self.comboBox
 
@@ -415,3 +457,35 @@ class ChoiceDelegate(QtGui.QItemDelegate):
 #    rx = QtCore.QRegExp('[0-9]{2}:[0-6]{2}')
 #    e.setValidator(QtGui.QRegExpValidator(rx,e))
 #    return e
+
+
+class CustomValidator(QtGui.QValidator):
+    def __init__(self, minimum, maximum, *args, **kwargs):
+        super(CustomValidator, self).__init__(*args, **kwargs)
+        self.minimum = minimum
+        self.maximum = maximum
+
+    def validate(self, input_str, pos):
+
+        # Blanks are sort of ok...
+        if not input_str:
+            return QtGui.QValidator.Intermediate
+
+        # Reject invalid characters
+        for pattern in [';', ',', '#']:
+            if input_str.find(pattern) != -1:
+                return QtGui.QValidator.Invalid
+
+        return QtGui.QValidator.Acceptable
+
+        # # Detect actual valid status
+        # input_float = float(input_str)
+        # if self.minimum <= input_float <= self.maximum:
+        #     return QtGui.QValidator.Acceptable
+        # else:
+        #     # Check for scientific notation
+        #     for pattern in ['e', 'E']:
+        #         if input_str.find(pattern) != -1:
+        #             return QtGui.QValidator.Intermediate
+        #
+        #     return QtGui.QValidator.Invalid

@@ -28,7 +28,7 @@ from PySide import QtGui
 from PySide import QtCore
 
 # Package imports
-# from . import tablemodel
+from . import tablemodel
 from . import idfsettings as c
 from . import logger
 from . import treemodel
@@ -53,7 +53,8 @@ class UI_MainWindow(object):
         self.obj_history = deque([], c.MAX_OBJ_HISTORY)
 
         # Object class table widget
-        classTable = QtGui.QTableView(self)
+        # classTable = QtGui.QTableView(self)
+        classTable = tablemodel.TableView(self)
         classTable.setObjectName("classTable")
         classTable.setAlternatingRowColors(True)
         classTable.setFrameShape(QtGui.QFrame.StyledPanel)
