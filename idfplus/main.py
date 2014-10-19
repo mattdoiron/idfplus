@@ -665,9 +665,6 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow, idfsettings.Settings):
         """
         #TODO instantiate TransposeProxyModel and IDFObjectTableModel elsewhere?
 
-        # if obj_class is None:
-        #     QtGui.QTableView(self)
-
         # Filter out group headers
         if obj_class not in self.idd:
             return
@@ -675,10 +672,8 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow, idfsettings.Settings):
         # Clear the table filter when changing classes
         self.clearFilterClicked()
 
-        # Save some variables
-        table = self.classTable
-
         # Create the default table model
+        table = self.classTable
         default_model = tablemodel.IDFObjectTableModel(obj_class, self.idf, table)
 
         # If objects are vertical, create transposed model
@@ -694,15 +689,12 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow, idfsettings.Settings):
 
         # Assign model to table (enable sorting FIRST)
         table.setSortingEnabled(True)
-        # sortable.setDynamicSortFilter(True)
         table.setModel(sortable)
 
         # Create generic delegates for table cells
-        my_delegates = delegates.GenericDelegate(self,
-                                                 obj_class,
-                                                 self.idd,
-                                                 self.obj_orientation)
-        table.setItemDelegate(my_delegates)
+        item_delegates = delegates.GenericDelegate(self, self.idd[obj_class],
+                                                   self.obj_orientation)
+        table.setItemDelegate(item_delegates)
 
         # Connect some signals
         # default_model.sourceModel().dataChanged.connect(self.update_tree_view)

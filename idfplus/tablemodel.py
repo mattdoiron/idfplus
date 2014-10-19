@@ -300,6 +300,9 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
     def get_units(self, field):
         """Returns the given IDDField's current units."""
 
+        if field is None:
+            return None
+
         # Look-up the default units
         units = field.tags.get('units')
 
