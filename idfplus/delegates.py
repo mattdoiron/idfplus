@@ -193,7 +193,11 @@ class ChoiceDelegate(QtGui.QStyledItemDelegate):
         self.model.insertRow(0, [value_item, current_item])
 
         # Table AND combo get same model (table first!)
-        self.comboBox = ExtendedComboBox(parent)
+        if 'object-list' in self.field.tags.keys():
+            auto_complete = True
+        else:
+            auto_complete = False
+        self.comboBox = ExtendedComboBox(parent, auto_complete)
         self.tableView = QtGui.QTableView(self.comboBox)
         self.tableView.setModel(self.model)
         self.comboBox.setModel(self.model)
@@ -213,7 +217,7 @@ class ChoiceDelegate(QtGui.QStyledItemDelegate):
         col_width = self.tableView.columnWidth(0)
         scroll_width = self.tableView.verticalScrollBar().width()
         self.tableView.setMinimumWidth(header_width + scroll_width)
-        self.comboBox.completer.popup().setMinimumWidth(col_width + scroll_width)
+        self.comboBox.set_popup_width(col_width + scroll_width)
 
         return self.comboBox
 
@@ -252,50 +256,61 @@ class CustomValidator(QtGui.QValidator):
 class ExtendedComboBox(QtGui.QComboBox):
     """Customized QComboBox which adds a filtered, popup auto-completer"""
 
-    def __init__(self, parent=None):
+    def __init__(self, parent, auto_complete):
         super(ExtendedComboBox, self).__init__(parent)
 
         # Set some properties
-        self.setFocusPolicy(QtCore.Qt.StrongFocus)
+        # self.setFocusPolicy(QtCore.Qt.StrongFocus)
         self.setEditable(True)
         self.setStyleSheet("QComboBox { border: 0px; }")
         self.setInsertPolicy(QtGui.QComboBox.NoInsert)
         self.setValidator(CustomValidator(self))
         self.setMaxVisibleItems(15)
+        self.auto_complete = auto_complete
 
-        # Add a filter model to filter matching items
-        self.filter_model = QtGui.QSortFilterProxyModel(self)
-        self.filter_model.setFilterCaseSensitivity(QtCore.Qt.CaseInsensitive)
-        self.filter_model.setSourceModel(self.model())
+        if auto_complete is True:
+            # Add a filter model to filter matching items
+            self.filter_model = QtGui.QSortFilterProxyModel(self)
+            self.filter_model.setFilterCaseSensitivity(QtCore.Qt.CaseInsensitive)
+            self.filter_model.setSourceModel(self.model())
 
-        # Create and add a completer, which uses the filter model. Always show
-        # all (filtered) completions
-        self.completer = QtGui.QCompleter(self)
-        self.completer.setModel(self.filter_model)
-        self.completer.setCompletionMode(QtGui.QCompleter.UnfilteredPopupCompletion)
-        self.completer.setMaxVisibleItems(15)
-        self.setCompleter(self.completer)
+            # Create and add a completer, which uses the filter model. Always show
+            # all (filtered) completions
+            self.completer = QtGui.QCompleter(self)
+            self.completer.setModel(self.filter_model)
+            self.completer.setCompletionMode(QtGui.QCompleter.UnfilteredPopupCompletion)
+            self.completer.setMaxVisibleItems(15)
+            self.setCompleter(self.completer)
 
-        # Connect signals
-        self.lineEdit().textEdited[str].connect(self.filter_model.setFilterFixedString)
-        self.completer.activated.connect(self.on_completer_activated)
+            # Connect signals
+            self.lineEdit().textEdited[str].connect(self.filter_model.setFilterFixedString)
+            # self.completer.activated.connect(self.on_completer_activated)
+        else:
+            self.setCompleter(None)
 
-    def on_completer_activated(self, text):
-        """On selection of an item from the completer, select the corresponding
-        item from combobox"""
-        if text:
-            index = self.findText(text)
-            self.setCurrentIndex(index)
+    def set_popup_width(self, width):
+        if self.auto_complete:
+            self.completer.popup().setMinimumWidth(width)
+
+    # def on_completer_activated(self, text):
+    #     """On selection of an item from the completer, select the corresponding
+    #     item from combobox"""
+    #     if text:
+    #         index = self.findText(text)
+    #         self.setCurrentIndex(index)
+    #         self.activated[str].emit(self.itemText(index))
 
     def setModel(self, model):
         """On model change, update the models of the filter and completer as well"""
         super(ExtendedComboBox, self).setModel(model)
-        self.filter_model.setSourceModel(model)
-        self.completer.setModel(self.filter_model)
+        if self.auto_complete:
+            self.filter_model.setSourceModel(model)
+            self.completer.setModel(self.filter_model)
 
     def setModelColumn(self, column):
         """On model column change, update the model column of the filter and
         completer as well"""
-        self.completer.setCompletionColumn(column)
-        self.filter_model.setFilterKeyColumn(column)
+        if self.auto_complete:
+            self.completer.setCompletionColumn(column)
+            self.filter_model.setFilterKeyColumn(column)
         super(ExtendedComboBox, self).setModelColumn(column)

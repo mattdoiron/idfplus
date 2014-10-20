@@ -144,9 +144,6 @@ class NewObjectCmd(ObjectCmd):
         # Get the table's model and call its remove method
         self.model.removeObjects(delete_range, offset=1, delete_count=self.delete_count)
 
-        # Notify everyone that data has changed (don't seem to need it - why not!?)
-        # self.model.dataChanged.emit(delete_range[0], delete_range[-1])
-
         # Clear any current selection and select the next item
         if self.delete_count > 1:
             single = False
@@ -203,12 +200,6 @@ class NewObjectCmd(ObjectCmd):
 
         # Call the table's insert method
         self.model.insertObjects(self.new_object_groups, self.new_objects, offset=1)
-
-        # Notify everyone that data has changed (don't seem to need it - why not!?)
-        # if self.indexes:
-        #     self.model.dataChanged.emit(self.indexes[0], self.indexes[-1])
-        # else:
-        #     self.model.dataChanged.emit(QtCore.QModelIndex(), QtCore.QModelIndex())
 
         # Clear any current selection and select the next item
         if self.delete_count > 1:

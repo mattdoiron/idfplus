@@ -781,6 +781,11 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow, idfsettings.Settings):
         # Load the corresponding class in the tableView
         self.load_table_view(data)
 
+    def fill_right(self):
+
+        selected_indexes = self.classTable.selectedIndexes()
+        
+
     def update_log_viewer(self, changed_path):
         with open(changed_path) as f:
             text=f.read()

@@ -523,7 +523,9 @@ class UI_MainWindow(object):
 
     def create_shortcuts(self):
         """Creates keyboard shortcuts."""
-        # QtGui.QShortcut(QtGui.QKeySequence('Ctrl+l'),self).activated.connect(self.toggle_full_tree)
+        # QtGui.QShortcut(QtGui.QKeySequence('Ctrl+l'), self).activated.connect(self.toggle_full_tree)
+        QtGui.QShortcut(QtGui.QKeySequence('Ctrl+d'), self).activated.connect(self.fill_right)
+        # QtGui.QShortcut(QtGui.QKeySequence('Ctrl+d'), self).activated.connect(self.fill_right)
 
 #    def createAction(self, text, slot=None, shortcut=None, icon=None,
 #                     tip=None, checkable=False, signal="triggered()"):
