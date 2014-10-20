@@ -140,12 +140,7 @@ class ChoiceDelegate(QtGui.QStyledItemDelegate):
                              'key', 'object-list']
 
     def createEditor(self, parent, option, index):
-        self.comboBox = QtGui.QComboBox(parent)
-        self.comboBox.setEditable(True)
-        self.comboBox.setStyleSheet("QComboBox { border: 0px; }")
-        self.comboBox.setInsertPolicy(QtGui.QComboBox.NoInsert)
-        self.comboBox.setValidator(CustomValidator(self))
-        self.comboBox.setMaxVisibleItems(15)
+        """Creates a custom editor based on an extended QCombobox"""
 
         # If there isn't already a model, populate it
         if not self.model:
@@ -198,24 +193,27 @@ class ChoiceDelegate(QtGui.QStyledItemDelegate):
         self.model.insertRow(0, [value_item, current_item])
 
         # Table AND combo get same model (table first!)
+        self.comboBox = ExtendedComboBox(parent)
         self.tableView = QtGui.QTableView(self.comboBox)
         self.tableView.setModel(self.model)
         self.comboBox.setModel(self.model)
         self.comboBox.setView(self.tableView)
+        self.comboBox.lineEdit().selectAll()
 
-        # Set properties of tableView
+        # Set properties of tableView and the combobox
         self.tableView.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
         self.tableView.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOn)
         self.tableView.setSelectionMode(QtGui.QAbstractItemView.SingleSelection)
         self.tableView.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
         self.tableView.verticalHeader().setVisible(False)
         self.tableView.horizontalHeader().setVisible(False)
-        self.tableView.setAutoScroll(False)
         self.tableView.resizeColumnsToContents()
         self.tableView.resizeRowsToContents()
         header_width = self.tableView.horizontalHeader().length()
+        col_width = self.tableView.columnWidth(0)
         scroll_width = self.tableView.verticalScrollBar().width()
         self.tableView.setMinimumWidth(header_width + scroll_width)
+        self.comboBox.completer.popup().setMinimumWidth(col_width + scroll_width)
 
         return self.comboBox
 
@@ -249,3 +247,55 @@ class CustomValidator(QtGui.QValidator):
 
         # Accept everything else
         return QtGui.QValidator.Acceptable
+
+
+class ExtendedComboBox(QtGui.QComboBox):
+    """Customized QComboBox which adds a filtered, popup auto-completer"""
+
+    def __init__(self, parent=None):
+        super(ExtendedComboBox, self).__init__(parent)
+
+        # Set some properties
+        self.setFocusPolicy(QtCore.Qt.StrongFocus)
+        self.setEditable(True)
+        self.setStyleSheet("QComboBox { border: 0px; }")
+        self.setInsertPolicy(QtGui.QComboBox.NoInsert)
+        self.setValidator(CustomValidator(self))
+        self.setMaxVisibleItems(15)
+
+        # Add a filter model to filter matching items
+        self.filter_model = QtGui.QSortFilterProxyModel(self)
+        self.filter_model.setFilterCaseSensitivity(QtCore.Qt.CaseInsensitive)
+        self.filter_model.setSourceModel(self.model())
+
+        # Create and add a completer, which uses the filter model. Always show
+        # all (filtered) completions
+        self.completer = QtGui.QCompleter(self)
+        self.completer.setModel(self.filter_model)
+        self.completer.setCompletionMode(QtGui.QCompleter.UnfilteredPopupCompletion)
+        self.completer.setMaxVisibleItems(15)
+        self.setCompleter(self.completer)
+
+        # Connect signals
+        self.lineEdit().textEdited[str].connect(self.filter_model.setFilterFixedString)
+        self.completer.activated.connect(self.on_completer_activated)
+
+    def on_completer_activated(self, text):
+        """On selection of an item from the completer, select the corresponding
+        item from combobox"""
+        if text:
+            index = self.findText(text)
+            self.setCurrentIndex(index)
+
+    def setModel(self, model):
+        """On model change, update the models of the filter and completer as well"""
+        super(ExtendedComboBox, self).setModel(model)
+        self.filter_model.setSourceModel(model)
+        self.completer.setModel(self.filter_model)
+
+    def setModelColumn(self, column):
+        """On model column change, update the model column of the filter and
+        completer as well"""
+        self.completer.setCompletionColumn(column)
+        self.filter_model.setFilterKeyColumn(column)
+        super(ExtendedComboBox, self).setModelColumn(column)
