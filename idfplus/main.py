@@ -688,7 +688,7 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow, idfsettings.Settings):
         sortable.setSourceModel(model)
 
         # Assign model to table (enable sorting FIRST)
-        table.setSortingEnabled(True)
+        # table.setSortingEnabled(True) # Disable for now, CRUD actions won't work!
         table.setModel(sortable)
 
         # Create generic delegates for table cells

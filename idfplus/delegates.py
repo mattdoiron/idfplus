@@ -90,7 +90,7 @@ class GenericDelegate(QtGui.QStyledItemDelegate):
 
         # List of tags that would go in a combobox
         combo_fields = ['minimum', 'minimum>', 'maximum', 'maximum<', 'default',
-                        'autosizeable', 'autocalculatable', 'key', 'object-list']
+                        'key', 'object-list']
 
         # Cycle through field tags
         for i, field in enumerate(idd_obj):
@@ -136,8 +136,8 @@ class ChoiceDelegate(QtGui.QStyledItemDelegate):
         self.field = field
         self.model = None
         self.main_window = main_window
-        self.comboFields = ['minimum>', 'minimum', 'maximum<', 'maximum', 'default',
-                            'autosizeable', 'autocalculatable', 'key', 'object-list']
+        self.combo_fields = ['minimum>', 'minimum', 'maximum<', 'maximum', 'default',
+                             'key', 'object-list']
 
     def createEditor(self, parent, option, index):
         self.comboBox = QtGui.QComboBox(parent)
@@ -145,11 +145,13 @@ class ChoiceDelegate(QtGui.QStyledItemDelegate):
         self.comboBox.setStyleSheet("QComboBox { border: 0px; }")
         self.comboBox.setInsertPolicy(QtGui.QComboBox.NoInsert)
         self.comboBox.setValidator(CustomValidator(self))
+        self.comboBox.setMaxVisibleItems(15)
 
+        # If there isn't already a model, populate it
         if not self.model:
             self.model = QtGui.QStandardItemModel()
             for tag, value in self.field.tags.iteritems():
-                if tag in self.comboFields:
+                if tag in self.combo_fields:
                     if tag == 'default':
                         self.model.insertRow(0, [QtGui.QStandardItem(value),
                                                  QtGui.QStandardItem(tag)])
@@ -184,10 +186,12 @@ class ChoiceDelegate(QtGui.QStyledItemDelegate):
                             self.model.appendRow([QtGui.QStandardItem(value),
                                                   QtGui.QStandardItem(tag)])
 
+        # Check for and remove the 'current' item so it can be replace (at the top)
         myitem = self.model.findItems('current', column=1)
         if len(myitem) > 0:
             self.model.removeRow(myitem[0].row())
 
+        # Make a special item for the 'current' item
         value = index.data(QtCore.Qt.DisplayRole)
         current_item = QtGui.QStandardItem('current')
         value_item = QtGui.QStandardItem(value)
@@ -200,7 +204,8 @@ class ChoiceDelegate(QtGui.QStyledItemDelegate):
         self.comboBox.setView(self.tableView)
 
         # Set properties of tableView
-        self.tableView.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAsNeeded)
+        self.tableView.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
+        self.tableView.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOn)
         self.tableView.setSelectionMode(QtGui.QAbstractItemView.SingleSelection)
         self.tableView.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
         self.tableView.verticalHeader().setVisible(False)
@@ -208,16 +213,17 @@ class ChoiceDelegate(QtGui.QStyledItemDelegate):
         self.tableView.setAutoScroll(False)
         self.tableView.resizeColumnsToContents()
         self.tableView.resizeRowsToContents()
-        self.tableView.setMinimumWidth(self.tableView.horizontalHeader().length())
-        self.tableView.setMinimumHeight(self.tableView.verticalHeader().length())
+        header_width = self.tableView.horizontalHeader().length()
+        scroll_width = self.tableView.verticalScrollBar().width()
+        self.tableView.setMinimumWidth(header_width + scroll_width)
 
         return self.comboBox
 
     def setEditorData(self, editor, index):
         value = index.data(QtCore.Qt.DisplayRole)
-        comboIndex = editor.findText(value)
-        if comboIndex >= 0:
-            editor.setCurrentIndex(comboIndex)
+        combo_index = editor.findText(value)
+        if combo_index >= 0:
+            editor.setCurrentIndex(combo_index)
 
     def setModelData(self, editor, model, index):
         # Create undo command and push it to the undo stack
