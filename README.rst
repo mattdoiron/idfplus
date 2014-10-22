@@ -3,21 +3,34 @@ IDF+ Editor
 ===========
 
 IDF+ is an enhanced editor for idf files—the text-based simulation input files for
-EnergyPlus. In creating the tool, I've attempted to embrace the concepts and ideas
-that I find most useful in my every-day building energy modelling. I've written these
-ideas in a "manifesto" (rather, I discovered and developed the concepts as I created
+EnergyPlus_. In creating the tool, I've attempted to embrace the concepts and ideas
+that I find most useful in my every-day building energy modelling. I've `written these
+ideas in a "manifesto"`_ (rather, I discovered and developed the concepts as I created
 the tool and used others). I use the official IDF Editor that comes with EnergyPlus
 every day—it is the primary tool I use for interacting with IDF files. I have come
 to respect it and think it is probably the best tool out there right now for working
 with IDF tools, however, it also has some significant limitations that I decided
 to address.
 
+.. _EnergyPlus: http://www.energyplus.gov/
+.. _written these ideas in a "manifesto": https://mindfulmodeller.ca/manifesto-good-energy-modelling-tools/
+
+See the Downloads_ section for zip files containing the editor. There are not currently
+any installers so simply extract the files and run idfplus.exe (on windows) or idfplus
+on Ubuntu.
+
+.. _Downloads: https://bitbucket.org/mattdoiron/idfplus/downloads/
+
 Open Source and Cross Platform
 ==============================
 
-The tool is written in Python (v2.7.8) and the source code is available under the GPLv3
-open source licence. It is currently working on both Ubuntu 14.04 and Windows 7/8, but
-will eventually work on Mac OSX as well.
+The tool is written in Python_ (v2.7.8) using PySide_ 1.2.2 for a graphical library, and
+the source code is available under the GPLv3 open source licence. It is currently
+working on both Ubuntu 14.04 and Windows 7/8, but will eventually work on Mac OSX
+as well.
+
+.. _Python: https://www.python.org/
+.. _PySide: http://qt-project.org/wiki/PySide/
 
 Lightweight Editor
 ==================
@@ -70,5 +83,7 @@ Please Note!
 
 This software is at an alpha stage! This means that it is for testing purposes only
 and should not be used for real projects! I would, however, appreciate any feedback
-and suggestions on how the editor can be improved. Please submit an issue or email
-me directly.
+and suggestions on how the editor can be improved. Please submit `an issue`_ if you
+find any bugs.
+
+.. _an issue: https://bitbucket.org/mattdoiron/idfplus/issues
