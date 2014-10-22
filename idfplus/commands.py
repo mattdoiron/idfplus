@@ -40,13 +40,14 @@ class ObjectCmd(QtGui.QUndoCommand):
 
     def __init__(self, main_window, *args, **kwargs):
         super(ObjectCmd, self).__init__(*args, **kwargs)
-        self.indexes = main_window.classTable.selectedIndexes()
+        self.indexes_in = main_window.classTable.selectedIndexes()
+        self.indexes = [QtCore.QPersistentModelIndex(i) for i in self.indexes_in]
         self.main_window = main_window
         obj_class_index = main_window.classTree.selectedIndexes()[0]
         self.obj_class_index = QtCore.QPersistentModelIndex(obj_class_index)
         self.obj_class = main_window.current_obj_class
         self.obj_orientation = main_window.obj_orientation
-        self.tx_id = None
+        # self.tx_id = None
         self.mime_data = None
         self.new_objects = None
         self.new_object_groups = None
@@ -62,9 +63,10 @@ class ObjectCmd(QtGui.QUndoCommand):
 
         # Convert indexes to source indexes for storage, then convert back later
         indexes_source_partial = [self.model.mapToSource(ind)
-                                  for ind in self.indexes]
-        self.indexes_source = [self.model.sourceModel().mapToSource(ind)
+                                  for ind in self.indexes_in]
+        self.indexes_source_in = [self.model.sourceModel().mapToSource(ind)
                                for ind in indexes_source_partial]
+        self.indexes_source = [QtCore.QPersistentModelIndex(i) for i in self.indexes_source_in]
 
     def update_model(self):
         """Ensures that the model is up-to-date and changes it if not."""
