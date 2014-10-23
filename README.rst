@@ -2,14 +2,14 @@
 IDF+ Editor
 ===========
 
-IDF+ is an enhanced editor for idf files—the text-based simulation input files for
+IDF+ is an enhanced editor for idf files—the text-based, simulation input files for
 EnergyPlus_. In creating the tool, I've attempted to embrace the concepts and ideas
 that I find most useful in my every-day building energy modelling. I've `written these
 ideas in a "manifesto"`_ (rather, I discovered and developed the concepts as I created
 the tool and used others). I use the official IDF Editor that comes with EnergyPlus
 every day—it is the primary tool I use for interacting with IDF files. I have come
 to respect it and think it is probably the best tool out there right now for working
-with IDF tools, however, it also has some significant limitations that I decided
+with IDF files, however, it also has some significant limitations that I decided
 to address.
 
 .. _EnergyPlus: http://www.energyplus.gov/
@@ -17,7 +17,8 @@ to address.
 
 See the Downloads_ section for zip files containing the editor. There are not currently
 any installers so simply extract the files and run idfplus.exe (on windows) or idfplus
-on Ubuntu.
+on Ubuntu. You can run the editor in its uncompiled form on any machine that has
+Python v2.7.8 and the appropriate dependencies. See the Doc folder for more info.
 
 .. _Downloads: https://bitbucket.org/mattdoiron/idfplus/downloads/
 

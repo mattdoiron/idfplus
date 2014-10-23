@@ -24,11 +24,6 @@ from __future__ import (print_function, division, absolute_import)
 import os
 import platform
 # from BTrees.OOBTree import OOBTree
-# from ZODB import FileStorage
-# from ZODB import DB
-# from collections import deque
-# import tempfile
-# import appdirs
 import networkx as nx
 
 # PySide imports
@@ -53,7 +48,7 @@ from . import idfsettings as c
 from . import icons_rc
 
 # Global variables
-__version__ = '0.0.1'
+__version__ = '0.1.1'
 log = logger.setup_logging(idfsettings.LOG_LEVEL, __name__)
 
 class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow, idfsettings.Settings):
@@ -66,7 +61,6 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow, idfsettings.Settings):
         self.create_ui()
 
         # Load settings (call this second)
-        # self.settings = idfsettings.Settings()
         self.init_settings(self)
         self.read_settings()
 
