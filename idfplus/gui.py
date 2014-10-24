@@ -64,7 +64,7 @@ class UI_MainWindow(object):
         classTable.setWordWrap(True)
         classTable.setEditTriggers(QtGui.QAbstractItemView.EditKeyPressed |
                                    QtGui.QAbstractItemView.DoubleClicked |
-                                   # QtGui.QAbstractItemView.AnyKeyPressed |
+                                   QtGui.QAbstractItemView.AnyKeyPressed |
                                    QtGui.QAbstractItemView.SelectedClicked)
         # classTable.horizontalHeader().setMovable(True)
         # classTable.verticalHeader().setMovable(False)

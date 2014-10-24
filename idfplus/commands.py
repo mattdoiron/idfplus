@@ -41,7 +41,8 @@ class ObjectCmd(QtGui.QUndoCommand):
     def __init__(self, main_window, *args, **kwargs):
         super(ObjectCmd, self).__init__(*args, **kwargs)
         self.indexes_in = main_window.classTable.selectedIndexes()
-        self.indexes = [QtCore.QPersistentModelIndex(i) for i in self.indexes_in]
+        # self.indexes = [QtCore.QPersistentModelIndex(i) for i in self.indexes_in]
+        self.indexes = self.indexes_in
         self.main_window = main_window
         obj_class_index = main_window.classTree.selectedIndexes()[0]
         self.obj_class_index = QtCore.QPersistentModelIndex(obj_class_index)
@@ -62,11 +63,11 @@ class ObjectCmd(QtGui.QUndoCommand):
         self.selection_model = self.main_window.classTable.selectionModel()
 
         # Convert indexes to source indexes for storage, then convert back later
-        indexes_source_partial = [self.model.mapToSource(ind)
-                                  for ind in self.indexes_in]
-        self.indexes_source_in = [self.model.sourceModel().mapToSource(ind)
-                               for ind in indexes_source_partial]
-        self.indexes_source = [QtCore.QPersistentModelIndex(i) for i in self.indexes_source_in]
+        self.indexes_persistent = [QtCore.QPersistentModelIndex(i) for i in self.indexes_in]
+        self.indexes_source_partial = [self.model.mapToSource(ind)
+                                       for ind in self.indexes_persistent]
+        self.indexes_source = [self.model.sourceModel().mapToSource(ind)
+                               for ind in self.indexes_source_partial]
 
     def update_model(self):
         """Ensures that the model is up-to-date and changes it if not."""
@@ -83,6 +84,14 @@ class ObjectCmd(QtGui.QUndoCommand):
     def update_selection(self, single=None, offset=None):
         """Ensures that the selection is up-to-date and changes it if not."""
 
+        # Use stored source indexes to reconstruct indexes for the current model.
+        # Must do this on-the-fly due to the possibility that any layer of model
+        # has changed significantly.
+        indexes_partial = [self.model.sourceModel().mapFromSource(ind)
+                           for ind in self.indexes_source]
+        indexes = [self.model.mapFromSource(ind)
+                   for ind in indexes_partial]
+
         # Ensure there is an offset
         if offset is None:
             offset = 0
@@ -98,25 +107,25 @@ class ObjectCmd(QtGui.QUndoCommand):
                 row_offset = offset
                 col_offset = 0
 
-            if self.indexes:
+            if indexes:
                 # Create a new selection index with an offset
-                selection = self.model.index(self.indexes[-1].row() + row_offset,
-                                             self.indexes[-1].column() + col_offset)
+                selection = self.model.index(indexes[-1].row() + row_offset,
+                                             indexes[-1].column() + col_offset)
 
                 # If the index is not valid, use a non-offset index
                 if not selection.isValid():
-                    selection = self.indexes[-1]
+                    selection = indexes[-1]
 
                     # If it's still not valid, don't select anything
-                    if not self.indexes[-1].isValid():
+                    if not indexes[-1].isValid():
                         selection = None
             else:
                 selection = None
 
         else:
-            if self.indexes:
+            if indexes:
                 # Construct a selection from the saved indexes
-                selection = QtGui.QItemSelection(self.indexes[0], self.indexes[-1])
+                selection = QtGui.QItemSelection(indexes[0], indexes[-1])
             else:
                 selection = None
 
@@ -125,6 +134,7 @@ class ObjectCmd(QtGui.QUndoCommand):
         if selection:
             self.selection_model.select(selection,
                                         QtGui.QItemSelectionModel.SelectCurrent)
+        self.main_window.classTable.setFocus()
 
         # Hack to 'refresh' the class tree
         self.main_window.classTree.expandAll()
@@ -307,6 +317,7 @@ class DeleteObjectCmd(ObjectCmd):
 
         # Make a copy of the object(s) about to be deleted (only once)
         if not self.old_objects:
+            print('old objects not set, setting now')
             (self.index_groups,
              self.old_objects) = self.model.get_contiguous(self.indexes_source, False)
 
@@ -327,15 +338,24 @@ class ModifyObjectCmd(ObjectCmd):
         # Ensure that we have the right model available
         self.update_model()
 
+        # Use stored source indexes to reconstruct indexes for the current model.
+        # Must do this on-the-fly due to the possibility that any layer of model
+        # has changed significantly.
+        indexes_partial = [self.model.sourceModel().mapFromSource(ind)
+                           for ind in self.indexes_source]
+        indexes = [self.model.mapFromSource(ind)
+                   for ind in indexes_partial]
+
         # Call the setData method to change the values
-        self.model.setData(self.indexes[0], self.old_value, QtCore.Qt.EditRole)
+        self.model.setData(indexes[0], self.old_value, QtCore.Qt.EditRole)
 
         # Notify everyone that data has changed
-        self.model.dataChanged.emit(self.indexes[0], self.indexes[0])
+        self.model.dataChanged.emit(indexes[0], indexes[0])
 
         # Clear any current selection and select the next item
         self.main_window.classTable.clearSelection()
-        self.main_window.classTable.setCurrentIndex(self.indexes[0])
+        self.main_window.classTable.setCurrentIndex(indexes[0])
+        self.main_window.classTable.setFocus()
 
     def redo(self):
         """Redo action for modifying individual object values."""
@@ -346,15 +366,25 @@ class ModifyObjectCmd(ObjectCmd):
         # Set a name for the undo/redo action
         self.setText('Modify object')
 
-        # Store the old value for use by undo
-        self.old_value = self.model.data(self.indexes[0], QtCore.Qt.DisplayRole)
+        # Use stored source indexes to reconstruct indexes for the current model.
+        # Must do this on-the-fly due to the possibility that any layer of model
+        # has changed significantly.
+        indexes_partial = [self.model.sourceModel().mapFromSource(ind)
+                           for ind in self.indexes_source]
+        indexes = [self.model.mapFromSource(ind)
+                   for ind in indexes_partial]
+
+        # Store the old value for use by undo (only once)
+        if self.old_value is None:
+            self.old_value = self.model.data(indexes[0], QtCore.Qt.DisplayRole)
 
         # Call the setData method to change the values
-        self.model.setData(self.indexes[0], self.value, QtCore.Qt.EditRole)
+        self.model.setData(indexes[0], self.value, QtCore.Qt.EditRole)
 
         # Notify everyone that data has changed
-        self.model.dataChanged.emit(self.indexes[0], self.indexes[0])
+        self.model.dataChanged.emit(indexes[0], indexes[0])
 
         # Clear any current selection and select the next item
         self.main_window.classTable.clearSelection()
-        self.main_window.classTable.setCurrentIndex(self.indexes[0])
+        self.main_window.classTable.setCurrentIndex(indexes[0])
+        self.main_window.classTable.setFocus()
