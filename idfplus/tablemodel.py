@@ -168,15 +168,16 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
             return True
         return False
 
-    def mapToSource(self, indexes):
+    def mapToSource(self, sourceIndex):
         """Dummy to ensure there is always a mapToSource method even when there is no
         proxy layer."""
-        return indexes
+        return sourceIndex
 
-    def mapFromSource(self, indexes):
-        """Dummy to ensure there is always a mapFromSource method even when there is no
-        proxy layer."""
-        return indexes
+    def mapFromSource(self, sourceIndex):
+        """Provide an index when this model is used as a source model."""
+        if not sourceIndex.isValid():
+            return QtCore.QModelIndex()
+        return self.index(sourceIndex.row(), sourceIndex.column())
 
     def sourceModel(self):
         """Dummy to ensure there is always a sourceModel method even when there is no

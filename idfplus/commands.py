@@ -63,9 +63,9 @@ class ObjectCmd(QtGui.QUndoCommand):
         self.selection_model = self.main_window.classTable.selectionModel()
 
         # Convert indexes to source indexes for storage, then convert back later
-        self.indexes_persistent = [QtCore.QPersistentModelIndex(i) for i in self.indexes_in]
+        # self.indexes_persistent = [QtCore.QPersistentModelIndex(i) for i in self.indexes_in]
         self.indexes_source_partial = [self.model.mapToSource(ind)
-                                       for ind in self.indexes_persistent]
+                                       for ind in self.indexes_in]
         self.indexes_source = [self.model.sourceModel().mapToSource(ind)
                                for ind in self.indexes_source_partial]
 
@@ -317,7 +317,6 @@ class DeleteObjectCmd(ObjectCmd):
 
         # Make a copy of the object(s) about to be deleted (only once)
         if not self.old_objects:
-            print('old objects not set, setting now')
             (self.index_groups,
              self.old_objects) = self.model.get_contiguous(self.indexes_source, False)
 

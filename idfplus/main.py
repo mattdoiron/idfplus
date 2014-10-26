@@ -578,6 +578,11 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow, idfsettings.Settings):
         if not self.obj_clipboard:
             return False
 
+        # Don't let it paste into a different class
+        target_class = self.obj_clipboard[1][0][0].obj_class
+        if self.current_obj_class != target_class:
+            return False
+
         # Create undo command and push it to the undo stack
         cmd = commands.NewObjectCmd(self, from_clipboard=True)
         self.undo_stack.push(cmd)
