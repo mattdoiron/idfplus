@@ -179,6 +179,20 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
             return QtCore.QModelIndex()
         return self.index(sourceIndex.row(), sourceIndex.column())
 
+    def mapSelectionFromSource(self, selection):
+        returnSelection = QtGui.QItemSelection()
+        for sel in selection:
+            top_left = self.mapFromSource(sel.topLeft())
+            bottom_right = self.mapFromSource(sel.bottomRight())
+            sel_range = QtGui.QItemSelectionRange(top_left, bottom_right)
+            returnSelection.append(sel_range)
+        return returnSelection
+
+    def mapSelectionToSource(self, selection):
+        """Dummy to ensure there is always a mapSelectionToSource method even when there
+        is no proxy layer."""
+        return selection
+
     def sourceModel(self):
         """Dummy to ensure there is always a sourceModel method even when there is no
          proxy layer."""
@@ -261,7 +275,7 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
 
     def get_contiguous_rows(self, indexes, reverse):
 
-        # Make a unique set of rows to be deleted
+        # Make a unique set of rows
         row_set = set(index.row() for index in indexes)
 
         # Create groups of contiguous row indexes in reverse order
@@ -469,6 +483,15 @@ class TransposeProxyModel(QtGui.QAbstractProxyModel):
             return QtCore.QModelIndex()
         return self.sourceModel().index(proxyIndex.column(), proxyIndex.row())
 
+    def mapSelectionFromSource(self, selection):
+        returnSelection = QtGui.QItemSelection()
+        for sel in selection:
+            top_left = self.mapFromSource(sel.topLeft())
+            bottom_right = self.mapFromSource(sel.bottomRight())
+            sel_range = QtGui.QItemSelectionRange(top_left, bottom_right)
+            returnSelection.append(sel_range)
+        return returnSelection
+
     def mapSelectionToSource(self, selection):
         returnSelection = QtGui.QItemSelection()
         for sel in selection:
@@ -575,6 +598,24 @@ class SortFilterProxyModel(QtGui.QSortFilterProxyModel):
                 return True
 
         return False
+
+    def mapSelectionFromSource(self, selection):
+        returnSelection = QtGui.QItemSelection()
+        for sel in selection:
+            top_left = self.mapFromSource(sel.topLeft())
+            bottom_right = self.mapFromSource(sel.bottomRight())
+            sel_range = QtGui.QItemSelectionRange(top_left, bottom_right)
+            returnSelection.append(sel_range)
+        return returnSelection
+
+    def mapSelectionToSource(self, selection):
+        returnSelection = QtGui.QItemSelection()
+        for sel in selection:
+            top_left = self.mapToSource(sel.topLeft())
+            bottom_right = self.mapToSource(sel.bottomRight())
+            sel_range = QtGui.QItemSelectionRange(top_left, bottom_right)
+            returnSelection.append(sel_range)
+        return returnSelection
 
     def removeObjects(self, *args, **kwargs):
         # Do NOT map to source. Pass through only.

@@ -40,6 +40,9 @@ class ObjectCmd(QtGui.QUndoCommand):
 
     def __init__(self, main_window, *args, **kwargs):
         super(ObjectCmd, self).__init__(*args, **kwargs)
+
+        #TODO many of these are not needed for all subclasses. Break them out into
+        # separate init methods in each subclass
         self.indexes_in = main_window.classTable.selectedIndexes()
         # self.indexes = [QtCore.QPersistentModelIndex(i) for i in self.indexes_in]
         self.indexes = self.indexes_in
@@ -63,11 +66,16 @@ class ObjectCmd(QtGui.QUndoCommand):
         self.selection_model = self.main_window.classTable.selectionModel()
 
         # Convert indexes to source indexes for storage, then convert back later
-        # self.indexes_persistent = [QtCore.QPersistentModelIndex(i) for i in self.indexes_in]
-        self.indexes_source_partial = [self.model.mapToSource(ind)
-                                       for ind in self.indexes_in]
+        indexes_source_partial = [self.model.mapToSource(ind)
+                                  for ind in self.indexes_in]
         self.indexes_source = [self.model.sourceModel().mapToSource(ind)
-                               for ind in self.indexes_source_partial]
+                               for ind in indexes_source_partial]
+
+        # Convert selection to source indexes for storage, then convert back later
+        self.selection_saved = []
+        for sel in self.selection_model.selection():
+            self.selection_saved.append((sel.topLeft(), sel.bottomRight()))
+            # print('{}:{}'.format(sel.bottomRight().row(), sel.bottomRight().column()))
 
     def update_model(self):
         """Ensures that the model is up-to-date and changes it if not."""
@@ -79,7 +87,7 @@ class ObjectCmd(QtGui.QUndoCommand):
 
             # Get the new table's model
             self.model = self.main_window.classTable.model()
-            self.selection_model = self.main_window.classTable.selectionModel()
+            # self.selection_model = self.main_window.classTable.selectionModel()
 
     def update_selection(self, single=None, offset=None):
         """Ensures that the selection is up-to-date and changes it if not."""
@@ -87,10 +95,22 @@ class ObjectCmd(QtGui.QUndoCommand):
         # Use stored source indexes to reconstruct indexes for the current model.
         # Must do this on-the-fly due to the possibility that any layer of model
         # has changed significantly.
-        indexes_partial = [self.model.sourceModel().mapFromSource(ind)
-                           for ind in self.indexes_source]
-        indexes = [self.model.mapFromSource(ind)
-                   for ind in indexes_partial]
+        # indexes_partial = [self.model.sourceModel().mapFromSource(ind)
+        #                    for ind in self.indexes_source]
+        # indexes = [self.model.mapFromSource(ind)
+        #            for ind in indexes_partial]
+        # print('indexes: {}'.format(indexes))
+
+        # Use stored selection to reconstruct indexes for the current model.
+        selection = QtGui.QItemSelection()
+        selection_new = QtGui.QItemSelection()
+        for sel in self.selection_saved:
+            top_left = self.model.index(sel[0].row(), sel[0].column())
+            bottom_right = self.model.index(sel[1].row(), sel[1].column())
+            # print('{}:{}'.format(sel[1].row(), sel[1].column()))
+            # print('{}:{}'.format(bottom_right.row(), bottom_right.column()))
+            sel_range = QtGui.QItemSelectionRange(top_left, bottom_right)
+            selection.append(sel_range)
 
         # Ensure there is an offset
         if offset is None:
@@ -102,38 +122,46 @@ class ObjectCmd(QtGui.QUndoCommand):
             # Define the offset from the index to delete
             if self.main_window.obj_orientation == QtCore.Qt.Vertical:
                 row_offset = 0
-                col_offset = offset
+                col_offset = 0 #offset
             else:
-                row_offset = offset
+                row_offset = 0 #offset
                 col_offset = 0
 
-            if indexes:
-                # Create a new selection index with an offset
-                selection = self.model.index(indexes[-1].row() + row_offset,
-                                             indexes[-1].column() + col_offset)
+            if selection:
+                # Create new selection indexes with an offset
+                last_sel = selection[-1]
+                top_left = self.model.index(last_sel.top() + row_offset,
+                                            last_sel.left() + col_offset)
+                bottom_right = self.model.index(last_sel.bottom() + row_offset,
+                                                last_sel.left() + col_offset)
+                sel_range = QtGui.QItemSelectionRange(top_left, bottom_right)
 
                 # If the index is not valid, use a non-offset index
-                if not selection.isValid():
-                    selection = indexes[-1]
+                if top_left.isValid() and bottom_right.isValid():
+                    print('new selection valid - using it')
+                    selection_new.append(sel_range)
+                else:
+                    print('invalid new selection, using shorter selection')
+                    col_count = self.model.columnCount(top_left)
 
-                    # If it's still not valid, don't select anything
-                    if not indexes[-1].isValid():
-                        selection = None
+                    sel = self.selection_saved[-1]
+                    top_left = self.model.index(sel[0].row() + row_offset,
+                                                sel[0].column() + col_offset)
+                    bottom_right = self.model.index(sel[1].row() + row_offset,
+                                                    col_count - 1 + col_offset)
+                    sel_range = QtGui.QItemSelectionRange(top_left, bottom_right)
+                    selection_new.append(sel_range)
             else:
-                selection = None
+                print('single selection specified, but no selection present')
+                selection_new.append(selection[-1])
 
         else:
-            if indexes:
-                # Construct a selection from the saved indexes
-                selection = QtGui.QItemSelection(indexes[0], indexes[-1])
-            else:
-                selection = None
+            print('using saved selection')
+            selection_new = selection
 
         # Clear the selection model and reselect the appropriate indexes if necessary
         self.selection_model.reset()
-        if selection:
-            self.selection_model.select(selection,
-                                        QtGui.QItemSelectionModel.SelectCurrent)
+        self.selection_model.select(selection_new, QtGui.QItemSelectionModel.SelectCurrent)
         self.main_window.classTable.setFocus()
 
         # Hack to 'refresh' the class tree
