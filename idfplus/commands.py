@@ -89,7 +89,7 @@ class ObjectCmd(QtGui.QUndoCommand):
             self.model = self.main_window.classTable.model()
             # self.selection_model = self.main_window.classTable.selectionModel()
 
-    def update_selection(self, single=None, offset=None):
+    def update_selection(self, highlight_size=None, offset=None):
         """Ensures that the selection is up-to-date and changes it if not."""
 
         # Use stored source indexes to reconstruct indexes for the current model.
@@ -101,63 +101,62 @@ class ObjectCmd(QtGui.QUndoCommand):
         #            for ind in indexes_partial]
         # print('indexes: {}'.format(indexes))
 
+        print('--\nHighlight_size: {}, Offset: {}'.format(highlight_size, offset))
+
         # Use stored selection to reconstruct indexes for the current model.
         selection = QtGui.QItemSelection()
-        selection_new = QtGui.QItemSelection()
         for sel in self.selection_saved:
             top_left = self.model.index(sel[0].row(), sel[0].column())
             bottom_right = self.model.index(sel[1].row(), sel[1].column())
-            # print('{}:{}'.format(sel[1].row(), sel[1].column()))
-            # print('{}:{}'.format(bottom_right.row(), bottom_right.column()))
+            print('TL:({},{}) BR:({},{})'.format(sel[0].row(), sel[0].column(),
+                                                 sel[1].row(), sel[1].column()))
             sel_range = QtGui.QItemSelectionRange(top_left, bottom_right)
             selection.append(sel_range)
 
-        # Ensure there is an offset
-        if offset is None:
-            offset = 0
+        last_sel = selection[-1]
+        selection_new = QtGui.QItemSelection()
 
-        # Define what to select based on the single keyword
-        if single is True:
-
-            # Define the offset from the index to delete
-            if self.main_window.obj_orientation == QtCore.Qt.Vertical:
-                row_offset = 0
-                col_offset = 0 #offset
-            else:
-                row_offset = 0 #offset
-                col_offset = 0
-
-            if selection:
-                # Create new selection indexes with an offset
-                last_sel = selection[-1]
-                top_left = self.model.index(last_sel.top() + row_offset,
-                                            last_sel.left() + col_offset)
-                bottom_right = self.model.index(last_sel.bottom() + row_offset,
-                                                last_sel.left() + col_offset)
-                sel_range = QtGui.QItemSelectionRange(top_left, bottom_right)
-
-                # If the index is not valid, use a non-offset index
-                if top_left.isValid() and bottom_right.isValid():
-                    print('new selection valid - using it')
-                    selection_new.append(sel_range)
-                else:
-                    print('invalid new selection, using shorter selection')
-                    col_count = self.model.columnCount(top_left)
-
-                    sel = self.selection_saved[-1]
-                    top_left = self.model.index(sel[0].row() + row_offset,
-                                                sel[0].column() + col_offset)
-                    bottom_right = self.model.index(sel[1].row() + row_offset,
-                                                    col_count - 1 + col_offset)
-                    sel_range = QtGui.QItemSelectionRange(top_left, bottom_right)
-                    selection_new.append(sel_range)
-            else:
-                print('single selection specified, but no selection present')
-                selection_new.append(selection[-1])
-
+        # Define the offset from the index to delete
+        if self.main_window.obj_orientation == QtCore.Qt.Vertical:
+            row_offset = 0
+            col_offset = 0 if not offset else selection[-1].width()
+            range_size = selection[-1].width()
         else:
-            print('using saved selection')
-            selection_new = selection
+            row_offset = 0 if not offset else selection[-1].height()
+            col_offset = 0
+            range_size = selection[-1].height()
+
+        if highlight_size is None:
+            highlight_size = range_size
+            # print('setting highlight size to: {}'.format(highlight_size))
+
+        # print('Highlight_size: {}, Offset: {}'.format(highlight_size, offset))
+        # print('row_offset: {}, col_offset: {}'.format(row_offset, col_offset))
+
+        if self.main_window.obj_orientation == QtCore.Qt.Vertical:
+            top_left = self.model.index(last_sel.top() + row_offset,
+                                        last_sel.left() + col_offset)
+            bottom_right = self.model.index(last_sel.bottom() + row_offset,
+                                            last_sel.left() + highlight_size - 1 + col_offset)
+        else:
+            top_left = self.model.index(last_sel.top() + row_offset,
+                                        last_sel.left() + col_offset)
+            bottom_right = self.model.index(last_sel.top() + highlight_size - 1 + row_offset,
+                                            last_sel.right() + col_offset)
+
+        if not top_left.isValid() or not bottom_right.isValid():
+            print('invalid new selection, using shorter selection')
+            #TODO this works, but needs to be changed to work in transposed mode
+            col_count = self.model.columnCount(top_left)
+
+            sel = self.selection_saved[-1]
+            top_left = self.model.index(sel[0].row() + row_offset,
+                                        sel[0].column() + col_offset)
+            bottom_right = self.model.index(sel[1].row() + row_offset,
+                                            col_count - 1 + col_offset)
+
+        sel_range = QtGui.QItemSelectionRange(top_left, bottom_right)
+        selection_new.append(sel_range)
 
         # Clear the selection model and reselect the appropriate indexes if necessary
         self.selection_model.reset()
@@ -185,18 +184,18 @@ class NewObjectCmd(ObjectCmd):
         self.model.removeObjects(delete_range, offset=1, delete_count=self.delete_count)
 
         # Clear any current selection and select the next item
-        if self.delete_count > 1:
-            single = False
-        else:
-            single = True
-        self.update_selection(single=single)
+        # if self.delete_count > 1:
+        #     single = False
+        # else:
+        #     single = False #True
+        self.update_selection()
 
     def redo(self):
         """Redo action for inserting new objects."""
 
         # Ensure that we have the right model available
         self.update_model()
-
+        single = False
         # Set a name for the undo/redo action
         self.setText('Create object')
 
@@ -237,16 +236,18 @@ class NewObjectCmd(ObjectCmd):
                 else:
                     self.new_object_groups = []
                 self.delete_count = 1
+                # single = True
 
         # Call the table's insert method
         self.model.insertObjects(self.new_object_groups, self.new_objects, offset=1)
 
         # Clear any current selection and select the next item
-        if self.delete_count > 1:
-            single = False
-        else:
-            single = True
-        self.update_selection(single=single, offset=1)
+        #TODO this should depend on number of previously selected cells only!
+        # if self.delete_count > 1:
+        #     single = False
+        # else:
+        #     single = False #True
+        self.update_selection(highlight_size=self.delete_count, offset=True)
 
 
 class PasteSelectedCmd(ObjectCmd):
@@ -353,7 +354,7 @@ class DeleteObjectCmd(ObjectCmd):
         self.model.removeObjects(self.indexes_source)
 
         # Clear any current selection and select the next item
-        self.update_selection(single=True)
+        self.update_selection(highlight_size=1, offset=0)
 
 
 class ModifyObjectCmd(ObjectCmd):
