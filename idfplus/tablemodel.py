@@ -59,6 +59,9 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
         self.get_labels()
         super(IDFObjectTableModel, self).__init__(parent)
 
+    def get_obj_class(self):
+        return self.obj_class
+
     def flags(self, index):
         if not index.isValid():
             return QtCore.Qt.ItemIsEnabled
@@ -171,7 +174,9 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
     def mapToSource(self, sourceIndex):
         """Dummy to ensure there is always a mapToSource method even when there is no
         proxy layer."""
-        return sourceIndex
+        if not sourceIndex.isValid():
+            return QtCore.QModelIndex()
+        return self.index(sourceIndex.row(), sourceIndex.column())
 
     def mapFromSource(self, sourceIndex):
         """Provide an index when this model is used as a source model."""
@@ -552,6 +557,9 @@ class TransposeProxyModel(QtGui.QAbstractProxyModel):
     def get_units(self, *args, **kwargs):
         return self.sourceModel().get_units(*args, **kwargs)
 
+    def get_obj_class(self):
+        return self.sourceModel().get_obj_class()
+
 
 class SortFilterProxyModel(QtGui.QSortFilterProxyModel):
     """Proxy layer to sort and filter"""
@@ -631,6 +639,9 @@ class SortFilterProxyModel(QtGui.QSortFilterProxyModel):
 
     def get_units(self, *args, **kwargs):
         return self.sourceModel().get_units(*args, **kwargs)
+
+    def get_obj_class(self):
+        return self.sourceModel().get_obj_class()
 
 
 class TableView(QtGui.QTableView):

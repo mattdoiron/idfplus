@@ -51,7 +51,6 @@ class ObjectCmd(QtGui.QUndoCommand):
         self.obj_class_index = QtCore.QPersistentModelIndex(obj_class_index)
         self.obj_class = main_window.current_obj_class
         self.obj_orientation = main_window.obj_orientation
-        # self.tx_id = None
         self.mime_data = None
         self.new_objects = None
         self.new_object_groups = None
@@ -75,48 +74,39 @@ class ObjectCmd(QtGui.QUndoCommand):
         self.selection_saved = []
         for sel in self.selection_model.selection():
             self.selection_saved.append((sel.topLeft(), sel.bottomRight()))
-            # print('{}:{}'.format(sel.bottomRight().row(), sel.bottomRight().column()))
 
     def update_model(self):
         """Ensures that the model is up-to-date and changes it if not."""
 
         # Make sure the table view is updated so we grab the right model
         if self.main_window.current_obj_class != self.obj_class:
-            # self.main_window.load_table_view(self.obj_class)
             self.main_window.classTree.setCurrentIndex(self.obj_class_index)
 
-            # Get the new table's model
-            self.model = self.main_window.classTable.model()
-            # self.selection_model = self.main_window.classTable.selectionModel()
+        # Get the new table's model (even if there is no need to change obj_class!)
+        # Sometimes the model changes for other reasons (transposed or now).
+        self.model = self.main_window.classTable.model()
+        self.selection_model = self.main_window.classTable.selectionModel()
 
     def update_selection(self, highlight_size=None, offset=None):
         """Ensures that the selection is up-to-date and changes it if not."""
 
-        # Use stored source indexes to reconstruct indexes for the current model.
-        # Must do this on-the-fly due to the possibility that any layer of model
-        # has changed significantly.
-        # indexes_partial = [self.model.sourceModel().mapFromSource(ind)
-        #                    for ind in self.indexes_source]
-        # indexes = [self.model.mapFromSource(ind)
-        #            for ind in indexes_partial]
-        # print('indexes: {}'.format(indexes))
-
-        print('--\nHighlight_size: {}, Offset: {}'.format(highlight_size, offset))
-
         # Use stored selection to reconstruct indexes for the current model.
         selection = QtGui.QItemSelection()
         for sel in self.selection_saved:
-            top_left = self.model.index(sel[0].row(), sel[0].column())
-            bottom_right = self.model.index(sel[1].row(), sel[1].column())
-            print('TL:({},{}) BR:({},{})'.format(sel[0].row(), sel[0].column(),
-                                                 sel[1].row(), sel[1].column()))
+            if self.obj_orientation == self.main_window.obj_orientation:
+                top_left = self.model.index(sel[0].row(), sel[0].column())
+                bottom_right = self.model.index(sel[1].row(), sel[1].column())
+            else:
+                top_left = self.model.index(sel[0].column(), sel[0].row())
+                bottom_right = self.model.index(sel[1].column(), sel[1].row())
+
             sel_range = QtGui.QItemSelectionRange(top_left, bottom_right)
             selection.append(sel_range)
 
         last_sel = selection[-1]
         selection_new = QtGui.QItemSelection()
 
-        # Define the offset from the index to delete
+        # Define the offset and range
         if self.main_window.obj_orientation == QtCore.Qt.Vertical:
             row_offset = 0
             col_offset = 0 if not offset else selection[-1].width()
@@ -128,11 +118,8 @@ class ObjectCmd(QtGui.QUndoCommand):
 
         if highlight_size is None:
             highlight_size = range_size
-            # print('setting highlight size to: {}'.format(highlight_size))
 
-        # print('Highlight_size: {}, Offset: {}'.format(highlight_size, offset))
-        # print('row_offset: {}, col_offset: {}'.format(row_offset, col_offset))
-
+        # Construct the selection range indexes for the current model
         if self.main_window.obj_orientation == QtCore.Qt.Vertical:
             top_left = self.model.index(last_sel.top() + row_offset,
                                         last_sel.left() + col_offset)
@@ -144,23 +131,29 @@ class ObjectCmd(QtGui.QUndoCommand):
             bottom_right = self.model.index(last_sel.top() + highlight_size - 1 + row_offset,
                                             last_sel.right() + col_offset)
 
-        if not top_left.isValid() or not bottom_right.isValid():
-            print('invalid new selection, using shorter selection')
-            #TODO this works, but needs to be changed to work in transposed mode
-            col_count = self.model.columnCount(top_left)
-
+        # Check for a selection range that extends beyond the size of the current model
+        #TODO not working yet when transposed after selection
+        if not bottom_right.isValid():
             sel = self.selection_saved[-1]
-            top_left = self.model.index(sel[0].row() + row_offset,
-                                        sel[0].column() + col_offset)
-            bottom_right = self.model.index(sel[1].row() + row_offset,
-                                            col_count - 1 + col_offset)
+            if self.obj_orientation == QtCore.Qt.Vertical:
+                count = self.model.columnCount(top_left)
+                bottom_right = self.model.index(sel[1].row() + row_offset,
+                                                count - 1 + col_offset)
+            else:
+                count = self.model.rowCount(top_left)
+                bottom_right = self.model.index(count - 1 + row_offset,
+                                                sel[1].row() + col_offset)
+                print('br: {},{}'.format(count - 1 + row_offset,
+                                         sel[1].row() + col_offset))
 
+        # Create the selection range and append it to the new selection
         sel_range = QtGui.QItemSelectionRange(top_left, bottom_right)
         selection_new.append(sel_range)
 
         # Clear the selection model and reselect the appropriate indexes if necessary
         self.selection_model.reset()
-        self.selection_model.select(selection_new, QtGui.QItemSelectionModel.SelectCurrent)
+        self.selection_model.select(selection_new,
+                                    QtGui.QItemSelectionModel.SelectCurrent)
         self.main_window.classTable.setFocus()
 
         # Hack to 'refresh' the class tree
@@ -242,11 +235,6 @@ class NewObjectCmd(ObjectCmd):
         self.model.insertObjects(self.new_object_groups, self.new_objects, offset=1)
 
         # Clear any current selection and select the next item
-        #TODO this should depend on number of previously selected cells only!
-        # if self.delete_count > 1:
-        #     single = False
-        # else:
-        #     single = False #True
         self.update_selection(highlight_size=self.delete_count, offset=True)
 
 

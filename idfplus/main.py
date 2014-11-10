@@ -338,22 +338,20 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow, idfsettings.Settings):
         partially_mapped = self.classTable.model().mapToSource(_index)
         index = self.classTable.model().sourceModel().mapToSource(partially_mapped)
 
+        # Retrieve the node (could be invalid so use try)
         try:
             G = self.idf._graph
             node = self.idf[self.current_obj_class][index.row()][index.column()]
             ancestors = nx.ancestors(G, node)
             descendants = nx.descendants(G, node)
-            new_model = treemodel.ReferenceTreeModel([ancestors, descendants],
-                                                     ("Field", "Class"),
-                                                     self.refView)
-            self.refView.setModel(new_model)
-            self.refView.expandAll()
-
+            data = [ancestors, descendants]
         except (nx.exception.NetworkXError, IndexError) as e:
-            empty_model = treemodel.ReferenceTreeModel(None,
-                                                       ("Field", "Class"),
-                                                       self.refView)
-            self.refView.setModel(empty_model)
+            data = None
+
+        # Create a new model for the tree view and assign it, then refresh view
+        new_model = treemodel.ReferenceTreeModel(data, ("Field", "Class"), self.refView)
+        self.refView.setModel(new_model)
+        self.refView.expandAll()
 
         # Also update the infoview
         obj_info = self.idd[self.current_obj_class].get_info()
@@ -664,6 +662,16 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow, idfsettings.Settings):
         """
         #TODO instantiate TransposeProxyModel and IDFObjectTableModel elsewhere?
 
+        # Save the previous selection to potential re-apply. Save in terms of source
+        selection_model = self.classTable.selectionModel()
+        previous_model = self.classTable.model()
+        source_sel = None
+        if selection_model and previous_model:
+            if previous_model.get_obj_class() == obj_class:
+                sel = selection_model.selection()
+                partial = previous_model.mapSelectionToSource(sel)
+                source_sel = previous_model.sourceModel().mapSelectionToSource(partial)
+
         # Filter out group headers
         if obj_class not in self.idd:
             return
@@ -691,7 +699,8 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow, idfsettings.Settings):
         table.setModel(sortable)
 
         # Create generic delegates for table cells
-        item_delegates = delegates.GenericDelegate(self, self.idd[obj_class],
+        item_delegates = delegates.GenericDelegate(self,
+                                                   self.idd[obj_class],
                                                    self.obj_orientation)
         table.setItemDelegate(item_delegates)
 
@@ -699,6 +708,12 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow, idfsettings.Settings):
         # default_model.sourceModel().dataChanged.connect(self.update_tree_view)
         selection_model = table.selectionModel()
         selection_model.selectionChanged.connect(self.table_selection_changed)
+
+        # Restore previous selection after converting to current model's indexes
+        if source_sel:
+            partial = sortable.sourceModel().mapSelectionFromSource(source_sel)
+            previous_sel = sortable.mapSelectionFromSource(partial)
+            selection_model.select(previous_sel, QtGui.QItemSelectionModel.SelectCurrent)
 
         # Grab the comments
         comments = ''
