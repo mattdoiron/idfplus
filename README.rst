@@ -47,14 +47,13 @@ copy, paste, delete and duplicate will be 'undoable'. The undo history can be na
 allowing a user to return to previous points in the model's recent history (within the
 given editing session).
 
-Filter, Sort and Transpose
+Filter and Transpose
 ==========================
 
 Both the list of classes and objects are search/filterable. This means a user can show
 only objects or classes containing arbitrary bits of text. The editing actions can then
 be performed on this subset of objects. The object list can also be transposed
-(rows/columns reversed) to show a more traditional spreadsheet-like view. The object
-list can also be sorted by any column.
+(rows/columns reversed) to show a more traditional spreadsheet-like view.
 
 Highly Flexible Interface
 =========================
