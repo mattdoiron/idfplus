@@ -338,6 +338,20 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow, idfsettings.Settings):
         partially_mapped = self.classTable.model().mapToSource(_index)
         index = self.classTable.model().sourceModel().mapToSource(partially_mapped)
 
+        # Update the refView
+        self.update_reference_view(index)
+
+        # Also update the infoview
+        obj_info = self.idd[self.current_obj_class].get_info()
+        idd_field = self.idd[self.current_obj_class][index.column()]
+        field_info = idd_field.get_info()
+        self.infoView.setText(obj_info + "\n\n" + field_info)
+
+        # Also update the units label
+        units = self.classTable.model().get_units(idd_field)
+        self.unitsLabel.setText('Display Units: {}'.format(units))
+
+    def update_reference_view(self, index):
         # Retrieve the node (could be invalid so use try)
         try:
             G = self.idf._graph
@@ -352,16 +366,6 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow, idfsettings.Settings):
         new_model = treemodel.ReferenceTreeModel(data, ("Field", "Class"), self.refView)
         self.refView.setModel(new_model)
         self.refView.expandAll()
-
-        # Also update the infoview
-        obj_info = self.idd[self.current_obj_class].get_info()
-        idd_field = self.idd[self.current_obj_class][index.column()]
-        field_info = idd_field.get_info()
-        self.infoView.setText(obj_info + "\n\n" + field_info)
-
-        # Also update the units label
-        units = self.classTable.model().get_units(idd_field)
-        self.unitsLabel.setText('Display Units: {}'.format(units))
 
     def ref_tree_double_clicked(self, index):
         """Responds when the reference tree widget is double-clicked.

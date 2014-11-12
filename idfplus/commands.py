@@ -124,27 +124,42 @@ class ObjectCmd(QtGui.QUndoCommand):
             top_left = self.model.index(last_sel.top() + row_offset,
                                         last_sel.left() + col_offset)
             bottom_right = self.model.index(last_sel.bottom() + row_offset,
-                                            last_sel.left() + highlight_size - 1 + col_offset)
+                                            last_sel.left() + highlight_size - 1
+                                            + col_offset)
         else:
             top_left = self.model.index(last_sel.top() + row_offset,
                                         last_sel.left() + col_offset)
-            bottom_right = self.model.index(last_sel.top() + highlight_size - 1 + row_offset,
+            bottom_right = self.model.index(last_sel.top() + highlight_size - 1
+                                            + row_offset,
                                             last_sel.right() + col_offset)
 
         # Check for a selection range that extends beyond the size of the current model
-        #TODO not working yet when transposed after selection
         if not bottom_right.isValid():
             sel = self.selection_saved[-1]
-            if self.obj_orientation == QtCore.Qt.Vertical:
+            if self.obj_orientation == QtCore.Qt.Vertical and \
+               self.obj_orientation == self.main_window.obj_orientation:
                 count = self.model.columnCount(top_left)
                 bottom_right = self.model.index(sel[1].row() + row_offset,
                                                 count - 1 + col_offset)
-            else:
+                # print('1 br: {},{}'.format(bottom_right.row(), bottom_right.column()))
+            elif self.obj_orientation == QtCore.Qt.Vertical and \
+                 self.obj_orientation != self.main_window.obj_orientation:
                 count = self.model.rowCount(top_left)
                 bottom_right = self.model.index(count - 1 + row_offset,
                                                 sel[1].row() + col_offset)
-                print('br: {},{}'.format(count - 1 + row_offset,
-                                         sel[1].row() + col_offset))
+                # print('2 br: {},{}'.format(bottom_right.row(), bottom_right.column()))
+            elif self.obj_orientation == QtCore.Qt.Horizontal and \
+                 self.obj_orientation == self.main_window.obj_orientation:
+                count = self.model.rowCount(top_left)
+                bottom_right = self.model.index(count - 1 + row_offset,
+                                                sel[1].column() + col_offset)
+                # print('3 br: {},{}'.format(bottom_right.row(), bottom_right.column()))
+            elif self.obj_orientation == QtCore.Qt.Horizontal and \
+                 self.obj_orientation != self.main_window.obj_orientation:
+                count = self.model.columnCount(top_left)
+                bottom_right = self.model.index(sel[1].column() + row_offset,
+                                                count - 1 + col_offset)
+                # print('4 br: {},{}'.format(bottom_right.row(), bottom_right.column()))
 
         # Create the selection range and append it to the new selection
         sel_range = QtGui.QItemSelectionRange(top_left, bottom_right)
