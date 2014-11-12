@@ -366,6 +366,11 @@ class UI_MainWindow(object):
                 statusTip="Open location of current file", iconVisibleInMenu=True,
                 triggered=self.show_in_folder)
 
+        self.openInEditorAct = QtGui.QAction(QtGui.QIcon(':/images/new.png'),
+                "&Open current file in text editor", self, shortcut=QtGui.QKeySequence('Ctrl+e'),
+                statusTip="Open current file in text editor", iconVisibleInMenu=True,
+                triggered=self.show_in_folder)
+
         self.aboutAct = QtGui.QAction("&About", self,
                 statusTip="Show the application's About box",
                 triggered=self.about)
@@ -401,6 +406,7 @@ class UI_MainWindow(object):
         self.setSIUnitsAction.setChecked(True)
         self.undoAct.setEnabled(False)
         self.redoAct.setEnabled(False)
+        self.openInEditorAct.setEnabled(False)
         self.undo_stack.canUndoChanged.connect(self.toggle_can_undo)
         self.undo_stack.canRedoChanged.connect(self.toggle_can_redo)
 
@@ -448,6 +454,7 @@ class UI_MainWindow(object):
         # Tools Menu
         self.toolsMenu = self.menuBar().addMenu("&Tools")
         self.toolsMenu.addAction(self.showInFolderAct)
+        self.toolsMenu.addAction(self.openInEditorAct)
         self.toolsMenu.addSeparator()
         self.toolsMenu.addAction(self.showPrefsAction)
 
