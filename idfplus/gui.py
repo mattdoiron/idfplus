@@ -361,6 +361,11 @@ class UI_MainWindow(object):
         #         statusTip="Go back to the previous object",
         #         triggered=self.navBack)
 
+        self.showInFolderAct = QtGui.QAction(QtGui.QIcon(':/images/new.png'),
+                "&Show current file in folder", self, shortcut=QtGui.QKeySequence('Ctrl+o'),
+                statusTip="Open location of current file", iconVisibleInMenu=True,
+                triggered=self.show_in_folder)
+
         self.aboutAct = QtGui.QAction("&About", self,
                 statusTip="Show the application's About box",
                 triggered=self.about)
@@ -439,8 +444,12 @@ class UI_MainWindow(object):
         self.editMenu.addSeparator().setText('Values')
         self.editMenu.addAction(self.copyAct)
         self.editMenu.addAction(self.pasteAct)
-        self.editMenu.addSeparator()
-        self.editMenu.addAction(self.showPrefsAction)
+
+        # Tools Menu
+        self.toolsMenu = self.menuBar().addMenu("&Tools")
+        self.toolsMenu.addAction(self.showInFolderAct)
+        self.toolsMenu.addSeparator()
+        self.toolsMenu.addAction(self.showPrefsAction)
 
         # View Menu
         self.viewMenu = self.menuBar().addMenu("&View")
