@@ -1,20 +1,20 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 """"
-Copyright (c) 2014, IDFPlus Inc. All rights reserved.
+Copyright (c) 2014, Matthew Doiron All rights reserved.
 
-IDFPlus is free software: you can redistribute it and/or modify
+IDF+ is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
 
-IDFPlus is distributed in the hope that it will be useful,
+IDF+ is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with IDFPlus. If not, see <http://www.gnu.org/licenses/>.
+along with IDF+. If not, see <http://www.gnu.org/licenses/>.
 """
 
 # Prepare for Python 3
@@ -24,11 +24,6 @@ from __future__ import (print_function, division, absolute_import)
 import os
 import platform
 # from BTrees.OOBTree import OOBTree
-# from ZODB import FileStorage
-# from ZODB import DB
-# from collections import deque
-# import tempfile
-# import appdirs
 import networkx as nx
 
 # PySide imports
@@ -47,7 +42,7 @@ from . import treemodel
 from . import gui
 
 # Constants
-from . import idfsettings as c
+# from . import idfsettings as c
 
 # Resource imports for icons
 from . import icons_rc
@@ -66,7 +61,6 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow, idfsettings.Settings):
         self.create_ui()
 
         # Load settings (call this second)
-        # self.settings = idfsettings.Settings()
         self.init_settings(self)
         self.read_settings()
 
@@ -82,8 +76,6 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow, idfsettings.Settings):
         self.dirty = False
         self.obj_orientation = QtCore.Qt.Vertical
         self.current_obj_class = None
-        # self.com = Communicate()
-        # self.clipboard = QtGui.QApplication.instance().clipboard()
         self.obj_clipboard = []
 
         # Create main application elements
@@ -94,9 +86,6 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow, idfsettings.Settings):
         self.create_tray_menu()
         self.create_progress_bar()
 
-        # In-memory ZODB databases don't support undo! Use an on-disk cache
-        # self.db = MyZODB()
-
         # Create a place to store all open files
         # self.db.dbroot.files = OOBTree()
         # self.files = self.db.dbroot.files
@@ -106,7 +95,6 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow, idfsettings.Settings):
         """Called when the application is closed."""
         if self.ok_to_continue():
             self.write_settings()
-            # self.db.close()
             del self.watcher
             log.info('Shutting down IDFPlus')
             event.accept()
@@ -298,6 +286,46 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow, idfsettings.Settings):
     def navBack(self):
         pass
 
+    def show_in_folder(self):
+        from subprocess import call
+        import os, sys
+        current_platform = sys.platform
+
+        if self.file_path:
+            if current_platform.startswith('linux'):
+                result = call(["xdg-open", os.path.dirname(self.file_path)])
+                if result != 0:
+                    log.debug("Failed to show in folder (linux): {}".format(self.file_path))
+            elif current_platform.startswith('windows'):
+                os.startfile(self.file_path, 'explore')
+            else:
+                result = call(["open", self.file_path])
+                if not result:
+                    log.debug("Failed to show in folder (mac): {}".format(self.file_path))
+
+    # def open_file_in_text_editor(self):
+    #     import subprocess
+    #     import os, sys
+    #     system_root = os.environ['SYSTEMROOT']
+    #
+    #     current_platform = sys.platform
+    #     default_editor_cmd = subprocess.check_output(['cmd', '/c', 'ftype txtfile'])
+    #     # Returns "txtfile=%SystemRoot%\\system32\\NOTEPAD.EXE %1\r\n"
+    #     editor = default_editor_cmd.partition('=')[2].partition(' ')[0]
+    #     editor = editor.replace('%SystemRoot%', system_root)
+    #
+    #     if self.file_path:
+    #         if current_platform.startswith('linux'):
+    #             result = subprocess.call(["xdg-open", self.file_path])
+    #             if not result:
+    #                 log.debug("Failed to open file (linux): {}".format(self.file_path))
+    #         elif current_platform.startswith('windows'):
+    #             os.startfile(self.file_path, 'open')
+    #         else:
+    #             result = subprocess.call(["open", "-R", self.file_path])
+    #             if not result:
+    #                 log.debug("Failed to open file (mac): {}".format(self.file_path))
+
     def toggle_units(self):
         # Toggle the units
         self.idf.si_units = not self.idf.si_units
@@ -344,22 +372,8 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow, idfsettings.Settings):
         partially_mapped = self.classTable.model().mapToSource(_index)
         index = self.classTable.model().sourceModel().mapToSource(partially_mapped)
 
-        try:
-            G = self.idf._graph
-            node = self.idf[self.current_obj_class][index.row()][index.column()]
-            ancestors = nx.ancestors(G, node)
-            descendants = nx.descendants(G, node)
-            new_model = treemodel.ReferenceTreeModel([ancestors, descendants],
-                                                     ("Field", "Class"),
-                                                     self.refView)
-            self.refView.setModel(new_model)
-            self.refView.expandAll()
-
-        except (nx.exception.NetworkXError, IndexError) as e:
-            empty_model = treemodel.ReferenceTreeModel(None,
-                                                       ("Field", "Class"),
-                                                       self.refView)
-            self.refView.setModel(empty_model)
+        # Update the refView
+        self.update_reference_view(index)
 
         # Also update the infoview
         obj_info = self.idd[self.current_obj_class].get_info()
@@ -370,6 +384,22 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow, idfsettings.Settings):
         # Also update the units label
         units = self.classTable.model().get_units(idd_field)
         self.unitsLabel.setText('Display Units: {}'.format(units))
+
+    def update_reference_view(self, index):
+        # Retrieve the node (could be invalid so use try)
+        try:
+            G = self.idf._graph
+            node = self.idf[self.current_obj_class][index.row()][index.column()]
+            ancestors = nx.ancestors(G, node)
+            descendants = nx.descendants(G, node)
+            data = [ancestors, descendants]
+        except (nx.exception.NetworkXError, IndexError) as e:
+            data = None
+
+        # Create a new model for the tree view and assign it, then refresh view
+        new_model = treemodel.ReferenceTreeModel(data, ("Field", "Class"), self.refView)
+        self.refView.setModel(new_model)
+        self.refView.expandAll()
 
     def ref_tree_double_clicked(self, index):
         """Responds when the reference tree widget is double-clicked.
@@ -584,6 +614,11 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow, idfsettings.Settings):
         if not self.obj_clipboard:
             return False
 
+        # Don't let it paste into a different class
+        target_class = self.obj_clipboard[1][0][0].obj_class
+        if self.current_obj_class != target_class:
+            return False
+
         # Create undo command and push it to the undo stack
         cmd = commands.NewObjectCmd(self, from_clipboard=True)
         self.undo_stack.push(cmd)
@@ -665,6 +700,16 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow, idfsettings.Settings):
         """
         #TODO instantiate TransposeProxyModel and IDFObjectTableModel elsewhere?
 
+        # Save the previous selection to potential re-apply. Save in terms of source
+        selection_model = self.classTable.selectionModel()
+        previous_model = self.classTable.model()
+        source_sel = None
+        if selection_model and previous_model:
+            if previous_model.get_obj_class() == obj_class:
+                sel = selection_model.selection()
+                partial = previous_model.mapSelectionToSource(sel)
+                source_sel = previous_model.sourceModel().mapSelectionToSource(partial)
+
         # Filter out group headers
         if obj_class not in self.idd:
             return
@@ -692,7 +737,8 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow, idfsettings.Settings):
         table.setModel(sortable)
 
         # Create generic delegates for table cells
-        item_delegates = delegates.GenericDelegate(self, self.idd[obj_class],
+        item_delegates = delegates.GenericDelegate(self,
+                                                   self.idd[obj_class],
                                                    self.obj_orientation)
         table.setItemDelegate(item_delegates)
 
@@ -700,6 +746,12 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow, idfsettings.Settings):
         # default_model.sourceModel().dataChanged.connect(self.update_tree_view)
         selection_model = table.selectionModel()
         selection_model.selectionChanged.connect(self.table_selection_changed)
+
+        # Restore previous selection after converting to current model's indexes
+        if source_sel:
+            partial = sortable.sourceModel().mapSelectionFromSource(source_sel)
+            previous_sel = sortable.mapSelectionFromSource(partial)
+            selection_model.select(previous_sel, QtGui.QItemSelectionModel.SelectCurrent)
 
         # Grab the comments
         comments = ''
@@ -782,9 +834,9 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow, idfsettings.Settings):
         self.load_table_view(data)
 
     def fill_right(self):
-
-        selected_indexes = self.classTable.selectedIndexes()
-        
+        # not yet implemented
+        # selected_indexes = self.classTable.selectedIndexes()
+        pass
 
     def update_log_viewer(self, changed_path):
         with open(changed_path) as f:

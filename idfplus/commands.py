@@ -1,20 +1,20 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 """"
-Copyright (c) 2014, IDFPlus Inc. All rights reserved.
+Copyright (c) 2014, Matthew Doiron All rights reserved.
 
-IDFPlus is free software: you can redistribute it and/or modify
+IDF+ is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
 
-IDFPlus is distributed in the hope that it will be useful,
+IDF+ is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with IDFPlus. If not, see <http://www.gnu.org/licenses/>.
+along with IDF+. If not, see <http://www.gnu.org/licenses/>.
 """
 
 # Prepare for Python 3
@@ -40,14 +40,17 @@ class ObjectCmd(QtGui.QUndoCommand):
 
     def __init__(self, main_window, *args, **kwargs):
         super(ObjectCmd, self).__init__(*args, **kwargs)
+
+        #TODO many of these are not needed for all subclasses. Break them out into
+        # separate init methods in each subclass
         self.indexes_in = main_window.classTable.selectedIndexes()
-        self.indexes = [QtCore.QPersistentModelIndex(i) for i in self.indexes_in]
+        # self.indexes = [QtCore.QPersistentModelIndex(i) for i in self.indexes_in]
+        self.indexes = self.indexes_in
         self.main_window = main_window
         obj_class_index = main_window.classTree.selectedIndexes()[0]
         self.obj_class_index = QtCore.QPersistentModelIndex(obj_class_index)
         self.obj_class = main_window.current_obj_class
         self.obj_orientation = main_window.obj_orientation
-        # self.tx_id = None
         self.mime_data = None
         self.new_objects = None
         self.new_object_groups = None
@@ -64,67 +67,109 @@ class ObjectCmd(QtGui.QUndoCommand):
         # Convert indexes to source indexes for storage, then convert back later
         indexes_source_partial = [self.model.mapToSource(ind)
                                   for ind in self.indexes_in]
-        self.indexes_source_in = [self.model.sourceModel().mapToSource(ind)
+        self.indexes_source = [self.model.sourceModel().mapToSource(ind)
                                for ind in indexes_source_partial]
-        self.indexes_source = [QtCore.QPersistentModelIndex(i) for i in self.indexes_source_in]
+
+        # Convert selection to source indexes for storage, then convert back later
+        self.selection_saved = []
+        for sel in self.selection_model.selection():
+            self.selection_saved.append((sel.topLeft(), sel.bottomRight()))
 
     def update_model(self):
         """Ensures that the model is up-to-date and changes it if not."""
 
         # Make sure the table view is updated so we grab the right model
         if self.main_window.current_obj_class != self.obj_class:
-            # self.main_window.load_table_view(self.obj_class)
             self.main_window.classTree.setCurrentIndex(self.obj_class_index)
 
-            # Get the new table's model
-            self.model = self.main_window.classTable.model()
-            self.selection_model = self.main_window.classTable.selectionModel()
+        # Get the new table's model (even if there is no need to change obj_class!)
+        # Sometimes the model changes for other reasons (transposed or now).
+        self.model = self.main_window.classTable.model()
+        self.selection_model = self.main_window.classTable.selectionModel()
 
-    def update_selection(self, single=None, offset=None):
+    def update_selection(self, highlight_size=None, offset=None):
         """Ensures that the selection is up-to-date and changes it if not."""
 
-        # Ensure there is an offset
-        if offset is None:
-            offset = 0
-
-        # Define what to select based on the single keyword
-        if single is True:
-
-            # Define the offset from the index to delete
-            if self.main_window.obj_orientation == QtCore.Qt.Vertical:
-                row_offset = 0
-                col_offset = offset
+        # Use stored selection to reconstruct indexes for the current model.
+        selection = QtGui.QItemSelection()
+        for sel in self.selection_saved:
+            if self.obj_orientation == self.main_window.obj_orientation:
+                top_left = self.model.index(sel[0].row(), sel[0].column())
+                bottom_right = self.model.index(sel[1].row(), sel[1].column())
             else:
-                row_offset = offset
-                col_offset = 0
+                top_left = self.model.index(sel[0].column(), sel[0].row())
+                bottom_right = self.model.index(sel[1].column(), sel[1].row())
 
-            if self.indexes:
-                # Create a new selection index with an offset
-                selection = self.model.index(self.indexes[-1].row() + row_offset,
-                                             self.indexes[-1].column() + col_offset)
+            sel_range = QtGui.QItemSelectionRange(top_left, bottom_right)
+            selection.append(sel_range)
 
-                # If the index is not valid, use a non-offset index
-                if not selection.isValid():
-                    selection = self.indexes[-1]
+        last_sel = selection[-1]
+        selection_new = QtGui.QItemSelection()
 
-                    # If it's still not valid, don't select anything
-                    if not self.indexes[-1].isValid():
-                        selection = None
-            else:
-                selection = None
-
+        # Define the offset and range
+        if self.main_window.obj_orientation == QtCore.Qt.Vertical:
+            row_offset = 0
+            col_offset = 0 if not offset else selection[-1].width()
+            range_size = selection[-1].width()
         else:
-            if self.indexes:
-                # Construct a selection from the saved indexes
-                selection = QtGui.QItemSelection(self.indexes[0], self.indexes[-1])
-            else:
-                selection = None
+            row_offset = 0 if not offset else selection[-1].height()
+            col_offset = 0
+            range_size = selection[-1].height()
+
+        if highlight_size is None:
+            highlight_size = range_size
+
+        # Construct the selection range indexes for the current model
+        if self.main_window.obj_orientation == QtCore.Qt.Vertical:
+            top_left = self.model.index(last_sel.top() + row_offset,
+                                        last_sel.left() + col_offset)
+            bottom_right = self.model.index(last_sel.bottom() + row_offset,
+                                            last_sel.left() + highlight_size - 1
+                                            + col_offset)
+        else:
+            top_left = self.model.index(last_sel.top() + row_offset,
+                                        last_sel.left() + col_offset)
+            bottom_right = self.model.index(last_sel.top() + highlight_size - 1
+                                            + row_offset,
+                                            last_sel.right() + col_offset)
+
+        # Check for a selection range that extends beyond the size of the current model
+        if not bottom_right.isValid():
+            sel = self.selection_saved[-1]
+            if self.obj_orientation == QtCore.Qt.Vertical and \
+               self.obj_orientation == self.main_window.obj_orientation:
+                count = self.model.columnCount(top_left)
+                bottom_right = self.model.index(sel[1].row() + row_offset,
+                                                count - 1 + col_offset)
+                # print('1 br: {},{}'.format(bottom_right.row(), bottom_right.column()))
+            elif self.obj_orientation == QtCore.Qt.Vertical and \
+                 self.obj_orientation != self.main_window.obj_orientation:
+                count = self.model.rowCount(top_left)
+                bottom_right = self.model.index(count - 1 + row_offset,
+                                                sel[1].row() + col_offset)
+                # print('2 br: {},{}'.format(bottom_right.row(), bottom_right.column()))
+            elif self.obj_orientation == QtCore.Qt.Horizontal and \
+                 self.obj_orientation == self.main_window.obj_orientation:
+                count = self.model.rowCount(top_left)
+                bottom_right = self.model.index(count - 1 + row_offset,
+                                                sel[1].column() + col_offset)
+                # print('3 br: {},{}'.format(bottom_right.row(), bottom_right.column()))
+            elif self.obj_orientation == QtCore.Qt.Horizontal and \
+                 self.obj_orientation != self.main_window.obj_orientation:
+                count = self.model.columnCount(top_left)
+                bottom_right = self.model.index(sel[1].column() + row_offset,
+                                                count - 1 + col_offset)
+                # print('4 br: {},{}'.format(bottom_right.row(), bottom_right.column()))
+
+        # Create the selection range and append it to the new selection
+        sel_range = QtGui.QItemSelectionRange(top_left, bottom_right)
+        selection_new.append(sel_range)
 
         # Clear the selection model and reselect the appropriate indexes if necessary
         self.selection_model.reset()
-        if selection:
-            self.selection_model.select(selection,
-                                        QtGui.QItemSelectionModel.SelectCurrent)
+        self.selection_model.select(selection_new,
+                                    QtGui.QItemSelectionModel.SelectCurrent)
+        self.main_window.classTable.setFocus()
 
         # Hack to 'refresh' the class tree
         self.main_window.classTree.expandAll()
@@ -146,12 +191,8 @@ class NewObjectCmd(ObjectCmd):
         # Get the table's model and call its remove method
         self.model.removeObjects(delete_range, offset=1, delete_count=self.delete_count)
 
-        # Clear any current selection and select the next item
-        if self.delete_count > 1:
-            single = False
-        else:
-            single = True
-        self.update_selection(single=single)
+        # Update the selection
+        self.update_selection()
 
     def redo(self):
         """Redo action for inserting new objects."""
@@ -199,16 +240,13 @@ class NewObjectCmd(ObjectCmd):
                 else:
                     self.new_object_groups = []
                 self.delete_count = 1
+                # single = True
 
         # Call the table's insert method
         self.model.insertObjects(self.new_object_groups, self.new_objects, offset=1)
 
-        # Clear any current selection and select the next item
-        if self.delete_count > 1:
-            single = False
-        else:
-            single = True
-        self.update_selection(single=single, offset=1)
+        # Update the selection
+        self.update_selection(highlight_size=self.delete_count, offset=True)
 
 
 class PasteSelectedCmd(ObjectCmd):
@@ -315,7 +353,7 @@ class DeleteObjectCmd(ObjectCmd):
         self.model.removeObjects(self.indexes_source)
 
         # Clear any current selection and select the next item
-        self.update_selection(single=True)
+        self.update_selection(highlight_size=1, offset=0)
 
 
 class ModifyObjectCmd(ObjectCmd):
@@ -327,15 +365,24 @@ class ModifyObjectCmd(ObjectCmd):
         # Ensure that we have the right model available
         self.update_model()
 
+        # Use stored source indexes to reconstruct indexes for the current model.
+        # Must do this on-the-fly due to the possibility that any layer of model
+        # has changed significantly.
+        indexes_partial = [self.model.sourceModel().mapFromSource(ind)
+                           for ind in self.indexes_source]
+        indexes = [self.model.mapFromSource(ind)
+                   for ind in indexes_partial]
+
         # Call the setData method to change the values
-        self.model.setData(self.indexes[0], self.old_value, QtCore.Qt.EditRole)
+        self.model.setData(indexes[0], self.old_value, QtCore.Qt.EditRole)
 
         # Notify everyone that data has changed
-        self.model.dataChanged.emit(self.indexes[0], self.indexes[0])
+        self.model.dataChanged.emit(indexes[0], indexes[0])
 
         # Clear any current selection and select the next item
         self.main_window.classTable.clearSelection()
-        self.main_window.classTable.setCurrentIndex(self.indexes[0])
+        self.main_window.classTable.setCurrentIndex(indexes[0])
+        self.main_window.classTable.setFocus()
 
     def redo(self):
         """Redo action for modifying individual object values."""
@@ -346,15 +393,25 @@ class ModifyObjectCmd(ObjectCmd):
         # Set a name for the undo/redo action
         self.setText('Modify object')
 
-        # Store the old value for use by undo
-        self.old_value = self.model.data(self.indexes[0], QtCore.Qt.DisplayRole)
+        # Use stored source indexes to reconstruct indexes for the current model.
+        # Must do this on-the-fly due to the possibility that any layer of model
+        # has changed significantly.
+        indexes_partial = [self.model.sourceModel().mapFromSource(ind)
+                           for ind in self.indexes_source]
+        indexes = [self.model.mapFromSource(ind)
+                   for ind in indexes_partial]
+
+        # Store the old value for use by undo (only once)
+        if self.old_value is None:
+            self.old_value = self.model.data(indexes[0], QtCore.Qt.DisplayRole)
 
         # Call the setData method to change the values
-        self.model.setData(self.indexes[0], self.value, QtCore.Qt.EditRole)
+        self.model.setData(indexes[0], self.value, QtCore.Qt.EditRole)
 
         # Notify everyone that data has changed
-        self.model.dataChanged.emit(self.indexes[0], self.indexes[0])
+        self.model.dataChanged.emit(indexes[0], indexes[0])
 
         # Clear any current selection and select the next item
         self.main_window.classTable.clearSelection()
-        self.main_window.classTable.setCurrentIndex(self.indexes[0])
+        self.main_window.classTable.setCurrentIndex(indexes[0])
+        self.main_window.classTable.setFocus()

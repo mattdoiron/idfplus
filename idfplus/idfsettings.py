@@ -1,20 +1,20 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 """"
-Copyright (c) 2014, IDFPlus Inc. All rights reserved.
+Copyright (c) 2014, Matthew Doiron All rights reserved.
 
-IDFPlus is free software: you can redistribute it and/or modify
+IDF+ is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
 
-IDFPlus is distributed in the hope that it will be useful,
+IDF+ is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with IDFPlus. If not, see <http://www.gnu.org/licenses/>.
+along with IDF+. If not, see <http://www.gnu.org/licenses/>.
 """
 
 # Prepare for Python 3
@@ -34,22 +34,25 @@ LOG_LEVEL = 'DEBUG'
 DEFAULT_COLUMN_WIDTH = 120
 FILE_ENCODING = 'latin_1'
 IDD_FILE_NAME_ROOT = 'EnergyPlus_IDD_v{}.dat'
-COMPANY_NAME_FULL = "Mindful Modeller Inc."
+COMPANY_NAME_FULL = "Mindful Modeller"
 COMPANY_NAME = 'mindfulmodeller'
 APP_NAME = "IDFPlus"
 LOG_FILE_NAME = "idfplus.log"
 DATA_DIR = appdirs.user_data_dir(APP_NAME, COMPANY_NAME)
 LOG_DIR = appdirs.user_log_dir(APP_NAME, COMPANY_NAME)
 MAX_OBJ_HISTORY = 100
-UNITS_REGISTRY_PATH = os.path.join(APP_ROOT, DATA_DIR, 'units.dat')
+# UNITS_REGISTRY_PATH = os.path.join(APP_ROOT, DATA_DIR, 'units.dat')
 DEFAULT_IDD_VERSION = '8.1'
 
 # Make sure necessary folders exist
 for dir in [DATA_DIR, LOG_DIR]:
     try:
         os.makedirs(dir)
+        print('created dir: {}'.format(dir))
     except OSError:
+        print('dir already exists: {}'.format(dir))
         if not os.path.isdir(dir):
+            print('dir is not a directory: {}'.format(dir))
             raise
 
 

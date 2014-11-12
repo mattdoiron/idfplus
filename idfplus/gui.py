@@ -1,20 +1,20 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 """"
-Copyright (c) 2014, IDFPlus Inc. All rights reserved.
+Copyright (c) 2014, Matthew Doiron All rights reserved.
 
-IDFPlus is free software: you can redistribute it and/or modify
+IDF+ is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
 
-IDFPlus is distributed in the hope that it will be useful,
+IDF+ is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with IDFPlus. If not, see <http://www.gnu.org/licenses/>.
+along with IDF+. If not, see <http://www.gnu.org/licenses/>.
 """
 
 # Prepare for Python 3
@@ -64,7 +64,7 @@ class UI_MainWindow(object):
         classTable.setWordWrap(True)
         classTable.setEditTriggers(QtGui.QAbstractItemView.EditKeyPressed |
                                    QtGui.QAbstractItemView.DoubleClicked |
-                                   # QtGui.QAbstractItemView.AnyKeyPressed |
+                                   QtGui.QAbstractItemView.AnyKeyPressed |
                                    QtGui.QAbstractItemView.SelectedClicked)
         # classTable.horizontalHeader().setMovable(True)
         # classTable.verticalHeader().setMovable(False)
@@ -361,6 +361,11 @@ class UI_MainWindow(object):
         #         statusTip="Go back to the previous object",
         #         triggered=self.navBack)
 
+        self.showInFolderAct = QtGui.QAction(QtGui.QIcon(':/images/new.png'),
+                "&Show current file in folder", self, shortcut=QtGui.QKeySequence('Ctrl+o'),
+                statusTip="Open location of current file", iconVisibleInMenu=True,
+                triggered=self.show_in_folder)
+
         self.aboutAct = QtGui.QAction("&About", self,
                 statusTip="Show the application's About box",
                 triggered=self.about)
@@ -439,8 +444,12 @@ class UI_MainWindow(object):
         self.editMenu.addSeparator().setText('Values')
         self.editMenu.addAction(self.copyAct)
         self.editMenu.addAction(self.pasteAct)
-        self.editMenu.addSeparator()
-        self.editMenu.addAction(self.showPrefsAction)
+
+        # Tools Menu
+        self.toolsMenu = self.menuBar().addMenu("&Tools")
+        self.toolsMenu.addAction(self.showInFolderAct)
+        self.toolsMenu.addSeparator()
+        self.toolsMenu.addAction(self.showPrefsAction)
 
         # View Menu
         self.viewMenu = self.menuBar().addMenu("&View")

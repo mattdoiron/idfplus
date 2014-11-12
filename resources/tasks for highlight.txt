@@ -1,0 +1,36 @@
+Delete:
+
+undo:
+select the previously selected range
+
+redo:
+highlight the first cell of the previously selected range - no offset, just first range of previous selection
+
+
+
+
+New:
+
+undo from clipboard:
+select the previously selected range
+undo from selection:
+select the previously selected range
+undo from blank:
+select the previously selected range
+
+redo from clipboard:
+select the newly inserted range - offset from initial selection by number of objects to insert
+redo from selection:
+select the newly inserted range - offset from initial selection by number of objects to insert
+redo from blank:
+select the newly inserted range - offset from initial selection by number of objects to insert
+
+
+
+
+Pase Selection:
+
+undo:
+highlight previous selection
+redo:
+highlight area the size of the range being pasted

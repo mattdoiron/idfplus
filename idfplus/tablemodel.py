@@ -1,20 +1,20 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 """"
-Copyright (c) 2014, IDFPlus Inc. All rights reserved.
+Copyright (c) 2014, Matthew Doiron All rights reserved.
 
-IDFPlus is free software: you can redistribute it and/or modify
+IDF+ is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
 
-IDFPlus is distributed in the hope that it will be useful,
+IDF+ is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with IDFPlus. If not, see <http://www.gnu.org/licenses/>.
+along with IDF+. If not, see <http://www.gnu.org/licenses/>.
 """
 
 # Prepare for Python 3
@@ -58,6 +58,9 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
         self.ureg = c.UNITS_REGISTRY
         self.get_labels()
         super(IDFObjectTableModel, self).__init__(parent)
+
+    def get_obj_class(self):
+        return self.obj_class
 
     def flags(self, index):
         if not index.isValid():
@@ -168,15 +171,32 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
             return True
         return False
 
-    def mapToSource(self, indexes):
+    def mapToSource(self, sourceIndex):
         """Dummy to ensure there is always a mapToSource method even when there is no
         proxy layer."""
-        return indexes
+        if not sourceIndex.isValid():
+            return QtCore.QModelIndex()
+        return self.index(sourceIndex.row(), sourceIndex.column())
 
-    def mapFromSource(self, indexes):
-        """Dummy to ensure there is always a mapFromSource method even when there is no
-        proxy layer."""
-        return indexes
+    def mapFromSource(self, sourceIndex):
+        """Provide an index when this model is used as a source model."""
+        if not sourceIndex.isValid():
+            return QtCore.QModelIndex()
+        return self.index(sourceIndex.row(), sourceIndex.column())
+
+    def mapSelectionFromSource(self, selection):
+        returnSelection = QtGui.QItemSelection()
+        for sel in selection:
+            top_left = self.mapFromSource(sel.topLeft())
+            bottom_right = self.mapFromSource(sel.bottomRight())
+            sel_range = QtGui.QItemSelectionRange(top_left, bottom_right)
+            returnSelection.append(sel_range)
+        return returnSelection
+
+    def mapSelectionToSource(self, selection):
+        """Dummy to ensure there is always a mapSelectionToSource method even when there
+        is no proxy layer."""
+        return selection
 
     def sourceModel(self):
         """Dummy to ensure there is always a sourceModel method even when there is no
@@ -260,7 +280,7 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
 
     def get_contiguous_rows(self, indexes, reverse):
 
-        # Make a unique set of rows to be deleted
+        # Make a unique set of rows
         row_set = set(index.row() for index in indexes)
 
         # Create groups of contiguous row indexes in reverse order
@@ -468,6 +488,15 @@ class TransposeProxyModel(QtGui.QAbstractProxyModel):
             return QtCore.QModelIndex()
         return self.sourceModel().index(proxyIndex.column(), proxyIndex.row())
 
+    def mapSelectionFromSource(self, selection):
+        returnSelection = QtGui.QItemSelection()
+        for sel in selection:
+            top_left = self.mapFromSource(sel.topLeft())
+            bottom_right = self.mapFromSource(sel.bottomRight())
+            sel_range = QtGui.QItemSelectionRange(top_left, bottom_right)
+            returnSelection.append(sel_range)
+        return returnSelection
+
     def mapSelectionToSource(self, selection):
         returnSelection = QtGui.QItemSelection()
         for sel in selection:
@@ -528,6 +557,9 @@ class TransposeProxyModel(QtGui.QAbstractProxyModel):
     def get_units(self, *args, **kwargs):
         return self.sourceModel().get_units(*args, **kwargs)
 
+    def get_obj_class(self):
+        return self.sourceModel().get_obj_class()
+
 
 class SortFilterProxyModel(QtGui.QSortFilterProxyModel):
     """Proxy layer to sort and filter"""
@@ -575,6 +607,24 @@ class SortFilterProxyModel(QtGui.QSortFilterProxyModel):
 
         return False
 
+    def mapSelectionFromSource(self, selection):
+        returnSelection = QtGui.QItemSelection()
+        for sel in selection:
+            top_left = self.mapFromSource(sel.topLeft())
+            bottom_right = self.mapFromSource(sel.bottomRight())
+            sel_range = QtGui.QItemSelectionRange(top_left, bottom_right)
+            returnSelection.append(sel_range)
+        return returnSelection
+
+    def mapSelectionToSource(self, selection):
+        returnSelection = QtGui.QItemSelection()
+        for sel in selection:
+            top_left = self.mapToSource(sel.topLeft())
+            bottom_right = self.mapToSource(sel.bottomRight())
+            sel_range = QtGui.QItemSelectionRange(top_left, bottom_right)
+            returnSelection.append(sel_range)
+        return returnSelection
+
     def removeObjects(self, *args, **kwargs):
         # Do NOT map to source. Pass through only.
         return self.sourceModel().removeObjects(*args, **kwargs)
@@ -589,6 +639,9 @@ class SortFilterProxyModel(QtGui.QSortFilterProxyModel):
 
     def get_units(self, *args, **kwargs):
         return self.sourceModel().get_units(*args, **kwargs)
+
+    def get_obj_class(self):
+        return self.sourceModel().get_obj_class()
 
 
 class TableView(QtGui.QTableView):
