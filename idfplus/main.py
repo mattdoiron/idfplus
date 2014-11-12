@@ -271,7 +271,7 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow, idfsettings.Settings):
 
         QtGui.QMessageBox.about(self, "About IDFPlus",
                 """<b>IDFPlus</b> v{0}
-                <p>Copyright &copy; 2014 No Name Ltd.
+                <p>Copyright &copy; 2014 Matt Doiron.
                 All rights reserved.
                 <p>This is an improved IDF file editor with enhanced features
                 and capabilities.
