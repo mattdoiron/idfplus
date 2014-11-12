@@ -42,13 +42,13 @@ from . import treemodel
 from . import gui
 
 # Constants
-from . import idfsettings as c
+# from . import idfsettings as c
 
 # Resource imports for icons
 from . import icons_rc
 
 # Global variables
-__version__ = '0.1.1'
+__version__ = '0.0.1'
 log = logger.setup_logging(idfsettings.LOG_LEVEL, __name__)
 
 class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow, idfsettings.Settings):
@@ -76,8 +76,6 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow, idfsettings.Settings):
         self.dirty = False
         self.obj_orientation = QtCore.Qt.Vertical
         self.current_obj_class = None
-        # self.com = Communicate()
-        # self.clipboard = QtGui.QApplication.instance().clipboard()
         self.obj_clipboard = []
 
         # Create main application elements
@@ -88,9 +86,6 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow, idfsettings.Settings):
         self.create_tray_menu()
         self.create_progress_bar()
 
-        # In-memory ZODB databases don't support undo! Use an on-disk cache
-        # self.db = MyZODB()
-
         # Create a place to store all open files
         # self.db.dbroot.files = OOBTree()
         # self.files = self.db.dbroot.files
@@ -100,7 +95,6 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow, idfsettings.Settings):
         """Called when the application is closed."""
         if self.ok_to_continue():
             self.write_settings()
-            # self.db.close()
             del self.watcher
             log.info('Shutting down IDFPlus')
             event.accept()
@@ -840,9 +834,9 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow, idfsettings.Settings):
         self.load_table_view(data)
 
     def fill_right(self):
-
-        selected_indexes = self.classTable.selectedIndexes()
-        
+        # not yet implemented
+        # selected_indexes = self.classTable.selectedIndexes()
+        pass
 
     def update_log_viewer(self, changed_path):
         with open(changed_path) as f:

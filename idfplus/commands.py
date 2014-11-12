@@ -191,11 +191,7 @@ class NewObjectCmd(ObjectCmd):
         # Get the table's model and call its remove method
         self.model.removeObjects(delete_range, offset=1, delete_count=self.delete_count)
 
-        # Clear any current selection and select the next item
-        # if self.delete_count > 1:
-        #     single = False
-        # else:
-        #     single = False #True
+        # Update the selection
         self.update_selection()
 
     def redo(self):
@@ -203,7 +199,7 @@ class NewObjectCmd(ObjectCmd):
 
         # Ensure that we have the right model available
         self.update_model()
-        single = False
+
         # Set a name for the undo/redo action
         self.setText('Create object')
 
@@ -249,7 +245,7 @@ class NewObjectCmd(ObjectCmd):
         # Call the table's insert method
         self.model.insertObjects(self.new_object_groups, self.new_objects, offset=1)
 
-        # Clear any current selection and select the next item
+        # Update the selection
         self.update_selection(highlight_size=self.delete_count, offset=True)
 
 
