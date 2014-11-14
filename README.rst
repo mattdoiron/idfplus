@@ -2,6 +2,12 @@
 IDF+ Editor
 ===========
 
+.. sidebar:: IDF+ on Windows
+
+   .. image:: https://bytebucket.org/mattdoiron/idfplus/raw/77c76a1d21727c84fffeba7dbc7ec7eae6f7e123/resources/idfplusscreenshot.png?token=469d2c5db9a6e7d18612799193a00fba8858db82
+      :width: 300
+      :target: screenshot_
+      
 IDF+ is an enhanced editor for idf files—the text-based, simulation input files for
 EnergyPlus_. In creating the tool, I've attempted to embrace the concepts and ideas
 that I find most useful in my every-day building energy modelling. I've `written these
@@ -21,10 +27,7 @@ on Ubuntu. You can run the editor in its uncompiled form on any machine that has
 Python v2.7.8 and the appropriate dependencies. See the Doc folder for more info.
 
 .. _Downloads: https://bitbucket.org/mattdoiron/idfplus/downloads/
-
-.. image:: https://bytebucket.org/mattdoiron/idfplus/raw/77c76a1d21727c84fffeba7dbc7ec7eae6f7e123/resources/idfplusscreenshot.png?token=469d2c5db9a6e7d18612799193a00fba8858db82
-   :width: 300 px
-   :alt: alternate text
+.. _screenshot: https://bytebucket.org/mattdoiron/idfplus/raw/77c76a1d21727c84fffeba7dbc7ec7eae6f7e123/resources/idfplusscreenshot.png?token=469d2c5db9a6e7d18612799193a00fba8858db82
    
 Open Source and Cross Platform
 ==============================
