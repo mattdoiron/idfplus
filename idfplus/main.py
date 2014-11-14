@@ -1,7 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 """"
-Copyright (c) 2014, Matthew Doiron All rights reserved.
+Copyright (c) 2014, Matthew Doiron. All rights reserved.
 
 IDF+ is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -271,11 +271,23 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow, idfsettings.Settings):
 
         QtGui.QMessageBox.about(self, "About IDFPlus",
                 """<b>IDFPlus</b> v{0}
-                <p>Copyright &copy; 2014 No Name Ltd.
-                All rights reserved.
-                <p>This is an improved IDF file editor with enhanced features
-                and capabilities.
-                <p>Python {1} - Qt {2} - PyQt {3} on {4}""".format(
+                <p>This is an enhanced editor for EnergyPlus simulation input files.
+                For more information please see
+                <a href="https://bitbucket.org/mattdoiron/idfplus/">
+                https://bitbucket.org/mattdoiron/idfplus/
+                </a></p>
+                <p>Copyright 2014 Matt Doiron (matt@mindfulmodeller.ca)<br/>
+                All rights reserved.</p>
+                <p>IDF+ is free software: you can redistribute it and/or modify
+                it under the terms of the GNU General Public License as published by
+                the Free Software Foundation, either version 3 of the License, or
+                (at your option) any later version.</p>
+                <p>IDF+ is distributed in the hope that it will be useful,
+                but WITHOUT ANY WARRANTY; without even the implied warranty of
+                MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+                GNU General Public License at <a href="http://www.gnu.org/licenses/">
+                http://www.gnu.org/licenses/</a> for more details.</p>
+                <p>Built with: Python {1}, Qt {2} and PyQt {3} on {4}</p>""".format(
                 __version__, platform.python_version(),
                 PySide.QtCore.qVersion(), PySide.__version__,
                 platform.system()))
