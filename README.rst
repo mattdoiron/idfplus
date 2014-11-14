@@ -22,8 +22,8 @@ Python v2.7.8 and the appropriate dependencies. See the Doc folder for more info
 
 .. _Downloads: https://bitbucket.org/mattdoiron/idfplus/downloads/
 
-.. image:: https://bytebucket.org/mattdoiron/idfplus/raw/553fdfbe1c730353df34347c456fede4c6a23471/resources/images/copy.png
-   :scale: 10
+.. image:: https://bytebucket.org/mattdoiron/idfplus/raw/77c76a1d21727c84fffeba7dbc7ec7eae6f7e123/resources/idfplusscreenshot.png?token=469d2c5db9a6e7d18612799193a00fba8858db82
+   :width: 300 px
    :alt: alternate text
    
 Open Source and Cross Platform
