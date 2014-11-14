@@ -1,7 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 """"
-Copyright (c) 2014, Matthew Doiron All rights reserved.
+Copyright (c) 2014, Matthew Doiron. All rights reserved.
 
 IDF+ is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -37,13 +37,13 @@ def read(*filenames, **kwargs):
 setup(
     name='idfplus',
     version=idfplus.__version__,
-    url='http://google.ca/',
+    url='https://bitbucket.org/mattdoiron/idfplus/',
     license='GPL v3.0',
     author='Matt Doiron',
     install_requires=['PySide>=1.2.1'],
     cmdclass={'test': PyTest},
-    author_email='mattdoiron@gmail.com',
-    description='Advanced editor for EnergyPlus simulation files.',
+    author_email='matt@mindfulmodeller.ca',
+    description='Advanced editor for EnergyPlus simulation input files.',
     long_description=read('README.txt', 'CHANGES.txt'),
     packages=['idfplus'],
     include_package_data=True,
