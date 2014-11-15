@@ -10,7 +10,8 @@ the tool and used others). I use the official IDF Editor that comes with EnergyP
 every day—it is the primary tool I use for interacting with IDF files. I have come
 to respect it and think it is probably the best tool out there right now for working
 with IDF files, however, it also has some significant limitations that I decided
-to address.
+to address. The working name I've chosen is IDF+, but I am hoping to find something
+a bit more original as development progresses (suggestions are welcome!).
 
 .. _EnergyPlus: http://www.energyplus.gov/
 .. _written these ideas in a "manifesto": https://mindfulmodeller.ca/manifesto-good-energy-modelling-tools/
