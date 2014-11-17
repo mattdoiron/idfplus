@@ -115,6 +115,8 @@ class AlphaNumericDelegate(QtGui.QStyledItemDelegate):
         line_edit = QtGui.QLineEdit(parent)
         line_edit.setStyleSheet("QLineEdit { qproperty-frame: false; }")
         line_edit.setValidator(CustomValidator(self))
+        line_edit.setFont(QtGui.QFont(self.main_window.prefs['class_table_font'],
+                                      self.main_window.prefs['class_table_font_size']))
         return line_edit
 
     def setEditorData(self, editor, index):
@@ -197,12 +199,16 @@ class ChoiceDelegate(QtGui.QStyledItemDelegate):
             auto_complete = True
         else:
             auto_complete = False
+        font = QtGui.QFont(self.main_window.prefs['class_table_font'],
+                           self.main_window.prefs['class_table_font_size'])
         self.comboBox = ExtendedComboBox(parent, auto_complete)
         self.tableView = QtGui.QTableView(self.comboBox)
         self.tableView.setModel(self.model)
         self.comboBox.setModel(self.model)
         self.comboBox.setView(self.tableView)
-        self.comboBox.lineEdit().selectAll()
+        self.comboBox.setFont(font)
+        self.comboBox.lineEdit().selectAll()  #TODO should depend on trigger!
+        self.comboBox.lineEdit().setFont(font)
 
         # Set properties of tableView and the combobox
         self.tableView.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
@@ -213,6 +219,7 @@ class ChoiceDelegate(QtGui.QStyledItemDelegate):
         self.tableView.horizontalHeader().setVisible(False)
         self.tableView.resizeColumnsToContents()
         self.tableView.resizeRowsToContents()
+        self.tableView.setFont(font)
         header_width = self.tableView.horizontalHeader().length()
         col_width = self.tableView.columnWidth(0)
         scroll_width = self.tableView.verticalScrollBar().width()

@@ -21,12 +21,12 @@ any installers so simply extract the files and run idfplus.exe (on windows) or i
 on Ubuntu. You can run the editor in its uncompiled form on any machine that has
 Python v2.7.8 and the appropriate dependencies. See the Doc folder for more info.
 
-.. image:: https://bytebucket.org/mattdoiron/idfplus/raw/77c76a1d21727c84fffeba7dbc7ec7eae6f7e123/resources/idfplusscreenshot.png?token=469d2c5db9a6e7d18612799193a00fba8858db82
+.. image:: https://bitbucket.org/mattdoiron/idfplus/raw/default/resources/idfplusscreenshot.png
    :width: 300
    :target: screenshot_
 
 .. _Downloads: https://bitbucket.org/mattdoiron/idfplus/downloads/
-.. _screenshot: https://bytebucket.org/mattdoiron/idfplus/raw/77c76a1d21727c84fffeba7dbc7ec7eae6f7e123/resources/idfplusscreenshot.png?token=469d2c5db9a6e7d18612799193a00fba8858db82
+.. _screenshot: https://bitbucket.org/mattdoiron/idfplus/raw/default/resources/idfplusscreenshot.png
      
 Open Source and Cross Platform
 ==============================

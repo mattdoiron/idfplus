@@ -57,12 +57,13 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow, idfsettings.Settings):
     def __init__(self):
         super(IDFPlus, self).__init__()
 
-        # Create application UI (call this first)
-        self.create_ui()
-
-        # Load settings (call this second)
+        # Load settings (call this first)
         self.init_settings(self)
         self.read_settings()
+
+        # Create application UI (call this second)
+        self.create_ui()
+        self.restore_state()
 
         # TODO should only start this when the log viewer window is visible?
         self.start_log_watcher()

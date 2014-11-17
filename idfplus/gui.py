@@ -58,7 +58,8 @@ class UI_MainWindow(object):
         classTable.setObjectName("classTable")
         classTable.setAlternatingRowColors(True)
         classTable.setFrameShape(QtGui.QFrame.StyledPanel)
-        font = QtGui.QFont("Arial", 9)
+        font = QtGui.QFont(self.prefs['base_font'],
+                           self.prefs['base_font_size'])
         classTable.setFont(font)
         fm = classTable.fontMetrics()
         classTable.setWordWrap(True)
@@ -72,7 +73,7 @@ class UI_MainWindow(object):
         # classTable.verticalHeader().setContentsMargins(0, 0, 0, 0)
         classTable.horizontalHeader().setResizeMode(QtGui.QHeaderView.Interactive)
         classTable.verticalHeader().setResizeMode(QtGui.QHeaderView.Interactive)
-        classTable.horizontalHeader().setDefaultSectionSize(c.DEFAULT_COLUMN_WIDTH)
+        classTable.horizontalHeader().setDefaultSectionSize(self.prefs['default_column_width'])
         classTable.verticalHeader().setDefaultSectionSize(fm.height() + 5)
         # classTable.setStyleSheet("QTableView {padding: 0px; border: 0px;} ")
         # classTable.clicked.connect(self.table_clicked)
@@ -93,7 +94,9 @@ class UI_MainWindow(object):
         classTree = QtGui.QTreeView(classTreeDockWidget)
         classTree.setUniformRowHeights(True)
         classTree.setExpandsOnDoubleClick(False)
-        classTree.setFont(font)
+        tree_font = QtGui.QFont(self.prefs['class_tree_font'],
+                                self.prefs['class_tree_font_size'])
+        classTree.setFont(tree_font)
         classTree.setAlternatingRowColors(True)
         classTree.setHorizontalScrollMode(QtGui.QAbstractItemView.ScrollPerPixel)
         palette = classTree.palette()
@@ -122,7 +125,6 @@ class UI_MainWindow(object):
 
         classTreeDockWidget.setWidget(class_tree_window)
         classTreeDockWidget.setContentsMargins(0,0,0,0)
-        # classTree.clicked.connect(self.classSelected)
 
         # Comments widget
         commentDockWidget = QtGui.QDockWidget("Comments", self)
@@ -130,13 +132,9 @@ class UI_MainWindow(object):
         commentDockWidget.setAllowedAreas(QtCore.Qt.AllDockWidgetAreas)
         commentView = QtGui.QTextEdit(commentDockWidget)
         commentView.setFrameShape(QtGui.QFrame.StyledPanel)
-        commentView.setFontFamily('Courier')
-        commentView.setFontPointSize(10)
-        # comment_font = commentView.font()
-        # comment_font.setFamily("Courier")
-        # comment_font.setFixedPitch(True)
-        # comment_font.setPointSize(5)
-        # commentView.setFont(comment_font)
+        comment_font = QtGui.QFont(self.prefs['comments_font'],
+                                   self.prefs['comments_font_size'])
+        commentView.setFont(comment_font)
         commentView.setReadOnly(True) # Just for now!
         commentDockWidget.setWidget(commentView)
 
@@ -160,8 +158,6 @@ class UI_MainWindow(object):
         refView.setRootIsDecorated(False)
         refView.setIndentation(15)
         refView.setColumnWidth(0, 160)
-        # refView.resizeColumnToContents(0)
-        # refView.setHeaderHidden(True)
         refView.setFrameShape(QtGui.QFrame.StyledPanel)
         refDockWidget.setWidget(refView)
         refView.doubleClicked.connect(self.ref_tree_double_clicked)
@@ -559,13 +555,6 @@ class UI_MainWindow(object):
 #            action.setCheckable(True)
 #        return action
 #
-
-    # def create_context_menu(self, pos):
-    #     menu = QtGui.QMenu()
-    #     openAction = menu.addAction("Test 1")
-    #     delAction = menu.addAction("Clear")
-    #     renaAction = menu.addAction("Test 2")
-    #     self.classTable.setContextMenuPolicy()
 
     def custom_table_context_menu(self, position):
 
