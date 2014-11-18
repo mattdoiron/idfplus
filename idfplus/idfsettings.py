@@ -179,6 +179,7 @@ class Settings(object):
         self.parent.restoreGeometry(self.prefs['geometry'])
         self.parent.restoreState(self.prefs['state'])
         self.parent.recentFiles = self.prefs['recent_files']
+        self.parent.start_log_watcher()
         QtGui.QApplication.setStyle(QtGui.QStyleFactory.create(self.prefs['style']))
 
 class PrefsDialog(QtGui.QDialog):

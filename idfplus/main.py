@@ -63,10 +63,6 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow, idfsettings.Settings):
 
         # Create application UI (call this second)
         self.create_ui()
-        self.restore_state()
-
-        # TODO should only start this when the log viewer window is visible?
-        self.start_log_watcher()
 
         # Set some instance variables
         self.file_path = None
@@ -87,6 +83,7 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow, idfsettings.Settings):
         self.create_tray_menu()
         self.create_progress_bar()
 
+        self.restore_state()
         # Create a place to store all open files
         # self.db.dbroot.files = OOBTree()
         # self.files = self.db.dbroot.files
@@ -96,8 +93,11 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow, idfsettings.Settings):
         """Called when the application is closed."""
         if self.ok_to_continue():
             self.write_settings()
-            del self.watcher
             log.info('Shutting down IDFPlus')
+            try:
+                del self.watcher
+            except AttributeError as e:
+                pass
             event.accept()
         else:
             event.ignore()
@@ -853,13 +853,23 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow, idfsettings.Settings):
 
     def update_log_viewer(self, changed_path):
         with open(changed_path) as f:
-            text=f.read()
             self.logView.clear()
-            self.logView.insertPlainText(text)
-        self.logView.centerCursor()
+            self.logView.insertPlainText(f.read())
+        self.logView.ensureCursorVisible()
 
     def start_log_watcher(self):
+
+        # Delete the watched if it exists and the logView is not visible
+        if not self.logDockWidgetAct.isChecked():
+            try:
+                del self.watcher
+            except AttributeError as e:
+                pass
+            return
+
+        # Otherwise create the file system watcher and add a path
         self.watcher = QtCore.QFileSystemWatcher()
         log_path = os.path.join(idfsettings.LOG_DIR, idfsettings.LOG_FILE_NAME)
+        self.update_log_viewer(log_path)
         self.watcher.addPath(log_path)
         self.watcher.fileChanged.connect(self.update_log_viewer)

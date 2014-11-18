@@ -398,6 +398,7 @@ class UI_MainWindow(object):
                 statusTip="Show Only Classes With Objects",
                 triggered=self.toggle_full_tree)
 
+        self.logDockWidgetAct = self.logDockWidget.toggleViewAction()
         self.transposeAct.setEnabled(False)
         self.setSIUnitsAction.setChecked(True)
         self.undoAct.setEnabled(False)
@@ -405,6 +406,7 @@ class UI_MainWindow(object):
         self.openInEditorAct.setEnabled(False)
         self.undo_stack.canUndoChanged.connect(self.toggle_can_undo)
         self.undo_stack.canRedoChanged.connect(self.toggle_can_redo)
+        self.logDockWidgetAct.toggled.connect(self.start_log_watcher)
 
     def toggle_can_undo(self):
         if self.undo_stack.canUndo():
@@ -463,7 +465,7 @@ class UI_MainWindow(object):
         self.viewMenu.addAction(self.classTreeDockWidget.toggleViewAction())
         self.viewMenu.addAction(self.infoView.parent().toggleViewAction())
         self.viewMenu.addAction(self.commentView.parent().toggleViewAction())
-        self.viewMenu.addAction(self.logView.parent().toggleViewAction())
+        self.viewMenu.addAction(self.logDockWidgetAct)
         self.viewMenu.addAction(self.undoView.parent().toggleViewAction())
         self.viewMenu.addSeparator().setText('Toolbars')
         self.viewMenu.addAction(self.fileToolBar.toggleViewAction())
