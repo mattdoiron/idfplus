@@ -40,6 +40,7 @@ from . import logger
 from . import commands
 from . import treemodel
 from . import gui
+from . import setupwiz
 
 # Constants
 # from . import idfsettings as c
