@@ -42,14 +42,10 @@ from . import treemodel
 from . import gui
 from . import setupwiz
 
-# Constants
-# from . import idfsettings as c
-
 # Resource imports for icons
 from . import icons_rc
 
 # Global variables
-__version__ = '0.0.1'
 log = logger.setup_logging(idfsettings.LOG_LEVEL, __name__)
 
 class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow, idfsettings.Settings):
@@ -290,7 +286,7 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow, idfsettings.Settings):
                 GNU General Public License at <a href="http://www.gnu.org/licenses/">
                 http://www.gnu.org/licenses/</a> for more details.</p>
                 <p>Built with: Python {1}, Qt {2} and PyQt {3} on {4}</p>""".format(
-                __version__, platform.python_version(),
+                idfsettings.__version__, platform.python_version(),
                 PySide.QtCore.qVersion(), PySide.__version__,
                 platform.system()))
 

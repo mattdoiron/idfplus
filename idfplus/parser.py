@@ -159,8 +159,8 @@ log = logger.setup_logging(c.LOG_LEVEL, __name__)
 class Writer(object):
     """Class to take care of writing idf and idd files."""
 
-    def __init__(self):
-        pass
+    def __init__(self, *args, **kwargs):
+        super(Writer, self).__init__(*args, **kwargs)
 
     @staticmethod
     def write_idf(idf):
@@ -172,8 +172,8 @@ class Writer(object):
 
         idd = idf._idd
         options = idf.options
-        eol_char = idf._eol_char
-        file_path = idf.file_path # + '_test' # just for testing, don't overwrite!
+        eol_char = os.linesep
+        file_path = idf.file_path
 
         log.info('Saving file: {}'.format(file_path))
 
@@ -189,10 +189,14 @@ class Writer(object):
                              encoding=c.FILE_ENCODING,
                              errors='backslashreplace') as idf_file:
 
-                idf_file.write("!-Generator IDFPlus v0.0.1{}".format(eol_char))
+                idf_file.write("!-Generator IDFPlus {}{}".format(c.__version__,
+                                                                 eol_char))
                 idf_file.write("!-Option{}".format(eol_char))
-                idf_file.write("!-NOTE: All comments with '!-' are ignored by the IDFEditor and are generated automatically.{}".format(eol_char))
-                idf_file.write("!-      Use '!' comments if they need to be retained when using the IDFEditor.{}".format(eol_char))
+                idf_file.write("!-NOTE: All comments with '!-' are ignored by the "
+                               "IDFEditor and are generated "
+                               "automatically.{}".format(eol_char))
+                idf_file.write("!-      Use '!' comments if they need to be retained "
+                               "when using the IDFEditor.{}".format(eol_char))
 
                 for obj_class, obj_list in idf.iteritems():
 
@@ -283,9 +287,8 @@ class Writer(object):
 class Parser(object):
     """Base class for more specialized parsers"""
 
-    # def __init__(self, *args, **kwargs):
-    #     #        self.msg = msg  # Communicate()
-    #     pass
+    def __init__(self, *args, **kwargs):
+        super(Parser, self).__init__(*args, **kwargs)
 
     @staticmethod
     def get_fields(line_in):
