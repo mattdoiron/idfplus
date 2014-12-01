@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# Ensure locale is set properly
+# Ensure locale is set properly (may not be required)
 export LANGUAGE=en_CA.UTF-8
 export LANG=en_CA.UTF-8
 export LC_ALL=en_CA.UTF-8
