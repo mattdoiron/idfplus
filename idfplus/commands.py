@@ -103,8 +103,27 @@ class ObjectCmd(QtGui.QUndoCommand):
             sel_range = QtGui.QItemSelectionRange(top_left, bottom_right)
             selection.append(sel_range)
 
+        if not selection:
+            col_count = self.model.columnCount(self.model.index(0, 0))
+            row_count = self.model.rowCount(self.model.index(0, 0))
+            # print(row_count, col_count)
+            if self.obj_orientation == self.main_window.obj_orientation:
+                top_left = self.model.index(0, col_count-1)
+                bottom_right = self.model.index(row_count-1, col_count-1)
+                # print('using 1')
+            else:
+                top_left = self.model.index(0, row_count-1)
+                bottom_right = self.model.index(row_count-1, col_count-1)
+                # print('using 2')
+            # print('1 br: {},{}'.format(bottom_right.row(), bottom_right.column()))
+            sel_range = QtGui.QItemSelectionRange(top_left, bottom_right)
+            selection.append(sel_range)
+
         last_sel = selection[-1]
         selection_new = QtGui.QItemSelection()
+
+        if not self.selection_saved:
+            self.selection_saved.append((last_sel.topLeft(), last_sel.bottomRight()))
 
         # Define the offset and range
         if self.main_window.obj_orientation == QtCore.Qt.Vertical:
