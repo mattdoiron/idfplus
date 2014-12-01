@@ -538,7 +538,7 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow, idfsettings.Settings):
             if reply == QtGui.QMessageBox.Cancel:
                 return False
             elif reply == QtGui.QMessageBox.Save:
-                self.fileSave()
+                self.save_file()
         return True
 
     def add_recent_file(self, file_name):
