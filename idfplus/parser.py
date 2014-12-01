@@ -172,7 +172,7 @@ class Writer(object):
 
         idd = idf._idd
         options = idf.options
-        eol_char = idf._eol_char
+        eol_char = os.linesep
         file_path = idf.file_path # + '_test' # just for testing, don't overwrite!
 
         log.info('Saving file: {}'.format(file_path))
