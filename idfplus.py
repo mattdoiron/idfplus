@@ -54,5 +54,5 @@ def main():
 
 
 if __name__ == '__main__':
-    log.info('Launching IDF+')
+    log.info('----==== Launching IDF+ ====----')
     main()

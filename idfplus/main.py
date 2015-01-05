@@ -91,10 +91,6 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow, idfsettings.Settings):
         if self.ok_to_continue():
             self.write_settings()
             log.info('Shutting down IDFPlus')
-            try:
-                del self.watcher
-            except AttributeError as e:
-                pass
             event.accept()
         else:
             event.ignore()
@@ -848,25 +844,19 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow, idfsettings.Settings):
         # selected_indexes = self.classTable.selectedIndexes()
         pass
 
-    def update_log_viewer(self, changed_path):
-        with open(changed_path) as f:
-            self.logView.clear()
-            self.logView.insertPlainText(f.read())
-        self.logView.ensureCursorVisible()
+    def update_log_viewer(self, log_text):
+        self.logView.appendPlainText(log_text)
+        self.logView.moveCursor(QtGui.QTextCursor.End)
+        self.logView.moveCursor(QtGui.QTextCursor.StartOfLine)
 
     def start_log_watcher(self):
+        # Connect signal to log handler
+        self.log.handlers[1].com.signal.connect(self.update_log_viewer)
 
-        # Delete the watched if it exists and the logView is not visible
-        if not self.logDockWidgetAct.isChecked():
-            try:
-                del self.watcher
-            except AttributeError as e:
-                pass
-            return
-
-        # Otherwise create the file system watcher and add a path
-        self.watcher = QtCore.QFileSystemWatcher()
+        # Populate logView widget with contents of existing log file
         log_path = os.path.join(idfsettings.LOG_DIR, idfsettings.LOG_FILE_NAME)
-        self.update_log_viewer(log_path)
-        self.watcher.addPath(log_path)
-        self.watcher.fileChanged.connect(self.update_log_viewer)
+        with open(log_path) as f:
+            self.logView.clear()
+            self.logView.insertPlainText(f.read())
+            self.logView.moveCursor(QtGui.QTextCursor.End)
+            self.logView.moveCursor(QtGui.QTextCursor.StartOfLine)
