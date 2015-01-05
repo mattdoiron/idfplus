@@ -67,7 +67,7 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow, idfsettings.Settings):
         self.idf = None
         self.groups = None
         self.fullTree = True
-        self.dirty = False
+        self.file_dirty = False
         self.obj_orientation = QtCore.Qt.Vertical
         self.current_obj_class = None
         self.obj_clipboard = []
@@ -220,6 +220,8 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow, idfsettings.Settings):
         self.commentView.setText("".join(self.idf['Version'][0].comments or ''))
         self.file_path = file_path
         self.set_current_file(file_path)
+        self.file_dirty = False
+        self.setWindowModified(False)
         log.debug('Updating recent file list...')
         log.debug('File Loaded Successfully! ({})'.format(file_path or "New File"))
         return True
@@ -255,6 +257,8 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow, idfsettings.Settings):
             self.set_current_file(file_name)
             self.add_recent_file(file_name)
             self.statusBar().showMessage("File saved", 2000)
+            self.file_dirty = False
+            self.setWindowModified(False)
             return True
         else:
             return False
@@ -509,15 +513,14 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow, idfsettings.Settings):
         else:
             shownName = 'Untitled'
 
-        self.setWindowTitle('IDFPlus Editor - {}*'.format(shownName))
+        self.setWindowTitle('IDFPlus Editor - {}[*]'.format(shownName))
 
         if self.idd:
             self.versionLabel.setText('EnergyPlus IDD v{}'.format(self.idd.version))
-        # self.update_status(shownName)
 
     def ok_to_continue(self):
         """Checks if there are unsaved changes and prompts for action."""
-        if self.dirty:
+        if self.file_dirty:
             reply = QtGui.QMessageBox.warning(self,
                                               "Application",
                                               "The document has been modified.\nDo you want to save your changes?",
@@ -527,7 +530,7 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow, idfsettings.Settings):
             if reply == QtGui.QMessageBox.Cancel:
                 return False
             elif reply == QtGui.QMessageBox.Save:
-                self.fileSave()
+                self.save_file()
         return True
 
     def add_recent_file(self, file_name):
@@ -549,12 +552,12 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow, idfsettings.Settings):
         :param message:
         """
         self.statusBar().showMessage(message, 5000)
+        self.setWindowModified(self.file_dirty)
         if self.file_path is not None:
             basename = os.path.basename(self.file_path)
-            self.setWindowTitle('IDFPlus Editor - {}*'.format(basename))
+            self.setWindowTitle('IDFPlus Editor - {}[*]'.format(basename))
         else:
             self.setWindowTitle('IDFPlus Editor')
-            self.setWindowModified(self.dirty)
 
     def setVisible(self, visible):
         """Integrates system tray with minimize/maximize.

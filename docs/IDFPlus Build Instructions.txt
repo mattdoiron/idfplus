@@ -14,7 +14,7 @@ Windows Setup:
 
 Ubuntu/Debian Setup:
 - install python 2.7x (probably already installed)
-- sudo aptitude install python-pip python-virtualenv python-virtualenvwrapper
+- sudo aptitude install python-pip python-virtualenv virtualenvwrapper python-dev build-essential git cmake libqt4-dev libphonon-dev python2.7-dev libxml2-dev libxslt1-dev qtmobility-dev
 - mkvirtualenv idfplus
 - workon idfplus
 - pip install -r requirements.txt

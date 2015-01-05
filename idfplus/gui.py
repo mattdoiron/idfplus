@@ -414,6 +414,8 @@ class UI_MainWindow(object):
         else:
             new_state = False
         self.undoAct.setEnabled(new_state)
+        self.file_dirty = new_state
+        self.setWindowModified(new_state)
 
     def toggle_can_redo(self):
         if self.undo_stack.canRedo():
