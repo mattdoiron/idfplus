@@ -14,3 +14,4 @@ odict==1.5.1
 networkx==1.9.1
 -e git+https://github.com/pyinstaller/pyinstaller.git#egg=pyinstaller
 appdirs==1.4.0
+faulthandler==2.4
