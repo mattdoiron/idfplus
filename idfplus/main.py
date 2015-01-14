@@ -219,8 +219,7 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow, idfsettings.Settings):
         self.classTable.setModel(None)
         self.file_path = file_path
         self.set_current_file(file_path)
-        self.file_dirty = False
-        self.setWindowModified(False)
+        self.set_dirty(False)
         log.debug('Updating recent file list...')
         log.debug('File Loaded Successfully! ({})'.format(file_path or "New File"))
         return True
@@ -256,8 +255,7 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow, idfsettings.Settings):
             self.set_current_file(file_name)
             self.add_recent_file(file_name)
             self.statusBar().showMessage("File saved", 2000)
-            self.file_dirty = False
-            self.setWindowModified(False)
+            self.set_dirty(False)
             return True
         else:
             return False
@@ -855,8 +853,7 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow, idfsettings.Settings):
         comment_text = self.commentView.toPlainText()
         comments = comment_text.splitlines(True)
         self.idf[self.current_obj_class][ind].comments = comments
-        self.file_dirty = True
-        self.setWindowModified(True)
+        self.set_dirty(True)
 
     def fill_right(self):
         # not yet implemented
@@ -879,3 +876,8 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow, idfsettings.Settings):
             self.logView.insertPlainText(f.read())
             self.logView.moveCursor(QtGui.QTextCursor.End)
             self.logView.moveCursor(QtGui.QTextCursor.StartOfLine)
+
+    def set_dirty(self, dirty_state):
+        self.file_dirty = dirty_state
+        self.setWindowModified(dirty_state)
+        self.saveAct.setEnabled(dirty_state)

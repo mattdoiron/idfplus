@@ -403,6 +403,7 @@ class UI_MainWindow(object):
         self.setSIUnitsAction.setChecked(True)
         self.undoAct.setEnabled(False)
         self.redoAct.setEnabled(False)
+        self.saveAct.setEnabled(False)
         self.openInEditorAct.setEnabled(False)
         self.undo_stack.canUndoChanged.connect(self.toggle_can_undo)
         self.undo_stack.canRedoChanged.connect(self.toggle_can_redo)
@@ -414,8 +415,7 @@ class UI_MainWindow(object):
         else:
             new_state = False
         self.undoAct.setEnabled(new_state)
-        self.file_dirty = new_state
-        self.setWindowModified(new_state)
+        self.set_dirty(new_state)
 
     def toggle_can_redo(self):
         if self.undo_stack.canRedo():

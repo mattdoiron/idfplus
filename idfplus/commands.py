@@ -266,8 +266,7 @@ class NewObjectCmd(ObjectCmd):
 
         # Update the selection
         self.update_selection(highlight_size=self.delete_count, offset=True)
-        self.main_window.file_dirty = True
-        self.main_window.setWindowModified(True)
+        self.main_window.set_dirty(True)
 
 
 class PasteSelectedCmd(ObjectCmd):
@@ -339,8 +338,7 @@ class PasteSelectedCmd(ObjectCmd):
 
         # Notify everyone that data has changed
         self.model.dataChanged.emit(self.indexes[0], index)
-        self.main_window.file_dirty = True
-        self.main_window.setWindowModified(True)
+        self.main_window.set_dirty(True)
 
 
 class DeleteObjectCmd(ObjectCmd):
@@ -378,8 +376,7 @@ class DeleteObjectCmd(ObjectCmd):
 
         # Clear any current selection and select the next item
         self.update_selection(highlight_size=1, offset=0)
-        self.main_window.file_dirty = True
-        self.main_window.setWindowModified(True)
+        self.main_window.set_dirty(True)
 
 
 class ModifyObjectCmd(ObjectCmd):
@@ -441,5 +438,4 @@ class ModifyObjectCmd(ObjectCmd):
         self.main_window.classTable.clearSelection()
         self.main_window.classTable.setCurrentIndex(indexes[0])
         self.main_window.classTable.setFocus()
-        self.main_window.file_dirty = True
-        self.main_window.setWindowModified(True)
+        self.main_window.set_dirty(True)
