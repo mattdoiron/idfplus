@@ -103,8 +103,27 @@ class ObjectCmd(QtGui.QUndoCommand):
             sel_range = QtGui.QItemSelectionRange(top_left, bottom_right)
             selection.append(sel_range)
 
+        if not selection:
+            col_count = self.model.columnCount(self.model.index(0, 0))
+            row_count = self.model.rowCount(self.model.index(0, 0))
+            # print(row_count, col_count)
+            if self.obj_orientation == self.main_window.obj_orientation:
+                top_left = self.model.index(0, col_count-1)
+                bottom_right = self.model.index(row_count-1, col_count-1)
+                # print('using 1')
+            else:
+                top_left = self.model.index(0, row_count-1)
+                bottom_right = self.model.index(row_count-1, col_count-1)
+                # print('using 2')
+            # print('1 br: {},{}'.format(bottom_right.row(), bottom_right.column()))
+            sel_range = QtGui.QItemSelectionRange(top_left, bottom_right)
+            selection.append(sel_range)
+
         last_sel = selection[-1]
         selection_new = QtGui.QItemSelection()
+
+        if not self.selection_saved:
+            self.selection_saved.append((last_sel.topLeft(), last_sel.bottomRight()))
 
         # Define the offset and range
         if self.main_window.obj_orientation == QtCore.Qt.Vertical:
@@ -247,6 +266,7 @@ class NewObjectCmd(ObjectCmd):
 
         # Update the selection
         self.update_selection(highlight_size=self.delete_count, offset=True)
+        self.main_window.set_dirty(True)
 
 
 class PasteSelectedCmd(ObjectCmd):
@@ -273,6 +293,7 @@ class PasteSelectedCmd(ObjectCmd):
 
         # Notify everyone that data has changed
         self.model.dataChanged.emit(start_index, index)
+
 
     def redo(self):
         """Redo action for pasting values into cells."""
@@ -317,6 +338,7 @@ class PasteSelectedCmd(ObjectCmd):
 
         # Notify everyone that data has changed
         self.model.dataChanged.emit(self.indexes[0], index)
+        self.main_window.set_dirty(True)
 
 
 class DeleteObjectCmd(ObjectCmd):
@@ -354,6 +376,7 @@ class DeleteObjectCmd(ObjectCmd):
 
         # Clear any current selection and select the next item
         self.update_selection(highlight_size=1, offset=0)
+        self.main_window.set_dirty(True)
 
 
 class ModifyObjectCmd(ObjectCmd):
@@ -415,3 +438,4 @@ class ModifyObjectCmd(ObjectCmd):
         self.main_window.classTable.clearSelection()
         self.main_window.classTable.setCurrentIndex(indexes[0])
         self.main_window.classTable.setFocus()
+        self.main_window.set_dirty(True)

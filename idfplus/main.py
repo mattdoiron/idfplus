@@ -40,15 +40,12 @@ from . import logger
 from . import commands
 from . import treemodel
 from . import gui
-
-# Constants
-# from . import idfsettings as c
+from . import setupwiz
 
 # Resource imports for icons
 from . import icons_rc
 
 # Global variables
-__version__ = '0.0.1'
 log = logger.setup_logging(idfsettings.LOG_LEVEL, __name__)
 
 class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow, idfsettings.Settings):
@@ -57,15 +54,12 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow, idfsettings.Settings):
     def __init__(self):
         super(IDFPlus, self).__init__()
 
-        # Create application UI (call this first)
-        self.create_ui()
-
-        # Load settings (call this second)
+        # Load settings (call this first)
         self.init_settings(self)
         self.read_settings()
 
-        # TODO should only start this when the log viewer window is visible?
-        self.start_log_watcher()
+        # Create application UI (call this second)
+        self.create_ui()
 
         # Set some instance variables
         self.file_path = None
@@ -73,7 +67,7 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow, idfsettings.Settings):
         self.idf = None
         self.groups = None
         self.fullTree = True
-        self.dirty = False
+        self.file_dirty = False
         self.obj_orientation = QtCore.Qt.Vertical
         self.current_obj_class = None
         self.obj_clipboard = []
@@ -86,6 +80,7 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow, idfsettings.Settings):
         self.create_tray_menu()
         self.create_progress_bar()
 
+        self.restore_state()
         # Create a place to store all open files
         # self.db.dbroot.files = OOBTree()
         # self.files = self.db.dbroot.files
@@ -95,7 +90,6 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow, idfsettings.Settings):
         """Called when the application is closed."""
         if self.ok_to_continue():
             self.write_settings()
-            del self.watcher
             log.info('Shutting down IDFPlus')
             event.accept()
         else:
@@ -223,9 +217,9 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow, idfsettings.Settings):
         self.load_tree_view()
         log.debug('Setting class table model...')
         self.classTable.setModel(None)
-        self.commentView.setText("".join(self.idf['Version'][0].comments or ''))
         self.file_path = file_path
         self.set_current_file(file_path)
+        self.set_dirty(False)
         log.debug('Updating recent file list...')
         log.debug('File Loaded Successfully! ({})'.format(file_path or "New File"))
         return True
@@ -261,6 +255,7 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow, idfsettings.Settings):
             self.set_current_file(file_name)
             self.add_recent_file(file_name)
             self.statusBar().showMessage("File saved", 2000)
+            self.set_dirty(False)
             return True
         else:
             return False
@@ -288,7 +283,7 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow, idfsettings.Settings):
                 GNU General Public License at <a href="http://www.gnu.org/licenses/">
                 http://www.gnu.org/licenses/</a> for more details.</p>
                 <p>Built with: Python {1}, Qt {2} and PyQt {3} on {4}</p>""".format(
-                __version__, platform.python_version(),
+                idfsettings.__version__, platform.python_version(),
                 PySide.QtCore.qVersion(), PySide.__version__,
                 platform.system()))
 
@@ -396,6 +391,13 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow, idfsettings.Settings):
         # Also update the units label
         units = self.classTable.model().get_units(idd_field)
         self.unitsLabel.setText('Display Units: {}'.format(units))
+
+        # Update the comments view
+        current_obj = self.idf[self.current_obj_class][index.row()]
+        comments = ''.join(current_obj.comments)
+        self.commentView.blockSignals(True)
+        self.commentView.setPlainText(comments)
+        self.commentView.blockSignals(False)
 
     def update_reference_view(self, index):
         # Retrieve the node (could be invalid so use try)
@@ -515,15 +517,14 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow, idfsettings.Settings):
         else:
             shownName = 'Untitled'
 
-        self.setWindowTitle('IDFPlus Editor - {}*'.format(shownName))
+        self.setWindowTitle('IDFPlus Editor - {}[*]'.format(shownName))
 
         if self.idd:
             self.versionLabel.setText('EnergyPlus IDD v{}'.format(self.idd.version))
-        # self.update_status(shownName)
 
     def ok_to_continue(self):
         """Checks if there are unsaved changes and prompts for action."""
-        if self.dirty:
+        if self.file_dirty:
             reply = QtGui.QMessageBox.warning(self,
                                               "Application",
                                               "The document has been modified.\nDo you want to save your changes?",
@@ -533,7 +534,7 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow, idfsettings.Settings):
             if reply == QtGui.QMessageBox.Cancel:
                 return False
             elif reply == QtGui.QMessageBox.Save:
-                self.fileSave()
+                self.save_file()
         return True
 
     def add_recent_file(self, file_name):
@@ -555,12 +556,12 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow, idfsettings.Settings):
         :param message:
         """
         self.statusBar().showMessage(message, 5000)
+        self.setWindowModified(self.file_dirty)
         if self.file_path is not None:
             basename = os.path.basename(self.file_path)
-            self.setWindowTitle('IDFPlus Editor - {}*'.format(basename))
+            self.setWindowTitle('IDFPlus Editor - {}[*]'.format(basename))
         else:
             self.setWindowTitle('IDFPlus Editor')
-            self.setWindowModified(self.dirty)
 
     def setVisible(self, visible):
         """Integrates system tray with minimize/maximize.
@@ -725,6 +726,8 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow, idfsettings.Settings):
         # Filter out group headers
         if obj_class not in self.idd:
             return
+        else:
+            self.current_obj_class = obj_class
 
         # Clear the table filter when changing classes
         self.clearFilterClicked()
@@ -755,7 +758,6 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow, idfsettings.Settings):
         table.setItemDelegate(item_delegates)
 
         # Connect some signals
-        # default_model.sourceModel().dataChanged.connect(self.update_tree_view)
         selection_model = table.selectionModel()
         selection_model.selectionChanged.connect(self.table_selection_changed)
 
@@ -764,21 +766,14 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow, idfsettings.Settings):
             partial = sortable.sourceModel().mapSelectionFromSource(source_sel)
             previous_sel = sortable.mapSelectionFromSource(partial)
             selection_model.select(previous_sel, QtGui.QItemSelectionModel.SelectCurrent)
-
-        # Grab the comments
-        comments = ''
-        if self.idf[obj_class]:
-            comment_list = self.idf[obj_class][0].comments
-            if comment_list:
-                comments = "".join(self.idf[obj_class][0].comments)
+        else:
+            self.classTable.setCurrentIndex(self.classTable.model().index(0, 0))
+            self.classTable.setFocus()
 
         # Now that there is a class selected, enable some actions and set some vars
         self.newObjAct.setEnabled(True)
         self.delObjAct.setEnabled(True)
         self.transposeAct.setEnabled(True)
-        self.infoView.setText(self.idd[obj_class].get_info())
-        self.commentView.setText(comments)
-        self.current_obj_class = obj_class
         self.unitsLabel.setText(None)
 
     def load_tree_view(self):
@@ -845,20 +840,44 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow, idfsettings.Settings):
         # Load the corresponding class in the tableView
         self.load_table_view(data)
 
+    def comment_view_changed(self):
+        sel = self.classTable.selectionModel().selection()
+        if not sel:
+            return
+        first = sel.first().topLeft()
+        if self.obj_orientation == QtCore.Qt.Horizontal:
+            ind = first.row()
+        else:
+            ind = first.column()
+
+        comment_text = self.commentView.toPlainText()
+        comments = comment_text.splitlines(True)
+        self.idf[self.current_obj_class][ind].comments = comments
+        self.set_dirty(True)
+
     def fill_right(self):
         # not yet implemented
         # selected_indexes = self.classTable.selectedIndexes()
         pass
 
-    def update_log_viewer(self, changed_path):
-        with open(changed_path) as f:
-            text=f.read()
-            self.logView.clear()
-            self.logView.insertPlainText(text)
-        self.logView.centerCursor()
+    def update_log_viewer(self, log_text):
+        self.logView.appendPlainText(log_text)
+        self.logView.moveCursor(QtGui.QTextCursor.End)
+        self.logView.moveCursor(QtGui.QTextCursor.StartOfLine)
 
     def start_log_watcher(self):
-        self.watcher = QtCore.QFileSystemWatcher()
+        # Connect signal to log handler
+        self.log.handlers[1].com.signal.connect(self.update_log_viewer)
+
+        # Populate logView widget with contents of existing log file
         log_path = os.path.join(idfsettings.LOG_DIR, idfsettings.LOG_FILE_NAME)
-        self.watcher.addPath(log_path)
-        self.watcher.fileChanged.connect(self.update_log_viewer)
+        with open(log_path) as f:
+            self.logView.clear()
+            self.logView.insertPlainText(f.read())
+            self.logView.moveCursor(QtGui.QTextCursor.End)
+            self.logView.moveCursor(QtGui.QTextCursor.StartOfLine)
+
+    def set_dirty(self, dirty_state):
+        self.file_dirty = dirty_state
+        self.setWindowModified(dirty_state)
+        self.saveAct.setEnabled(dirty_state)

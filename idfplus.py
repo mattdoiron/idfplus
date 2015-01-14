@@ -44,7 +44,7 @@ def main():
     import faulthandler
     faulthandler.enable()
 
-    print('This is the debug window. If you see any errors here, please report them.'
+    print('This is the debug window. If you see any errors here, please report them. '
           'You can do this by creating a new "Issue" at https://bitbucket.org/mattdoiron/idfplus/issues')
 
     # Create the main window and show it
@@ -54,5 +54,5 @@ def main():
 
 
 if __name__ == '__main__':
-    log.info('Launching IDF+')
+    log.info('----==== Launching IDF+ ====----')
     main()

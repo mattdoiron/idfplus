@@ -1,7 +1,7 @@
 ===========
 IDF+ Editor
 ===========
-
+      
 IDF+ is an enhanced editor for idf files—the text-based, simulation input files for
 EnergyPlus_. In creating the tool, I've attempted to embrace the concepts and ideas
 that I find most useful in my every-day building energy modelling. I've `written these
@@ -10,7 +10,8 @@ the tool and used others). I use the official IDF Editor that comes with EnergyP
 every day—it is the primary tool I use for interacting with IDF files. I have come
 to respect it and think it is probably the best tool out there right now for working
 with IDF files, however, it also has some significant limitations that I decided
-to address.
+to address. The working name I've chosen is IDF+, but I am hoping to find something
+a bit more original as development progresses (suggestions are welcome!).
 
 .. _EnergyPlus: http://www.energyplus.gov/
 .. _written these ideas in a "manifesto": https://mindfulmodeller.ca/manifesto-good-energy-modelling-tools/
@@ -20,12 +21,13 @@ any installers so simply extract the files and run idfplus.exe (on windows) or i
 on Ubuntu. You can run the editor in its uncompiled form on any machine that has
 Python v2.7.8 and the appropriate dependencies. See the Doc folder for more info.
 
-.. _Downloads: https://bitbucket.org/mattdoiron/idfplus/downloads/
+.. image:: https://bitbucket.org/mattdoiron/idfplus/raw/default/resources/idfplusscreenshot.png
+   :width: 300
+   :target: screenshot_
 
-.. image:: https://bytebucket.org/mattdoiron/idfplus/raw/553fdfbe1c730353df34347c456fede4c6a23471/resources/images/copy.png
-   :scale: 10
-   :alt: alternate text
-   
+.. _Downloads: https://bitbucket.org/mattdoiron/idfplus/downloads/
+.. _screenshot: https://bitbucket.org/mattdoiron/idfplus/raw/default/resources/idfplusscreenshot.png
+     
 Open Source and Cross Platform
 ==============================
 
@@ -91,3 +93,17 @@ and suggestions on how the editor can be improved. Please submit `an issue`_ if 
 find any bugs.
 
 .. _an issue: https://bitbucket.org/mattdoiron/idfplus/issues
+
+Changelog
+=========
+
+v0.0.2, January 13, 2015
+- Comments widget is now editable, allowing users to edit object-level comments within the editor.
+- Log viewer has be reworked to use be more memory efficient and should now work on windows.
+- File save status should now be displayed properly in title bar and user will be prompted to save un-saved changes before exiting.
+- Version bump for various internal dependencies.
+- The editor should now use line endings specific to the operating system on which a file is saved.
+- Fonts and colours should be more evenly applied throughout the editor.
+- Misc code cleanup.
+
+v0.0.1, November 15, 2014 -- Initial release.

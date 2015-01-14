@@ -42,7 +42,8 @@ DATA_DIR = appdirs.user_data_dir(APP_NAME, COMPANY_NAME)
 LOG_DIR = appdirs.user_log_dir(APP_NAME, COMPANY_NAME)
 MAX_OBJ_HISTORY = 100
 # UNITS_REGISTRY_PATH = os.path.join(APP_ROOT, DATA_DIR, 'units.dat')
-DEFAULT_IDD_VERSION = '8.1'
+DEFAULT_IDD_VERSION = '8.2'
+__version__ = 'v0.0.2'
 
 # Make sure necessary folders exist
 for dir in [DATA_DIR, LOG_DIR]:
@@ -79,20 +80,30 @@ class Settings(object):
 
         # Retrieve settings and store them in the prefs dict
         settings.beginGroup("MainWindow")
-        self.prefs['size'] = settings.value("size", QtCore.QSize(600, 500))
+        self.prefs['size'] = settings.value("size", QtCore.QSize(1024, 768))
         self.prefs['pos'] = settings.value("pos", QtCore.QPoint(200, 200))
         self.prefs['state'] = settings.value("state", QtCore.QByteArray())
+        self.prefs['geometry'] = settings.value("geometry", QtCore.QByteArray())
         self.prefs['style'] = settings.value("style", default_style())
+        self.prefs['base_font_size'] = int(settings.value("base_font_size", 9))
+        self.prefs['base_font'] = settings.value("base_font", "Arial")
+        self.prefs['comments_font_size'] = int(settings.value("comments_font_size", 10))
+        self.prefs['comments_font'] = settings.value("comments_font", "Courier")
         settings.endGroup()
 
         settings.beginGroup("Files")
         self.prefs['recent_files'] = list(settings.value("recent_files") or [''])
         settings.endGroup()
 
+        settings.beginGroup("ClassTree")
+        self.prefs['class_tree_font_size'] = int(settings.value("class_tree_font_size", 9))
+        self.prefs['class_tree_font'] = settings.value("class_tree_font", "Arial")
+        settings.endGroup()
+
         settings.beginGroup("ClassTable")
-        self.prefs['default_column_width'] = settings.value("default_column_width", 120)
-        global DEFAULT_COLUMN_WIDTH
-        DEFAULT_COLUMN_WIDTH = self.prefs['default_column_width']
+        self.prefs['default_column_width'] = int(settings.value("default_column_width", 120))
+        self.prefs['class_table_font_size'] = int(settings.value("class_table_font_size", 9))
+        self.prefs['class_table_font'] = settings.value("class_table_font", "Arial")
         settings.endGroup()
 
         settings.beginGroup("Global")
@@ -101,13 +112,6 @@ class Settings(object):
         global LOG_LEVEL
         LOG_LEVEL = self.prefs['log_level']
         settings.endGroup()
-
-        # Apply some settings immediately
-        self.parent.resize(self.prefs['size'])
-        self.parent.move(self.prefs['pos'])
-        self.parent.restoreState(self.prefs['state'])
-        self.parent.recentFiles = self.prefs['recent_files']
-        QtGui.QApplication.setStyle(QtGui.QStyleFactory.create(self.prefs['style']))
 
     def write_settings(self):
         """Writes application settings to disk."""
@@ -123,12 +127,24 @@ class Settings(object):
         settings.beginGroup("MainWindow")
         settings.setValue("size", prefs['size'])
         settings.setValue("pos", prefs['pos'])
+        settings.setValue("geometry", self.parent.saveGeometry())
         settings.setValue("state", self.parent.saveState())
         settings.setValue("style", prefs['style'])
+        settings.setValue("base_font_size", prefs['base_font_size'])
+        settings.setValue("base_font", prefs['base_font'])
+        settings.setValue("comments_font_size", prefs['comments_font_size'])
+        settings.setValue("comments_font", prefs['comments_font'])
+        settings.endGroup()
+
+        settings.beginGroup("ClassTree")
+        settings.setValue("class_tree_font_size", prefs['class_tree_font_size'])
+        settings.setValue("class_tree_font", prefs['class_tree_font'])
         settings.endGroup()
 
         settings.beginGroup("ClassTable")
         settings.setValue("default_column_width", prefs['default_column_width'])
+        settings.setValue("class_table_font_size", prefs['class_table_font_size'])
+        settings.setValue("class_table_font", prefs['class_table_font'])
         settings.endGroup()
 
         settings.beginGroup("Global")
@@ -157,6 +173,14 @@ class Settings(object):
         import os
         return os.path.dirname(self.settings.fileName())
 
+    def restore_state(self):
+        # Apply some settings immediately
+        self.parent.resize(self.prefs['size'])
+        self.parent.move(self.prefs['pos'])
+        self.parent.restoreGeometry(self.prefs['geometry'])
+        self.parent.restoreState(self.prefs['state'])
+        self.parent.recentFiles = self.prefs['recent_files']
+        QtGui.QApplication.setStyle(QtGui.QStyleFactory.create(self.prefs['style']))
 
 class PrefsDialog(QtGui.QDialog):
     """ Form used to view and edit global program options
