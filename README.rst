@@ -98,6 +98,7 @@ Changelog
 =========
 
 v0.0.2, January 13, 2015
+
 - Comments widget is now editable, allowing users to edit object-level comments within the editor.
 - Log viewer has be reworked to use be more memory efficient and should now work on windows.
 - File save status should now be displayed properly in title bar and user will be prompted to save un-saved changes before exiting.
