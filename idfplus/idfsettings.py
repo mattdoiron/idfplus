@@ -43,7 +43,7 @@ LOG_DIR = appdirs.user_log_dir(APP_NAME, COMPANY_NAME)
 MAX_OBJ_HISTORY = 100
 # UNITS_REGISTRY_PATH = os.path.join(APP_ROOT, DATA_DIR, 'units.dat')
 DEFAULT_IDD_VERSION = '8.2'
-__version__ = 'v0.0.2'
+__version__ = '0.0.2'
 
 # Make sure necessary folders exist
 for dir in [DATA_DIR, LOG_DIR]:
