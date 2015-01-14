@@ -93,3 +93,17 @@ and suggestions on how the editor can be improved. Please submit `an issue`_ if 
 find any bugs.
 
 .. _an issue: https://bitbucket.org/mattdoiron/idfplus/issues
+
+Changelog
+=========
+
+v0.0.2, January 13, 2015
+- Comments widget is now editable, allowing users to edit object-level comments within the editor.
+- Log viewer has be reworked to use be more memory efficient and should now work on windows.
+- File save status should now be displayed properly in title bar and user will be prompted to save un-saved changes before exiting.
+- Version bump for various internal dependencies.
+- The editor should now use line endings specific to the operating system on which a file is saved.
+- Fonts and colours should be more evenly applied throughout the editor.
+- Misc code cleanup.
+
+v0.0.1, November 15, 2014 -- Initial release.
