@@ -217,7 +217,6 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow, idfsettings.Settings):
         self.load_tree_view()
         log.debug('Setting class table model...')
         self.classTable.setModel(None)
-        self.commentView.setText("".join(self.idf['Version'][0].comments or ''))
         self.file_path = file_path
         self.set_current_file(file_path)
         self.file_dirty = False
@@ -394,6 +393,13 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow, idfsettings.Settings):
         # Also update the units label
         units = self.classTable.model().get_units(idd_field)
         self.unitsLabel.setText('Display Units: {}'.format(units))
+
+        # Update the comments view
+        current_obj = self.idf[self.current_obj_class][index.row()]
+        comments = ''.join(current_obj.comments)
+        self.commentView.blockSignals(True)
+        self.commentView.setPlainText(comments)
+        self.commentView.blockSignals(False)
 
     def update_reference_view(self, index):
         # Retrieve the node (could be invalid so use try)
@@ -722,6 +728,8 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow, idfsettings.Settings):
         # Filter out group headers
         if obj_class not in self.idd:
             return
+        else:
+            self.current_obj_class = obj_class
 
         # Clear the table filter when changing classes
         self.clearFilterClicked()
@@ -752,7 +760,6 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow, idfsettings.Settings):
         table.setItemDelegate(item_delegates)
 
         # Connect some signals
-        # default_model.sourceModel().dataChanged.connect(self.update_tree_view)
         selection_model = table.selectionModel()
         selection_model.selectionChanged.connect(self.table_selection_changed)
 
@@ -761,21 +768,14 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow, idfsettings.Settings):
             partial = sortable.sourceModel().mapSelectionFromSource(source_sel)
             previous_sel = sortable.mapSelectionFromSource(partial)
             selection_model.select(previous_sel, QtGui.QItemSelectionModel.SelectCurrent)
-
-        # Grab the comments
-        comments = ''
-        if self.idf[obj_class]:
-            comment_list = self.idf[obj_class][0].comments
-            if comment_list:
-                comments = "".join(self.idf[obj_class][0].comments)
+        else:
+            self.classTable.setCurrentIndex(self.classTable.model().index(0, 0))
+            self.classTable.setFocus()
 
         # Now that there is a class selected, enable some actions and set some vars
         self.newObjAct.setEnabled(True)
         self.delObjAct.setEnabled(True)
         self.transposeAct.setEnabled(True)
-        self.infoView.setText(self.idd[obj_class].get_info())
-        self.commentView.setText(comments)
-        self.current_obj_class = obj_class
         self.unitsLabel.setText(None)
 
     def load_tree_view(self):
@@ -841,6 +841,22 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow, idfsettings.Settings):
 
         # Load the corresponding class in the tableView
         self.load_table_view(data)
+
+    def comment_view_changed(self):
+        sel = self.classTable.selectionModel().selection()
+        if not sel:
+            return
+        first = sel.first().topLeft()
+        if self.obj_orientation == QtCore.Qt.Horizontal:
+            ind = first.row()
+        else:
+            ind = first.column()
+
+        comment_text = self.commentView.toPlainText()
+        comments = comment_text.splitlines(True)
+        self.idf[self.current_obj_class][ind].comments = comments
+        self.file_dirty = True
+        self.setWindowModified(True)
 
     def fill_right(self):
         # not yet implemented

@@ -130,13 +130,13 @@ class UI_MainWindow(object):
         commentDockWidget = QtGui.QDockWidget("Comments", self)
         commentDockWidget.setObjectName("commentDockWidget")
         commentDockWidget.setAllowedAreas(QtCore.Qt.AllDockWidgetAreas)
-        commentView = QtGui.QTextEdit(commentDockWidget)
+        commentView = QtGui.QPlainTextEdit(commentDockWidget)
         commentView.setFrameShape(QtGui.QFrame.StyledPanel)
         comment_font = QtGui.QFont(self.prefs['comments_font'],
                                    self.prefs['comments_font_size'])
         commentView.setFont(comment_font)
-        commentView.setReadOnly(True) # Just for now!
         commentDockWidget.setWidget(commentView)
+        commentView.textChanged.connect(self.comment_view_changed)
 
         # Info and help widget
         infoDockWidget = QtGui.QDockWidget("Info", self)

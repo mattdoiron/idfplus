@@ -206,12 +206,20 @@ class Writer(object):
                         # for comment in obj.tags.get('comments_special', []):
                         #     file.write("!-{}{}".format(comment, eol_char))
 
+                        # Remove trailing white spaces and end of line chars from last
+                        if obj.comments:
+                            obj.comments[-1] = obj.comments[-1].rstrip()
+
                         # Write comments if there are any
                         for comment in obj.comments:
 
                             # Don't use '.format' here due to potential incorrect
                             # encodings introduced by user
                             idf_file.write("!"+comment)
+
+                        # Always add a new line after the comments.
+                        if obj.comments:
+                            idf_file.write(eol_char)
 
                         # Some objects are on one line and some fields are grouped!
                         # If enabled, check IDD file for special formatting instructions
@@ -427,11 +435,12 @@ class Parser(object):
         # Return matches
         return matches
 
-    def parse_line(self, line_in):
+    def parse_line(self, _line_in):
         """Parses a line from the IDD/IDF file and returns results
         :rtype : dict:
         :param line_in: 
         """
+        line_in = _line_in.rstrip()
 
         # Get results
         fields = self.get_fields(line_in)
@@ -655,6 +664,9 @@ class IDDParser(Parser):
                     idd_object.comments = comment_list
                     idd_object.tags = obj_tag_dict
                     # print('setting object tags: {}'.format(idd_object.tags))
+
+                    # Strip white spaces and end of line chars from last comment
+                    idd_object.comments[-1] = idd_object.comments[-1].rstrip()
 
                     # Add the group to the idd's list if it isn't already there
                     if group not in idd._groups:
