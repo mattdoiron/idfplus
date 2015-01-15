@@ -225,7 +225,7 @@ class AppearanceTab(QtGui.QWidget):
         self.prefs = parent.prefs
 
         col_width_label = QtGui.QLabel("Default Column Width:")
-        self.col_width_edit = QtGui.QLineEdit(self.prefs['default_column_width'])
+        self.col_width_edit = QtGui.QLineEdit(str(self.prefs['default_column_width']))
         self.col_width_edit.setMinimumWidth(40)
         validator = QtGui.QIntValidator(10, 200, self)
         self.col_width_edit.setValidator(validator)
