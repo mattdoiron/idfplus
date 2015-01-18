@@ -155,6 +155,11 @@ log = logger.setup_logging(c.LOG_LEVEL, __name__)
 #print parse_line(test_line15)
 #print parse_line(test_line16)
 
+class InvalidIDFObject(Exception):
+    """Exception called when an invalid/unknown idf object is encountered."""
+    def __init__(self, message):
+        self.message = message
+
 
 class Writer(object):
     """Class to take care of writing idf and idd files."""
@@ -846,7 +851,11 @@ class IDFParser(Parser):
                     if obj_class != prev_obj_class:
                         obj_index = 0
                     prev_obj_class = obj_class
-                    idd_fields = self.idd[obj_class]
+
+                    try:
+                        idd_fields = self.idd[obj_class]
+                    except KeyError as e:
+                        raise InvalidIDFObject('Invalid or unknown idf object: {}'.format(obj_class))
 
                     # Create IDFField objects for all fields
                     for i, field in enumerate(field_list):
