@@ -206,20 +206,12 @@ class Writer(object):
                         # for comment in obj.tags.get('comments_special', []):
                         #     file.write("!-{}{}".format(comment, eol_char))
 
-                        # Remove trailing white spaces and end of line chars from last
-                        if obj.comments:
-                            obj.comments[-1] = obj.comments[-1].rstrip()
-
                         # Write comments if there are any
                         for comment in obj.comments:
 
                             # Don't use '.format' here due to potential incorrect
                             # encodings introduced by user
-                            idf_file.write("!"+comment)
-
-                        # Always add a new line after the comments.
-                        if obj.comments:
-                            idf_file.write(eol_char)
+                            idf_file.write("!" + comment.rstrip() + "{}".format(eol_char))
 
                         # Some objects are on one line and some fields are grouped!
                         # If enabled, check IDD file for special formatting instructions
@@ -435,12 +427,11 @@ class Parser(object):
         # Return matches
         return matches
 
-    def parse_line(self, _line_in):
+    def parse_line(self, line_in):
         """Parses a line from the IDD/IDF file and returns results
         :rtype : dict:
         :param line_in: 
         """
-        line_in = _line_in.rstrip()
 
         # Get results
         fields = self.get_fields(line_in)
@@ -506,6 +497,7 @@ class IDDParser(Parser):
         total_size = os.path.getsize(file_path)
         total_read = 0.0
         idd = self.idd
+        eol_char = os.linesep
         object_lists = self.idd.object_lists
         log.info('Parsing IDD file: {} ({} bytes)'.format(file_path, total_size))
 
@@ -537,12 +529,6 @@ class IDDParser(Parser):
                 total_read += len(line)
                 line_parsed = self.parse_line(line)
 
-                # Detect end of line character for use when re-writing file
-                if line.endswith('\r\n'):
-                    idd._eol_char = '\r\n'
-                else:
-                    idd._eol_char = '\n'
-
                 # If previous line was not the end of an object check this one
                 if end_object is False:
                     end_object = line_parsed['end_object']
@@ -554,7 +540,8 @@ class IDDParser(Parser):
 
                 # If there are any comments save them
                 if line_parsed['comments']:
-                    comment_list.append(line_parsed['comments'])
+                    comment_list.append(line_parsed['comments'].rstrip()
+                                        + eol_char)
 
                     # Detect file version
                     if 'IDD_Version' in line_parsed['comments']:
@@ -567,7 +554,8 @@ class IDDParser(Parser):
 
                 # Check for special comments and options
                 if line_parsed['comments_special']:
-                    comment_list_special.append(line_parsed['comments_special'])
+                    comment_list_special.append(line_parsed['comments_special'].rstrip()
+                                                + eol_char)
 
                 # If there are any fields save them
                 if line_parsed['fields']:
@@ -666,7 +654,8 @@ class IDDParser(Parser):
                     # print('setting object tags: {}'.format(idd_object.tags))
 
                     # Strip white spaces and end of line chars from last comment
-                    idd_object.comments[-1] = idd_object.comments[-1].rstrip()
+                    if idd_object.comments:
+                        idd_object.comments[-1] = idd_object.comments[-1].rstrip()
 
                     # Add the group to the idd's list if it isn't already there
                     if group not in idd._groups:
@@ -777,6 +766,7 @@ class IDFParser(Parser):
         self.idf.file_path = file_path
         total_size = os.path.getsize(file_path)
         total_read = 0
+        eol_char = os.linesep
         # object_lists = self.idf.object_lists
         log.info('Parsing IDF file: {} ({} bytes)'.format(file_path, total_size))
 
@@ -803,15 +793,6 @@ class IDFParser(Parser):
                 total_read += len(line)
                 line_parsed = self.parse_line(line)
 
-                # Detect end of line character for use when re-writing file
-                if not self.idf._eol_char:
-                    if line.endswith('\r\n'):
-                        self.idf._eol_char = '\r\n'
-                        log.debug('Windows line endings detected.')
-                    else:
-                        self.idf._eol_char = '\n'
-                        log.debug('Unix line endings detected.')
-
                 # If previous line was not the end of an object check this one
                 if end_object is False:
                     end_object = line_parsed['end_object']
@@ -823,11 +804,13 @@ class IDFParser(Parser):
 
                 # If there are any comments save them
                 if line_parsed['comments']:
-                    comment_list.append(line_parsed['comments'])
+                    comment_list.append(line_parsed['comments'].rstrip()
+                                        + eol_char)
 
                 # Check for special comments and options
                 if line_parsed['comments_special']:
-                    comment_list_special.append(line_parsed['comments_special'])
+                    comment_list_special.append(line_parsed['comments_special'].rstrip()
+                                                + eol_char)
 
                 # If there are any fields save them
                 if line_parsed['fields']:
@@ -906,6 +889,10 @@ class IDFParser(Parser):
                     idf_object._group = group
                     idf_object.comments_special = comment_list_special
                     idf_object.comments = comment_list
+
+                    # Strip white spaces and end of line chars from last comment
+                    if idf_object.comments:
+                        idf_object.comments[-1] = idf_object.comments[-1].rstrip()
 
                     # Set the object's group from the idd file
                     group = self.idd[obj_class]._group

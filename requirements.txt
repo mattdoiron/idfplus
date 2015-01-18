@@ -1,5 +1,5 @@
 PySide==1.2.2
-BTrees==4.0.8
+BTrees==4.1.1
 Jinja2==2.7.3
 MarkupSafe==0.23
 Pygments==2.0.1
@@ -8,7 +8,7 @@ argparse==1.2.1
 docutils==0.12
 nose==1.3.4
 persistent==4.0.8
-six==1.8.0
+six==1.9.0
 zope.interface==4.1.1
 odict==1.5.1
 networkx==1.9.1
