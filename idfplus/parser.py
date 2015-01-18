@@ -822,7 +822,7 @@ class IDFParser(Parser):
                     field_list.extend(line_parsed['fields'])
 
                     # Detect idf file version and use it to select idd file
-                    if field_list[0] == 'Version' and len(field_list) > 1:
+                    if field_list[0].lower() == 'version' and len(field_list) > 1:
                         version = field_list[1]
                         self.idf._version = version
                         log.debug('idf detected as version: {}'.format(version))
@@ -855,7 +855,12 @@ class IDFParser(Parser):
                     try:
                         idd_fields = self.idd[obj_class]
                     except KeyError as e:
-                        raise InvalidIDFObject('Invalid or unknown idf object: {}'.format(obj_class))
+                        if obj_class.lower() == 'version':
+                            obj_class = 'Version'
+                            idd_fields = self.idd[obj_class]
+                            prev_obj_class = obj_class
+                        else:
+                            raise InvalidIDFObject('Invalid or unknown idf object: {}'.format(obj_class))
 
                     # Create IDFField objects for all fields
                     for i, field in enumerate(field_list):
@@ -981,9 +986,9 @@ class IDFParser(Parser):
                                 # Check if this is the referenced field
                                 if reference and field.value == reference and field is not node:
                                     graph.add_edge(node, field)
-                                    yield math.ceil(50 + (100 * 0.5 * k / node_count))
+                                    yield math.ceil(50 + (100 * 0.5 * (k+1) / node_count))
 
             except (IndexError) as e:
                 continue
 
-            yield math.ceil(50 + (100 * 0.5 * k / node_count))
+            yield math.ceil(50 + (100 * 0.5 * (k+1) / node_count))
