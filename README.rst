@@ -97,6 +97,15 @@ find any bugs.
 Changelog
 =========
 
+v0.0.3, January 18, 2015
+
+* Fixed bug that prevented the preferences window from opening.
+* Fixed Issue #25 that prevented idf files from being opened if the version object name was capitalized.
+* Added a dialog to warn users of invalid idf object names.
+* Fixed line endings for comments. They should now also be operating-system specific.
+* Version bump for a few internal dependencies.
+* Misc code cleanup.
+
 v0.0.2, January 13, 2015
 
 * Comments widget is now editable, allowing users to edit object-level comments within the editor.

@@ -41,9 +41,8 @@ LOG_FILE_NAME = "idfplus.log"
 DATA_DIR = appdirs.user_data_dir(APP_NAME, COMPANY_NAME)
 LOG_DIR = appdirs.user_log_dir(APP_NAME, COMPANY_NAME)
 MAX_OBJ_HISTORY = 100
-# UNITS_REGISTRY_PATH = os.path.join(APP_ROOT, DATA_DIR, 'units.dat')
 DEFAULT_IDD_VERSION = '8.2'
-__version__ = '0.0.2'
+__version__ = '0.0.3'
 
 # Make sure necessary folders exist
 for dir in [DATA_DIR, LOG_DIR]:
@@ -107,7 +106,6 @@ class Settings(object):
         settings.endGroup()
 
         settings.beginGroup("Global")
-        # self.prefs['file_encoding'] = settings.value("file_encoding", 'latin_1')
         self.prefs['log_level'] = settings.value("log_level", 'INFO')
         global LOG_LEVEL
         LOG_LEVEL = self.prefs['log_level']

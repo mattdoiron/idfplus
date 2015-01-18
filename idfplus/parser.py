@@ -517,7 +517,6 @@ class IDDParser(Parser):
             comment_list_special = list()
             tag_list = list()
             tag_dict = dict()
-            # obj_tag_list = list()
             obj_tag_dict = dict()
             version = None
             group = None
@@ -553,8 +552,6 @@ class IDDParser(Parser):
                         version_raw = line_parsed['comments'].split()[1].strip()
                         version = '.'.join(version_raw.split('.')[0:2])
                         idd._version = version
-                        # print('idd version from idd1: {}'.format(version))
-                        # print('idd version from idd2: {}'.format(idd._version))
                         log.debug('Found idd version in idd file: {}'.format(idd._version))
 
                 # Check for special comments and options
@@ -573,17 +570,14 @@ class IDDParser(Parser):
                         tag_dict = dict()
                     if obj_tag_dict:
                         obj_tag_dict.update(obj_tag_dict)
-                        # obj_tag_dict = dict()
 
                 # If there are any field tags for this object save them
                 if line_parsed['tags']:
                     tag = line_parsed['tags']['tag']
                     value = line_parsed['tags']['value']
-                    # print('tag: {}, val: {}'.format(tag, value))
 
                     # If there are tags, but no fields then these are object-level tags
                     if len(field_list) <= 1:
-                        # print('found object-level tag')
                         if tag in obj_tag_dict:
                             try:
                                 obj_tag_dict[tag].append(value)
@@ -592,10 +586,8 @@ class IDDParser(Parser):
                         else:
                             # Otherwise simply add it
                             obj_tag_dict[tag] = value
-                        # print('obj lvl: tag: {}, value: {}'.format(tag, value))
                     else:
                         # If this tag is already present, try to append its value
-                        # print('found field-level tag')
                         if tag in tag_dict:
                             try:
                                 tag_dict[tag].append(value)
@@ -604,11 +596,9 @@ class IDDParser(Parser):
                         else:
                             # Otherwise simply add it
                             tag_dict[tag] = value
-                        # print('field lvl: tag: {}, value: {}'.format(tag, value))
 
                     # Check for the special group tag
                     if line_parsed['tags']['tag'] == 'group':
-                        # print('found group tag: {}'.format(line_parsed['tags']['value']))
                         group = line_parsed['tags']['value']
                         if group not in group_list:
                             group_list.append(group)
@@ -625,7 +615,6 @@ class IDDParser(Parser):
                         new_field.key = field
                         new_field.value = None
                         try:
-                            # print('field_tag_list: {}'.format(field_tag_list))
                             new_field.tags = tag_list[i]
                         except IndexError:
                             new_field.tags = dict()
@@ -645,10 +634,7 @@ class IDDParser(Parser):
                                 except KeyError:
                                     object_lists[tags['reference']] = {obj_class}
 
-                        # print('new_field.tags: {}'.format(new_field.tags))
                         idd_object.append(new_field)
-                        # print('setting field tags: {}'.format(new_field.tags))
-                        # idd_object.update({field:new_field})
 
                     # Save the parsed variables in the idd_object
                     idd_object._obj_class = obj_class
@@ -656,7 +642,6 @@ class IDDParser(Parser):
                     idd_object.comments_special = comment_list_special
                     idd_object.comments = comment_list
                     idd_object.tags = obj_tag_dict
-                    # print('setting object tags: {}'.format(idd_object.tags))
 
                     # Strip white spaces and end of line chars from last comment
                     if idd_object.comments:
@@ -676,7 +661,6 @@ class IDDParser(Parser):
                     comment_list_special = list()
                     tag_list = list()
                     tag_dict = dict()
-                    # obj_tag_list = list()
                     obj_tag_dict = dict()
                     end_object = False
                     idd_object = datamodel.IDDObject(idd)
