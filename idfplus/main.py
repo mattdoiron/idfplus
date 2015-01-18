@@ -167,7 +167,6 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow, idfsettings.Settings):
         self.idf = idf
         self.idd = idf._idd
 
-
     def load_file(self, file_path=None):
         """Loads a specified file or gets the file_path from the sender.
         :rtype : bool
@@ -211,6 +210,14 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow, idfsettings.Settings):
                 return False
             else:
                 self.load_idf(file_path)
+        except parser.InvalidIDFObject as e:
+            QtGui.QMessageBox.warning(self, "Processing IDF File Failed",
+                                      "{}\n\nLoading cancelled!".format(e.message),
+                                      QtGui.QMessageBox.Ok)
+            message = "Loading failed. Invalid idf object."
+            self.progressDialogIDF.cancel()
+            self.update_status(message)
+            return False
 
         log.debug('Loading tree view...')
         self.groups = self.idd.groups

@@ -155,6 +155,11 @@ log = logger.setup_logging(c.LOG_LEVEL, __name__)
 #print parse_line(test_line15)
 #print parse_line(test_line16)
 
+class InvalidIDFObject(Exception):
+    """Exception called when an invalid/unknown idf object is encountered."""
+    def __init__(self, message):
+        self.message = message
+
 
 class Writer(object):
     """Class to take care of writing idf and idd files."""
@@ -206,20 +211,12 @@ class Writer(object):
                         # for comment in obj.tags.get('comments_special', []):
                         #     file.write("!-{}{}".format(comment, eol_char))
 
-                        # Remove trailing white spaces and end of line chars from last
-                        if obj.comments:
-                            obj.comments[-1] = obj.comments[-1].rstrip()
-
                         # Write comments if there are any
                         for comment in obj.comments:
 
                             # Don't use '.format' here due to potential incorrect
                             # encodings introduced by user
-                            idf_file.write("!"+comment)
-
-                        # Always add a new line after the comments.
-                        if obj.comments:
-                            idf_file.write(eol_char)
+                            idf_file.write("!" + comment.rstrip() + "{}".format(eol_char))
 
                         # Some objects are on one line and some fields are grouped!
                         # If enabled, check IDD file for special formatting instructions
@@ -435,12 +432,11 @@ class Parser(object):
         # Return matches
         return matches
 
-    def parse_line(self, _line_in):
+    def parse_line(self, line_in):
         """Parses a line from the IDD/IDF file and returns results
         :rtype : dict:
         :param line_in: 
         """
-        line_in = _line_in.rstrip()
 
         # Get results
         fields = self.get_fields(line_in)
@@ -506,6 +502,7 @@ class IDDParser(Parser):
         total_size = os.path.getsize(file_path)
         total_read = 0.0
         idd = self.idd
+        eol_char = os.linesep
         object_lists = self.idd.object_lists
         log.info('Parsing IDD file: {} ({} bytes)'.format(file_path, total_size))
 
@@ -520,7 +517,6 @@ class IDDParser(Parser):
             comment_list_special = list()
             tag_list = list()
             tag_dict = dict()
-            # obj_tag_list = list()
             obj_tag_dict = dict()
             version = None
             group = None
@@ -537,12 +533,6 @@ class IDDParser(Parser):
                 total_read += len(line)
                 line_parsed = self.parse_line(line)
 
-                # Detect end of line character for use when re-writing file
-                if line.endswith('\r\n'):
-                    idd._eol_char = '\r\n'
-                else:
-                    idd._eol_char = '\n'
-
                 # If previous line was not the end of an object check this one
                 if end_object is False:
                     end_object = line_parsed['end_object']
@@ -554,20 +544,20 @@ class IDDParser(Parser):
 
                 # If there are any comments save them
                 if line_parsed['comments']:
-                    comment_list.append(line_parsed['comments'])
+                    comment_list.append(line_parsed['comments'].rstrip()
+                                        + eol_char)
 
                     # Detect file version
                     if 'IDD_Version' in line_parsed['comments']:
                         version_raw = line_parsed['comments'].split()[1].strip()
                         version = '.'.join(version_raw.split('.')[0:2])
                         idd._version = version
-                        # print('idd version from idd1: {}'.format(version))
-                        # print('idd version from idd2: {}'.format(idd._version))
                         log.debug('Found idd version in idd file: {}'.format(idd._version))
 
                 # Check for special comments and options
                 if line_parsed['comments_special']:
-                    comment_list_special.append(line_parsed['comments_special'])
+                    comment_list_special.append(line_parsed['comments_special'].rstrip()
+                                                + eol_char)
 
                 # If there are any fields save them
                 if line_parsed['fields']:
@@ -580,17 +570,14 @@ class IDDParser(Parser):
                         tag_dict = dict()
                     if obj_tag_dict:
                         obj_tag_dict.update(obj_tag_dict)
-                        # obj_tag_dict = dict()
 
                 # If there are any field tags for this object save them
                 if line_parsed['tags']:
                     tag = line_parsed['tags']['tag']
                     value = line_parsed['tags']['value']
-                    # print('tag: {}, val: {}'.format(tag, value))
 
                     # If there are tags, but no fields then these are object-level tags
                     if len(field_list) <= 1:
-                        # print('found object-level tag')
                         if tag in obj_tag_dict:
                             try:
                                 obj_tag_dict[tag].append(value)
@@ -599,10 +586,8 @@ class IDDParser(Parser):
                         else:
                             # Otherwise simply add it
                             obj_tag_dict[tag] = value
-                        # print('obj lvl: tag: {}, value: {}'.format(tag, value))
                     else:
                         # If this tag is already present, try to append its value
-                        # print('found field-level tag')
                         if tag in tag_dict:
                             try:
                                 tag_dict[tag].append(value)
@@ -611,11 +596,9 @@ class IDDParser(Parser):
                         else:
                             # Otherwise simply add it
                             tag_dict[tag] = value
-                        # print('field lvl: tag: {}, value: {}'.format(tag, value))
 
                     # Check for the special group tag
                     if line_parsed['tags']['tag'] == 'group':
-                        # print('found group tag: {}'.format(line_parsed['tags']['value']))
                         group = line_parsed['tags']['value']
                         if group not in group_list:
                             group_list.append(group)
@@ -632,7 +615,6 @@ class IDDParser(Parser):
                         new_field.key = field
                         new_field.value = None
                         try:
-                            # print('field_tag_list: {}'.format(field_tag_list))
                             new_field.tags = tag_list[i]
                         except IndexError:
                             new_field.tags = dict()
@@ -652,10 +634,7 @@ class IDDParser(Parser):
                                 except KeyError:
                                     object_lists[tags['reference']] = {obj_class}
 
-                        # print('new_field.tags: {}'.format(new_field.tags))
                         idd_object.append(new_field)
-                        # print('setting field tags: {}'.format(new_field.tags))
-                        # idd_object.update({field:new_field})
 
                     # Save the parsed variables in the idd_object
                     idd_object._obj_class = obj_class
@@ -663,10 +642,10 @@ class IDDParser(Parser):
                     idd_object.comments_special = comment_list_special
                     idd_object.comments = comment_list
                     idd_object.tags = obj_tag_dict
-                    # print('setting object tags: {}'.format(idd_object.tags))
 
                     # Strip white spaces and end of line chars from last comment
-                    idd_object.comments[-1] = idd_object.comments[-1].rstrip()
+                    if idd_object.comments:
+                        idd_object.comments[-1] = idd_object.comments[-1].rstrip()
 
                     # Add the group to the idd's list if it isn't already there
                     if group not in idd._groups:
@@ -682,7 +661,6 @@ class IDDParser(Parser):
                     comment_list_special = list()
                     tag_list = list()
                     tag_dict = dict()
-                    # obj_tag_list = list()
                     obj_tag_dict = dict()
                     end_object = False
                     idd_object = datamodel.IDDObject(idd)
@@ -777,6 +755,7 @@ class IDFParser(Parser):
         self.idf.file_path = file_path
         total_size = os.path.getsize(file_path)
         total_read = 0
+        eol_char = os.linesep
         # object_lists = self.idf.object_lists
         log.info('Parsing IDF file: {} ({} bytes)'.format(file_path, total_size))
 
@@ -803,15 +782,6 @@ class IDFParser(Parser):
                 total_read += len(line)
                 line_parsed = self.parse_line(line)
 
-                # Detect end of line character for use when re-writing file
-                if not self.idf._eol_char:
-                    if line.endswith('\r\n'):
-                        self.idf._eol_char = '\r\n'
-                        log.debug('Windows line endings detected.')
-                    else:
-                        self.idf._eol_char = '\n'
-                        log.debug('Unix line endings detected.')
-
                 # If previous line was not the end of an object check this one
                 if end_object is False:
                     end_object = line_parsed['end_object']
@@ -823,18 +793,20 @@ class IDFParser(Parser):
 
                 # If there are any comments save them
                 if line_parsed['comments']:
-                    comment_list.append(line_parsed['comments'])
+                    comment_list.append(line_parsed['comments'].rstrip()
+                                        + eol_char)
 
                 # Check for special comments and options
                 if line_parsed['comments_special']:
-                    comment_list_special.append(line_parsed['comments_special'])
+                    comment_list_special.append(line_parsed['comments_special'].rstrip()
+                                                + eol_char)
 
                 # If there are any fields save them
                 if line_parsed['fields']:
                     field_list.extend(line_parsed['fields'])
 
                     # Detect idf file version and use it to select idd file
-                    if field_list[0] == 'Version' and len(field_list) > 1:
+                    if field_list[0].lower() == 'version' and len(field_list) > 1:
                         version = field_list[1]
                         self.idf._version = version
                         log.debug('idf detected as version: {}'.format(version))
@@ -863,7 +835,16 @@ class IDFParser(Parser):
                     if obj_class != prev_obj_class:
                         obj_index = 0
                     prev_obj_class = obj_class
-                    idd_fields = self.idd[obj_class]
+
+                    try:
+                        idd_fields = self.idd[obj_class]
+                    except KeyError as e:
+                        if obj_class.lower() == 'version':
+                            obj_class = 'Version'
+                            idd_fields = self.idd[obj_class]
+                            prev_obj_class = obj_class
+                        else:
+                            raise InvalidIDFObject('Invalid or unknown idf object: {}'.format(obj_class))
 
                     # Create IDFField objects for all fields
                     for i, field in enumerate(field_list):
@@ -906,6 +887,10 @@ class IDFParser(Parser):
                     idf_object._group = group
                     idf_object.comments_special = comment_list_special
                     idf_object.comments = comment_list
+
+                    # Strip white spaces and end of line chars from last comment
+                    if idf_object.comments:
+                        idf_object.comments[-1] = idf_object.comments[-1].rstrip()
 
                     # Set the object's group from the idd file
                     group = self.idd[obj_class]._group
@@ -985,9 +970,9 @@ class IDFParser(Parser):
                                 # Check if this is the referenced field
                                 if reference and field.value == reference and field is not node:
                                     graph.add_edge(node, field)
-                                    yield math.ceil(50 + (100 * 0.5 * k / node_count))
+                                    yield math.ceil(50 + (100 * 0.5 * (k+1) / node_count))
 
             except (IndexError) as e:
                 continue
 
-            yield math.ceil(50 + (100 * 0.5 * k / node_count))
+            yield math.ceil(50 + (100 * 0.5 * (k+1) / node_count))

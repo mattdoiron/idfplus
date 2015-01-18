@@ -44,7 +44,7 @@ setup(
     cmdclass={'test': PyTest},
     author_email='matt@mindfulmodeller.ca',
     description='Advanced editor for EnergyPlus simulation input files.',
-    long_description=read('README.txt', 'CHANGES.txt'),
+    long_description=read('README.txt'),
     packages=['idfplus'],
     include_package_data=True,
     platforms='any',
