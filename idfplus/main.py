@@ -116,40 +116,6 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow, idfsettings.Settings):
             if file_name:
                 self.load_file(file_name)
 
-    def find_idd_file(self, version):
-        """Called to open an idd file location."""
-        # print('find idd file was called')
-        if self.ok_to_continue():
-            home_dir = os.path.expanduser('~')
-            directory = os.path.dirname(self.file_path) if self.file_path else home_dir
-            formats = "EnergyPlus IDD Files (*.idd)"
-            dialog_name = 'Select EnergyPlus IDD File (Version: {})'.format(version)
-            file_dialog = QtGui.QFileDialog()
-            file_dialog.setFileMode(QtGui.QFileDialog.Directory)
-            file_name, filt = file_dialog.getOpenFileName(self, dialog_name,
-                                                          directory, formats)
-            if file_name:
-                return self.process_idd_file(file_name)
-        return False
-
-    def process_idd_file(self, file_path):
-        """Loads a given idd file and saves it.
-        :rtype : bool
-        :param str file_path:
-        """
-        log.debug('Processing IDD file')
-
-        message = "Loading {}...".format(file_path)
-        self.progressDialogIDD.setLabelText(message)
-        self.progressDialogIDD.show()
-        self.statusBar().showMessage(message, 5000)
-
-        idd_parser = parser.IDDParser()
-        for progress in idd_parser.parse_idd(file_path):
-            self.progressDialogIDD.setValue(progress)
-
-        return True
-
     def load_idf(self, file_path):
         log.info('Trying to load file: {}'.format(file_path))
 
@@ -173,6 +139,7 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow, idfsettings.Settings):
         :param file_path:
         """
 
+        # Detect how/if to proceed
         if file_path:
             log.debug('Loading file from dialog: {}'.format(file_path))
         if file_path is None:
@@ -186,6 +153,7 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow, idfsettings.Settings):
             else:
                 return False
 
+        # Update status
         message = "Loading {}...".format(file_path or 'New File')
         self.statusBar().showMessage(message, 5000)
         if file_path:
@@ -195,10 +163,14 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow, idfsettings.Settings):
         # Try to load the specified IDF file
         try:
             self.load_idf(file_path)
-        except datamodel.IDDFileDoesNotExist as e:
 
-            # Load IDD File for the version of this IDF file
-            if not self.find_idd_file(e.version):
+         # Required IDD file doesn't exist so launch the wizard to help user find it
+        except datamodel.IDDFileDoesNotExist as e:
+            wizard = setupwiz.SetupWizard(self, e.version)
+            if wizard.exec_():
+                self.load_idf(file_path)
+            else:
+                # Wizard failed, warn use and cancel
                 QtGui.QMessageBox.warning(self, "Processing IDD File Failed",
                                           ("{}\n\nVersion Required: {}\n\nLoading "
                                           "cancelled!".format(e.message, e.version)),
@@ -208,8 +180,8 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow, idfsettings.Settings):
                 self.progressDialogIDF.cancel()
                 self.update_status(message)
                 return False
-            else:
-                self.load_idf(file_path)
+
+        # Invalid name of object, warn use and cancel
         except parser.InvalidIDFObject as e:
             QtGui.QMessageBox.warning(self, "Processing IDF File Failed",
                                       "{}\n\nLoading cancelled!".format(e.message),
@@ -219,6 +191,7 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow, idfsettings.Settings):
             self.update_status(message)
             return False
 
+        # Everything worked, so set some variables and update status
         log.debug('Loading tree view...')
         self.groups = self.idd.groups
         self.load_tree_view()
