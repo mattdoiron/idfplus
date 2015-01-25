@@ -750,6 +750,8 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow, idfsettings.Settings):
             self.classTable.setCurrentIndex(self.classTable.model().index(0, 0))
             self.classTable.setFocus()
 
+        table.resizeRowsToContents()
+
         # Now that there is a class selected, enable some actions and set some vars
         self.newObjAct.setEnabled(True)
         self.delObjAct.setEnabled(True)

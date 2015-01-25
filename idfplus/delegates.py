@@ -111,6 +111,24 @@ class AlphaNumericDelegate(QtGui.QStyledItemDelegate):
         super(AlphaNumericDelegate, self).__init__()
         self.main_window = main_window
 
+    def paint(self, painter, option, index):
+
+        if not index.isValid():
+            return
+
+        padding = 4
+        rect = option.rect.adjusted(padding, 0, -padding, 0)
+        text = index.data(QtCore.Qt.DisplayRole)
+
+        painter.save()
+
+        opt = QtGui.QTextOption()
+        opt.setWrapMode(QtGui.QTextOption.WrapAtWordBoundaryOrAnywhere)
+        opt.setAlignment(QtCore.Qt.AlignLeft | QtCore.Qt.AlignVCenter)
+        painter.drawText(rect, text, opt)
+
+        painter.restore()
+
     def createEditor(self, parent, option, index):
         line_edit = QtGui.QLineEdit(parent)
         line_edit.setStyleSheet("QLineEdit { qproperty-frame: false; }")
@@ -140,6 +158,24 @@ class ChoiceDelegate(QtGui.QStyledItemDelegate):
         self.main_window = main_window
         self.combo_fields = ['minimum>', 'minimum', 'maximum<', 'maximum', 'default',
                              'key', 'object-list']
+
+    def paint(self, painter, option, index):
+
+        if not index.isValid():
+            return
+
+        padding = 4
+        rect = option.rect.adjusted(padding, 0, -padding, 0)
+        text = index.data(QtCore.Qt.DisplayRole)
+
+        painter.save()
+
+        opt = QtGui.QTextOption()
+        opt.setWrapMode(QtGui.QTextOption.WrapAtWordBoundaryOrAnywhere)
+        opt.setAlignment(QtCore.Qt.AlignLeft | QtCore.Qt.AlignVCenter)
+        painter.drawText(rect, text, opt)
+
+        painter.restore()
 
     def createEditor(self, parent, option, index):
         """Creates a custom editor based on an extended QCombobox"""

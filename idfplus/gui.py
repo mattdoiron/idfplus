@@ -81,6 +81,8 @@ class UI_MainWindow(object):
         classTable.setSelectionMode(QtGui.QAbstractItemView.ContiguousSelection)
         classTable.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
         classTable.customContextMenuRequested.connect(self.custom_table_context_menu)
+        classTable.horizontalHeader().sectionResized.connect(classTable.resizeRowsToContents)
+        # classTable.verticalHeader().sectionResized.connect(classTable.resizeColumnsToContents)
 
         # These are currently broken
         # classTable.horizontalHeader().sectionMoved.connect(self.moveObject)
