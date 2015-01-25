@@ -120,15 +120,17 @@ class AlphaNumericDelegate(QtGui.QStyledItemDelegate):
         return line_edit
 
     def setEditorData(self, editor, index):
+        # Block signals, then update value
         value = index.data(QtCore.Qt.DisplayRole)
+        editor.blockSignals(True)
         editor.setText(value)
+        editor.blockSignals(False)
 
     def setModelData(self, editor, model, index):
         # Create undo command and push it to the undo stack
-        if index.data() == editor.text():
-            return
-        cmd = commands.ModifyObjectCmd(self.main_window, value=editor.text())
-        self.main_window.undo_stack.push(cmd)
+        if index.data() != editor.text():
+            cmd = commands.ModifyObjectCmd(self.main_window, value=editor.text())
+            self.main_window.undo_stack.push(cmd)
 
 
 class ChoiceDelegate(QtGui.QStyledItemDelegate):
@@ -229,10 +231,13 @@ class ChoiceDelegate(QtGui.QStyledItemDelegate):
         return self.comboBox
 
     def setEditorData(self, editor, index):
+        # Block signals, then update value
         value = index.data(QtCore.Qt.DisplayRole)
         combo_index = editor.findText(value)
         if combo_index >= 0:
+            editor.blockSignals(True)
             editor.setCurrentIndex(combo_index)
+            editor.blockSignals(False)
 
     def setModelData(self, editor, model, index):
         # Create undo command and push it to the undo stack
