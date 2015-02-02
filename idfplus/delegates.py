@@ -57,6 +57,13 @@ class GenericDelegate(QtGui.QStyledItemDelegate):
         if self.obj_orientation == QtCore.Qt.Vertical:
             return index.row()
 
+    def sizeHint(self, option, index):
+        delegate = self.delegates.get(self.getRowOrCol(index))
+        if delegate is not None:
+            return delegate.sizeHint(option, index)
+        else:
+            return super(GenericDelegate, self).sizeHint(option, index)
+
     def paint(self, painter, option, index):
         delegate = self.delegates.get(self.getRowOrCol(index))
         if delegate is not None:
@@ -100,82 +107,91 @@ class GenericDelegate(QtGui.QStyledItemDelegate):
 
             # If there are choices then use the choiceDelegate, otherwise check type
             if len(matches) > 0:
-                self.insertDelegate(i, ChoiceDelegate(field, self.main_window))
+                self.insertDelegate(i, ChoiceDelegate(self, self.main_window, field))
             else:
-                self.insertDelegate(i, AlphaNumericDelegate(self.main_window))
+                self.insertDelegate(i, AlphaNumericDelegate(self, self.main_window))
 
 
-class AlphaNumericDelegate(QtGui.QStyledItemDelegate):
+class CustomStyledItemDelegate(QtGui.QStyledItemDelegate):
 
-    def __init__(self, main_window):
-        super(AlphaNumericDelegate, self).__init__()
+    def __init__(self, parent, main_window):
+        super(CustomStyledItemDelegate, self).__init__(parent)
         self.main_window = main_window
+        self.padding = 2
+
+    def sizeHint(self, option, index):
+
+        if not index.isValid():
+            return QtCore.QSize(self.main_window.prefs['default_column_width'], 14)
+
+        rect = option.rect.adjusted(self.padding, 0, -self.padding, 0)
+        text = index.data(QtCore.Qt.DisplayRole)
+
+        fm = QtGui.QFontMetrics(option.font)
+        b_rect = fm.boundingRect(rect,
+                                 QtCore.Qt.AlignLeft |
+                                 QtCore.Qt.AlignVCenter |
+                                 QtCore.Qt.TextWrapAnywhere,
+                                 text)
+
+        return QtCore.QSize(self.main_window.prefs['default_column_width'],
+                            b_rect.height())
 
     def paint(self, painter, option, index):
 
         if not index.isValid():
             return
 
-        padding = 4
-        rect = option.rect.adjusted(padding, 0, -padding, 0)
+        rect = option.rect.adjusted(self.padding, 0, -self.padding, 0)
         text = index.data(QtCore.Qt.DisplayRole)
 
         painter.save()
-
         opt = QtGui.QTextOption()
-        opt.setWrapMode(QtGui.QTextOption.WrapAtWordBoundaryOrAnywhere)
+        opt.setWrapMode(QtGui.QTextOption.WrapAnywhere)
         opt.setAlignment(QtCore.Qt.AlignLeft | QtCore.Qt.AlignVCenter)
         painter.drawText(rect, text, opt)
-
         painter.restore()
 
+
+class AlphaNumericDelegate(CustomStyledItemDelegate):
+
     def createEditor(self, parent, option, index):
-        line_edit = QtGui.QLineEdit(parent)
-        line_edit.setStyleSheet("QLineEdit { qproperty-frame: false; }")
-        line_edit.setValidator(CustomValidator(self))
-        line_edit.setFont(QtGui.QFont(self.main_window.prefs['class_table_font'],
+        text_edit = ExtendedPlainTextEditor(parent)
+        text_edit.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
+        text_edit.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
+        text_edit.setFrameStyle(QtGui.QFrame.NoFrame)
+        text_edit.setWordWrapMode(QtGui.QTextOption.WrapAnywhere)
+        text_edit.setFont(QtGui.QFont(self.main_window.prefs['class_table_font'],
                                       self.main_window.prefs['class_table_font_size']))
-        return line_edit
+        text_edit.setStyleSheet("""QPlainTextEdit { margin-left:0;
+            margin-top:0; margin-bottom:0; margin-right:0;
+            padding-left:-2; padding-top:-4; padding-bottom:0;
+            padding-right:-2;}""")
+        return text_edit
 
     def setEditorData(self, editor, index):
         value = index.data(QtCore.Qt.DisplayRole)
-        editor.setText(value)
+        editor.setPlainText(value)
+        editor.moveCursor(QtGui.QTextCursor.Start, QtGui.QTextCursor.MoveAnchor)
+        editor.moveCursor(QtGui.QTextCursor.End, QtGui.QTextCursor.KeepAnchor)
 
     def setModelData(self, editor, model, index):
         # Create undo command and push it to the undo stack
-        if index.data() == editor.text():
+        value = editor.toPlainText()
+        if index.data() == value:
             return
-        cmd = commands.ModifyObjectCmd(self.main_window, value=editor.text())
+        cmd = commands.ModifyObjectCmd(self.main_window, value=value)
         self.main_window.undo_stack.push(cmd)
 
 
-class ChoiceDelegate(QtGui.QStyledItemDelegate):
+class ChoiceDelegate(CustomStyledItemDelegate):
 
-    def __init__(self, field, main_window):
-        super(ChoiceDelegate, self).__init__()
+    def __init__(self, parent, main_window, field):
+        super(ChoiceDelegate, self).__init__(parent, main_window)
         self.field = field
         self.model = None
-        self.main_window = main_window
         self.combo_fields = ['minimum>', 'minimum', 'maximum<', 'maximum', 'default',
                              'key', 'object-list']
-
-    def paint(self, painter, option, index):
-
-        if not index.isValid():
-            return
-
-        padding = 4
-        rect = option.rect.adjusted(padding, 0, -padding, 0)
-        text = index.data(QtCore.Qt.DisplayRole)
-
-        painter.save()
-
-        opt = QtGui.QTextOption()
-        opt.setWrapMode(QtGui.QTextOption.WrapAtWordBoundaryOrAnywhere)
-        opt.setAlignment(QtCore.Qt.AlignLeft | QtCore.Qt.AlignVCenter)
-        painter.drawText(rect, text, opt)
-
-        painter.restore()
 
     def createEditor(self, parent, option, index):
         """Creates a custom editor based on an extended QCombobox"""
@@ -357,3 +373,16 @@ class ExtendedComboBox(QtGui.QComboBox):
             self.completer.setCompletionColumn(column)
             self.filter_model.setFilterKeyColumn(column)
         super(ExtendedComboBox, self).setModelColumn(column)
+
+class ExtendedPlainTextEditor(QtGui.QPlainTextEdit):
+
+    def __init__(self, parent):
+        super(ExtendedPlainTextEditor, self).__init__(parent)
+
+    def keyPressEvent(self, event):
+        invalid_chars = [QtCore.Qt.Key_Comma, QtCore.Qt.Key_Exclam,
+                         QtCore.Qt.Key_NumberSign, QtCore.Qt.Key_Semicolon]
+        if event.key() in invalid_chars:
+            return
+        else:
+            super(ExtendedPlainTextEditor, self).keyPressEvent(event)
