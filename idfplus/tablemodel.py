@@ -24,6 +24,7 @@ from __future__ import (print_function, division, absolute_import)
 from persistent.list import PersistentList
 from operator import itemgetter
 from itertools import groupby
+import networkx as nx
 
 # PySide imports
 from PySide import QtGui
@@ -146,6 +147,7 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
             try:
                 field = self.idf_objects[row][column]
                 self.set_data(field, value, row, column)
+                self.update_references(field)
             except (AttributeError, IndexError):
                 # An invalid index means that we're trying to assign a value
                 # to a field that has not yet been 'allocated'. Check for max
@@ -458,6 +460,21 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
         if ip_unit_conversion:
             return self.to_ip(field.value, ip_unit_conversion)
         return field.value
+
+    def update_references(self, field):
+
+        # Get the graph and the connections to this field
+        graph = self.idf._graph
+        ancestors = nx.ancestors(graph, field)
+        descendants = nx.descendants(graph, field)
+
+        # Update ancestors
+        for idf_field in ancestors:
+            idf_field.value = field.value
+
+        # Update decendants
+        for idf_field in descendants:
+            idf_field.value = field.value
 
 
 class TransposeProxyModel(QtGui.QAbstractProxyModel):
