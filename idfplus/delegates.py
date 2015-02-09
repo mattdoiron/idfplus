@@ -154,7 +154,12 @@ class ChoiceDelegate(QtGui.QStyledItemDelegate):
                                                  QtGui.QStandardItem(tag)])
                     elif tag == 'object-list':
                         # Get list of all classes that are part of the object-list
-                        class_list = self.main_window.idd.object_lists[value]
+                        class_list = []
+                        if isinstance(value, set):
+                            for val in value:
+                                class_list.extend(self.main_window.idd.object_lists[val])
+                        else:
+                            class_list.extend(self.main_window.idd.object_lists[value])
 
                         # Cycle through all classes in the list
                         for cls in class_list:
@@ -183,16 +188,17 @@ class ChoiceDelegate(QtGui.QStyledItemDelegate):
                             self.model.appendRow([QtGui.QStandardItem(value),
                                                   QtGui.QStandardItem(tag)])
 
-        # Check for and remove the 'current' item so it can be replace (at the top)
-        myitem = self.model.findItems('current', column=1)
-        if len(myitem) > 0:
-            self.model.removeRow(myitem[0].row())
+        if self.model.rowCount() > 0:
+            # Check for and remove the 'current' item so it can be replace (at the top)
+            myitem = self.model.findItems('current', column=1)
+            if len(myitem) > 0:
+                self.model.removeRow(myitem[0].row())
 
-        # Make a special item for the 'current' item
-        value = index.data(QtCore.Qt.DisplayRole)
-        current_item = QtGui.QStandardItem('current')
-        value_item = QtGui.QStandardItem(value)
-        self.model.insertRow(0, [value_item, current_item])
+            # Make a special item for the 'current' item
+            value = index.data(QtCore.Qt.DisplayRole)
+            current_item = QtGui.QStandardItem('current')
+            value_item = QtGui.QStandardItem(value)
+            self.model.insertRow(0, [value_item, current_item])
 
         # Table AND combo get same model (table first!)
         if 'object-list' in self.field.tags.keys():
@@ -217,6 +223,7 @@ class ChoiceDelegate(QtGui.QStyledItemDelegate):
         self.tableView.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
         self.tableView.verticalHeader().setVisible(False)
         self.tableView.horizontalHeader().setVisible(False)
+        self.tableView.horizontalHeader().setStretchLastSection(True)
         self.tableView.resizeColumnsToContents()
         self.tableView.resizeRowsToContents()
         self.tableView.setFont(font)
