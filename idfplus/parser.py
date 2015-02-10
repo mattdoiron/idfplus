@@ -859,23 +859,9 @@ class IDFParser(Parser):
                         new_field.value = field
                         new_field.tags = tags
 
-                        # # Check for reference tag to construct ref-lists
-                        # if 'reference' in tags:
-                        #     if type(tags['reference']) is list:
-                        #         for tag in tags['reference']:
-                        #             try:
-                        #                 object_lists[tag].add(obj_class)
-                        #             except KeyError:
-                        #                 object_lists[tag] = {obj_class}
-                        #     else:
-                        #         try:
-                        #             object_lists[tags['reference']].add(obj_class)
-                        #         except KeyError:
-                        #             object_lists[tags['reference']] = {obj_class}
-
-                        # Check if field should be a node (check for OUTGOING nodes only)
+                        # Check if field should be a node or reference
                         tag_set = set(tags)
-                        node_set = {'node', 'object-list', 'external-list'}
+                        node_set = {'node', 'object-list', 'external-list', 'reference'}
                         if len(tag_set & node_set) > 0:
                             G.add_node(new_field)
 
@@ -940,18 +926,15 @@ class IDFParser(Parser):
         node_count = len(graph.nodes())
 
         # Cycle through only nodes to avoid cycling through all objects
-        # Do not use an iterator because we could add a new node in this loop!
-        # Does this slow things down? Not sure of an alternative.
-        for k, node in enumerate(graph.nodes()):
-
-            object_list_class_name = node.tags['object-list']
-
-            # Ensure we have a list to simplify later operations
-            if type(object_list_class_name) is not list:
-                object_list_class_name = [object_list_class_name]
+        for k, node in enumerate(graph.nodes_iter()):
 
             try:
+                object_list_class_name = node.tags['object-list']
                 reference = node.value
+
+                # Ensure we have a list to simplify later operations
+                if not isinstance(object_list_class_name, list):
+                    object_list_class_name = [object_list_class_name]
 
                 # Cycle through all class names in the object lists
                 for cls_name in object_list_class_name:
@@ -972,7 +955,7 @@ class IDFParser(Parser):
                                     graph.add_edge(node, field)
                                     yield math.ceil(50 + (100 * 0.5 * (k+1) / node_count))
 
-            except (IndexError) as e:
+            except (IndexError, KeyError) as e:
                 continue
 
             yield math.ceil(50 + (100 * 0.5 * (k+1) / node_count))
