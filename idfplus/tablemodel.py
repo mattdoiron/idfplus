@@ -24,6 +24,7 @@ from __future__ import (print_function, division, absolute_import)
 from persistent.list import PersistentList
 from operator import itemgetter
 from itertools import groupby
+from copy import deepcopy
 import networkx as nx
 
 # PySide imports
@@ -303,7 +304,7 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
         for group in groups:
             # Cycle through each index in the group
             for ind in group:
-                sub_list.append(self.idf_objects[ind])
+                sub_list.append(deepcopy(self.idf_objects[ind]))
             obj_list.append(sub_list)
             sub_list = []
         return groups, obj_list
