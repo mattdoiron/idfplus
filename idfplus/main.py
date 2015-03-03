@@ -382,10 +382,10 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow, idfsettings.Settings):
     def update_reference_view(self, index):
         # Retrieve the node (could be invalid so use try)
         try:
-            G = self.idf._graph
-            node = self.idf[self.current_obj_class][index.row()][index.column()]
-            ancestors = nx.ancestors(G, node)
-            descendants = nx.descendants(G, node)
+            ref_graph = self.idf._ref_graph
+            field = self.idf[self.current_obj_class][index.row()][index.column()]
+            ancestors = nx.ancestors(ref_graph, field)
+            descendants = nx.descendants(ref_graph, field)
             data = [ancestors, descendants]
         except (nx.exception.NetworkXError, IndexError) as e:
             data = None

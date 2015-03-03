@@ -27,6 +27,7 @@ from collections import OrderedDict
 # from persistent.dict import PersistentDict
 from persistent.mapping import PersistentMapping
 from odict.pyodict import _odict
+import uuid
 
 # Package imports
 from . import logger
@@ -335,6 +336,7 @@ class IDFFile(OrderedDict):
         self.options = list()
         self._version = None
         self.si_units = True
+        self._uuid = str(uuid.uuid4())
 
     def init_blank(self):
         """Sets up a blank idf file"""
@@ -354,7 +356,7 @@ class IDFFile(OrderedDict):
 
         # Setup graph
         import networkx as nx
-        self._graph = nx.DiGraph()
+        self._ref_graph = nx.DiGraph()
 
     # def __setitem__(self, key, value, dict_setitem=dict.__setitem__):
     #     """Override the default __setitem__ to ensure that only certain
@@ -420,11 +422,12 @@ class IDFObject(list):
         # self._idd = idf.idd
         # self._incoming_links = list()
         # self._outgoing_links = list()
-        self._graph = None
+        self._ref_graph = None
         self._group = kwargs.pop('group', None)
         self._obj_class = kwargs.pop('obj_class', None)
         self.comments = kwargs.pop('comments', [])
         self._outer = idf
+        self._uuid = str(uuid.uuid4())
 
         # Call the parent class' init method
         super(IDFObject, self).__init__(**kwargs)
@@ -449,8 +452,10 @@ class IDFObject(list):
         for i, field in enumerate(idd_objects):
             default = field.tags.get('default', None)
             try:
+                # If there is a field present, set its value
                 self[i].value = default
             except IndexError:
+                # No field so append None or a blank field object
                 if default is None:
                     self.append(default)
                 else:
@@ -478,6 +483,7 @@ class IDFField(object):
         self.tags = dict()
         self._ureg = None #outer.idd._ureg
         self._outer = outer
+        self._uuid = str(uuid.uuid4())
 
         # self._idf_file = outer._outer
         # idd = outer.idd
@@ -521,9 +527,12 @@ class IDFField(object):
 
     @property
     def field_id(self):
-        my_id = (self._outer._obj_class,
-                 self._outer._outer[self._outer._obj_class].index(self._outer),
-                 self._outer.index(self))
+        try:
+            my_id = (self._outer._obj_class,
+                     self._outer._outer[self._outer._obj_class].index(self._outer),
+                     self._outer.index(self))
+        except KeyError as e:
+            my_id = None
         return my_id
 
     # def __repr__(self):
