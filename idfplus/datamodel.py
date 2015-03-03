@@ -28,6 +28,7 @@ from collections import OrderedDict
 from persistent.mapping import PersistentMapping
 from odict.pyodict import _odict
 import uuid
+import copy
 
 # Package imports
 from . import logger
@@ -432,6 +433,29 @@ class IDFObject(list):
         # Call the parent class' init method
         super(IDFObject, self).__init__(**kwargs)
 
+    def __deepcopy__(self, memo):
+        """Reimplement deepcopy to avoid recursion issues with IDFFile/IDFObject"""
+
+        # Create a new object, same class as this one, without triggering init
+        cls = self.__class__
+        result = cls.__new__(cls)
+
+        # Populate the new object with deep copies of all this object's fields
+        result[:] = [copy.deepcopy(field) for field in self]
+
+        # Copy all this objects attributes except IDFFile (leave as a reference)
+        for key, val in self.__dict__.items():
+            if isinstance(val, IDFFile):
+                setattr(result, key, val)
+            else:
+                setattr(result, key, copy.copy(val))
+
+        # The copied objects will use references to the old object, update them
+        for field in result:
+            field._outer = result
+
+        return result
+
     @property
     def obj_class(self):
         """Read-only property containing idf object's class type
@@ -495,8 +519,21 @@ class IDFField(object):
         # Call the parent class' init method
         super(IDFField, self).__init__()
 
-    # def __repr__(self):
-    #     return self.value or str()
+    def __deepcopy__(self, memo):
+        """Reimplement deepcopy to avoid recursion issues with IDFFile/IDFObject"""
+
+        # Create a new object, same class as this one, without triggering init
+        cls = self.__class__
+        result = cls.__new__(cls)
+
+        # Copy all this objects attributes except IDFObject (leave as a reference)
+        for key, val in self.__dict__.items():
+            if isinstance(val, IDFObject):
+                setattr(result, key, val)
+            else:
+                setattr(result, key, copy.copy(val))
+
+        return result
 
     @property
     def name(self):
