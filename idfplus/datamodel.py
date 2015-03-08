@@ -338,6 +338,7 @@ class IDFFile(OrderedDict):
         self._version = None
         self.si_units = True
         self._uuid = str(uuid.uuid4())
+        self.ref_lists = dict()
 
     def init_blank(self):
         """Sets up a blank idf file"""
@@ -447,6 +448,8 @@ class IDFObject(list):
         for key, val in self.__dict__.items():
             if isinstance(val, IDFFile):
                 setattr(result, key, val)
+            elif key == '_uuid':
+                setattr(result, key, str(uuid.uuid4()))
             else:
                 setattr(result, key, copy.copy(val))
 
@@ -530,6 +533,8 @@ class IDFField(object):
         for key, val in self.__dict__.items():
             if isinstance(val, IDFObject):
                 setattr(result, key, val)
+            elif key == '_uuid':
+                setattr(result, key, str(uuid.uuid4()))
             else:
                 setattr(result, key, copy.copy(val))
 

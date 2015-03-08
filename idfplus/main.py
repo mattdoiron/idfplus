@@ -380,13 +380,16 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow, idfsettings.Settings):
         self.commentView.blockSignals(False)
 
     def update_reference_view(self, index):
+        """Updates the reference tree view widget"""
+
         # Retrieve the node (could be invalid so use try)
         try:
             ref_graph = self.idf._ref_graph
             field = self.idf[self.current_obj_class][index.row()][index.column()]
-            ancestors = nx.ancestors(ref_graph, field)
-            descendants = nx.descendants(ref_graph, field)
-            data = [ancestors, descendants]
+            ancestors = nx.ancestors(ref_graph, field._uuid)
+            descendants = nx.descendants(ref_graph, field._uuid)
+            data = [[ref_graph.node[ancestor]['data'] for ancestor in ancestors],
+                    [ref_graph.node[descendant]['data'] for descendant in descendants]]
         except (nx.exception.NetworkXError, IndexError) as e:
             data = None
 

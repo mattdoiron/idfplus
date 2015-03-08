@@ -753,7 +753,6 @@ class IDFParser(Parser):
         ref_graph = nx.DiGraph()
         self.idf._ref_graph = ref_graph
         self.idf.file_path = file_path
-        self.idf.ref_lists = dict()
         total_size = os.path.getsize(file_path)
         total_read = 0
         eol_char = os.linesep
@@ -869,7 +868,7 @@ class IDFParser(Parser):
                         if (tag_set & ref_set) and field:
 
                             # Add the node to the graph
-                            ref_graph.add_node(new_field)
+                            ref_graph.add_node(new_field._uuid, data=new_field)
 
                             try:
                                 # Ensure we have a list of object classes
@@ -878,8 +877,14 @@ class IDFParser(Parser):
                                     obj_list_names = [tags['reference']]
 
                                 # Save the node in the idf file's reference list
-                                for obj_list in obj_list_names:
-                                    self.idf.ref_lists[obj_list][new_field.value] = new_field
+                                for object_list in obj_list_names:
+                                    id_tup = (new_field._uuid, new_field)
+                                    val = new_field.value
+                                    try:
+                                        self.idf.ref_lists[object_list][val].append(id_tup)
+                                    except (AttributeError, KeyError) as e:
+                                        self.idf.ref_lists[object_list][val] = [id_tup]
+
                             except KeyError as e:
                                 pass
 
@@ -943,20 +948,23 @@ class IDFParser(Parser):
         node_count = graph.number_of_nodes()
 
         # Cycle through only nodes to avoid cycling through all objects
-        for k, node in enumerate(graph.nodes_iter()):
+        for k, node in enumerate(graph.nodes_iter(data=True)):
 
             try:
-                object_list_name = node.tags['object-list']
-                reference = node.value
+                field = node[1]['data']
+                object_list_name = field.tags['object-list']
 
                 # Ensure we have a list to simplify later operations
                 if not isinstance(object_list_name, list):
-                    object_list_name = [node.tags['object-list']]
+                    object_list_name = [field.tags['object-list']]
 
                 # Cycle through all class names in the object lists
                 for cls_list in object_list_name:
-                    ref_node = self.idf.ref_lists[cls_list][reference]
-                    graph.add_edge(node, ref_node, obj_list=object_list_name)
+                    ref_node = self.idf.ref_lists[cls_list][field.value]
+                    for ref_uuid, ref in ref_node:
+                        graph.add_edge(field._uuid,
+                                       ref_uuid,
+                                       obj_list=object_list_name)
                     yield math.ceil(50 + (100 * 0.5 * (k+1) / node_count))
 
             except (IndexError, KeyError) as e:

@@ -247,34 +247,31 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
             objects_to_delete = self.idf_objects[first_row:last_row]
             idd_obj = self.idd[self.obj_class]
 
-            print('nodes before delete: {}'.format(ref_graph.number_of_nodes()))
-
+            # Delete objects and update reference list
             for obj in objects_to_delete:
-                try:
-                    print('deleting field: {}'.format(obj[0].value))
-                except AttributeError as e:
-                    print('deleting field: <No name>')
-                ref_graph.remove_nodes_from(obj)
-                # for field in obj:
+                field_uuids = [field._uuid for field in obj]
+                ref_graph.remove_nodes_from(field_uuids)
 
-                # Update reference list if required
+                # Also update reference list if required
                 for j, field in enumerate(obj):
                     tags = idd_obj[j].tags
 
                     if 'reference' in tags:
                         object_list_names = tags['reference']
-                        print('objlistname: {}'.format(object_list_names))
                         if not isinstance(object_list_names, list):
                             object_list_names = [tags['reference']]
                         for object_list in object_list_names:
-                            del self.idf.ref_lists[object_list][field.value]
+                            tup_list = self.idf.ref_lists[object_list][field.value]
+                            for id_tup in tup_list:
+                                if id_tup[0] == field._uuid:
+                                    # Should only be one so it's ok to modify list here!
+                                    tup_list.remove(id_tup)
 
-
-            # Delete the objects and update labels
+            # Delete the objects, update labels and inform that we're done inserting
             del self.idf_objects[first_row:last_row]
             self.get_labels()
             self.endRemoveRows()
-            print('nodes after delete: {}'.format(ref_graph.number_of_nodes()))
+
         return True
 
     def insertObjects(self, indexes, objects=None, offset=None):
@@ -319,24 +316,27 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
                 for j, field in enumerate(obj):
                     tags = idd_obj[j].tags
                     tag_set = set(tags)
-                    # print('tag set: {}'.format(tag_set))
+
                     if field and len(tag_set & ref_set) > 0:
-                        print('adding node: {}'.format(field.value))
-                        ref_graph.add_node(field)
+                        ref_graph.add_node(field._uuid, data=field)
                         self.update_references(field)
 
-                        # Update the referece list if required
+                        # Update the reference list if required
                         if 'reference' in tags:
                             object_list_names = tags['reference']
-                            print('objlistname: {}'.format(object_list_names))
                             if not isinstance(object_list_names, list):
                                 object_list_names = [tags['reference']]
                             for object_list in object_list_names:
-                                self.idf.ref_lists[object_list][field.value] = field
+                                id_tup = (field._uuid, field)
+                                val = field.value
+                                try:
+                                    self.idf.ref_lists[object_list][val].append(id_tup)
+                                except (AttributeError, KeyError) as e:
+                                    self.idf.ref_lists[object_list][val] = [id_tup]
 
+            # Update labels and inform that we're done inserting
             self.get_labels()
             self.endInsertRows()
-            print('nodes after add: {}'.format(ref_graph.number_of_nodes()))
 
         return True
 
@@ -522,27 +522,24 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
         return field.value
 
     def update_references(self, field):
-
         ref_graph = self.idf._ref_graph
-
-
 
     def update_reference_names(self, field, old_value):
 
         # Get the graph and the connections to this field
         ref_graph = self.idf._ref_graph
         ref_lists = self.idf.ref_lists
-        ancestors = nx.ancestors(ref_graph, field)
+        ancestors = nx.ancestors(ref_graph, field._uuid)
         new_value = field.value
 
         # Update ancestors
-        for idf_field in ancestors:
+        for node in ancestors:
+            idf_field = ref_graph.node[node]['data']
             idf_field.value = new_value
 
         # Update the idf's reference dictionary
         obj_list = ref_graph[ancestors[0], field]['obj_list']
         if new_value != old_value:
-            print('changing {} to {}'.format(new_value, old_value))
             ref_lists[obj_list][new_value] = ref_lists[obj_list].pop(old_value)
 
 
