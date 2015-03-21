@@ -42,35 +42,34 @@ from . import idfsettings as c
 OPTIONS_LIST = ['OriginalOrderTop', 'UseSpecialFormat']
 COMMENT_DELIMITER_GENERAL = '!'
 COMMENT_DELIMITER_SPECIAL = '!-'
-TAG_LIST = ['\\field',
-            '\\note',
-            '\\required-field',
-            '\\begin-extensible',
-            '\\units',
-            '\\ip-units',
-            '\\unitsBasedOnField',
-            '\\minimum>',
-            '\\minimum',
-            '\\maximum<',
-            '\\maximum',
-            '\\default',
-            '\\deprecated',
-            '\\autosizeable',
-            '\\autocalculatable',
-            '\\type',
-            '\\retaincase',
-            '\\key',
-            '\\object-list',
-            '\\reference',
-            '\\memo',
-            '\\unique-object',
-            '\\required-object',
-            '\\min-fields',
-            '\\obsolete',
-            '\\extensible:',
-            '\\begin-extensible',
-            '\\format',
-            '\\group']
+TAG_LIST = ['\\field', '\\Field,'
+            '\\note', '\\Note',
+            '\\required-field', '\\Required-field',
+            '\\units', '\\Units',
+            '\\ip-units', '\\Ip-units',
+            '\\unitsBasedOnField', '\\UnitsBasedOnField',
+            '\\minimum>', '\\Minimum>',
+            '\\minimum', '\\Minimum',
+            '\\maximum<', '\\Maximum<',
+            '\\maximum', '\\Maximum',
+            '\\default', '\\Default',
+            '\\deprecated', '\\Deprecated',
+            '\\autosizeable', '\\Autosizeable',
+            '\\autocalculatable', '\\Autocalculatable',
+            '\\type', '\\Type',
+            '\\retaincase', '\\Retaincase',
+            '\\key', '\\Key',
+            '\\object-list', '\\Object-list',
+            '\\reference', '\\Reference',
+            '\\memo', '\\Memo',
+            '\\unique-object', '\\Unique-object',
+            '\\required-object', '\\Required-object',
+            '\\min-fields', '\\Min-fields',
+            '\\obsolete', '\\Obsolete',
+            '\\extensible:', '\\Extensible:',
+            '\\begin-extensible', '\\Begin-extensible',
+            '\\format', '\\Format',
+            '\\group', '\\Group']
 
 # Setup logging
 log = logger.setup_logging(c.LOG_LEVEL, __name__)
@@ -391,7 +390,7 @@ class Parser(object):
     def get_tags(line_in):
         """Parses a line and gets any fields tags present
         :rtype : dict:
-        :param line_in: 
+        :param line_in:
         """
         tag_result = dict()
 
@@ -411,7 +410,7 @@ class Parser(object):
                 value = True
 
             # Save results
-            tag_result = dict(tag=match[0].strip('\\'),
+            tag_result = dict(tag=match[0].strip('\\').lower(),
                               value=value)
 
         # Return results
