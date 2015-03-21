@@ -194,6 +194,7 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow, idfsettings.Settings):
         log.debug('Setting class table model...')
         self.classTable.setModel(None)
         self.file_path = file_path
+        self.add_recent_file(file_path)
         self.set_current_file(file_path)
         self.set_dirty(False)
         log.debug('Updating recent file list...')
@@ -336,19 +337,19 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow, idfsettings.Settings):
         self.fileMenu.clear()
         self.addActions(self.fileMenu, self.fileMenuActions[:-1])
         current = self.file_path or None
-        recentFiles = []
+        recent_files = []
         if self.prefs['recent_files']:
-            for fname in self.prefs['recent_files']:
-                if fname != current and QtCore.QFile.exists(fname):
-                    recentFiles.append(fname)
-        if recentFiles:
-            # self.fileMenu.addSeparator()
-            for i, fname in enumerate(recentFiles):
+            for name in self.prefs['recent_files']:
+                if name != current and QtCore.QFile.exists(name):
+                    recent_files.append(name)
+        if recent_files:
+            self.fileMenu.addSeparator().setText('Recent Files')
+            for i, name in enumerate(recent_files):
+                file_name = QtCore.QFileInfo(name).fileName()
                 action = QtGui.QAction(QtGui.QIcon(":/images/icon.png"),
-                                       '{} - {}'.format(i + 1, QtCore.QFileInfo(fname).fileName()),
-                                       # "&%d %s" % (i + 1, QtCore.QFileInfo(fname).fileName()),
+                                       '{} - {}'.format(i + 1, file_name),
                                        self)
-                action.setData(fname)
+                action.setData(name)
                 action.triggered.connect(self.load_file)
                 self.fileMenu.addAction(action)
             self.fileMenu.addAction(self.clearRecentAct)
@@ -453,9 +454,7 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow, idfsettings.Settings):
     def addActions(self, target, actions):
         """Helper to add actions or a separator easily."""
         for action in actions:
-            if action is None:
-                target.addSeparator().setText('Recent Files')
-            else:
+            if action is not None:
                 target.addAction(action)
 
     def tableFilterRegExpChanged(self):
