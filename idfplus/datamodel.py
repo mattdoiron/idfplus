@@ -42,16 +42,13 @@ from . import idfsettings as c
 # Setup logging
 log = logger.setup_logging(c.LOG_LEVEL, __name__)
 
-class IDDFileDoesNotExist(Exception):
-    """Exception called when no IDD file is found."""
-    def __init__(self, message, version):
+
+class IDDError(Exception):
+    """Base class for IDD exceptions."""
+    def __init__(self, message, version, *args, **kwargs):
         self.message = message
         self.version = version
-
-
-class VersionAlreadySet(Exception):
-    """Exception called when the IDD/IDF version is already set."""
-    pass
+        super(IDDError, self).__init__(*args, **kwargs)
 
 
 class PODict(_odict, PersistentMapping):
@@ -87,6 +84,7 @@ class IDDFile(PODict):
         self._conversions = list()
         self._version_set = False
         self._version = version
+        self._parser_version = c.PARSER_VERSION
         self.options = list()
         self.tags = dict()
         self.object_lists = dict()
@@ -112,6 +110,11 @@ class IDDFile(PODict):
     def version(self):
         """Read-only property containing idf file version."""
         return self._version
+
+    @property
+    def parser_version(self):
+        """Read-only property containing version of the parser used to generate file."""
+        return self._parser_version
 
     @property
     def groups(self):

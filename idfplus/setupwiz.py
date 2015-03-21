@@ -37,10 +37,11 @@ log = logger.setup_logging(c.LOG_LEVEL, __name__)
 
 class SetupWizIntroPage(QtGui.QWizardPage):
 
-    def __init__(self, parent, version):
+    def __init__(self, parent, version, message):
         super(SetupWizIntroPage, self).__init__(parent)
 
         self.version = version
+        self.message = message
         self.setTitle('IDD+ Processing Wizard')
         self.setSubTitle("This wizard will help you direct IDF+ to the "
                          "necessary IDD file.")
@@ -51,13 +52,16 @@ class SetupWizIntroPage(QtGui.QWizardPage):
         text = "IDF+ uses EnergyPlus' own IDD file in order to understand " \
                "how to work with IDF files. Each IDD file version is processed " \
                "and stored so that this procedure will be required only once, or " \
-               "whenever a new IDD version is needed.".format(self.version)
+               "whenever a new IDD version is needed."
         intro_text = QtGui.QLabel(text)
         intro_text.setWordWrap(True)
+        intro_message = QtGui.QLabel(self.message)
+        intro_message.setWordWrap(True)
 
         # Create and assign layout
         layout = QtGui.QVBoxLayout()
         layout.addWidget(intro_text)
+        layout.addWidget(intro_message)
         self.setLayout(layout)
 
 
@@ -123,12 +127,12 @@ class SetupWizLoadPage(QtGui.QWizardPage):
 
 class SetupWizard(QtGui.QWizard):
 
-    def __init__(self, parent, version):
+    def __init__(self, parent, version, message):
         super(SetupWizard, self).__init__(parent)
 
         # Add pages to the wizard and set some parameters
         log.debug("Initializing IDD Processing Wizard")
-        self.addPage(SetupWizIntroPage(self, version))
+        self.addPage(SetupWizIntroPage(self, version, message))
         self.addPage(SetupWizLoadPage(self, version))
         self.setWindowTitle("IDD Processing Wizard")
         self.setWizardStyle(QtGui.QWizard.ModernStyle)

@@ -160,16 +160,13 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow, idfsettings.Settings):
             self.progressDialogIDF.setLabelText(message)
             self.progressDialogIDF.show()
 
-        # Try to load the specified IDF file
         try:
+            # Try to load the specified IDF file
             self.load_idf(file_path)
 
-         # Required IDD file doesn't exist so launch the wizard to help user find it
-        except datamodel.IDDFileDoesNotExist as e:
-            wizard = setupwiz.SetupWizard(self, e.version)
-            if wizard.exec_():
-                self.load_idf(file_path)
-            else:
+        except datamodel.IDDError as e:
+            # Required IDD file doesn't exist so launch IDD wizard
+            if not self.launch_idd_wizard(file_path, e.version, e.message):
                 # Wizard failed, warn use and cancel
                 QtGui.QMessageBox.warning(self, "Processing IDD File Failed",
                                           ("{}\n\nVersion Required: {}\n\nLoading "
@@ -178,11 +175,10 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow, idfsettings.Settings):
                 message = ("Loading failed. Could not find "
                            "matching IDD file for version {}.".format(e.version))
                 self.progressDialogIDF.cancel()
-                self.update_status(message)
+                self.update_status(e.message)
                 return False
-
-        # Invalid name of object, warn use and cancel
         except parser.InvalidIDFObject as e:
+            # Invalid name of object, warn use and cancel
             QtGui.QMessageBox.warning(self, "Processing IDF File Failed",
                                       "{}\n\nLoading cancelled!".format(e.message),
                                       QtGui.QMessageBox.Ok)
@@ -203,6 +199,21 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow, idfsettings.Settings):
         log.debug('Updating recent file list...')
         log.debug('File Loaded Successfully! ({})'.format(file_path or "New File"))
         return True
+
+    def launch_idd_wizard(self, file_path, version, message):
+        """Launches the IDD wizard to help user point the editor to IDD file
+        :param version:
+        :param message:
+        :param file_path:
+        :return: :bool:
+        """
+        wizard = setupwiz.SetupWizard(self, version, message)
+        try:
+            if wizard.exec_():
+                self.load_idf(file_path)
+                return True
+        except (AttributeError, datamodel.IDDError):
+            return False
 
     def save(self):
         """Called by save action."""

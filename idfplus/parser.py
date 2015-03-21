@@ -34,7 +34,7 @@ import cPickle as pickle
 # Package imports
 from . import datamodel
 from . import logger
-from .datamodel import IDDFileDoesNotExist
+from .datamodel import IDDError
 
 # Constants
 from . import idfsettings as c
@@ -696,10 +696,10 @@ class IDDParser(Parser):
         """
 
         # Create the full path to the idd file
-        log.info("Loading idd file")
+        log.info("Loading IDD file...")
         file_name = c.IDD_FILE_NAME_ROOT.format(version)
         idd_path = os.path.join(c.DATA_DIR, file_name)
-        log.debug('Checking for idd version: {}'.format(version))
+        log.debug('Checking for IDD version: {}'.format(version))
         log.debug(idd_path)
 
         # Check if the file name is a file and then open the idd file
@@ -708,19 +708,31 @@ class IDDParser(Parser):
             with open(idd_path, 'rb') as fp:
                 idd = pickle.load(fp)
             try:
-                log.debug('Testing if loaded idd file has a version attribute')
-                log.debug('Version found! (v{})'.format(idd.version))
-                # log.debug('test 3 idd for keys: {}'.format(idd.keys()[:5]))
-                assert idd.version is not None
-                return idd
+                log.debug('Testing loaded idd file for appropriate version/format...')
+                message = "Test successful!"
+                if idd.version is None:
+                    message = "IDD file does not contain version information!"
+                    log.debug(message)
+                    raise IDDError(message, version)
+                elif idd.parser_version != c.PARSER_VERSION:
+                    message = "This IDD fle was processed by an old and/or " \
+                              "incompatible version of IDFPlus' parser ({})! It must " \
+                              "be reprocessed to be compatible with the current " \
+                              "version ({}).".format(idd.parser_version, c.PARSER_VERSION)
+                    log.debug(message)
+                    raise IDDError(message, version)
+                log.debug(message)
             except AttributeError:
-                log.debug('No version attribute found!')
-                raise IDDFileDoesNotExist("Can't find version attribute in IDD file.",
-                                          version)
+                message = "Can't find required IDD file attribute (IDD Version or " \
+                          "parser version)."
+                log.debug(message)
+                raise IDDError(message, version)
+            else:
+                return idd
         else:
-            log.debug('idd not found')
-            raise IDDFileDoesNotExist("Can't find IDD file: {}".format(idd_path),
-                                      version)
+            message = "Can't find IDD file: {}".format(idd_path)
+            log.debug(message)
+            raise IDDError(message, version)
 
 
 #---------------------------------------------------------------------------

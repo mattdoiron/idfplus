@@ -42,6 +42,7 @@ DATA_DIR = appdirs.user_data_dir(APP_NAME, COMPANY_NAME)
 LOG_DIR = appdirs.user_log_dir(APP_NAME, COMPANY_NAME)
 MAX_OBJ_HISTORY = 100
 DEFAULT_IDD_VERSION = '8.2'
+PARSER_VERSION = '0.0.3'
 __version__ = '0.0.3'
 
 # Make sure necessary folders exist
