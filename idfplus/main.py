@@ -23,6 +23,8 @@ from __future__ import (print_function, division, absolute_import)
 # System imports
 import os
 import platform
+import subprocess
+import sys
 # from BTrees.OOBTree import OOBTree
 import networkx as nx
 
@@ -286,44 +288,51 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow, idfsettings.Settings):
         pass
 
     def show_in_folder(self):
-        from subprocess import call
-        import os, sys
+        """Opens the location of the current IDF file.
+        """
+
         current_platform = sys.platform
+        result = 1
 
         if self.file_path:
             if current_platform.startswith('linux'):
-                result = call(["xdg-open", os.path.dirname(self.file_path)])
-                if result != 0:
-                    log.debug("Failed to show in folder (linux): {}".format(self.file_path))
-            elif current_platform.startswith('windows'):
-                os.startfile(self.file_path, 'explore')
+                dir_path = os.path.dirname(self.file_path)
+                result = subprocess.check_call(["xdg-open", dir_path])
+            elif current_platform.startswith('win'):
+                file_path = os.path.normpath(self.file_path)
+                result = subprocess.call(["explorer", "/select,", file_path])
+                result = 0  # windows returns 1 for some reason...
             else:
-                result = call(["open", self.file_path])
-                if not result:
-                    log.debug("Failed to show in folder (mac): {}".format(self.file_path))
+                dir_path = os.path.dirname(self.file_path)
+                result = subprocess.check_call(["open", dir_path])
 
-    # def open_file_in_text_editor(self):
-    #     import subprocess
-    #     import os, sys
-    #     system_root = os.environ['SYSTEMROOT']
-    #
-    #     current_platform = sys.platform
-    #     default_editor_cmd = subprocess.check_output(['cmd', '/c', 'ftype txtfile'])
-    #     # Returns "txtfile=%SystemRoot%\\system32\\NOTEPAD.EXE %1\r\n"
-    #     editor = default_editor_cmd.partition('=')[2].partition(' ')[0]
-    #     editor = editor.replace('%SystemRoot%', system_root)
-    #
-    #     if self.file_path:
-    #         if current_platform.startswith('linux'):
-    #             result = subprocess.call(["xdg-open", self.file_path])
-    #             if not result:
-    #                 log.debug("Failed to open file (linux): {}".format(self.file_path))
-    #         elif current_platform.startswith('windows'):
-    #             os.startfile(self.file_path, 'open')
-    #         else:
-    #             result = subprocess.call(["open", "-R", self.file_path])
-    #             if not result:
-    #                 log.debug("Failed to open file (mac): {}".format(self.file_path))
+        if result != 0:
+            log.debug("Failed to show in folder: {} (on platform: {})"
+                      .format(self.file_path, current_platform))
+
+    def open_in_text_editor(self):
+        """Opens the current IDF file in the default text editor
+        """
+
+        current_platform = sys.platform
+        result = 1
+
+        if self.file_path:
+            if current_platform.startswith('linux'):
+                result = subprocess.check_call(["xdg-open", self.file_path])
+            elif current_platform.startswith('win'):
+                editor_cmd = subprocess.check_output(['cmd', '/c', 'ftype txtfile'])
+                # editor_cmd = "txtfile=%SystemRoot%\\system32\\NOTEPAD.EXE %1\r\n"
+                editor = editor_cmd.partition('=')[2].partition(' ')[0]
+                editor = editor.replace('%SystemRoot%', os.environ['SYSTEMROOT'])
+                win_file_path = os.path.normpath(self.file_path)
+                result = subprocess.check_call([editor, win_file_path])
+            else:
+                result = subprocess.check_call(["open", "-R", self.file_path])
+
+        if result != 0:
+            log.debug("Failed to open file: {} (on platform: {})"
+                      .format(self.file_path, current_platform))
 
     def toggle_units(self):
         # Toggle the units

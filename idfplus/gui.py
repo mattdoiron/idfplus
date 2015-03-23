@@ -358,14 +358,14 @@ class UI_MainWindow(object):
         #         triggered=self.navBack)
 
         self.showInFolderAct = QtGui.QAction(QtGui.QIcon(':/images/new.png'),
-                "&Show current file in folder", self, shortcut=QtGui.QKeySequence('Ctrl+o'),
+                "&Show in folder", self, shortcut=QtGui.QKeySequence('Ctrl+t'),
                 statusTip="Open location of current file", iconVisibleInMenu=True,
                 triggered=self.show_in_folder)
 
         self.openInEditorAct = QtGui.QAction(QtGui.QIcon(':/images/new.png'),
-                "&Open current file in text editor", self, shortcut=QtGui.QKeySequence('Ctrl+e'),
-                statusTip="Open current file in text editor", iconVisibleInMenu=True,
-                triggered=self.show_in_folder)
+                "&Open in text editor", self, shortcut=QtGui.QKeySequence('Ctrl+e'),
+                statusTip="Open current file in default editor", iconVisibleInMenu=True,
+                triggered=self.open_in_text_editor)
 
         self.aboutAct = QtGui.QAction("&About", self,
                 statusTip="Show the application's About box",
@@ -404,7 +404,6 @@ class UI_MainWindow(object):
         self.undoAct.setEnabled(False)
         self.redoAct.setEnabled(False)
         self.saveAct.setEnabled(False)
-        self.openInEditorAct.setEnabled(False)
         self.undo_stack.canUndoChanged.connect(self.toggle_can_undo)
         self.undo_stack.canRedoChanged.connect(self.toggle_can_redo)
         self.logDockWidgetAct.toggled.connect(self.start_log_watcher)
