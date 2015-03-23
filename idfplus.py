@@ -41,11 +41,8 @@ def main():
         app = QtGui.QApplication(sys.argv)
 
     # Fault handler helps to find major issues
-    import faulthandler
-    faulthandler.enable()
-
-    print('This is the debug window. If you see any errors here, please report them. '
-          'You can do this by creating a new "Issue" at https://bitbucket.org/mattdoiron/idfplus/issues')
+    # import faulthandler
+    # faulthandler.enable()
 
     # Create the main window and show it
     idf_plus_window = IDFPlus()

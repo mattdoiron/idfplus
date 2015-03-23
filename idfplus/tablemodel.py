@@ -307,7 +307,7 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
 
             # Add the fields to graph also
             ref_graph = self.idf._ref_graph
-            print('nodes before add: {}'.format(ref_graph.number_of_nodes()))
+            log.debug('nodes before add: {}'.format(ref_graph.number_of_nodes()))
             ref_set = {'object-list', 'reference'}
             idd_obj = self.idd[self.obj_class]
 

@@ -29,7 +29,6 @@ from PySide import QtGui
 from PySide import QtCore
 
 # Constants
-APP_ROOT = os.path.join(os.path.dirname(os.path.realpath(__file__)), '..')
 LOG_LEVEL = 'DEBUG'
 DEFAULT_COLUMN_WIDTH = 120
 FILE_ENCODING = 'latin_1'
@@ -49,11 +48,8 @@ __version__ = '0.0.3'
 for dir in [DATA_DIR, LOG_DIR]:
     try:
         os.makedirs(dir)
-        print('created dir: {}'.format(dir))
     except OSError:
-        print('dir already exists: {}'.format(dir))
         if not os.path.isdir(dir):
-            print('dir is not a directory: {}'.format(dir))
             raise
 
 
@@ -156,7 +152,6 @@ class Settings(object):
         dlg = PrefsDialog(self)
         if dlg.exec_():
             result = dlg.prefs
-            print('saved')
 
     def get_path(self):
         """get path"""
@@ -180,6 +175,7 @@ class Settings(object):
         self.parent.restoreState(self.prefs['state'])
         self.parent.recentFiles = self.prefs['recent_files']
         QtGui.QApplication.setStyle(QtGui.QStyleFactory.create(self.prefs['style']))
+
 
 class PrefsDialog(QtGui.QDialog):
     """ Form used to view and edit global program options
