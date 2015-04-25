@@ -21,7 +21,6 @@ along with IDF+. If not, see <http://www.gnu.org/licenses/>.
 from __future__ import (print_function, division, absolute_import)
 
 # System imports
-import os
 import logging
 import logging.handlers
 
@@ -29,25 +28,22 @@ import logging.handlers
 from PySide.QtCore import Signal
 from PySide.QtCore import QObject
 
-# Package imports
-from . import idfsettings as c
 
-
-def setup_logging(_level, name):
+def setup_logging(_level, name, log_path):
     """Sets up and configures the logger
     :rtype : logging.logger
     :param _level: 
     :param name:
+    :param log_path:
     """
 
     # Setup log level, path and formatters
     level = getattr(logging, _level)
-    log_file = os.path.join(c.LOG_DIR, c.LOG_FILE_NAME)
     _format = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
     formatter = logging.Formatter(_format)
 
     # Setup handler for on-disk log file
-    file_handler = logging.handlers.RotatingFileHandler(log_file,
+    file_handler = logging.handlers.RotatingFileHandler(log_path,
                                                         mode='w',
                                                         maxBytes=2000000,
                                                         backupCount=5)

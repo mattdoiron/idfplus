@@ -28,6 +28,9 @@ import appdirs
 from PySide import QtGui
 from PySide import QtCore
 
+# Package imports
+from . import logger
+
 # Constants
 LOG_LEVEL = 'DEBUG'
 DEFAULT_COLUMN_WIDTH = 120
@@ -36,122 +39,139 @@ IDD_FILE_NAME_ROOT = 'EnergyPlus_IDD_v{}.dat'
 COMPANY_NAME_FULL = "Mindful Modeller"
 COMPANY_NAME = 'mindfulmodeller'
 APP_NAME = "IDFPlus"
-LOG_FILE_NAME = "idfplus.log"
 DATA_DIR = appdirs.user_data_dir(APP_NAME, COMPANY_NAME)
 LOG_DIR = appdirs.user_log_dir(APP_NAME, COMPANY_NAME)
+LOG_FILE_NAME = "idfplus.log"
+LOG_PATH = os.path.join(LOG_DIR, LOG_FILE_NAME)
 MAX_OBJ_HISTORY = 100
 DEFAULT_IDD_VERSION = '8.2'
 PARSER_VERSION = '0.0.3'
 __version__ = '0.0.3'
 
+# Global variables
+log = logger.setup_logging(LOG_LEVEL, __name__, LOG_PATH)
+
 # Make sure necessary folders exist
-for dir in [DATA_DIR, LOG_DIR]:
+for directory in [DATA_DIR, LOG_DIR]:
     try:
-        os.makedirs(dir)
+        os.makedirs(directory)
     except OSError:
-        if not os.path.isdir(dir):
+        if not os.path.isdir(directory):
             raise
 
 
-class Settings(object):
+class Settings(dict):
     """Object to handle setting and getting settings or info about them."""
 
-    def init_settings(self, parent=None):
+    def __init__(self, *args, **kwargs):
         """Create the settings object and set some of its own settings."""
-        from . import logger
-        self.log = logger.setup_logging(LOG_LEVEL, __name__)
-        self.parent = parent
+        super(Settings, self).__init__(*args, **kwargs)
         self.prefs = dict()
         self.settings = QtCore.QSettings(QtCore.QSettings.IniFormat,
                                          QtCore.QSettings.UserScope,
                                          COMPANY_NAME,
-                                         APP_NAME,
-                                         parent)
+                                         APP_NAME)
+        self.read_settings()
 
     def read_settings(self):
         """Reads application settings and restores them."""
-
-        self.log.info('Reading settings')
         settings = self.settings
 
         # Retrieve settings and store them in the prefs dict
-        settings.beginGroup("MainWindow")
-        self.prefs['size'] = settings.value("size", QtCore.QSize(1024, 768))
-        self.prefs['pos'] = settings.value("pos", QtCore.QPoint(200, 200))
-        self.prefs['state'] = settings.value("state", QtCore.QByteArray())
-        self.prefs['geometry'] = settings.value("geometry", QtCore.QByteArray())
-        self.prefs['style'] = settings.value("style", default_style())
-        self.prefs['base_font_size'] = int(settings.value("base_font_size", 9))
-        self.prefs['base_font'] = settings.value("base_font", "Arial")
-        self.prefs['comments_font_size'] = int(settings.value("comments_font_size", 10))
-        self.prefs['comments_font'] = settings.value("comments_font", "Courier")
+        settings.beginGroup("Appearance")
+        self['base_font_size'] = int(settings.value("base_font_size", 9))
+        self['base_font'] = settings.value("base_font", "Arial")
+        self['comments_font_size'] = int(settings.value("comments_font_size", 10))
+        self['comments_font'] = settings.value("comments_font", "Courier")
         settings.endGroup()
 
         settings.beginGroup("Files")
-        self.prefs['recent_files'] = list(settings.value("recent_files") or [''])
+        self['recent_files'] = list(settings.value("recent_files") or [''])
         settings.endGroup()
 
         settings.beginGroup("ClassTree")
-        self.prefs['class_tree_font_size'] = int(settings.value("class_tree_font_size", 9))
-        self.prefs['class_tree_font'] = settings.value("class_tree_font", "Arial")
+        self['class_tree_font_size'] = int(settings.value("class_tree_font_size", 9))
+        self['class_tree_font'] = settings.value("class_tree_font", "Arial")
         settings.endGroup()
 
         settings.beginGroup("ClassTable")
-        self.prefs['default_column_width'] = int(settings.value("default_column_width", 120))
-        self.prefs['class_table_font_size'] = int(settings.value("class_table_font_size", 9))
-        self.prefs['class_table_font'] = settings.value("class_table_font", "Arial")
+        self['default_column_width'] = int(settings.value("default_column_width", 120))
+        self['class_table_font_size'] = int(settings.value("class_table_font_size", 9))
+        self['class_table_font'] = settings.value("class_table_font", "Arial")
+        self['show_units_in_headers'] = int(settings.value("show_units_in_headers", 0))
+        self['show_units_in_cells'] = int(settings.value("show_units_in_cells", 0))
         settings.endGroup()
 
         settings.beginGroup("Global")
-        self.prefs['log_level'] = settings.value("log_level", 'INFO')
+        self['log_level'] = settings.value("log_level", 'INFO')
         global LOG_LEVEL
-        LOG_LEVEL = self.prefs['log_level']
+        LOG_LEVEL = self['log_level']
         settings.endGroup()
 
     def write_settings(self):
-        """Writes application settings to disk."""
+        """Writes application settings to QSettings object."""
 
-        self.log.info('Writing settings')
+        log.info('Writing settings')
         settings = self.settings
-        prefs = self.parent.prefs
 
         settings.beginGroup("Files")
-        settings.setValue("recent_files", prefs.get('recent_files', ['']))
+        settings.setValue("recent_files", self.get('recent_files', ['']))
         settings.endGroup()
 
-        settings.beginGroup("MainWindow")
-        settings.setValue("size", prefs['size'])
-        settings.setValue("pos", prefs['pos'])
-        settings.setValue("geometry", self.parent.saveGeometry())
-        settings.setValue("state", self.parent.saveState())
-        settings.setValue("style", prefs['style'])
-        settings.setValue("base_font_size", prefs['base_font_size'])
-        settings.setValue("base_font", prefs['base_font'])
-        settings.setValue("comments_font_size", prefs['comments_font_size'])
-        settings.setValue("comments_font", prefs['comments_font'])
+        settings.beginGroup("Appearance")
+        settings.setValue("style", self['style'])
+        settings.setValue("base_font_size", self['base_font_size'])
+        settings.setValue("base_font", self['base_font'])
+        settings.setValue("comments_font_size", self['comments_font_size'])
+        settings.setValue("comments_font", self['comments_font'])
         settings.endGroup()
 
         settings.beginGroup("ClassTree")
-        settings.setValue("class_tree_font_size", prefs['class_tree_font_size'])
-        settings.setValue("class_tree_font", prefs['class_tree_font'])
+        settings.setValue("class_tree_font_size", self['class_tree_font_size'])
+        settings.setValue("class_tree_font", self['class_tree_font'])
         settings.endGroup()
 
         settings.beginGroup("ClassTable")
-        settings.setValue("default_column_width", prefs['default_column_width'])
-        settings.setValue("class_table_font_size", prefs['class_table_font_size'])
-        settings.setValue("class_table_font", prefs['class_table_font'])
+        settings.setValue("default_column_width", self['default_column_width'])
+        settings.setValue("class_table_font_size", self['class_table_font_size'])
+        settings.setValue("class_table_font", self['class_table_font'])
+        settings.setValue("show_units_in_headers", self['show_units_in_headers'])
+        settings.setValue("show_units_in_cells", self['show_units_in_cells'])
         settings.endGroup()
 
         settings.beginGroup("Global")
-        # settings.setValue("file_encoding", prefs['file_encoding'])
-        settings.setValue("log_level", prefs['log_level'])
+        # settings.setValue("file_encoding", self['file_encoding'])
+        settings.setValue("log_level", self['log_level'])
         settings.endGroup()
 
-    def show_prefs_dialog(self):
-        """Handles showing the settings dialog and setting its values."""
-        dlg = PrefsDialog(self)
-        if dlg.exec_():
-            result = dlg.prefs
+    def save_state(self, window):
+        """Saves application state to QSettings."""
+        log.info('Saving main window state')
+        settings = self.settings
+        settings.beginGroup("MainWindow")
+        settings.setValue("size", window.size())
+        settings.setValue("pos", window.pos())
+        settings.setValue("geometry", window.saveGeometry())
+        settings.setValue("state", window.saveState())
+        settings.endGroup()
+
+    def restore_state(self, window):
+        """Restore application state."""
+        log.info('Restoring main window state')
+        settings = self.settings
+        settings.beginGroup("MainWindow")
+        self['size'] = settings.value("size", QtCore.QSize(1024, 768))
+        self['pos'] = settings.value("pos", QtCore.QPoint(200, 200))
+        self['state'] = settings.value("state", QtCore.QByteArray())
+        self['geometry'] = settings.value("geometry", QtCore.QByteArray())
+        self['style'] = settings.value("style", default_style())
+        settings.endGroup()
+
+        window.resize(self['size'])
+        window.move(self['pos'])
+        window.restoreGeometry(self['geometry'])
+        window.restoreState(self['state'])
+        QtGui.QApplication.setStyle(QtGui.QStyleFactory.create(self['style']))
 
     def get_path(self):
         """get path"""
@@ -167,26 +187,14 @@ class Settings(object):
         import os
         return os.path.dirname(self.settings.fileName())
 
-    def restore_state(self):
-        # Apply some settings immediately
-        self.parent.resize(self.prefs['size'])
-        self.parent.move(self.prefs['pos'])
-        self.parent.restoreGeometry(self.prefs['geometry'])
-        self.parent.restoreState(self.prefs['state'])
-        self.parent.recentFiles = self.prefs['recent_files']
-        QtGui.QApplication.setStyle(QtGui.QStyleFactory.create(self.prefs['style']))
-
 
 class PrefsDialog(QtGui.QDialog):
     """ Form used to view and edit global program options
     """
 
-    def __init__(self, parent):
+    def __init__(self, parent, prefs):
         super(PrefsDialog, self).__init__(parent)
-
-        # self.parent = parent
-        self.settings = parent.settings
-        self.prefs = parent.prefs
+        self.prefs = prefs
         button_box = QtGui.QDialogButtonBox(QtGui.QDialogButtonBox.Ok |
                                             QtGui.QDialogButtonBox.Cancel)
 
@@ -209,12 +217,12 @@ class PrefsDialog(QtGui.QDialog):
     def accept(self):
         """ Override default accept method to save settings
         """
-        self.parent().write_settings()
+        self.prefs.write_settings()
         super(PrefsDialog, self).accept()
 
 
 class AppearanceTab(QtGui.QWidget):
-    def __init__(self, parent=None):
+    def __init__(self, parent):
         super(AppearanceTab, self).__init__(parent)
 
         self.prefs = parent.prefs
@@ -230,24 +238,39 @@ class AppearanceTab(QtGui.QWidget):
         self.style_edit.addItems(QtGui.QStyleFactory.keys())
         self.style_edit.setCurrentIndex(self.style_edit.findText(self.prefs['style']))
 
+        units_header_label = QtGui.QLabel("Show Units:")
+        self.header_units_check = QtGui.QCheckBox('Show Units in Header', self)
+        checked_header = QtCore.Qt.Checked if self.prefs['show_units_in_headers'] == 1 else QtCore.Qt.Unchecked
+        self.header_units_check.setCheckState(checked_header)
+        self.cells_units_check = QtGui.QCheckBox('Show Units in Cells', self)
+        checked_cells = QtCore.Qt.Checked if self.prefs['show_units_in_cells'] == 1 else QtCore.Qt.Unchecked
+        self.cells_units_check.setCheckState(checked_cells)
+
         mainLayout = QtGui.QVBoxLayout()
         mainLayout.addWidget(col_width_label)
         mainLayout.addWidget(self.col_width_edit)
         mainLayout.addWidget(style_label)
         mainLayout.addWidget(self.style_edit)
+        mainLayout.addWidget(units_header_label)
+        mainLayout.addWidget(self.header_units_check)
+        mainLayout.addWidget(self.cells_units_check)
         mainLayout.addStretch(1)
         self.setLayout(mainLayout)
 
         self.col_width_edit.textChanged.connect(self.update)
         self.style_edit.currentIndexChanged.connect(self.update)
+        self.header_units_check.stateChanged.connect(self.update)
+        self.cells_units_check.stateChanged.connect(self.update)
 
     def update(self):
         self.prefs['default_column_width'] = self.col_width_edit.text()
         self.prefs['style'] = self.style_edit.currentText()
+        self.prefs['show_units_in_headers'] = 1 if self.header_units_check.checkState() else 0
+        self.prefs['show_units_in_cells'] = 1 if self.cells_units_check.checkState() else 0
 
 
 class LogTab(QtGui.QWidget):
-    def __init__(self, parent=None):
+    def __init__(self, parent):
         super(LogTab, self).__init__(parent)
 
         self.prefs = parent.prefs
@@ -266,7 +289,7 @@ class LogTab(QtGui.QWidget):
         self.log_edit.currentIndexChanged.connect(self.update)
 
     def update(self):
-        self.prefs['log_level'] = self.log_edit.currentText()
+        self['log_level'] = self.log_edit.currentText()
 
 
 def default_style():

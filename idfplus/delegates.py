@@ -30,7 +30,7 @@ from . import idfsettings as c
 from . import logger
 
 # Global variables
-log = logger.setup_logging(c.LOG_LEVEL, __name__)
+log = logger.setup_logging(c.LOG_LEVEL, __name__, c.LOG_PATH)
 
 
 class GenericDelegate(QtGui.QStyledItemDelegate):

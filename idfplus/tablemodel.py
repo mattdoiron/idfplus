@@ -42,7 +42,7 @@ from . import logger
 from . import idfsettings as c
 
 # Setup logging
-log = logger.setup_logging(c.LOG_LEVEL, __name__)
+log = logger.setup_logging(c.LOG_LEVEL, __name__, c.LOG_PATH)
 
 
 class IDFObjectTableModel(QtCore.QAbstractTableModel):
@@ -56,9 +56,10 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
         self.idd = idf._idd
         self.idf_objects = idf.get(obj_class, PersistentList())
         self.idd_object = idf._idd.get(obj_class, PersistentList())
-        # self.ureg = self.idd._ureg
         self.ureg = c.UNITS_REGISTRY
+        self.config = c.Settings()
         self.get_labels()
+
         super(IDFObjectTableModel, self).__init__(parent)
 
     def get_obj_class(self):
@@ -307,7 +308,7 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
 
             # Add the fields to graph also
             ref_graph = self.idf._ref_graph
-            log.debug('nodes before add: {}'.format(ref_graph.number_of_nodes()))
+            # log.debug('nodes before add: {}'.format(ref_graph.number_of_nodes()))
             ref_set = {'object-list', 'reference'}
             idd_obj = self.idd[self.obj_class]
 
@@ -374,7 +375,14 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
         objID_labels = ['Obj{}'.format(i) for i in range(1, obj_count + 1)]
 
         for field in self.idd_object:
-            field_labels.append(field.tags.get('field'))
+            field_desc = field.tags.get('field', '')
+            if self.config['show_units_in_headers']:
+                units = self.get_units(field)
+                unit_tag = ' ({})'.format(units) if units else ''
+                label = field_desc + unit_tag
+            else:
+                label = field_desc
+            field_labels.append(label)
 
         self.objID_labels = objID_labels
         self.field_labels = field_labels
@@ -478,6 +486,8 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
             multiplier = conv[0]
             adder = conv[1]
             data = str(float(value) * multiplier + adder)
+        except ValueError:
+            data = value
         return data
 
     def set_data(self, field, value, row, column):

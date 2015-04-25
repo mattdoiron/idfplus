@@ -72,7 +72,7 @@ TAG_LIST = ['\\field', '\\Field,'
             '\\group', '\\Group']
 
 # Setup logging
-log = logger.setup_logging(c.LOG_LEVEL, __name__)
+log = logger.setup_logging(c.LOG_LEVEL, __name__, c.LOG_PATH)
 
 #test_line1 = '0.0,15.2,3.0;  !- X,Y,Z ==> Vertex 4 {m} '
 #test_line2 = '0.0,15.2,3.0 ;  !test '

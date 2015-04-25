@@ -48,17 +48,17 @@ from . import setupwiz
 from . import icons_rc
 
 # Global variables
-log = logger.setup_logging(idfsettings.LOG_LEVEL, __name__)
+log = logger.setup_logging(idfsettings.LOG_LEVEL, __name__, idfsettings.LOG_PATH)
 
-class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow, idfsettings.Settings):
+class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow):
     """Main GUI window for IDFPlus program."""
 
     def __init__(self):
         super(IDFPlus, self).__init__()
 
         # Load settings (call this first)
-        self.init_settings(self)
-        self.read_settings()
+        log.info('Reading settings')
+        self.prefs = idfsettings.Settings()
 
         # Create application UI (call this second)
         self.create_ui()
@@ -82,7 +82,7 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow, idfsettings.Settings):
         self.create_tray_menu()
         self.create_progress_bar()
 
-        self.restore_state()
+        self.prefs.restore_state(self)
         # Create a place to store all open files
         # self.db.dbroot.files = OOBTree()
         # self.files = self.db.dbroot.files
@@ -91,7 +91,8 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow, idfsettings.Settings):
     def closeEvent(self, event):
         """Called when the application is closed."""
         if self.ok_to_continue():
-            self.write_settings()
+            self.prefs.write_settings()
+            self.prefs.save_state(self)
             log.info('Shutting down IDFPlus')
             event.accept()
         else:
@@ -545,7 +546,7 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow, idfsettings.Settings):
         """
         if not file_name:
             return
-        if not file_name in self.recentFiles:
+        if not file_name in self.prefs['recent_files']:
             try:
                 self.prefs['recent_files'].insert(0, file_name)
             except AttributeError as e:
@@ -869,7 +870,7 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow, idfsettings.Settings):
 
     def start_log_watcher(self):
         # Connect signal to log handler
-        self.log.handlers[1].com.signal.connect(self.update_log_viewer)
+        log.handlers[1].com.signal.connect(self.update_log_viewer)
 
         # Populate logView widget with contents of existing log file
         log_path = os.path.join(idfsettings.LOG_DIR, idfsettings.LOG_FILE_NAME)

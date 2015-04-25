@@ -40,7 +40,7 @@ from . import idfsettings as c
 # https://pypi.python.org/pypi/blist
 
 # Setup logging
-log = logger.setup_logging(c.LOG_LEVEL, __name__)
+log = logger.setup_logging(c.LOG_LEVEL, __name__, c.LOG_PATH)
 
 
 class IDDError(Exception):

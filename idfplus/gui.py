@@ -34,7 +34,7 @@ from . import logger
 from . import treemodel
 
 # Global variables
-log = logger.setup_logging(c.LOG_LEVEL, __name__)
+log = logger.setup_logging(c.LOG_LEVEL, __name__, c.LOG_PATH)
 
 
 class UI_MainWindow(object):
@@ -597,3 +597,9 @@ class UI_MainWindow(object):
         size = self.geometry()
         self.move((screen.width() - size.width()) / 2,
                   (screen.height() - size.height()) / 2)
+
+    def show_prefs_dialog(self):
+        """Handles showing the settings dialog and setting its values."""
+        dlg = c.PrefsDialog(self, self.prefs)
+        if dlg.exec_():
+            result = dlg.prefs

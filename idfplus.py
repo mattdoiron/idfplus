@@ -29,7 +29,7 @@ from idfplus.main import IDFPlus
 from idfplus import idfsettings
 
 # Setup logging
-log = logger.setup_logging(idfsettings.LOG_LEVEL, 'IDF+')
+log = logger.setup_logging(idfsettings.LOG_LEVEL, 'IDF+', idfsettings.LOG_PATH)
 
 
 def main():
@@ -41,8 +41,8 @@ def main():
         app = QtGui.QApplication(sys.argv)
 
     # Fault handler helps to find major issues
-    # import faulthandler
-    # faulthandler.enable()
+    import faulthandler
+    faulthandler.enable()
 
     # Create the main window and show it
     idf_plus_window = IDFPlus()
