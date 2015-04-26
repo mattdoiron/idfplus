@@ -196,11 +196,12 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow):
         self.load_tree_view()
         log.debug('Setting class table model...')
         self.classTable.setModel(None)
+        log.debug('Updating recent file list...')
         self.file_path = file_path
         self.add_recent_file(file_path)
         self.set_current_file(file_path)
         self.set_dirty(False)
-        log.debug('Updating recent file list...')
+        self.update_idf_options()
         log.debug('File Loaded Successfully! ({})'.format(file_path or "New File"))
         return True
 
@@ -338,6 +339,16 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow):
     def toggle_units(self):
         # Toggle the units
         self.idf.si_units = not self.idf.si_units
+
+        if self.idf.si_units is not True:
+            self.idf.options.append('ViewInIPunits')
+        else:
+            try:
+                self.idf.options.remove('ViewInIPunits')
+            except ValueError:
+                pass
+
+        print(self.idf.options)
 
         # Refresh the view
         self.load_table_view(self.current_obj_class)
@@ -884,3 +895,8 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow):
         self.file_dirty = dirty_state
         self.setWindowModified(dirty_state)
         self.saveAct.setEnabled(dirty_state)
+
+    def update_idf_options(self):
+        if 'ViewInIPunits' in self.idf.options:
+            self.idf.si_units = False
+            self.setIPUnitsAction.setChecked(True)

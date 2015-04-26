@@ -39,7 +39,8 @@ from .datamodel import IDDError
 # Constants
 from . import config
 
-OPTIONS_LIST = ['OriginalOrderTop', 'UseSpecialFormat']
+OPTIONS_LIST = ['OriginalOrderTop', 'UseSpecialFormat',
+                'ViewInIPunits', 'SortedOrder']
 COMMENT_DELIMITER_GENERAL = '!'
 COMMENT_DELIMITER_SPECIAL = '!-'
 TAG_LIST = ['\\field', '\\Field,'
@@ -163,8 +164,8 @@ class InvalidIDFObject(Exception):
 class Writer(object):
     """Class to take care of writing idf and idd files."""
 
-    def __init__(self, *args, **kwargs):
-        super(Writer, self).__init__(*args, **kwargs)
+    def __init__(self):
+        super(Writer, self).__init__()
 
     @staticmethod
     def write_idf(idf):
@@ -175,7 +176,8 @@ class Writer(object):
         """
 
         idd = idf._idd
-        options = idf.options
+        options = ' '.join(idf.options)
+        print('writing options: {}'.format(idf.options))
         eol_char = os.linesep
         file_path = idf.file_path
 
@@ -183,7 +185,7 @@ class Writer(object):
 
         # Check for special options
         use_special_format = False
-        if 'UseSpecialFormat' in options:
+        if 'UseSpecialFormat' in idf.options:
             use_special_format = True
             log.debug('Special formatting requested, but not yet implemented.')
 
@@ -195,7 +197,7 @@ class Writer(object):
 
                 idf_file.write("!-Generator IDFPlus {}{}".format(config.__version__,
                                                                  eol_char))
-                idf_file.write("!-Option{}".format(eol_char))
+                idf_file.write("!-Option {}{}".format(options, eol_char))
                 idf_file.write("!-NOTE: All comments with '!-' are ignored by the "
                                "IDFEditor and are generated "
                                "automatically.{}".format(eol_char))
