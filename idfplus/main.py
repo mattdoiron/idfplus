@@ -711,6 +711,14 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow):
         current = tree.currentIndex()
         current_persistent = QtCore.QPersistentModelIndex(current)
 
+        if self.fullTree is not True:
+            self.idf.options.append('HideEmptyClasses')
+        else:
+            try:
+                self.idf.options.remove('HideEmptyClasses')
+            except ValueError:
+                pass
+
         tree_model = self.classTree.model()
         if tree_model:
             tree_model.filter_empty = not self.classTree.model().filter_empty
@@ -900,3 +908,6 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow):
         if 'ViewInIPunits' in self.idf.options:
             self.idf.si_units = False
             self.setIPUnitsAction.setChecked(True)
+        if 'HideEmptyClasses' in self.idf.options:
+            self.fullTree = False
+            self.toggle_full_tree()

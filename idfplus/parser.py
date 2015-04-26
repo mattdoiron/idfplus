@@ -40,7 +40,7 @@ from .datamodel import IDDError
 from . import config
 
 OPTIONS_LIST = ['OriginalOrderTop', 'UseSpecialFormat',
-                'ViewInIPunits', 'SortedOrder']
+                'ViewInIPunits', 'SortedOrder', 'HideEmptyClasses']
 COMMENT_DELIMITER_GENERAL = '!'
 COMMENT_DELIMITER_SPECIAL = '!-'
 TAG_LIST = ['\\field', '\\Field,'
