@@ -27,12 +27,12 @@ import os
 from PySide import QtGui
 
 # Package imports
-from . import idfsettings as c
+from . import config
 from . import parser
 from . import logger
 
 # Global variables
-log = logger.setup_logging(c.LOG_LEVEL, __name__, c.LOG_PATH)
+log = logger.setup_logging(config.LOG_LEVEL, __name__, config.LOG_PATH)
 
 
 class SetupWizIntroPage(QtGui.QWizardPage):

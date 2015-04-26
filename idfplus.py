@@ -26,10 +26,10 @@ from PySide import QtGui
 # Local imports
 from idfplus import logger
 from idfplus.main import IDFPlus
-from idfplus import idfsettings
+from idfplus import config
 
 # Setup logging
-log = logger.setup_logging(idfsettings.LOG_LEVEL, 'IDF+', idfsettings.LOG_PATH)
+log = logger.setup_logging(config.LOG_LEVEL, 'IDF+', config.LOG_PATH)
 
 
 def main():

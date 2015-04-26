@@ -29,12 +29,12 @@ from PySide import QtCore
 
 # Package imports
 from . import tablemodel
-from . import idfsettings as c
+from . import config
 from . import logger
 from . import treemodel
 
 # Global variables
-log = logger.setup_logging(c.LOG_LEVEL, __name__, c.LOG_PATH)
+log = logger.setup_logging(config.LOG_LEVEL, __name__, config.LOG_PATH)
 
 
 class UI_MainWindow(object):
@@ -50,7 +50,7 @@ class UI_MainWindow(object):
         self.undo_stack.setUndoLimit(100)
 
         # Object navigation history
-        self.obj_history = deque([], c.MAX_OBJ_HISTORY)
+        self.obj_history = deque([], config.MAX_OBJ_HISTORY)
 
         # Object class table widget
         # classTable = QtGui.QTableView(self)
@@ -600,6 +600,112 @@ class UI_MainWindow(object):
 
     def show_prefs_dialog(self):
         """Handles showing the settings dialog and setting its values."""
-        dlg = c.PrefsDialog(self, self.prefs)
+        dlg = PrefsDialog(self, self.prefs)
         if dlg.exec_():
             result = dlg.prefs
+
+
+class PrefsDialog(QtGui.QDialog):
+    """ Form used to view and edit global program options
+    """
+
+    def __init__(self, parent, prefs):
+        super(PrefsDialog, self).__init__(parent)
+        self.prefs = prefs
+        button_box = QtGui.QDialogButtonBox(QtGui.QDialogButtonBox.Ok |
+                                            QtGui.QDialogButtonBox.Cancel)
+
+        # Create the tab widget and assign its tabs
+        tab_widget = QtGui.QTabWidget()
+        tab_widget.addTab(AppearanceTab(self), "Appearance")
+        tab_widget.addTab(LogTab(self), "Logging")
+
+        # Create layout and assign it to self
+        layout = QtGui.QVBoxLayout()
+        layout.addWidget(tab_widget)
+        layout.addWidget(button_box)
+        self.setLayout(layout)
+        self.setWindowTitle("IDF+ Options")
+
+        # Connect gui elements to events
+        button_box.accepted.connect(self.accept)
+        button_box.rejected.connect(self.reject)
+
+    def accept(self):
+        """ Override default accept method to save settings
+        """
+        self.prefs.write_settings()
+        super(PrefsDialog, self).accept()
+
+
+class AppearanceTab(QtGui.QWidget):
+    def __init__(self, parent):
+        super(AppearanceTab, self).__init__(parent)
+
+        self.prefs = parent.prefs
+
+        col_width_label = QtGui.QLabel("Default Column Width:")
+        self.col_width_edit = QtGui.QLineEdit(str(self.prefs['default_column_width']))
+        self.col_width_edit.setMinimumWidth(40)
+        validator = QtGui.QIntValidator(10, 200, self)
+        self.col_width_edit.setValidator(validator)
+
+        style_label = QtGui.QLabel("Visual Style:")
+        self.style_edit = QtGui.QComboBox(self)
+        self.style_edit.addItems(QtGui.QStyleFactory.keys())
+        self.style_edit.setCurrentIndex(self.style_edit.findText(self.prefs['style']))
+
+        units_header_label = QtGui.QLabel("Show Units:")
+        self.header_units_check = QtGui.QCheckBox('Show Units in Header', self)
+        checked_header = QtCore.Qt.Checked if self.prefs['show_units_in_headers'] == 1 else QtCore.Qt.Unchecked
+        self.header_units_check.setCheckState(checked_header)
+        self.cells_units_check = QtGui.QCheckBox('Show Units in Cells', self)
+        self.cells_units_check.setDisabled(True)
+        checked_cells = QtCore.Qt.Checked if self.prefs['show_units_in_cells'] == 1 else QtCore.Qt.Unchecked
+        self.cells_units_check.setCheckState(checked_cells)
+
+        mainLayout = QtGui.QVBoxLayout()
+        mainLayout.addWidget(col_width_label)
+        mainLayout.addWidget(self.col_width_edit)
+        mainLayout.addWidget(style_label)
+        mainLayout.addWidget(self.style_edit)
+        mainLayout.addWidget(units_header_label)
+        mainLayout.addWidget(self.header_units_check)
+        mainLayout.addWidget(self.cells_units_check)
+        mainLayout.addStretch(1)
+        self.setLayout(mainLayout)
+
+        self.col_width_edit.textChanged.connect(self.update)
+        self.style_edit.currentIndexChanged.connect(self.update)
+        self.header_units_check.stateChanged.connect(self.update)
+        self.cells_units_check.stateChanged.connect(self.update)
+
+    def update(self):
+        self.prefs['default_column_width'] = self.col_width_edit.text()
+        self.prefs['style'] = self.style_edit.currentText()
+        self.prefs['show_units_in_headers'] = 1 if self.header_units_check.checkState() else 0
+        self.prefs['show_units_in_cells'] = 1 if self.cells_units_check.checkState() else 0
+
+
+class LogTab(QtGui.QWidget):
+    def __init__(self, parent):
+        super(LogTab, self).__init__(parent)
+
+        self.prefs = parent.prefs
+
+        log_label = QtGui.QLabel("Log Detail Level:")
+        self.log_edit = QtGui.QComboBox(self)
+        self.log_edit.setDisabled(True)
+        self.log_edit.addItems(['INFO', 'DEBUG', 'WARNING'])
+        self.log_edit.setCurrentIndex(self.log_edit.findText(self.prefs['log_level']))
+
+        main_layout = QtGui.QVBoxLayout()
+        main_layout.addWidget(log_label)
+        main_layout.addWidget(self.log_edit)
+        main_layout.addStretch(1)
+        self.setLayout(main_layout)
+
+        self.log_edit.currentIndexChanged.connect(self.update)
+
+    def update(self):
+        self.prefs['log_level'] = self.log_edit.currentText()

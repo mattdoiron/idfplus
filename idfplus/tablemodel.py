@@ -39,10 +39,10 @@ from .datamodel import IDFField
 from . import logger
 
 # Constants
-from . import idfsettings as c
+from . import config
 
 # Setup logging
-log = logger.setup_logging(c.LOG_LEVEL, __name__, c.LOG_PATH)
+log = logger.setup_logging(config.LOG_LEVEL, __name__, config.LOG_PATH)
 
 
 class IDFObjectTableModel(QtCore.QAbstractTableModel):
@@ -56,8 +56,8 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
         self.idd = idf._idd
         self.idf_objects = idf.get(obj_class, PersistentList())
         self.idd_object = idf._idd.get(obj_class, PersistentList())
-        self.ureg = c.UNITS_REGISTRY
-        self.config = c.Settings()
+        self.ureg = config.UNITS_REGISTRY
+        self.config = config.Settings()
         self.get_labels()
 
         super(IDFObjectTableModel, self).__init__(parent)
@@ -438,7 +438,7 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
                         break
 
                 # Use these results to find the actual units to use
-                actual_units = c.UNIT_TYPES.get(based_on_field.value)
+                actual_units = config.UNIT_TYPES.get(based_on_field.value)
 
                 if actual_units:
                     units = actual_units

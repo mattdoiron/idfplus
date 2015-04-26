@@ -37,7 +37,7 @@ from . import logger
 from .datamodel import IDDError
 
 # Constants
-from . import idfsettings as c
+from . import config
 
 OPTIONS_LIST = ['OriginalOrderTop', 'UseSpecialFormat']
 COMMENT_DELIMITER_GENERAL = '!'
@@ -72,7 +72,7 @@ TAG_LIST = ['\\field', '\\Field,'
             '\\group', '\\Group']
 
 # Setup logging
-log = logger.setup_logging(c.LOG_LEVEL, __name__, c.LOG_PATH)
+log = logger.setup_logging(config.LOG_LEVEL, __name__, config.LOG_PATH)
 
 #test_line1 = '0.0,15.2,3.0;  !- X,Y,Z ==> Vertex 4 {m} '
 #test_line2 = '0.0,15.2,3.0 ;  !test '
@@ -190,10 +190,10 @@ class Writer(object):
         # Open file and write
         try:
             with codecs.open(file_path, 'w',
-                             encoding=c.FILE_ENCODING,
+                             encoding=config.FILE_ENCODING,
                              errors='backslashreplace') as idf_file:
 
-                idf_file.write("!-Generator IDFPlus {}{}".format(c.__version__,
+                idf_file.write("!-Generator IDFPlus {}{}".format(config.__version__,
                                                                  eol_char))
                 idf_file.write("!-Option{}".format(eol_char))
                 idf_file.write("!-NOTE: All comments with '!-' are ignored by the "
@@ -507,7 +507,7 @@ class IDDParser(Parser):
 
         # Open the specified file in a safe way
         with codecs.open(file_path, 'r',
-                         encoding=c.FILE_ENCODING,
+                         encoding=config.FILE_ENCODING,
                          errors='backslashreplace') as idd_file:
 
             # Prepare some variables to store the results
@@ -677,8 +677,8 @@ class IDDParser(Parser):
             idd._tree_model = None
 
         # Save changes
-        file_name = c.IDD_FILE_NAME_ROOT.format(version)
-        idd_path = os.path.join(c.DATA_DIR, file_name)
+        file_name = config.IDD_FILE_NAME_ROOT.format(version)
+        idd_path = os.path.join(config.DATA_DIR, file_name)
         with open(idd_path, 'wb') as fp:
             pickle.dump(idd, fp, 2)
         log.info('Parsing IDD complete!')
@@ -697,8 +697,8 @@ class IDDParser(Parser):
 
         # Create the full path to the idd file
         log.info("Loading IDD file...")
-        file_name = c.IDD_FILE_NAME_ROOT.format(version)
-        idd_path = os.path.join(c.DATA_DIR, file_name)
+        file_name = config.IDD_FILE_NAME_ROOT.format(version)
+        idd_path = os.path.join(config.DATA_DIR, file_name)
         log.debug('Checking for IDD version: {}'.format(version))
         log.debug(idd_path)
 
@@ -714,11 +714,11 @@ class IDDParser(Parser):
                     message = "IDD file does not contain version information!"
                     log.debug(message)
                     raise IDDError(message, version)
-                elif idd.parser_version != c.PARSER_VERSION:
+                elif idd.parser_version != config.PARSER_VERSION:
                     message = "This IDD fle was processed by an old and/or " \
                               "incompatible version of IDFPlus' parser ({})! It must " \
                               "be reprocessed to be compatible with the current " \
-                              "version ({}).".format(idd.parser_version, c.PARSER_VERSION)
+                              "version ({}).".format(idd.parser_version, config.PARSER_VERSION)
                     log.debug(message)
                     raise IDDError(message, version)
                 log.debug(message)
@@ -772,7 +772,7 @@ class IDFParser(Parser):
 
         # Open the specified file in a safe way
         with codecs.open(file_path, 'r',
-                         encoding=c.FILE_ENCODING,
+                         encoding=config.FILE_ENCODING,
                          errors='backslashreplace') as idf:
 
             # Prepare some variables to store the results

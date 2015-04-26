@@ -36,7 +36,7 @@ from PySide import QtCore
 from . import delegates
 from . import tablemodel
 from . import parser
-from . import idfsettings
+from . import config
 from . import datamodel
 from . import logger
 from . import commands
@@ -48,7 +48,7 @@ from . import setupwiz
 from . import icons_rc
 
 # Global variables
-log = logger.setup_logging(idfsettings.LOG_LEVEL, __name__, idfsettings.LOG_PATH)
+log = logger.setup_logging(config.LOG_LEVEL, __name__, config.LOG_PATH)
 
 class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow):
     """Main GUI window for IDFPlus program."""
@@ -58,7 +58,7 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow):
 
         # Load settings (call this first)
         log.info('Reading settings')
-        self.prefs = idfsettings.Settings()
+        self.prefs = config.Settings()
 
         # Create application UI (call this second)
         self.create_ui()
@@ -278,7 +278,7 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow):
                 GNU General Public License at <a href="http://www.gnu.org/licenses/">
                 http://www.gnu.org/licenses/</a> for more details.</p>
                 <p>Built with: Python {1}, Qt {2} and PyQt {3} on {4}</p>""".format(
-                idfsettings.__version__, platform.python_version(),
+                config.__version__, platform.python_version(),
                 PySide.QtCore.qVersion(), PySide.__version__,
                 platform.system()))
 
@@ -873,7 +873,7 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow):
         log.handlers[1].com.signal.connect(self.update_log_viewer)
 
         # Populate logView widget with contents of existing log file
-        log_path = os.path.join(idfsettings.LOG_DIR, idfsettings.LOG_FILE_NAME)
+        log_path = os.path.join(config.LOG_DIR, config.LOG_FILE_NAME)
         with open(log_path) as f:
             self.logView.clear()
             self.logView.insertPlainText(f.read())

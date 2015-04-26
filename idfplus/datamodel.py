@@ -34,13 +34,13 @@ import copy
 from . import logger
 
 # Constants
-from . import idfsettings as c
+from . import config
 
 # Investigate as replacement for large lists
 # https://pypi.python.org/pypi/blist
 
 # Setup logging
-log = logger.setup_logging(c.LOG_LEVEL, __name__, c.LOG_PATH)
+log = logger.setup_logging(config.LOG_LEVEL, __name__, config.LOG_PATH)
 
 
 class IDDError(Exception):
@@ -84,11 +84,11 @@ class IDDFile(PODict):
         self._conversions = list()
         self._version_set = False
         self._version = version
-        self._parser_version = c.PARSER_VERSION
+        self._parser_version = config.PARSER_VERSION
         self.options = list()
         self.tags = dict()
         self.object_lists = dict()
-        self._ureg = c.UNITS_REGISTRY
+        self._ureg = config.UNITS_REGISTRY
 
         # Call the parent class' init method
         super(IDDFile, self).__init__(data, **kwargs)
@@ -349,13 +349,13 @@ class IDFFile(OrderedDict):
         # Prepare the idd file
         from . import parser
         idd_parser = parser.IDDParser()
-        self._idd = idd_parser.load_idd(c.DEFAULT_IDD_VERSION)
+        self._idd = idd_parser.load_idd(config.DEFAULT_IDD_VERSION)
         self.update((k, list()) for k, v in self._idd.iteritems())
 
         # Create the only mandatory object (version)
         version_obj = IDFObject(self)
         version_field = IDFField(version_obj)
-        version_field.value = c.DEFAULT_IDD_VERSION
+        version_field.value = config.DEFAULT_IDD_VERSION
         version_obj.append(version_field)
         self['Version'].append(version_obj)
 
