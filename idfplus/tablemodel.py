@@ -86,20 +86,20 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
         column = index.column()
         data = None
 
-        # Detect the role being request and return the correct data
-        if role == QtCore.Qt.DisplayRole or role == QtCore.Qt.EditRole:
+        # Pre-fetch this only once to save lookups
+        if role in [QtCore.Qt.DisplayRole, QtCore.Qt.EditRole,
+                    QtCore.Qt.ToolTipRole, QtCore.Qt.BackgroundRole]:
             # Grab the correct field. Return None if it's blank.
             try:
                 field = self.idf_objects[row][column]
-                data = self.get_data(field, row, column)
             except IndexError:
                 return None
+
+        # Detect the role being request and return the correct data
+        if role == QtCore.Qt.DisplayRole or role == QtCore.Qt.EditRole:
+            data = self.get_data(field, row, column)
         elif role == QtCore.Qt.ToolTipRole:
-            try:
-                field = self.idf_objects[row][column]
-                data = self.get_units(field)
-            except IndexError:
-                return None
+            data = self.get_units(field)
         elif role == QtCore.Qt.DecorationRole:
             pass
         elif role == QtCore.Qt.StatusTipRole:
