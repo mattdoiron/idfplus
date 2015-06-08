@@ -1,6 +1,6 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
-""""
+"""
 Copyright (c) 2014, Matthew Doiron. All rights reserved.
 
 IDF+ is free software: you can redistribute it and/or modify
@@ -44,12 +44,23 @@ class ReferenceModel(object):
         self._ref_lists = dict()
 
     def populate_ref_list(self, idf):
+        """Populates the reference list using the idf file
+        :param idf:
+        """
+
         self._ref_lists.update((k, dict()) for k, v in idf._idd.object_lists.iteritems())
 
     def reference(self, node_id):
-        """Returns the node for the specified reference."""
+        """Returns the node for the specified reference.
+        :param node_id:
+        """
 
     def add_field(self, field, tags):
+        """Adds a new field and takes care of the references
+        :param field:
+        :param tags:
+        """
+
         # Add a node to the graph for the new field
         self._ref_graph.add_node(field.uuid, data=field)
 
@@ -65,13 +76,18 @@ class ReferenceModel(object):
                 id_tup = (field.uuid, field)
                 try:
                     self._ref_lists[object_list][field.value].append(id_tup)
-                except (AttributeError, KeyError) as e:
+                except (AttributeError, KeyError):
                     self._ref_lists[object_list][field.value] = [id_tup]
-        except KeyError as e:
+        except KeyError:
             pass
 
     def add_reference(self, field, cls_list, object_list_name):
-        """Creates the specified reference."""
+        """Creates the specified reference.
+        :param field:
+        :param cls_list:
+        :param object_list_name:
+        """
+
         ref_node = self._ref_lists[cls_list][field.value]
         for ref_uuid, ref in ref_node:
             self._ref_graph.add_edge(field._uuid,
@@ -79,11 +95,15 @@ class ReferenceModel(object):
                                      obj_list=object_list_name)
 
     def update_reference(self):
-        """Updates the specified reference."""
+        """Updates the specified reference.
+        """
+
         pass
 
     def delete_reference(self):
-        """Deletes the specified reference."""
+        """Deletes the specified reference.
+        """
+
         pass
 
     def update_references(self, field):
@@ -122,7 +142,7 @@ class ReferenceModel(object):
 
                         # Remove old reference
 
-            except (IndexError, KeyError) as e:
+            except (IndexError, KeyError):
                 continue
 
             yield math.ceil(50 + (100 * 0.5 * (k+1) / node_count))
@@ -188,7 +208,8 @@ class ReferenceModel(object):
         print('--------')
 
     def connect_references(self):
-        """Processes the reference graph to connect its nodes."""
+        """Processes the reference graph to connect its nodes.
+        """
 
         node_count = self._ref_graph.number_of_nodes()
 

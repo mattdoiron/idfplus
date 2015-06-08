@@ -1,6 +1,6 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
-""""
+"""
 Copyright (c) 2014, Matthew Doiron. All rights reserved.
 
 IDF+ is free software: you can redistribute it and/or modify
@@ -34,7 +34,8 @@ log = logger.setup_logging(config.LOG_LEVEL, __name__, config.LOG_PATH)
 
 
 class GenericDelegate(QtGui.QStyledItemDelegate):
-    """Template delegate for the table view."""
+    """Template delegate for the table view.
+    """
 
     def __init__(self, main_window, idd_objects, obj_orientation):
         super(GenericDelegate, self).__init__(main_window.classTable)
@@ -44,20 +45,40 @@ class GenericDelegate(QtGui.QStyledItemDelegate):
         self.assignDelegates(idd_objects)
 
     def insertDelegate(self, index, delegate):
+        """
+        :param index:
+        :param delegate:
+        """
+
         delegate.setParent(self)
         self.delegates[index] = delegate
 
     def removeDelegate(self, index):
+        """
+        :param index:
+        """
+
         if index in self.delegates:
             del self.delegates[index]
 
     def getRowOrCol(self, index):
+        """
+        :param index:
+        :return: :rtype:
+        """
+
         if self.obj_orientation == QtCore.Qt.Horizontal:
             return index.column()
         if self.obj_orientation == QtCore.Qt.Vertical:
             return index.row()
 
     def paint(self, painter, option, index):
+        """
+        :param painter:
+        :param option:
+        :param index:
+        """
+
         delegate = self.delegates.get(self.getRowOrCol(index))
         if delegate is not None:
             delegate.paint(painter, option, index)
@@ -65,6 +86,13 @@ class GenericDelegate(QtGui.QStyledItemDelegate):
             super(GenericDelegate, self).paint(painter, option, index)
 
     def createEditor(self, parent, option, index):
+        """
+        :param parent:
+        :param option:
+        :param index:
+        :return: :rtype:
+        """
+
         delegate = self.delegates.get(self.getRowOrCol(index))
         if delegate is not None:
             return delegate.createEditor(parent, option, index)
@@ -72,6 +100,11 @@ class GenericDelegate(QtGui.QStyledItemDelegate):
             return super(GenericDelegate, self).createEditor(parent, option, index)
 
     def setEditorData(self, editor, index):
+        """
+        :param editor:
+        :param index:
+        """
+
         delegate = self.delegates.get(self.getRowOrCol(index))
         if delegate is not None:
             delegate.setEditorData(editor, index)
@@ -79,6 +112,12 @@ class GenericDelegate(QtGui.QStyledItemDelegate):
             super(GenericDelegate, self).setEditorData(editor, index)
 
     def setModelData(self, editor, model, index):
+        """
+        :param editor:
+        :param model:
+        :param index:
+        """
+
         delegate = self.delegates.get(self.getRowOrCol(index))
         if delegate is not None:
             delegate.setModelData(editor, model, index)
@@ -86,7 +125,9 @@ class GenericDelegate(QtGui.QStyledItemDelegate):
             super(GenericDelegate, self).setModelData(editor, model, index)
 
     def assignDelegates(self, idd_obj):
-        # Cycle through table and assign delegates as needed depending on tags
+        """Cycle through table and assign delegates as needed depending on tags
+        :param idd_obj:
+        """
 
         # List of tags that would go in a combobox
         combo_fields = ['minimum', 'minimum>', 'maximum', 'maximum<', 'default',
@@ -106,12 +147,23 @@ class GenericDelegate(QtGui.QStyledItemDelegate):
 
 
 class AlphaNumericDelegate(QtGui.QStyledItemDelegate):
+    """
+    :param main_window:
+    :type main_window:
+    """
 
     def __init__(self, main_window):
         super(AlphaNumericDelegate, self).__init__()
         self.main_window = main_window
 
     def createEditor(self, parent, option, index):
+        """
+        :param parent:
+        :param option:
+        :param index:
+        :return: :rtype:
+        """
+
         line_edit = QtGui.QLineEdit(parent)
         line_edit.setStyleSheet("QLineEdit { qproperty-frame: false; }")
         line_edit.setValidator(CustomValidator(self))
@@ -120,11 +172,22 @@ class AlphaNumericDelegate(QtGui.QStyledItemDelegate):
         return line_edit
 
     def setEditorData(self, editor, index):
+        """
+        :param editor:
+        :param index:
+        """
+
         value = index.data(QtCore.Qt.DisplayRole)
         editor.setText(value)
 
     def setModelData(self, editor, model, index):
-        # Create undo command and push it to the undo stack
+        """Create undo command and push it to the undo stack
+        :param editor:
+        :param model:
+        :param index:
+        :return: :rtype:
+        """
+
         if index.data() == editor.text():
             return
         cmd = commands.ModifyObjectCmd(self.main_window, value=editor.text())
@@ -132,6 +195,12 @@ class AlphaNumericDelegate(QtGui.QStyledItemDelegate):
 
 
 class ChoiceDelegate(QtGui.QStyledItemDelegate):
+    """
+    :param field:
+    :type field:
+    :param main_window:
+    :type main_window:
+    """
 
     def __init__(self, field, main_window):
         super(ChoiceDelegate, self).__init__()
@@ -142,7 +211,11 @@ class ChoiceDelegate(QtGui.QStyledItemDelegate):
                              'key', 'object-list']
 
     def createEditor(self, parent, option, index):
-        """Creates a custom editor based on an extended QCombobox"""
+        """Creates a custom editor based on an extended QCombobox
+        :param parent:
+        :param option:
+        :param index:
+        """
 
         # If there isn't already a model, populate it
         if not self.model:
@@ -213,7 +286,7 @@ class ChoiceDelegate(QtGui.QStyledItemDelegate):
         self.comboBox.setModel(self.model)
         self.comboBox.setView(self.tableView)
         self.comboBox.setFont(font)
-        self.comboBox.lineEdit().selectAll()  #TODO should depend on trigger!
+        self.comboBox.lineEdit().selectAll()  # TODO should depend on trigger!
         self.comboBox.lineEdit().setFont(font)
 
         # Set properties of tableView and the combobox
@@ -236,13 +309,24 @@ class ChoiceDelegate(QtGui.QStyledItemDelegate):
         return self.comboBox
 
     def setEditorData(self, editor, index):
+        """
+        :param editor:
+        :param index:
+        """
+
         value = index.data(QtCore.Qt.DisplayRole)
         combo_index = editor.findText(value)
         if combo_index >= 0:
             editor.setCurrentIndex(combo_index)
 
     def setModelData(self, editor, model, index):
-        # Create undo command and push it to the undo stack
+        """Create undo command and push it to the undo stack
+        :param editor:
+        :param model:
+        :param index:
+        :return: :rtype:
+        """
+
         if index.data() == editor.currentText():
             return
         cmd = commands.ModifyObjectCmd(self.main_window,
@@ -251,8 +335,15 @@ class ChoiceDelegate(QtGui.QStyledItemDelegate):
 
 
 class CustomValidator(QtGui.QValidator):
+    """Customized validator for preventing certain inputs
+    """
 
     def validate(self, input_str, pos):
+        """
+        :param input_str:
+        :param pos:
+        :return: :rtype:
+        """
 
         # Blanks are ok
         if not input_str:
@@ -268,7 +359,8 @@ class CustomValidator(QtGui.QValidator):
 
 
 class ExtendedComboBox(QtGui.QComboBox):
-    """Customized QComboBox which adds a filtered, popup auto-completer"""
+    """Customized QComboBox which adds a filtered, popup auto-completer
+    """
 
     def __init__(self, parent, auto_complete):
         super(ExtendedComboBox, self).__init__(parent)
@@ -303,6 +395,10 @@ class ExtendedComboBox(QtGui.QComboBox):
             self.setCompleter(None)
 
     def set_popup_width(self, width):
+        """
+        :param width:
+        """
+
         if self.auto_complete:
             self.completer.popup().setMinimumWidth(width)
 
@@ -315,15 +411,20 @@ class ExtendedComboBox(QtGui.QComboBox):
     #         self.activated[str].emit(self.itemText(index))
 
     def setModel(self, model):
-        """On model change, update the models of the filter and completer as well"""
+        """On model change, update the models of the filter and completer as well
+        :param model:
+        """
+
         super(ExtendedComboBox, self).setModel(model)
         if self.auto_complete:
             self.filter_model.setSourceModel(model)
             self.completer.setModel(self.filter_model)
 
     def setModelColumn(self, column):
-        """On model column change, update the model column of the filter and
-        completer as well"""
+        """On model column change, update the model column of the filter and completer
+        :param column:
+        """
+
         if self.auto_complete:
             self.completer.setCompletionColumn(column)
             self.filter_model.setFilterKeyColumn(column)

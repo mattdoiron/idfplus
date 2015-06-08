@@ -1,6 +1,6 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
-""""
+"""
 Copyright (c) 2014, Matthew Doiron. All rights reserved.
 
 IDF+ is free software: you can redistribute it and/or modify
@@ -65,15 +65,23 @@ def setup_logging(_level, name, log_path):
 
 
 class Communicate(QObject):
-    # create a new signal on the fly and name it 'speak'
+    """Create a new signal on the fly and name it 'speak'
+    """
     signal = Signal(str)
 
 
 class ConsoleLogHandler(logging.StreamHandler):
+    """Handles console log
+    """
 
     com = Communicate()
 
     def emit(self, record):
+        """
+        :param record:
+        :raise:
+        """
+
         try:
             self.com.signal.emit(self.format(record))
             self.flush()

@@ -1,6 +1,6 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
-""""
+"""
 Copyright (c) 2014, Matthew Doiron. All rights reserved.
 
 IDF+ is free software: you can redistribute it and/or modify
@@ -25,8 +25,6 @@ import os
 import platform
 import subprocess
 import sys
-# from BTrees.OOBTree import OOBTree
-# import networkx as nx
 
 # PySide imports
 from PySide import QtGui
@@ -50,8 +48,10 @@ from . import icons_rc
 # Global variables
 log = logger.setup_logging(config.LOG_LEVEL, __name__, config.LOG_PATH)
 
+
 class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow):
-    """Main GUI window for IDFPlus program."""
+    """Main GUI window for IDFPlus program.
+    """
 
     def __init__(self):
         super(IDFPlus, self).__init__()
@@ -89,7 +89,10 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow):
         # self.idd = OOBTree()
 
     def closeEvent(self, event):
-        """Called when the application is closed."""
+        """Called when the application is closed.
+        :param event:
+        """
+
         if self.ok_to_continue():
             self.prefs.write_settings()
             self.prefs.save_state(self)
@@ -99,14 +102,18 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow):
             event.ignore()
 
     def new_file(self):
-        """Called when a new file is to being created"""
+        """Called when a new file is to being created
+        """
+
         if self.ok_to_continue():
             self.add_recent_file(self.file_path)
             self.set_current_file('')
-            self.load_file(None)
+            self.load_file()
 
     def open_file(self):
-        """Called by the open file action."""
+        """Called by the open file action.
+        """
+
         if self.ok_to_continue():
             home_dir = os.path.expanduser('~')
             directory = os.path.dirname(self.file_path) if self.file_path else home_dir
@@ -120,6 +127,10 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow):
                 self.load_file(file_name)
 
     def load_idf(self, file_path):
+        """
+        :param file_path:
+        """
+
         log.info('Trying to load file: {}'.format(file_path))
 
         idf = datamodel.IDFFile()
@@ -170,15 +181,15 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow):
         except datamodel.IDDError as e:
             # Required IDD file doesn't exist so launch IDD wizard
             if not self.launch_idd_wizard(file_path, e.version, e.message):
-                # Wizard failed, warn use and cancel
+                # Wizard failed, warn user and cancel
                 QtGui.QMessageBox.warning(self, "Processing IDD File Failed",
                                           ("{}\n\nVersion Required: {}\n\nLoading "
-                                          "cancelled!".format(e.message, e.version)),
+                                           "cancelled!".format(e.message, e.version)),
                                           QtGui.QMessageBox.Ok)
                 message = ("Loading failed. Could not find "
                            "matching IDD file for version {}.".format(e.version))
                 self.progressDialogIDF.cancel()
-                self.update_status(e.message)
+                self.update_status(message)
                 return False
         except parser.InvalidIDFObject as e:
             # Invalid name of object, warn use and cancel
@@ -212,6 +223,7 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow):
         :param file_path:
         :return: :bool:
         """
+
         wizard = setupwiz.SetupWizard(self, version, message)
         try:
             if wizard.exec_():
@@ -221,13 +233,17 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow):
             return False
 
     def save(self):
-        """Called by save action."""
+        """Called by save action.
+        """
+
         if self.file_path:
             return self.save_file()
         return self.save_as()
 
     def save_as(self):
-        """Called by the save as action."""
+        """Called by the save as action.
+        """
+
         home_dir = os.path.expanduser('~')
         directory = os.path.dirname(self.file_path) if self.file_path else home_dir
         formats = 'EnergyPlus Files (*.idf)'
@@ -242,7 +258,9 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow):
         return False
 
     def save_file(self):
-        """Called by action to save the current file to disk."""
+        """Called by action to save the current file to disk.
+        """
+
         if not self.file_path or not self.idf:
             return False
         file_name = self.file_path
@@ -257,7 +275,9 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow):
             return False
 
     def about(self):
-        """Called by the about action."""
+        """Called by the about action.
+        """
+
         import PySide
 
         QtGui.QMessageBox.about(self, "About IDFPlus",
@@ -284,9 +304,15 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow):
                 platform.system()))
 
     def navForward(self):
+        """Forward navigation, not yet implemented
+        """
+
         pass
 
     def navBack(self):
+        """Backwards navigation, not yet implemented
+        """
+
         pass
 
     def show_in_folder(self):
@@ -337,7 +363,9 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow):
                       .format(self.file_path, current_platform))
 
     def toggle_units(self):
-        # Toggle the units
+        """Toggles units
+        """
+
         self.idf.si_units = not self.idf.si_units
 
         if self.idf.si_units is not True:
@@ -354,7 +382,9 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow):
         self.load_table_view(self.current_obj_class)
 
     def update_file_menu(self):
-        """Called to update the recent files portion of the file menu"""
+        """Called to update the recent files portion of the file menu
+        """
+
         self.fileMenu.clear()
         self.addActions(self.fileMenu, self.fileMenuActions[:-1])
         current = self.file_path or None
@@ -378,10 +408,18 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow):
         self.fileMenu.addAction(self.fileMenuActions[-1])
 
     def clear_recent(self):
+        """Clears recent files
+        """
+
         self.prefs['recent_files'] = []
         self.update_file_menu()
 
-    def table_selection_changed(self, selected, deselected):
+    def table_selection_changed(self, selected):
+        """
+        :param selected:
+        :return: :rtype:
+        """
+
         if not selected:
             return
         _index = selected.first().topLeft()
@@ -413,7 +451,9 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow):
         self.commentView.blockSignals(False)
 
     def update_reference_view(self, index):
-        """Updates the reference tree view widget"""
+        """Updates the reference tree view widget
+        :param index:
+        """
 
         data = self.idf.reference_tree_data(self.current_obj_class, index)
 
@@ -435,7 +475,9 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow):
 
     def ref_tree_double_clicked(self, index):
         """Responds when the reference tree widget is double-clicked.
+        :param index:
         """
+
         if not index.isValid():
             return
         field = self.refView.model().get_field(index)
@@ -466,7 +508,8 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow):
         table_model = self.classTable.model()
 
         # Create an index for the target field with the table's model
-        table_index_source = table_source_model.sourceModel().index(obj_index, field_index)
+        table_index_source = table_source_model.sourceModel().index(obj_index,
+                                                                    field_index)
         table_index_partial = table_source_model.mapFromSource(table_index_source)
         table_index = table_model.mapFromSource(table_index_partial)
 
@@ -475,12 +518,20 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow):
         self.classTable.setCurrentIndex(table_index)
 
     def addActions(self, target, actions):
-        """Helper to add actions or a separator easily."""
+        """Helper to add actions or a separator easily.
+        :param target:
+        :param actions:
+        """
+
         for action in actions:
             if action is not None:
                 target.addAction(action)
 
     def tableFilterRegExpChanged(self):
+        """
+        :return: :rtype:
+        """
+
         pattern = self.filterBox.text()
         if len(pattern) < 3:
             pattern = None
@@ -491,6 +542,10 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow):
         self.classTable.selectionModel().reset()
 
     def treeFilterRegExpChanged(self):
+        """
+        :return: :rtype:
+        """
+
         pattern = self.filterTreeBox.text()
         if len(pattern) < 3:
             pattern = None
@@ -507,15 +562,24 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow):
             self.classTable.setModel(None)
 
     def clearFilterClicked(self):
+        """Triggered when filter is cleared by button
+        """
+
         self.filterBox.clear()
         self.tableFilterRegExpChanged()
 
     def clearTreeFilterClicked(self):
+        """Triggered when tree filter is cleared
+        """
+
         self.filterTreeBox.clear()
         self.treeFilterRegExpChanged()
 
     def caseSensitivityChanged(self):
-        if self.caseSensitivity.isChecked() == True:
+        """Triggered when case sensitivity is changed
+        """
+
+        if self.caseSensitivity.isChecked():
             sensitivity = QtCore.Qt.CaseSensitive
         else:
             sensitivity = QtCore.Qt.CaseInsensitive
@@ -523,23 +587,28 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow):
         self.tableFilterRegExpChanged()
 
     def set_current_file(self, file_name):
-        """Sets the current file globally and updates title, statusbar, etc."""
+        """Sets the current file globally and updates title, statusbar, etc.
+        :param file_name:
+        """
+
         self.file_path = file_name
         self.setWindowModified(False)
 
         if self.file_path:
             file_name = QtCore.QFileInfo(self.file_path).fileName()
-            shownName = file_name
+            shown_name = file_name
         else:
-            shownName = 'Untitled'
+            shown_name = 'Untitled'
 
-        self.setWindowTitle('IDFPlus Editor - {}[*]'.format(shownName))
+        self.setWindowTitle('IDFPlus Editor - {}[*]'.format(shown_name))
 
         if self.idd:
             self.versionLabel.setText('EnergyPlus IDD v{}'.format(self.idd.version))
 
     def ok_to_continue(self):
-        """Checks if there are unsaved changes and prompts for action."""
+        """Checks if there are unsaved changes and prompts for action.
+        """
+
         if self.file_dirty:
             reply = QtGui.QMessageBox.warning(self,
                                               "Application",
@@ -557,12 +626,13 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow):
         """Adds file_path to the list of recent files for the file menu.
         :param file_name:
         """
+
         if not file_name:
             return
-        if not file_name in self.prefs['recent_files']:
+        if file_name not in self.prefs['recent_files']:
             try:
                 self.prefs['recent_files'].insert(0, file_name)
-            except AttributeError as e:
+            except AttributeError:
                 self.prefs['recent_files'] = [file_name]
             while len(self.prefs['recent_files']) > 9:
                 self.prefs['recent_files'].pop()
@@ -571,6 +641,7 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow):
         """Updates the window title and status bar with a message.
         :param message:
         """
+
         self.statusBar().showMessage(message, 5000)
         self.setWindowModified(self.file_dirty)
         if self.file_path is not None:
@@ -583,20 +654,23 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow):
         """Integrates system tray with minimize/maximize.
         :param visible:
         """
+
         self.minimizeAction.setEnabled(visible)
         self.maximizeAction.setEnabled(not self.isMaximized())
         self.restoreAction.setEnabled(self.isMaximized() or not visible)
         super(IDFPlus, self).setVisible(visible)
 
     def newObject(self):
-        """Creates a new, blank object."""
+        """Creates a new, blank object.
+        """
 
         # Create undo command and push it to the undo stack
         cmd = commands.NewObjectCmd(self)
         self.undo_stack.push(cmd)
 
     def duplicateObject(self):
-        """Duplicates a given object."""
+        """Duplicates a given object.
+        """
 
         # If there is no selection, stop
         if not self.classTable.selectedIndexes():
@@ -607,7 +681,8 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow):
         self.undo_stack.push(cmd)
 
     def deleteObject(self):
-        """Deletes a given object."""
+        """Deletes a given object.
+        """
 
         # If there is no selection, stop
         if not self.classTable.selectedIndexes():
@@ -618,7 +693,8 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow):
         self.undo_stack.push(cmd)
 
     def cutObject(self):
-        """Cuts the object after copying it."""
+        """Cuts the object after copying it.
+        """
 
         # If there is no selection, stop
         if not self.classTable.selectedIndexes():
@@ -630,14 +706,16 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow):
         self.deleteObject()
 
     def pasteSelected(self):
-        """Pastes clipboard into cells starting at selected cell."""
+        """Pastes clipboard into cells starting at selected cell.
+        """
 
         # Create undo command and push it to the undo stack
         cmd = commands.PasteSelectedCmd(self)
         self.undo_stack.push(cmd)
 
     def pasteObject(self):
-        """Pastes the currently copied object(s)."""
+        """Pastes the currently copied object(s).
+        """
 
         # If there is nothing in the clipboard, stop
         if not self.obj_clipboard:
@@ -652,8 +730,9 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow):
         cmd = commands.NewObjectCmd(self, from_clipboard=True)
         self.undo_stack.push(cmd)
 
-    def copyObject(self, save=None):
-        """Copies object(s) to the clipboard for pasting to other programs."""
+    def copyObject(self):
+        """Copies object(s) to the clipboard for pasting to other programs.
+        """
 
         # Get the selected indexes then map them to the source model
         indexes = self.classTable.selectedIndexes()
@@ -675,7 +754,8 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow):
         return True
 
     def copySelected(self):
-        """Copies the selected cells to the clipboard for pasting to other programs."""
+        """Copies the selected cells to the clipboard for pasting to other programs.
+        """
 
         # Find the selection and it's last row
         indexes = self.classTable.selectedIndexes()
@@ -707,7 +787,9 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow):
         return True
 
     def toggle_full_tree(self):
-        """Called to toggle the full class tree or a partial tree."""
+        """Called to toggle the full class tree or a partial tree.
+        """
+
         self.fullTree = not self.fullTree
         tree = self.classTree
         current = tree.currentIndex()
@@ -726,7 +808,7 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow):
             tree_model.filter_empty = not self.classTree.model().filter_empty
             self.treeFilterRegExpChanged()
 
-        #TODO need to find a way to handle what happens when 'currentIndex' disappears
+        # TODO need to find a way to handle what happens when 'currentIndex' disappears
         #     during the filtering.
 
         tree.scrollTo(current_persistent, QtGui.QAbstractItemView.PositionAtCenter)
@@ -735,7 +817,8 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow):
         """Loads the table of objects for the specified class name.
         :param obj_class:
         """
-        #TODO instantiate TransposeProxyModel and IDFObjectTableModel elsewhere?
+
+        # TODO instantiate TransposeProxyModel and IDFObjectTableModel elsewhere?
 
         # Save the previous selection to potential re-apply. Save in terms of source
         selection_model = self.classTable.selectionModel()
@@ -801,7 +884,8 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow):
         self.unitsLabel.setText(None)
 
     def load_tree_view(self):
-        """Loads the tree of class type names."""
+        """Loads the tree of class type names.
+        """
 
         # Define the source model
         source_model = treemodel.ObjectClassTreeModel(self.idf,
@@ -824,7 +908,9 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow):
         selection_model.selectionChanged.connect(self.class_selected)
 
     def transpose_table(self):
-        """Transposes the table"""
+        """Transposes the table
+        """
+
         if self.obj_orientation == QtCore.Qt.Horizontal:
             self.obj_orientation = QtCore.Qt.Vertical
             self.classTable.model().obj_orientation = QtCore.Qt.Vertical
@@ -841,7 +927,9 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow):
         self.load_table_view(self.current_obj_class)
 
     def class_selected(self, current):
-        """Loads the table view when a new class is selected"""
+        """Loads the table view when a new class is selected
+        :param current:
+        """
 
         # If nothing is selected, return
         if not current:
@@ -865,6 +953,10 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow):
         self.load_table_view(data)
 
     def comment_view_changed(self):
+        """
+        :return: :rtype:
+        """
+
         sel = self.classTable.selectionModel().selection()
         if not sel:
             return
@@ -880,16 +972,25 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow):
         self.set_dirty(True)
 
     def fill_right(self):
-        # not yet implemented
+        """Fill right not yet implemented
+        """
+
         # selected_indexes = self.classTable.selectedIndexes()
         pass
 
     def update_log_viewer(self, log_text):
+        """
+        :param log_text:
+        """
+
         self.logView.appendPlainText(log_text)
         self.logView.moveCursor(QtGui.QTextCursor.End)
         self.logView.moveCursor(QtGui.QTextCursor.StartOfLine)
 
     def start_log_watcher(self):
+        """Start the log watcher and connect signals
+        """
+
         # Connect signal to log handler
         log.handlers[1].com.signal.connect(self.update_log_viewer)
 
@@ -902,11 +1003,18 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow):
             self.logView.moveCursor(QtGui.QTextCursor.StartOfLine)
 
     def set_dirty(self, dirty_state):
+        """
+        :param dirty_state:
+        """
+
         self.file_dirty = dirty_state
         self.setWindowModified(dirty_state)
         self.saveAct.setEnabled(dirty_state)
 
     def update_idf_options(self):
+        """Update options associated with the idf file
+        """
+
         if 'ViewInIPunits' in self.idf.options:
             self.idf.si_units = False
             self.setIPUnitsAction.setChecked(True)

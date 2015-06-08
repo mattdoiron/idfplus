@@ -1,6 +1,6 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
-""""
+"""
 Copyright (c) 2014, Matthew Doiron. All rights reserved.
 
 IDF+ is free software: you can redistribute it and/or modify
@@ -70,7 +70,8 @@ class BaseTreeItem(object):
         return self.itemData
 
 class TreeItem(BaseTreeItem):
-    """Low level item for a custom class tree view"""
+    """Low level item for a custom class tree view
+    """
 
     def data(self, column):
         data = self.itemData[column]
@@ -93,7 +94,8 @@ class TreeItem(BaseTreeItem):
 
 
 class RefTreeItem(BaseTreeItem):
-    """Low level item for a custom reference tree view"""
+    """Low level item for a custom reference tree view
+    """
 
     def data(self, column):
         data = self.itemData[column]

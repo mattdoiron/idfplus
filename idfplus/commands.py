@@ -1,6 +1,6 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
-""""
+"""
 Copyright (c) 2014, Matthew Doiron. All rights reserved.
 
 IDF+ is free software: you can redistribute it and/or modify
@@ -36,12 +36,13 @@ log = logger.setup_logging(config.LOG_LEVEL, __name__, config.LOG_PATH)
 
 
 class ObjectCmd(QtGui.QUndoCommand):
-    """Base class to be inherited by all classes needing QUndoCommand features"""
+    """Base class to be inherited by all classes needing QUndoCommand features
+    """
 
     def __init__(self, main_window, *args, **kwargs):
         super(ObjectCmd, self).__init__(*args, **kwargs)
 
-        #TODO many of these are not needed for all subclasses. Break them out into
+        # TODO many of these are not needed for all subclasses. Break them out into
         # separate init methods in each subclass
         self.indexes_in = main_window.classTable.selectedIndexes()
         # self.indexes = [QtCore.QPersistentModelIndex(i) for i in self.indexes_in]
@@ -76,7 +77,8 @@ class ObjectCmd(QtGui.QUndoCommand):
             self.selection_saved.append((sel.topLeft(), sel.bottomRight()))
 
     def update_model(self):
-        """Ensures that the model is up-to-date and changes it if not."""
+        """Ensures that the model is up-to-date and changes it if not.
+        """
 
         # Make sure the table view is updated so we grab the right model
         if self.main_window.current_obj_class != self.obj_class:
@@ -88,7 +90,10 @@ class ObjectCmd(QtGui.QUndoCommand):
         self.selection_model = self.main_window.classTable.selectionModel()
 
     def update_selection(self, highlight_size=None, offset=None):
-        """Ensures that the selection is up-to-date and changes it if not."""
+        """Ensures that the selection is up-to-date and changes it if not.
+        :param highlight_size:
+        :param offset:
+        """
 
         # Use stored selection to reconstruct indexes for the current model.
         selection = QtGui.QItemSelection()
@@ -195,7 +200,8 @@ class ObjectCmd(QtGui.QUndoCommand):
 
 
 class NewObjectCmd(ObjectCmd):
-    """Class that handles creating new objects and undoing that creation."""
+    """Class that handles creating new objects and undoing that creation.
+    """
 
     def undo(self):
         """Undo action for inserting new objects."""
@@ -214,7 +220,8 @@ class NewObjectCmd(ObjectCmd):
         self.update_selection()
 
     def redo(self):
-        """Redo action for inserting new objects."""
+        """Redo action for inserting new objects.
+        """
 
         # Ensure that we have the right model available
         self.update_model()
@@ -270,10 +277,12 @@ class NewObjectCmd(ObjectCmd):
 
 
 class PasteSelectedCmd(ObjectCmd):
-    """Class to paste a group of values into cells and undo that paste."""
+    """Class to paste a group of values into cells and undo that paste.
+    """
 
     def undo(self):
-        """Undo action for pasting values into cells."""
+        """Undo action for pasting values into cells.
+        """
 
         # Ensure that we have the right model available
         self.update_model()
@@ -294,9 +303,9 @@ class PasteSelectedCmd(ObjectCmd):
         # Notify everyone that data has changed
         self.model.dataChanged.emit(start_index, index)
 
-
     def redo(self):
-        """Redo action for pasting values into cells."""
+        """Redo action for pasting values into cells.
+        """
 
         # Ensure that we have the right model available
         self.update_model()
@@ -342,10 +351,12 @@ class PasteSelectedCmd(ObjectCmd):
 
 
 class DeleteObjectCmd(ObjectCmd):
-    """Class that handles deleting objects and undo of that deletion."""
+    """Class that handles deleting objects and undo of that deletion.
+    """
 
     def undo(self):
-        """Undo action for deleting objects."""
+        """Undo action for deleting objects.
+        """
 
         # Ensure that we have the right model available
         self.update_model()
@@ -357,7 +368,8 @@ class DeleteObjectCmd(ObjectCmd):
         self.update_selection()
 
     def redo(self):
-        """Redo action for deleting objects."""
+        """Redo action for deleting objects.
+        """
 
         # Ensure that we have the right model available
         self.update_model()
@@ -380,7 +392,8 @@ class DeleteObjectCmd(ObjectCmd):
 
 
 class ModifyObjectCmd(ObjectCmd):
-    """Class that handles modifying a single field value and undo of that change."""
+    """Class that handles modifying a single field value and undo of that change.
+    """
 
     def undo(self):
         """Undo action for modifying individual object values."""
@@ -408,7 +421,8 @@ class ModifyObjectCmd(ObjectCmd):
         self.main_window.classTable.setFocus()
 
     def redo(self):
-        """Redo action for modifying individual object values."""
+        """Redo action for modifying individual object values.
+        """
 
         # Ensure that we have the right model available
         self.update_model()

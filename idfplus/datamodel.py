@@ -1,6 +1,6 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
-""""
+"""
 Copyright (c) 2014, Matthew Doiron. All rights reserved.
 
 IDF+ is free software: you can redistribute it and/or modify
@@ -22,9 +22,6 @@ from __future__ import (print_function, division, absolute_import)
 
 # System imports
 from collections import OrderedDict
-# from persistent import Persistent
-# from persistent.list import PersistentList
-# from persistent.dict import PersistentDict
 from persistent.mapping import PersistentMapping
 from odict.pyodict import _odict
 import uuid
@@ -46,7 +43,9 @@ log = logger.setup_logging(config.LOG_LEVEL, __name__, config.LOG_PATH)
 
 
 class IDDError(Exception):
-    """Base class for IDD exceptions."""
+    """Base class for IDD exceptions.
+    """
+
     def __init__(self, message, version, *args, **kwargs):
         self.message = message
         self.version = version
@@ -54,6 +53,8 @@ class IDDError(Exception):
 
 
 class PODict(_odict, PersistentMapping):
+    """Persistent ordered dictionary
+    """
 
     def _dict_impl(self):
         return PersistentMapping
@@ -110,22 +111,30 @@ class IDDFile(PODict):
 
     @property
     def version(self):
-        """Read-only property containing idf file version."""
+        """Read-only property containing idf file version.
+        """
+
         return self._version
 
     @property
     def parser_version(self):
-        """Read-only property containing version of the parser used to generate file."""
+        """Read-only property containing version of the parser used to generate file.
+        """
+
         return self._parser_version
 
     @property
     def groups(self):
-        """Read-only property containing list of all possible class groups"""
+        """Read-only property containing list of all possible class groups
+        """
+
         return self._groups
 
     @property
     def conversions(self):
-        """Read-only property containing list unit conversions"""
+        """Read-only property containing list unit conversions
+        """
+
         return self._conversions
 
 
@@ -136,7 +145,7 @@ class IDDObject(list):
         [IDDField1, IDDField2, IDDField3}
     """
 
-    def __init__(self, outer, data=(), **kwargs):
+    def __init__(self, data=(), **kwargs):
         """Use kwargs to prepopulate some values, then remove them from kwargs
         Also sets the idd file for use by this object.
 
@@ -150,14 +159,12 @@ class IDDObject(list):
         # Set various attributes of the idf object
         self._obj_class = kwargs.pop('obj_class', None)
         self._group = kwargs.pop('group', None)
-        # self._outer = outer
-        # self._idd = outer
         self.tags = dict()
         self.comments = kwargs.pop('comments', None)
         self.comments_special = kwargs.pop('comments_special', None)
 
         # Call the parent class' init method
-        super(IDDObject, self).__init__(data, **kwargs)
+        super(IDDObject, self).__init__(data)
 
     # def __setitem__(self, key, value):
     #     """Override the default __setitem__ to ensure that only certain
@@ -173,6 +180,7 @@ class IDDObject(list):
         """Read-only property containing idd object's class type
         :returns str: Returns the obj_class string
         """
+
         return self._obj_class
 
     @property
@@ -180,10 +188,12 @@ class IDDObject(list):
         """Read-only property containing idd object's group.
         :rtype : str
         """
+
         return self._group
 
     def get_info(self):
-        """Read-only property returning a collection of comments/notes about the obj"""
+        """Read-only property returning a collection of comments/notes about the obj
+        """
 
         # Prepare the info variable and add the object class
         info = '--[ Object Class ]----------------------'
@@ -222,8 +232,8 @@ class IDDField(object):
         required, field, type, minimum, etc.
     """
 
-    #TODO Values should be Quantities from the pint python library.
-    #TODO merge this class with IDFField?
+    # TODO Values should be Quantities from the pint python library.
+    # TODO merge this class with IDFField?
 
     def __init__(self, outer, **kwargs):
 
@@ -234,11 +244,12 @@ class IDDField(object):
         self._obj_class = outer.obj_class
         self.tags = dict()
 
-         # Call the parent class' init method
+        # Call the parent class' init method
         super(IDDField, self).__init__()
 
     def get_info(self):
-        """Read-only property returning a collection of comments/notes about the obj"""
+        """Read-only property returning a collection of comments/notes about the obj
+        """
 
         # Prepare the info variable and add the field name
         info = '--[ Field ]----------------------------------'
@@ -291,6 +302,7 @@ class IDDField(object):
         :rtype : str
         :return : The name of the class from the outer object
         """
+
         return self._outer._obj_class
 
     @property
@@ -298,6 +310,7 @@ class IDDField(object):
         """Read-only property containing idd field's SI units.
         :rtype : str
         """
+
         return self.tags.get('units')
 
     @property
@@ -305,6 +318,7 @@ class IDDField(object):
         """Read-only property containing idd field's IP units.
         :rtype : str
         """
+
         return self.tags.get('ip-units')
 
 
@@ -347,7 +361,8 @@ class IDFFile(OrderedDict):
         self._references = refmodel.ReferenceModel()
 
     def init_blank(self):
-        """Sets up a blank idf file"""
+        """Sets up a blank idf file
+        """
 
         # Prepare the idd file
         from . import parser
@@ -361,10 +376,6 @@ class IDFFile(OrderedDict):
         version_field.value = config.DEFAULT_IDD_VERSION
         version_obj.append(version_field)
         self['Version'].append(version_obj)
-
-        # Setup graph
-        import networkx as nx
-        self._ref_graph = nx.DiGraph()
 
     # def __setitem__(self, key, value, dict_setitem=dict.__setitem__):
     #     """Override the default __setitem__ to ensure that only certain
@@ -381,15 +392,24 @@ class IDFFile(OrderedDict):
 
     @property
     def version(self):
-        """Read-only property containing idf file version"""
+        """Read-only property containing idf file version
+        """
+
         return self._version
 
     @property
     def idd(self):
-        """Read-only property containing idd file"""
+        """Read-only property containing idd file
+        """
+
         return self._idd
 
     def reference_tree_data(self, current_obj_class, index):
+        """Constructs a list of lists of nodes for the reference tree view.
+        :param index:
+        :param current_obj_class:
+        """
+
         # Retrieve the node (could be invalid so use try)
         try:
             ref_graph = self._references._ref_graph
@@ -398,12 +418,16 @@ class IDFFile(OrderedDict):
             descendants = nx.descendants(ref_graph, field._uuid)
             data = [[ref_graph.node[ancestor]['data'] for ancestor in ancestors],
                     [ref_graph.node[descendant]['data'] for descendant in descendants]]
-        except (nx.exception.NetworkXError, IndexError) as e:
+        except (nx.exception.NetworkXError, IndexError):
             data = None
 
         return data
 
     def reference_count(self, field):
+        """Returns a count of references for the given field.
+        :param field:
+        """
+
         # Continue only if this field references an object-list
         object_list_name = field.tags.get('object-list', '')
         if not object_list_name:
@@ -422,55 +446,89 @@ class IDFFile(OrderedDict):
         return ref_node_count
 
     def populate_ref_list(self, idf):
+        """Passes idf through to reference object.
+        :param idf:
+        """
+
         self._references.populate_ref_list(idf)
 
     def populate_obj_classes(self, idd):
+        """Passes idd through to reference object.
+        :param idd:
+        """
+
         self.update((k, list()) for k, v in idd.iteritems())
 
     def find(self, contains=None):
         """Searches within the file for objects having 'contains'
         :param str contains:  (Default value = None)
         """
+
         pass
 
     def get_object(self, key, index):
-        """Returns the specified object."""
+        """Returns the specified object.
+        :param index:
+        :param key:
+        """
+
         return self[key][index]
 
     def add_object(self, idf_object):
-        """Adds the specified object to the specified class."""
+        """Adds the specified object to the specified class.
+        :param idf_object:
+        """
+
         obj_class = idf_object.obj_class
         try:
             self[obj_class].append(idf_object)
-        except (AttributeError, KeyError) as e:
+        except (AttributeError, KeyError):
             self[obj_class] = [idf_object]
         # self._references.add_reference(field, cls_list, object_list_name)
         # self._add_reference(field, cls_list, object_list_name)
 
     def update_object(self, obj_class, index, new_values):
-        """Updates the specified object."""
+        """Updates the specified object.
+        :param obj_class:
+        :param index:
+        :param new_values:
+        """
+
         self[obj_class][index].update(new_values)
         self._update_reference()
 
     def delete_object(self, obj_class, index):
-        """Deletes specified object."""
+        """Deletes specified object.
+        :param obj_class:
+        :param index:
+        """
+
         del self[obj_class][index]
         self._delete_reference()
 
     def get_class(self, key):
-        """Returns a list of classes for the specified class."""
+        """Returns a list of classes for the specified class.
+        :param key:
+        """
+
         return self[key]
 
     def _get_reference(self):
-        """Returns the node for the specified reference."""
+        """Returns the node for the specified reference.
+        """
+
         return self._references.reference()
 
     def _update_reference(self):
-        """Updates the specified reference."""
+        """Updates the specified reference.
+        """
+
         return self._references.update_reference()
 
     def _delete_reference(self):
-        """Deletes the specified reference."""
+        """Deletes the specified reference.
+        """
+
         return self._references.delete_reference()
 
 
@@ -488,9 +546,9 @@ class IDFObject(list):
     :attr list outgoing_links: List of tuples of objects to which this links
     """
 
-    #TODO This class is almost the same as IDDObject. It should subclass it.
+    # TODO This class is almost the same as IDDObject. It should subclass it.
 
-    def __init__(self, idf, data=(), **kwargs):
+    def __init__(self, idf, **kwargs):
         """Use kwargs to prepopulate some values, then remove them from kwargs
         Also sets the idd file for use by this object.
 
@@ -518,7 +576,8 @@ class IDFObject(list):
         super(IDFObject, self).__init__(**kwargs)
 
     def __deepcopy__(self, memo):
-        """Reimplement deepcopy to avoid recursion issues with IDFFile/IDFObject"""
+        """Reimplement deepcopy to avoid recursion issues with IDFFile/IDFObject
+        """
 
         # Create a new object, same class as this one, without triggering init
         cls = self.__class__
@@ -545,21 +604,31 @@ class IDFObject(list):
     @property
     def obj_class(self):
         """Read-only property containing idf object's class type
-        :rtype : str"""
+        :rtype : str
+        """
+
         return self._obj_class
 
     @property
     def group(self):
         """Read-only property containing idf object's group
-        :rtype : str"""
+        :rtype : str
+        """
+
         return self._group
 
     @property
     def uuid(self):
+        """Read-only property containing uuid
+        :return: :rtype:
+        """
+
         return self._uuid
 
     def set_defaults(self, idd):
-        """Populates the field with its defaults"""
+        """Populates the field with its defaults
+        :param idd:
+        """
 
         # print('setting defaults')
         idd_objects = idd.get(self.obj_class)
@@ -576,6 +645,10 @@ class IDFObject(list):
                     self.append(IDFField(self, value=default))
 
     def add_field(self, idf_field, tags):
+        """Adds a field to self and takes care of references.
+        :param idf_field:
+        :param tags:
+        """
 
         # Add the new field to self (a list)
         self.append(idf_field)
@@ -600,10 +673,11 @@ class IDFField(object):
         :param value:
         :param IDFObject outer:
         """
+
         self.key = kwargs.pop('key', None)
         self.value = kwargs.pop('value', None)
         self.tags = dict()
-        self._ureg = None #outer.idd._ureg
+        self._ureg = None
         self._outer = outer
         self._uuid = str(uuid.uuid4())
 
@@ -618,7 +692,8 @@ class IDFField(object):
         super(IDFField, self).__init__()
 
     def __deepcopy__(self, memo):
-        """Reimplement deepcopy to avoid recursion issues with IDFFile/IDFObject"""
+        """Reimplement deepcopy to avoid recursion issues with IDFFile/IDFObject
+        """
 
         # Create a new object, same class as this one, without triggering init
         cls = self.__class__
@@ -641,6 +716,7 @@ class IDFField(object):
         :rtype : str
         :return : The name of the field from the idd file
         """
+
         if 'field' in self.tags:
             return self.tags['field']
         else:
@@ -652,122 +728,35 @@ class IDFField(object):
         :rtype : str
         :return : The name of the class from the outer object
         """
+
         return self._outer._obj_class
 
     @property
     def position(self):
-        """
+        """Read-only property that returns the position (index) of this field
         :rtype : int
         :return : The index of this field in its outer class
         """
+
         return self._outer.index(self.value)
 
     @property
     def field_id(self):
+        """Read-only property that returns the id of this field
+        """
+
         try:
             my_id = (self._outer._obj_class,
                      self._outer._outer[self._outer._obj_class].index(self._outer),
                      self._outer.index(self))
-        except KeyError as e:
+        except KeyError:
             my_id = None
         return my_id
 
     @property
     def uuid(self):
+        """Read-only property containing uuid
+        :return: :rtype:
+        """
+
         return self._uuid
-
-    # def __repr__(self):
-    #     return self._idf_file.obj_class + ':' + self._key
-
-    # def value(self, ip=False):
-    #     """Returns the value of the field, optionally converted to IP units.
-    #     :param bool ip:
-    #     :returns: converted value
-    #     """
-    #     if ip:
-    #         quantity = self._value * self._ureg(self._units)
-    #         ip_quantity = quantity.to(self._ip_units)
-    #         return ip_quantity.magnitude
-    #     else:
-    #         return self._value
-
-#
-# class PersistentDict(OrderedDict):
-#     """Ordered dict that writes to a file when asked to
-#     """
-#
-#     def __init__(self, filename, **kwargs):
-#         self.flag = kwargs.get('flag', 'c')           # r=readonly, c=create, or n=new
-#         self.mode = kwargs.get('mode', None)          # None or an octal triple like 0644
-#         self.format = kwargs.get('format', 'pickle')  # 'csv', 'json', or 'pickle'
-#         self.filename = filename
-#
-#         # Call the parent class' init method before self.load
-#         super(PersistentDict, self).__init__()
-#
-#         # Call self.load
-#         if self.flag != 'n' and os.access(filename, os.R_OK):
-#             with open(filename, 'rb') as fileobj:
-#                 self.update(pickle.load(fileobj))
-#                 # return pickle.load(fileobj)
-#
-#     def sync(self):
-#         '''Write dict to disk'''
-#         if self.flag == 'r':
-#             return
-#         filename = self.filename
-#         tempname = filename + '.tmp'
-#         with open(tempname, 'wb') as fileobj:
-#             try:
-#                 # self.dump(fileobj)
-#                 pickle.dump(self, fileobj, 2)
-#             except Exception:
-#                 os.remove(tempname)
-#                 raise
-#         shutil.move(tempname, self.filename)    # atomic commit
-#         if self.mode is not None:
-#             os.chmod(self.filename, self.mode)
-#
-#     def close(self):
-#         self.sync()
-#
-#     def __enter__(self):
-#         return self
-#
-#     def __exit__(self, *exc_info):
-#         self.close()
-#
-#
-# class IDDFile2(PersistentDict):
-#     """Ordered dict that writes to a file when asked to
-#     """
-#
-#     def __init__(self, filename, **kwargs):
-#
-#         # Various attributes of the idd file
-#         self._groups = list()
-#         self._conversions = list()
-#         self._version_set = False
-#         self._version = kwargs.get('version', None)
-#         self.options = list()
-#         self.tags = dict()
-#         self._ureg = None
-#
-#         # Call the parent class' init method before self.load
-#         super(IDDFile2, self).__init__(filename, **kwargs)
-#
-#     @property
-#     def version(self):
-#         """Read-only property containing idf file version."""
-#         # return '8.1'
-#         return self['Version'][0].value
-#
-#     @property
-#     def groups(self):
-#         """Read-only property containing list of all possible class groups"""
-#         return self._groups
-#
-#     @property
-#     def conversions(self):
-#         """Read-only property containing list unit conversions"""
-#         return self._conversions

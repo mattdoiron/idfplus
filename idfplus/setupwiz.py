@@ -1,6 +1,6 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
-""""
+"""
 Copyright (c) 2014, Matthew Doiron. All rights reserved.
 
 IDF+ is free software: you can redistribute it and/or modify
@@ -36,6 +36,14 @@ log = logger.setup_logging(config.LOG_LEVEL, __name__, config.LOG_PATH)
 
 
 class SetupWizIntroPage(QtGui.QWizardPage):
+    """
+    :param parent:
+    :type parent:
+    :param version:
+    :type version:
+    :param message:
+    :type message:
+    """
 
     def __init__(self, parent, version, message):
         super(SetupWizIntroPage, self).__init__(parent)
@@ -48,7 +56,9 @@ class SetupWizIntroPage(QtGui.QWizardPage):
         self.setup_page()
 
     def setup_page(self):
-        # Create intro text
+        """Create intro text
+        """
+
         text = "IDF+ uses EnergyPlus' own IDD file in order to understand " \
                "how to work with IDF files. Each IDD file version is processed " \
                "and stored so that this procedure will be required only once, or " \
@@ -66,6 +76,12 @@ class SetupWizIntroPage(QtGui.QWizardPage):
 
 
 class SetupWizLoadPage(QtGui.QWizardPage):
+    """
+    :param parent:
+    :type parent:
+    :param version:
+    :type version:
+    """
 
     def __init__(self, parent, version):
         super(SetupWizLoadPage, self).__init__(parent)
@@ -77,7 +93,9 @@ class SetupWizLoadPage(QtGui.QWizardPage):
         self.setup_page()
 
     def setup_page(self):
-        # Create intro text
+        """Create intro text
+        """
+
         text = "The file being loaded requires an IDD file of <b>Version {}</b>. " \
                "Please choose the 'Energy+.idd' file from the installation directory " \
                "for this version of EnergyPlus.".format(self.version)
@@ -102,7 +120,9 @@ class SetupWizLoadPage(QtGui.QWizardPage):
         self.setLayout(layout)
 
     def load_idd(self):
-        # Create and open file dialog
+        """Create and open file dialog
+        """
+
         directory = os.path.expanduser('~')
         formats = "EnergyPlus IDD Files (*.idd)"
         dialog_name = 'Select EnergyPlus IDD File (Version: {})'.format(self.version)
@@ -122,10 +142,22 @@ class SetupWizLoadPage(QtGui.QWizardPage):
         self.completeChanged.emit()
 
     def isComplete(self):
+        """
+        :return: :rtype:
+        """
+
         return True if self.complete else False
 
 
 class SetupWizard(QtGui.QWizard):
+    """
+    :param parent:
+    :type parent:
+    :param version:
+    :type version:
+    :param message:
+    :type message:
+    """
 
     def __init__(self, parent, version, message):
         super(SetupWizard, self).__init__(parent)

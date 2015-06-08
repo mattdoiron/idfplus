@@ -1,6 +1,6 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
-""""
+"""
 Copyright (c) 2014, Matthew Doiron. All rights reserved.
 
 IDF+ is free software: you can redistribute it and/or modify
@@ -61,7 +61,8 @@ for directory in [DATA_DIR, LOG_DIR]:
 
 
 class Settings(dict):
-    """Object to handle setting and getting settings or info about them."""
+    """Object to handle setting and getting settings or info about them.
+    """
 
     def __init__(self, *args, **kwargs):
         """Create the settings object and set some of its own settings."""
@@ -74,7 +75,9 @@ class Settings(dict):
         self.read_settings()
 
     def read_settings(self):
-        """Reads application settings and restores them."""
+        """Reads application settings and restores them.
+        """
+
         settings = self.settings
 
         # Retrieve settings and store them in the prefs dict
@@ -112,7 +115,8 @@ class Settings(dict):
             handler.setLevel(self['log_level'])
 
     def write_settings(self):
-        """Writes application settings to QSettings object."""
+        """Writes application settings to QSettings object.
+        """
 
         log.info('Writing settings')
         settings = self.settings
@@ -148,7 +152,10 @@ class Settings(dict):
         settings.endGroup()
 
     def save_state(self, window):
-        """Saves application state to QSettings."""
+        """Saves application state to QSettings.
+        :param window:
+        """
+
         log.info('Saving main window state')
         settings = self.settings
         settings.beginGroup("MainWindow")
@@ -159,7 +166,10 @@ class Settings(dict):
         settings.endGroup()
 
     def restore_state(self, window):
-        """Restore application state."""
+        """Restore application state.
+        :param window:
+        """
+
         log.info('Restoring main window state')
         settings = self.settings
         settings.beginGroup("MainWindow")
@@ -177,21 +187,31 @@ class Settings(dict):
         QtGui.QApplication.setStyle(QtGui.QStyleFactory.create(self['style']))
 
     def get_path(self):
-        """get path"""
+        """get path
+        """
+
         return self.settings.fileName()
 
     def get_file_name(self):
-        """get file name"""
+        """get file name
+        """
+
         import os
         return os.path.basename(self.settings.fileName())
 
     def get_dir_name(self):
-        """get dir name"""
+        """get dir name
+        """
+
         import os
         return os.path.dirname(self.settings.fileName())
 
 
 def default_style():
+    """
+    :return: :rtype:
+    """
+
     system = get_os()
     if system == 'Windows':
         style = 'WindowsXP'
@@ -203,6 +223,10 @@ def default_style():
 
 
 def get_os():
+    """
+    :return: :rtype:
+    """
+
     import platform
     system = platform.system()
     return system

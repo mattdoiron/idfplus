@@ -1,6 +1,6 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
-""""
+"""
 Copyright (c) 2014, Matthew Doiron. All rights reserved.
 
 IDF+ is free software: you can redistribute it and/or modify
@@ -22,12 +22,7 @@ from __future__ import (print_function, division, absolute_import)
 
 # System imports
 import os
-# import shelve
-# import datetime as dt
-# import transaction
 import codecs
-# from persistent.list import PersistentList
-import networkx as nx
 import math
 import cPickle as pickle
 
@@ -75,94 +70,18 @@ TAG_LIST = ['\\field', '\\Field,'
 # Setup logging
 log = logger.setup_logging(config.LOG_LEVEL, __name__, config.LOG_PATH)
 
-#test_line1 = '0.0,15.2,3.0;  !- X,Y,Z ==> Vertex 4 {m} '
-#test_line2 = '0.0,15.2,3.0 ;  !test '
-#test_line3 = '0.0,15.2,3.0;  !test  !- X,Y,Z ==> Vertex 4 {m}  '
-#test_line4 = '0.0,15.2,3.0;  !- X,Y,Z ==> Vertex 4 {m}!test  '
-#test_line5 = '0.0,15.2  ,3.0;  '
-#test_line6 = ' ! comment 123'
-#test_line7 = '  !- comment 456'
-#test_line8 = '  BuildingSurface:Detailed,'
-#test_line9 = '    ,            !- Outside Boundary Condition Object'
-#test_line10 = '    SunExposed,              !- Sun Exposure'
-#test_line11 = '    SunExposed,,,;              !- Sun Exposure'
-#test_line12 = '  !  '
-#test_line13 = '  !- one !-two  '
-#test_line14 = '     \memo Note that the following 3 fields'
-#test_line15 = ' N1; \memothis is a test'
-#test_line16 = '  '
-#test_line17 = '!'
-
-#tag_line1 = 'SimulationControl,'
-#tag_line2 = '      \unique-object'
-#tag_line3 = '     \memo Note that the following 3 fields are related to the Sizing:Zone, Sizing:System,'
-#tag_line4 = '      \key Yes'
-#tag_line5 = 'SimulationControl, \memo this is a test'
-#tag_line6 = ' SimulationControl, \memothis is a test'
-
-#print 'Comments:'
-#print '- line 1: "' + str(getGeneralComment(test_line1)) + '"'
-#print '- line 2: "' + str(getGeneralComment(test_line2)) + '"'
-#print '- line 3: "' + str(getGeneralComment(test_line3)) + '"'
-#print '- line 4: "' + str(getGeneralComment(test_line4)) + '"'
-#print '- line 5: "' + str(getGeneralComment(test_line5)) + '"'
-#print '- line 6: "' + str(getGeneralComment(test_line6)) + '"'
-#print '- line 7: "' + str(getGeneralComment(test_line7)) + '"'
-#print '- line 8: "' + str(getGeneralComment(test_line8)) + '"'
-#print '- line 9: "' + str(getGeneralComment(test_line9)) + '"'
-#print '- line 10: "' + str(getGeneralComment(test_line10)) + '"'
-#print '- line 11: "' + str(getGeneralComment(test_line11)) + '"'
-#print '- line 12: "' + str(getGeneralComment(test_line12)) + '"'
-#print '- line 13: "' + str(getGeneralComment(test_line13)) + '"'
-#print '- line 14: "' + str(getGeneralComment(test_line14)) + '"'
-#print '- line 15: "' + str(getGeneralComment(test_line15)) + '"'
-#print '- line 16: "' + str(getGeneralComment(test_line16)) + '"'
-#print '- line 17: "' + str(getGeneralComment(test_line17)) + '"'
-
-#print 'Fields:'
-#print '- line 1: "' + str(get_fields(test_line1)) + '"'
-#print '- line 2: "' + str(get_fields(test_line2)) + '"'
-#print '- line 3: "' + str(get_fields(test_line3)) + '"'
-#print '- line 4: "' + str(get_fields(test_line4)) + '"'
-#print '- line 5: "' + str(get_fields(test_line5)) + '"'
-#print '- line 6: "' + str(get_fields(test_line6)) + '"'
-#print '- line 7: "' + str(get_fields(test_line7)) + '"'
-#print '- line 8: "' + str(get_fields(test_line8)) + '"'
-#print '- line 9: "' + str(get_fields(test_line9)) + '"'
-#print '- line 10: "' + str(get_fields(test_line10)) + '"'
-#print '- line 11: "' + str(get_fields(test_line11)) + '"'
-#print '- line 12: "' + str(get_fields(test_line12)) + '"'
-#print '- line 13: "' + str(get_fields(test_line13)) + '"'
-#print '- line 14: "' + str(get_fields(test_line14)) + '"'
-#print '- line 15: "' + str(get_fields(test_line15)) + '"'
-#print '- line 16: "' + str(get_fields(test_line16)) + '"'
-
-#print 'Whole Line:'
-#print parse_line(test_line1)
-#print parse_line(test_line2)
-#print parse_line(test_line3)
-#print parse_line(test_line4)
-#print parse_line(test_line5)
-#print parse_line(test_line6)
-#print parse_line(test_line7)
-#print parse_line(test_line8)
-#print parse_line(test_line9)
-#print parse_line(test_line10)
-#print parse_line(test_line11)
-#print parse_line(test_line12)
-#print parse_line(test_line13)
-#print parse_line(test_line14)
-#print parse_line(test_line15)
-#print parse_line(test_line16)
 
 class InvalidIDFObject(Exception):
-    """Exception called when an invalid/unknown idf object is encountered."""
+    """Exception called when an invalid/unknown idf object is encountered.
+    """
+
     def __init__(self, message):
         self.message = message
 
 
 class Writer(object):
-    """Class to take care of writing idf and idd files."""
+    """Class to take care of writing idf and idd files.
+    """
 
     def __init__(self):
         super(Writer, self).__init__()
@@ -171,8 +90,6 @@ class Writer(object):
     def write_idf(idf):
         """Write an IDF from the specified idfObject
         :param idf: :type IDFObject
-        :param idd: :type IDDObject
-        :param options: :type list: List of options
         """
 
         idd = idf._idd
@@ -217,7 +134,7 @@ class Writer(object):
 
                             # Don't use '.format' here due to potential incorrect
                             # encodings introduced by user
-                            idf_file.write("!" + comment.rstrip() + "{}".format(eol_char))
+                            idf_file.write("!"+comment.rstrip()+"{}".format(eol_char))
 
                         # Some objects are on one line and some fields are grouped!
                         # If enabled, check IDD file for special formatting instructions
@@ -260,41 +177,12 @@ class Writer(object):
             return False
 
 
-# Write the idf file
-#writeIDF('testoutput.idf', options, objects)
-
-
-#print get_tags(tag_line1)
-#print get_tags(tag_line2)
-#print get_tags(tag_line3)
-#print get_tags(tag_line4)
-#print get_tags(tag_line5)
-#print get_tags(tag_line6)
-
-
-#print 'Whole Line:'
-#print parseLineIDD(test_line1)
-#print parseLineIDD(test_line2)
-#print parseLineIDD(test_line3)
-#print parseLineIDD(test_line4)
-#print parseLineIDD(test_line5)
-#print parseLineIDD(test_line6)
-#print parseLineIDD(test_line7)
-#print parseLineIDD(test_line8)
-#print parseLineIDD(test_line9)
-#print parseLineIDD(test_line10)
-#print parseLineIDD(test_line11)
-#print parseLineIDD(test_line12)
-#print parseLineIDD(test_line13)
-#print parseLineIDD(test_line14)
-#print parseLineIDD(test_line15)
-#print parseLineIDD(test_line16)
-
 class Parser(object):
-    """Base class for more specialized parsers"""
+    """Base class for more specialized parsers
+    """
 
-    def __init__(self, *args, **kwargs):
-        super(Parser, self).__init__(*args, **kwargs)
+    def __init__(self):
+        super(Parser, self).__init__()
 
     @staticmethod
     def get_fields(line_in):
@@ -302,6 +190,7 @@ class Parser(object):
         :rtype : list:
         :param line_in:
         """
+
         fields = list()
 
         # Partition the line twice
@@ -341,6 +230,7 @@ class Parser(object):
         :param line_in:
         :rtype : str:
         """
+
         comments = str()
 
         if line_in.find(COMMENT_DELIMITER_GENERAL) == -1:
@@ -379,6 +269,7 @@ class Parser(object):
         :rtype : str
         :param line_in:
         """
+
         line_clean = line_in.expandtabs().lstrip()
         comment_list_special = str()
 
@@ -394,6 +285,7 @@ class Parser(object):
         :rtype : dict:
         :param line_in:
         """
+
         tag_result = dict()
 
         # Create a list containing any tags found in line_in
@@ -424,6 +316,7 @@ class Parser(object):
         :rtype : list
         :param line_in:
         """
+
         line_clean = line_in.expandtabs().lstrip()
         matches = list()
 
@@ -471,20 +364,16 @@ class Parser(object):
 class IDDParser(Parser):
     """Class that handles all parsing related specifically to IDD files.
     :param idd:
-    :param args:
-    :param kwargs:
     """
 
-    def __init__(self, idd=None, *args, **kwargs):
+    def __init__(self, idd=None):
         """Initialize the parser
         :type idd: IDDFile
         :param idd:
-        :param args:
-        :param kwargs:
         """
 
         # Call the parent class' init method
-        super(IDDParser, self).__init__(*args, **kwargs)
+        super(IDDParser, self).__init__()
 
         if idd is not None:
             log.debug('IDD received by parser - using it.')
@@ -499,7 +388,7 @@ class IDDParser(Parser):
         :param file_path: 
         """
 
-        #TODO write parser for unit conversion comments!
+        # TODO write parser for unit conversion comments!
         total_size = os.path.getsize(file_path)
         total_read = 0.0
         idd = self.idd
@@ -553,7 +442,7 @@ class IDDParser(Parser):
                         version_raw = line_parsed['comments'].split()[1].strip()
                         version = '.'.join(version_raw.split('.')[0:2])
                         idd._version = version
-                        log.debug('Found idd version in idd file: {}'.format(idd._version))
+                        log.debug('Found idd version in idd file: {}'.format(version))
 
                 # Check for special comments and options
                 if line_parsed['comments_special']:
@@ -720,7 +609,8 @@ class IDDParser(Parser):
                     message = "This IDD fle was processed by an old and/or " \
                               "incompatible version of IDFPlus' parser ({})! It must " \
                               "be reprocessed to be compatible with the current " \
-                              "version ({}).".format(idd.parser_version, config.PARSER_VERSION)
+                              "version ({}).".format(idd.parser_version,
+                                                     config.PARSER_VERSION)
                     log.debug(message)
                     raise IDDError(message, version)
                 log.debug(message)
@@ -737,15 +627,13 @@ class IDDParser(Parser):
             raise IDDError(message, version)
 
 
-#---------------------------------------------------------------------------
 class IDFParser(Parser):
-    """IDF file parser that handles opening, parsing and returning."""
+    """IDF file parser that handles opening, parsing and returning.
+    """
 
-    def __init__(self, idf=None, *args, **kwargs):
+    def __init__(self, idf=None):
         """Initializes the IDFParser class with an option idf file.
         :param idf:
-        :param args:
-        :param kwargs:
         """
 
         # Set idf if it's given
@@ -756,7 +644,7 @@ class IDFParser(Parser):
         self.idd = None
 
         # Call the parent class' init method
-        super(IDFParser, self).__init__(*args, **kwargs)
+        super(IDFParser, self).__init__()
 
     def parse_idf(self, file_path):
         """Parse the provided idf file and return an IDFObject.
@@ -852,13 +740,14 @@ class IDFParser(Parser):
 
                     try:
                         idd_fields = self.idd[obj_class]
-                    except KeyError as e:
+                    except KeyError:
                         if obj_class.lower() == 'version':
                             obj_class = 'Version'
                             idd_fields = self.idd[obj_class]
                             prev_obj_class = obj_class
                         else:
-                            raise InvalidIDFObject('Invalid or unknown idf object: {}'.format(obj_class))
+                            msg = 'Invalid or unknown idf object: {}'.format(obj_class)
+                            raise InvalidIDFObject(msg)
 
                     # Create IDFField objects for all fields
                     for i, field in enumerate(field_list):

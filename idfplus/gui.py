@@ -1,6 +1,6 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
-""""
+"""
 Copyright (c) 2014, Matthew Doiron. All rights reserved.
 
 IDF+ is free software: you can redistribute it and/or modify
@@ -38,7 +38,8 @@ log = logger.setup_logging(config.LOG_LEVEL, __name__, config.LOG_PATH)
 
 
 class UI_MainWindow(object):
-    """Container class to hold all UI-related creation methods. Must be sublcassed."""
+    """Container class to hold all UI-related creation methods. Must be sublcassed.
+    """
 
     def create_ui(self):
         """Setup main UI elements, dock widgets, UI-related elements, etc. """
@@ -248,7 +249,8 @@ class UI_MainWindow(object):
                            } """)
 
     def create_tray_menu(self):
-        """Creates an icon and menu for the system tray"""
+        """Creates an icon and menu for the system tray
+        """
 
         # Menu for the system tray
         self.trayIconMenu = QtGui.QMenu(self)
@@ -266,7 +268,8 @@ class UI_MainWindow(object):
         self.trayIcon.show()
 
     def create_actions(self):
-        """Creates appropriate actions for use in menus and toolbars."""
+        """Creates appropriate actions for use in menus and toolbars.
+        """
 
         self.newAct = QtGui.QAction(QtGui.QIcon(':/images/new1.png'),
                 "&New", self, shortcut=QtGui.QKeySequence.New,
