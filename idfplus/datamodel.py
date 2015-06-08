@@ -433,6 +433,46 @@ class IDFFile(OrderedDict):
         """
         pass
 
+    def get_object(self, key, index):
+        """Returns the specified object."""
+        return self[key][index]
+
+    def add_object(self, idf_object):
+        """Adds the specified object to the specified class."""
+        obj_class = idf_object.obj_class
+        try:
+            self[obj_class].append(idf_object)
+        except (AttributeError, KeyError) as e:
+            self[obj_class] = [idf_object]
+        # self._references.add_reference(field, cls_list, object_list_name)
+        # self._add_reference(field, cls_list, object_list_name)
+
+    def update_object(self, obj_class, index, new_values):
+        """Updates the specified object."""
+        self[obj_class][index].update(new_values)
+        self._update_reference()
+
+    def delete_object(self, obj_class, index):
+        """Deletes specified object."""
+        del self[obj_class][index]
+        self._delete_reference()
+
+    def get_class(self, key):
+        """Returns a list of classes for the specified class."""
+        return self[key]
+
+    def _get_reference(self):
+        """Returns the node for the specified reference."""
+        return self._references.reference()
+
+    def _update_reference(self):
+        """Updates the specified reference."""
+        return self._references.update_reference()
+
+    def _delete_reference(self):
+        """Deletes the specified reference."""
+        return self._references.delete_reference()
+
 
 class IDFObject(list):
     """Represents objects in idf files.
