@@ -29,6 +29,7 @@ from persistent.mapping import PersistentMapping
 from odict.pyodict import _odict
 import uuid
 import copy
+import networkx as nx
 
 # Package imports
 from . import logger
@@ -385,6 +386,20 @@ class IDFFile(OrderedDict):
     def idd(self):
         """Read-only property containing idd file"""
         return self._idd
+
+    def reference_tree_data(self, current_obj_class, index):
+        # Retrieve the node (could be invalid so use try)
+        try:
+            ref_graph = self._references._ref_graph
+            field = self[current_obj_class][index.row()][index.column()]
+            ancestors = nx.ancestors(ref_graph, field._uuid)
+            descendants = nx.descendants(ref_graph, field._uuid)
+            data = [[ref_graph.node[ancestor]['data'] for ancestor in ancestors],
+                    [ref_graph.node[descendant]['data'] for descendant in descendants]]
+        except (nx.exception.NetworkXError, IndexError) as e:
+            data = None
+
+        return data
 
     def find(self, contains=None):
         """Searches within the file for objects having 'contains'

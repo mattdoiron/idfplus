@@ -26,7 +26,7 @@ import platform
 import subprocess
 import sys
 # from BTrees.OOBTree import OOBTree
-import networkx as nx
+# import networkx as nx
 
 # PySide imports
 from PySide import QtGui
@@ -415,16 +415,18 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow):
     def update_reference_view(self, index):
         """Updates the reference tree view widget"""
 
-        # Retrieve the node (could be invalid so use try)
-        try:
-            ref_graph = self.idf._ref_graph
-            field = self.idf[self.current_obj_class][index.row()][index.column()]
-            ancestors = nx.ancestors(ref_graph, field._uuid)
-            descendants = nx.descendants(ref_graph, field._uuid)
-            data = [[ref_graph.node[ancestor]['data'] for ancestor in ancestors],
-                    [ref_graph.node[descendant]['data'] for descendant in descendants]]
-        except (nx.exception.NetworkXError, IndexError) as e:
-            data = None
+        data = self.idf.reference_tree_data(self.current_obj_class, index)
+
+        # # Retrieve the node (could be invalid so use try)
+        # try:
+        #     ref_graph = self.idf._ref_graph
+        #     field = self.idf[self.current_obj_class][index.row()][index.column()]
+        #     ancestors = nx.ancestors(ref_graph, field._uuid)
+        #     descendants = nx.descendants(ref_graph, field._uuid)
+        #     data = [[ref_graph.node[ancestor]['data'] for ancestor in ancestors],
+        #             [ref_graph.node[descendant]['data'] for descendant in descendants]]
+        # except (nx.exception.NetworkXError, IndexError) as e:
+        #     data = None
 
         # Create a new model for the tree view and assign it, then refresh view
         new_model = treemodel.ReferenceTreeModel(data, ("Field", "Class"), self.refView)
