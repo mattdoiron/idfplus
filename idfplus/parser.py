@@ -835,8 +835,8 @@ class IDFParser(Parser):
                             # the idf file's object classes. This must be done early
                             # so that all objects added later are saved in the proper
                             # order.
-                            self.idf.update((k, list()) for k, v in idd.iteritems())
-                            self.idf.ref_lists.update((k, dict()) for k, v in self.idf._idd.object_lists.iteritems())
+                            self.idf.populate_obj_classes(self.idd)
+                            self.idf.populate_ref_list(self.idf)
                             # print(self.idf.ref_lists)
                         log.debug('idd loaded as version: {}'.format(self.idd.version))
 

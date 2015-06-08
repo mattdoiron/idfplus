@@ -32,6 +32,7 @@ import copy
 import networkx as nx
 
 # Package imports
+from . import refmodel
 from . import logger
 
 # Constants
@@ -342,7 +343,8 @@ class IDFFile(OrderedDict):
         self._version = None
         self.si_units = True
         self._uuid = str(uuid.uuid4())
-        self.ref_lists = dict()
+        # self.ref_lists = dict()
+        self._references = refmodel.ReferenceModel()
 
     def init_blank(self):
         """Sets up a blank idf file"""
@@ -418,6 +420,12 @@ class IDFFile(OrderedDict):
                 ref_node_count += 1
 
         return ref_node_count
+
+    def populate_ref_list(self, idf):
+        self._references.populate_ref_list(idf)
+
+    def populate_obj_classes(self, idd):
+        self.update((k, list()) for k, v in idd.iteritems())
 
     def find(self, contains=None):
         """Searches within the file for objects having 'contains'
