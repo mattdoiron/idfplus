@@ -921,9 +921,7 @@ class IDFParser(Parser):
                     # If this is an IDF file, perform checks against IDD
                     # file here (mandatory fields, unique objects, etc)
 
-                    # Save the new object to the IDF file (canNOT use setdefault)
-                    # due to apparent incompatibility with ZODB
-                    #TODO don't use ZODB anymore, use setdefault?
+                    # Save the new object to the IDF
                     if obj_class in self.idd:
 
                         # Add the object

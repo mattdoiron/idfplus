@@ -317,7 +317,7 @@ class IDFFile(OrderedDict):
          'SimulationControl':  [IDFObject4]}
 
     :attr IDDFile idd: IDDFile object containing precompiled idd file
-    :attr str version: EnergyPlus vesion number (eg. 8.1.0.008)
+    :attr str version: EnergyPlus version number (eg. 8.1.0.008)
     :attr str eol_char: depends on file (could be \n or \r\n, etc)
     :attr list options: options that may have been found in idf file
     :attr str file_path: full, absolute path to idf file
