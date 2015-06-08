@@ -555,6 +555,10 @@ class IDFObject(list):
         :rtype : str"""
         return self._group
 
+    @property
+    def uuid(self):
+        return self._uuid
+
     def set_defaults(self, idd):
         """Populates the field with its defaults"""
 
@@ -660,6 +664,10 @@ class IDFField(object):
         except KeyError as e:
             my_id = None
         return my_id
+
+    @property
+    def uuid(self):
+        return self._uuid
 
     # def __repr__(self):
     #     return self._idf_file.obj_class + ':' + self._key
