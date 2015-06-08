@@ -504,7 +504,7 @@ class IDFObject(list):
         """
 
         # Set various attributes of the idf object
-        # self._idf = idf
+        self._idf = idf
         # self._idd = idf.idd
         # self._incoming_links = list()
         # self._outgoing_links = list()
@@ -512,7 +512,6 @@ class IDFObject(list):
         self._group = kwargs.pop('group', None)
         self._obj_class = kwargs.pop('obj_class', None)
         self.comments = kwargs.pop('comments', [])
-        self._outer = idf
         self._uuid = str(uuid.uuid4())
 
         # Call the parent class' init method
@@ -575,6 +574,14 @@ class IDFObject(list):
                     self.append(default)
                 else:
                     self.append(IDFField(self, value=default))
+
+    def add_field(self, idf_field, tags):
+
+        # Add the new field to self (a list)
+        self.append(idf_field)
+
+        # Update the parent idf's references
+        self._idf._references.add_field(idf_field, tags)
 
 
 class IDFField(object):
