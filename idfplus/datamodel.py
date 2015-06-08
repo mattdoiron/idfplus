@@ -401,6 +401,24 @@ class IDFFile(OrderedDict):
 
         return data
 
+    def reference_count(self, field):
+        # Continue only if this field references an object-list
+        object_list_name = field.tags.get('object-list', '')
+        if not object_list_name:
+            return -1
+
+        # Ensure we have a list to simplify later operations
+        if not isinstance(object_list_name, list):
+            object_list_name = [field.tags['object-list']]
+
+        # Cycle through all class names in the object lists and count references
+        ref_node_count = 0
+        for cls_list in object_list_name:
+            if self._references._ref_lists[cls_list].get(field.value, None):
+                ref_node_count += 1
+
+        return ref_node_count
+
     def find(self, contains=None):
         """Searches within the file for objects having 'contains'
         :param str contains:  (Default value = None)

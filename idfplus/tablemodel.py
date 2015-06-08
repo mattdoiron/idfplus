@@ -109,8 +109,12 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
         elif role == QtCore.Qt.TextColorRole or role == QtCore.Qt.ForegroundRole:
             pass
         elif role == QtCore.Qt.BackgroundRole:
-            #TODO Colour cells differently depending on things like if they are required
-            pass
+            # Highlight the cell's background depending on various states
+            ref_node_count = self.idf.reference_count(field)
+            if ref_node_count == -1:
+                data = None
+            if field.value and ref_node_count == 0:
+                data = QtGui.QColor(255, 232, 150)
         return data
 
     def headerData(self, section, orientation, role, old_orientation=None):
