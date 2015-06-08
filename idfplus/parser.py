@@ -763,8 +763,7 @@ class IDFParser(Parser):
         :param file_path:
         :rtype : iterator
         """
-        ref_graph = nx.DiGraph()
-        self.idf._ref_graph = ref_graph
+
         self.idf.file_path = file_path
         total_size = os.path.getsize(file_path)
         total_read = 0
@@ -874,35 +873,8 @@ class IDFParser(Parser):
                         new_field.value = field
                         new_field.tags = tags
 
-                        # Check if field should be a reference. Ignore 'node' and
-                        # 'external-list' for now because they are a whole other issue!
-                        tag_set = set(tags)
-                        ref_set = {'object-list', 'reference'}
-                        if (tag_set & ref_set) and field:
-
-                            # Add the node to the graph
-                            ref_graph.add_node(new_field._uuid, data=new_field)
-
-                            try:
-                                # Ensure we have a list of object classes
-                                obj_list_names = tags['reference']
-                                if not isinstance(obj_list_names, list):
-                                    obj_list_names = [tags['reference']]
-
-                                # Save the node in the idf file's reference list
-                                for object_list in obj_list_names:
-                                    id_tup = (new_field._uuid, new_field)
-                                    val = new_field.value
-                                    try:
-                                        self.idf.ref_lists[object_list][val].append(id_tup)
-                                    except (AttributeError, KeyError) as e:
-                                        self.idf.ref_lists[object_list][val] = [id_tup]
-
-                            except KeyError as e:
-                                pass
-
                         # Add the field to the object
-                        idf_object.append(new_field)
+                        idf_object.add_field(new_field, tags)
 
                     # Save the parsed variables in the idf_object
                     idf_object._obj_class = obj_class
@@ -923,12 +895,7 @@ class IDFParser(Parser):
 
                     # Save the new object to the IDF
                     if obj_class in self.idd:
-
-                        # Add the object
-                        try:
-                            self.idf[obj_class].append(idf_object)
-                        except (AttributeError, KeyError) as e:
-                            self.idf[obj_class] = [idf_object]
+                        self.idf.add_object(idf_object)
                         obj_index += 1
 
                     # Reset lists for next object
