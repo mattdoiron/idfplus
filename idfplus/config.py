@@ -48,9 +48,6 @@ DEFAULT_IDD_VERSION = '8.2'
 PARSER_VERSION = '0.0.3'
 __version__ = '0.0.3'
 
-# Global variables
-log = logger.setup_logging(LOG_LEVEL, __name__, LOG_PATH)
-
 # Make sure necessary folders exist
 for directory in [DATA_DIR, LOG_DIR]:
     try:
@@ -59,6 +56,8 @@ for directory in [DATA_DIR, LOG_DIR]:
         if not os.path.isdir(directory):
             raise
 
+# Global variables
+log = logger.setup_logging(LOG_LEVEL, __name__, LOG_PATH)
 
 class Settings(dict):
     """Object to handle setting and getting settings or info about them.
