@@ -606,6 +606,8 @@ class UI_MainWindow(object):
         dlg = PrefsDialog(self, self.prefs)
         if dlg.exec_():
             result = dlg.prefs
+        if self.prefs['clear_idd_cache'] == True:
+            self.clear_idd_cache()
 
 
 class PrefsDialog(QtGui.QDialog):
@@ -622,11 +624,13 @@ class PrefsDialog(QtGui.QDialog):
         tab_widget = QtGui.QTabWidget()
         tab_widget.addTab(AppearanceTab(self), "Appearance")
         tab_widget.addTab(LogTab(self), "Logging")
+        tab_widget.addTab(AdvancedTab(self), "Advanced")
 
         # Create layout and assign it to self
         layout = QtGui.QVBoxLayout()
         layout.addWidget(tab_widget)
         layout.addWidget(button_box)
+        self.resize(350, 350)
         self.setLayout(layout)
         self.setWindowTitle("IDF+ Options")
 
@@ -712,3 +716,32 @@ class LogTab(QtGui.QWidget):
 
     def update(self):
         self.prefs['log_level'] = self.log_edit.currentText()
+
+
+class AdvancedTab(QtGui.QWidget):
+    def __init__(self, parent):
+        super(AdvancedTab, self).__init__(parent)
+
+        self.prefs = parent.prefs
+
+        clear_idd_label = QtGui.QLabel("Clear pre-processed IDD cache:")
+        self.clear_idd_button = QtGui.QPushButton("Clear IDD cache")
+        self.clear_idd_button.clicked.connect(self.clear_idd_cache)
+
+        self.checked_clear_checkbox = QtGui.QCheckBox('Cache will be cleared', self)
+        self.checked_clear_checkbox.setDisabled(True)
+        self.checked_clear_checkbox.setCheckState(QtCore.Qt.Unchecked)
+
+        main_layout = QtGui.QVBoxLayout()
+        main_layout.addWidget(clear_idd_label)
+        main_layout.addWidget(self.clear_idd_button)
+        main_layout.addWidget(self.checked_clear_checkbox)
+        main_layout.addStretch(1)
+        self.setLayout(main_layout)
+
+    def update(self):
+        pass
+
+    def clear_idd_cache(self):
+        self.checked_clear_checkbox.setCheckState(QtCore.Qt.Checked)
+        self.prefs['clear_idd_cache'] = True

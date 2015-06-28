@@ -25,6 +25,8 @@ import os
 import platform
 import subprocess
 import sys
+import errno
+import glob
 
 # PySide imports
 from PySide import QtGui
@@ -1021,3 +1023,18 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow):
         if 'HideEmptyClasses' in self.idf.options:
             self.fullTree = False
             self.toggle_full_tree()
+
+    def clear_idd_cache(self):
+        """Clears the idd cache by deleting pre-processed idd files.
+        """
+
+        self.prefs['clear_idd_cache'] = False
+        try:
+            pattern = config.IDD_FILE_NAME_ROOT.replace('{}', '*')
+            files = os.path.join(config.DATA_DIR, pattern)
+            for f in glob.glob(files):
+                os.remove(f)
+            log.info('Successfully removed all cached idd files.')
+        except OSError as e:
+            if e.errno != errno.ENOENT:
+                raise
