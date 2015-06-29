@@ -145,7 +145,7 @@ class IDDObject(list):
         [IDDField1, IDDField2, IDDField3}
     """
 
-    def __init__(self, data=(), **kwargs):
+    def __init__(self, outer, data=(), **kwargs):
         """Use kwargs to prepopulate some values, then remove them from kwargs
         Also sets the idd file for use by this object.
 
@@ -159,6 +159,7 @@ class IDDObject(list):
         # Set various attributes of the idf object
         self._obj_class = kwargs.pop('obj_class', None)
         self._group = kwargs.pop('group', None)
+        self._idd = outer
         self.tags = dict()
         self.comments = kwargs.pop('comments', None)
         self.comments_special = kwargs.pop('comments_special', None)
