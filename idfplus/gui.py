@@ -606,7 +606,7 @@ class UI_MainWindow(object):
         dlg = PrefsDialog(self, self.prefs)
         if dlg.exec_():
             result = dlg.prefs
-        if self.prefs['clear_idd_cache'] == True:
+        if self.prefs.get('clear_idd_cache', False) == True:
             self.clear_idd_cache()
 
 
