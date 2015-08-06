@@ -42,34 +42,55 @@ class ReferenceModel(object):
     def __init__(self):
         self._ref_graph = nx.DiGraph()
         self._ref_lists = dict()
+        # self._outer = None
+        self._idd = None
 
-    def populate_ref_list(self, idf):
-        """Populates the reference list using the idf file
-        :param idf:
+    def set_idd(self, idd):
+        """Sets the IDD file and takes care of some setup operations
         """
 
-        self._ref_lists.update((k, dict()) for k, v in idf._idd.object_lists.iteritems())
+        self._idd = idd
+        self._populate_ref_list()
+
+    def _populate_ref_list(self):
+        """Populates the reference list using the idf file
+        """
+
+        obj_lists = self._idd.object_lists
+        self._ref_lists.update((k, dict()) for k in obj_lists.iterkeys())
 
     def reference(self, node_id):
         """Returns the node for the specified reference.
         :param node_id:
         """
 
-    def add_field(self, field, tags):
+    def add_field(self, field, idd_obj_tags):
         """Adds a new field and takes care of the references
         :param field:
-        :param tags:
+        :param idd_obj_tags:
         """
+
+        tag_set = set(idd_obj_tags)
+        ref_set = {'object-list', 'reference'}
+
+        if (field and len(tag_set & ref_set) <= 0) or not field:
+            return
+
+        # print('add_field called for field: {}'.format(len(tag_set & ref_set)))
+        # print('tag set: {}'.format(tag_set))
+        # print('ref set: {}'.format(ref_set))
 
         # Add a node to the graph for the new field
         self._ref_graph.add_node(field.uuid, data=field)
+        self.update_reference(field)
 
         # Add new entries to the reference list for the new field
-        try:
+        if 'reference' in idd_obj_tags:
+
             # Ensure we have a list of object classes
-            obj_list_names = tags['reference']
+            obj_list_names = idd_obj_tags['reference']
             if not isinstance(obj_list_names, list):
-                obj_list_names = [tags['reference']]
+                obj_list_names = [idd_obj_tags['reference']]
 
             # Save the node in the idf file's reference list
             for object_list in obj_list_names:
@@ -78,8 +99,6 @@ class ReferenceModel(object):
                     self._ref_lists[object_list][field.value].append(id_tup)
                 except (AttributeError, KeyError):
                     self._ref_lists[object_list][field.value] = [id_tup]
-        except KeyError:
-            pass
 
     def add_reference(self, field, cls_list, object_list_name):
         """Creates the specified reference.
@@ -94,6 +113,31 @@ class ReferenceModel(object):
                                      ref_uuid,
                                      obj_list=object_list_name)
 
+    def remove_references(self, objects_to_delete):
+
+        obj_class = objects_to_delete[0].obj_class
+        idd_obj = self._idd[obj_class]
+
+        # Delete objects and update reference list
+        for obj in objects_to_delete:
+            field_uuids = [field._uuid for field in obj]
+            self._ref_graph.remove_nodes_from(field_uuids)
+
+            # Also update reference list if required
+            for j, field in enumerate(obj):
+                tags = idd_obj[j].tags
+
+                if 'reference' in tags:
+                    object_list_names = tags['reference']
+                    if not isinstance(object_list_names, list):
+                        object_list_names = [tags['reference']]
+                    for object_list in object_list_names:
+                        tup_list = self._ref_lists[object_list][field.value]
+                        for id_tup in tup_list:
+                            if id_tup[0] == field._uuid:
+                                # Should only be one so it's ok to modify list here!
+                                tup_list.remove(id_tup)
+
     def update_reference(self):
         """Updates the specified reference.
         """
@@ -103,14 +147,12 @@ class ReferenceModel(object):
     def delete_reference(self):
         """Deletes the specified reference.
         """
-
-        pass
+        print('del called')
+        # pass
 
     def update_references(self, field):
-        """Updates the reference graph
-
+        """Updates the reference graph for the specified field
         :param field:
-        :return: :rtype:
         """
 
         # Continue only if this field references an object from an object-list
@@ -119,7 +161,7 @@ class ReferenceModel(object):
             return
 
         graph = self._ref_graph
-        node_count = graph.number_of_nodes()
+        # node_count = graph.number_of_nodes()
 
         # Cycle through only nodes to avoid cycling through all objects
         for k, node in enumerate(graph.nodes_iter(data=True)):
@@ -141,11 +183,12 @@ class ReferenceModel(object):
                                        obj_list=object_list_name)
 
                         # Remove old reference
+                        print('removing old ref')
 
             except (IndexError, KeyError):
                 continue
 
-            yield math.ceil(50 + (100 * 0.5 * (k+1) / node_count))
+            # yield math.ceil(50 + (100 * 0.5 * (k+1) / node_count))
 
     def update_reference_names(self, field, old_value):
         """Update the list of names used for references

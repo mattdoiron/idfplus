@@ -94,7 +94,6 @@ class Writer(object):
 
         idd = idf._idd
         options = ' '.join(idf.options)
-        print('writing options: {}'.format(idf.options))
         eol_char = os.linesep
         file_path = idf.file_path
 
@@ -334,8 +333,8 @@ class Parser(object):
 
         # Get results
         fields = self.get_fields(line_in)
-        comments = self.get_comments_general(line_in)
-        comments_special = self.get_comments_special(line_in)
+        comments = self.get_comments_general(line_in).rstrip()
+        comments_special = self.get_comments_special(line_in).rstrip()
         options = self.get_options(line_in)
         tags = self.get_tags(line_in)
         end_object = False
@@ -394,7 +393,8 @@ class IDDParser(Parser):
         idd = self.idd
         eol_char = os.linesep
         object_lists = self.idd.object_lists
-        log.info('Parsing IDD file: {} ({} bytes)'.format(file_path, total_size))
+        log.info('Parsing IDD file: {} ({} bytes)'.format(file_path,
+                                                          total_size))
 
         # Open the specified file in a safe way
         with codecs.open(file_path, 'r',
@@ -599,24 +599,26 @@ class IDDParser(Parser):
             with open(idd_path, 'rb') as fp:
                 idd = pickle.load(fp)
             try:
-                log.debug('Testing loaded idd file for appropriate version/format...')
+                log.debug('Testing loaded IDD file for appropriate '
+                          'version/format...')
                 message = "Test successful!"
                 if idd.version is None:
                     message = "IDD file does not contain version information!"
                     log.debug(message)
                     raise IDDError(message, version)
                 elif idd.parser_version != config.PARSER_VERSION:
-                    message = "This IDD fle was processed by an old and/or " \
-                              "incompatible version of IDFPlus' parser ({})! It must " \
-                              "be reprocessed to be compatible with the current " \
-                              "version ({}).".format(idd.parser_version,
-                                                     config.PARSER_VERSION)
+                    message = "This IDD fle was processed by an old " \
+                              "and/or incompatible version of IDFPlus " \
+                              "parser ({})! It must be reprocessed to be " \
+                              "compatible with the current version ({}).". \
+                              format(idd.parser_version,
+                                     config.PARSER_VERSION)
                     log.debug(message)
                     raise IDDError(message, version)
                 log.debug(message)
             except AttributeError:
-                message = "Can't find required IDD file attribute (IDD Version or " \
-                          "parser version)."
+                message = "Can't find required IDD file attribute " \
+                          "(IDD Version or parser version)."
                 log.debug(message)
                 raise IDDError(message, version)
             else:
@@ -656,29 +658,26 @@ class IDFParser(Parser):
         total_size = os.path.getsize(file_path)
         total_read = 0
         eol_char = os.linesep
-        # object_lists = self.idf.object_lists
-        log.info('Parsing IDF file: {} ({} bytes)'.format(file_path, total_size))
+        log.info('Parsing IDF file: {} ({} bytes)'.format(file_path,
+                                                          total_size))
 
         # Open the specified file in a safe way
         with codecs.open(file_path, 'r',
                          encoding=config.FILE_ENCODING,
-                         errors='backslashreplace') as idf:
+                         errors='backslashreplace') as raw_idf:
 
             # Prepare some variables to store the results
             field_list = list()
             comment_list = list()
             comment_list_special = list()
-            group = None
             end_object = False
             idf_object = datamodel.IDFObject(self.idf)
-            obj_index = 0
-            prev_obj_class = None
 
             # Cycle through each line in the file (yes, use while!)
             while True:
 
                 # Parse this line using readline (so last one is a blank)
-                line = idf.readline()
+                line = raw_idf.readline()
                 total_read += len(line)
                 line_parsed = self.parse_line(line)
 
@@ -693,12 +692,11 @@ class IDFParser(Parser):
 
                 # If there are any comments save them
                 if line_parsed['comments']:
-                    comment_list.append(line_parsed['comments'].rstrip()
-                                        + eol_char)
+                    comment_list.append(line_parsed['comments'] + eol_char)
 
                 # Check for special comments and options
                 if line_parsed['comments_special']:
-                    comment_list_special.append(line_parsed['comments_special'].rstrip()
+                    comment_list_special.append(line_parsed['comments_special']
                                                 + eol_char)
 
                 # If there are any fields save them
@@ -706,26 +704,19 @@ class IDFParser(Parser):
                     field_list.extend(line_parsed['fields'])
 
                     # Detect idf file version and use it to select idd file
-                    if field_list[0].lower() == 'version' and len(field_list) > 1:
+                    if field_list[0].lower() == 'version' \
+                            and len(field_list) > 1:
                         version = field_list[1]
-                        self.idf._version = version
-                        log.debug('idf detected as version: {}'.format(version))
-                        log.debug('Checking for idd...')
+                        log.debug('IDF version detected: {}'.format(version))
+                        log.debug('Checking for IDD...')
                         if not self.idd:
-                            log.debug('No idd currently selected!')
+                            log.debug('No IDD currently selected!')
                             idd_parser = IDDParser()
                             idd = idd_parser.load_idd(version)
-                            self.idf._idd = idd
-                            self.idd = idd
-
-                            # Use the list of object classes from the idd to populate
-                            # the idf file's object classes. This must be done early
-                            # so that all objects added later are saved in the proper
-                            # order.
-                            self.idf.populate_obj_classes(self.idd)
-                            self.idf.populate_ref_list(self.idf)
-                            # print(self.idf.ref_lists)
-                        log.debug('idd loaded as version: {}'.format(self.idd.version))
+                            self.idf.set_idd(idd)
+                            self.idd = self.idf.idd
+                        log.debug("IDD version "
+                                  "loaded: {}".format(self.idd.version))
 
                 # If this is the end of an object save it
                 if end_object and empty_line:
@@ -733,20 +724,16 @@ class IDFParser(Parser):
                     # The first field is the object class name
                     obj_class = field_list.pop(0)
 
-                    # Reset index if obj_class has changed
-                    if obj_class != prev_obj_class:
-                        obj_index = 0
-                    prev_obj_class = obj_class
-
                     try:
                         idd_fields = self.idd[obj_class]
                     except KeyError:
                         if obj_class.lower() == 'version':
                             obj_class = 'Version'
                             idd_fields = self.idd[obj_class]
-                            prev_obj_class = obj_class
                         else:
-                            msg = 'Invalid or unknown idf object: {}'.format(obj_class)
+                            msg = "Invalid or unknown IDF " \
+                                  "object: {}".format(obj_class)
+                            log.debug(msg)
                             raise InvalidIDFObject(msg)
 
                     # Create IDFField objects for all fields
@@ -766,28 +753,20 @@ class IDFParser(Parser):
                         idf_object.add_field(new_field, tags)
 
                     # Save the parsed variables in the idf_object
-                    idf_object._obj_class = obj_class
-                    idf_object._group = group
+                    idf_object.set_class(obj_class)
+                    idf_object.set_group(self.idd[obj_class]._group)
                     idf_object.comments_special = comment_list_special
                     idf_object.comments = comment_list
 
-                    # Strip white spaces and end of line chars from last comment
+                    # Strip white spaces, end of line chars from last comment
                     if idf_object.comments:
-                        idf_object.comments[-1] = idf_object.comments[-1].rstrip()
-
-                    # Set the object's group from the idd file
-                    group = self.idd[obj_class]._group
-
-                    # TODO validate IDF against IDD
-                    # If this is an IDF file, perform checks against IDD
-                    # file here (mandatory fields, unique objects, etc)
+                        last_comment = idf_object.comments[-1]
+                        idf_object.comments[-1] = last_comment.rstrip()
 
                     # Save the new object to the IDF
-                    if obj_class in self.idd:
-                        self.idf.add_object(idf_object)
-                        obj_index += 1
+                    self.idf.add_objects([idf_object])
 
-                    # Reset lists for next object
+                    # Reset variables for next object
                     field_list = list()
                     comment_list = list()
                     comment_list_special = list()
@@ -803,38 +782,7 @@ class IDFParser(Parser):
                 yield math.ceil(100 * 0.5 * total_read / total_size)
 
         # Now that required nodes have been created, connect them as needed
-        for progress in self.connect_references():
+        for progress in self.idf._references.connect_references():
             yield progress
 
         log.info('Parsing IDF complete!')
-
-    def connect_references(self):
-        """Processes the reference graph to connect its nodes."""
-
-        graph = self.idf._ref_graph
-        node_count = graph.number_of_nodes()
-
-        # Cycle through only nodes to avoid cycling through all objects
-        for k, node in enumerate(graph.nodes_iter(data=True)):
-
-            try:
-                field = node[1]['data']
-                object_list_name = field.tags['object-list']
-
-                # Ensure we have a list to simplify later operations
-                if not isinstance(object_list_name, list):
-                    object_list_name = [field.tags['object-list']]
-
-                # Cycle through all class names in the object lists
-                for cls_list in object_list_name:
-                    ref_node = self.idf.ref_lists[cls_list][field.value]
-                    for ref_uuid, ref in ref_node:
-                        graph.add_edge(field._uuid,
-                                       ref_uuid,
-                                       obj_list=object_list_name)
-                    yield math.ceil(50 + (100 * 0.5 * (k+1) / node_count))
-
-            except (IndexError, KeyError) as e:
-                continue
-
-            yield math.ceil(50 + (100 * 0.5 * (k+1) / node_count))

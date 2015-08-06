@@ -23,6 +23,7 @@ from __future__ import (print_function, division, absolute_import)
 # System imports
 from collections import OrderedDict
 from persistent.mapping import PersistentMapping
+from persistent.list import PersistentList
 from odict.pyodict import _odict
 import uuid
 import copy
@@ -405,6 +406,15 @@ class IDFFile(OrderedDict):
 
         return self._idd
 
+    def set_idd(self, idd):
+        """Sets the IDD file and takes care of some setup operations
+        """
+
+        self._idd = idd
+        self._version = idd.version
+        self._references.set_idd(idd)
+        self._populate_obj_classes()
+
     def reference_tree_data(self, current_obj_class, index):
         """Constructs a list of lists of nodes for the reference tree view.
         :param index:
@@ -415,10 +425,13 @@ class IDFFile(OrderedDict):
         try:
             ref_graph = self._references._ref_graph
             field = self[current_obj_class][index.row()][index.column()]
-            ancestors = nx.ancestors(ref_graph, field._uuid)
-            descendants = nx.descendants(ref_graph, field._uuid)
-            data = [[ref_graph.node[ancestor]['data'] for ancestor in ancestors],
-                    [ref_graph.node[descendant]['data'] for descendant in descendants]]
+            if not field:
+                data = None
+            else:
+                ancestors = nx.ancestors(ref_graph, field._uuid)
+                descendants = nx.descendants(ref_graph, field._uuid)
+                data = [[ref_graph.node[ancestor]['data'] for ancestor in ancestors],
+                        [ref_graph.node[descendant]['data'] for descendant in descendants]]
         except (nx.exception.NetworkXError, IndexError):
             data = None
 
@@ -430,6 +443,8 @@ class IDFFile(OrderedDict):
         """
 
         # Continue only if this field references an object-list
+        if not field:
+            return -1
         object_list_name = field.tags.get('object-list', '')
         if not object_list_name:
             return -1
@@ -446,19 +461,14 @@ class IDFFile(OrderedDict):
 
         return ref_node_count
 
-    def populate_ref_list(self, idf):
-        """Passes idf through to reference object.
-        :param idf:
-        """
-
-        self._references.populate_ref_list(idf)
-
-    def populate_obj_classes(self, idd):
-        """Passes idd through to reference object.
+    def _populate_obj_classes(self):
+        """Pre-allocates the keys of the IDFFile.
+        This must be done early so that all objects added later are added
+        in the proper order (this is an OrderedDict!).
         :param idd:
         """
 
-        self.update((k, list()) for k, v in idd.iteritems())
+        self.update((k, list()) for k in self._idd.iterkeys())
 
     def find(self, contains=None):
         """Searches within the file for objects having 'contains'
@@ -467,26 +477,82 @@ class IDFFile(OrderedDict):
 
         pass
 
-    def get_object(self, key, index):
-        """Returns the specified object.
-        :param index:
+    def get_class(self, key):
+        """Returns all the objects in the specified class.
         :param key:
         """
 
-        return self[key][index]
+        return self[key]
 
-    def add_object(self, idf_object):
-        """Adds the specified object to the specified class.
-        :param idf_object:
+    def get_objects(self, key, index, count=None):
+        """Returns the specified object.
+        :param count
+        :param index:
+        :param key:
+        :returns list: List of IDFObjects
         """
 
-        obj_class = idf_object.obj_class
-        try:
-            self[obj_class].append(idf_object)
-        except (AttributeError, KeyError):
-            self[obj_class] = [idf_object]
+        if count is None:
+            count = index + 1
+
+        return self[key][index:count]
+
+    def add_objects(self, new_objects, position=None):
+        """Adds the specified object(s) to the IDFFile.
+        :param position:
+        :param new_objects: List of IDFObjects
+        :returns int: Number of objects added
+        """
+
+        from datetime import datetime
+
+        print('add_objects called: {}'.format(datetime.now()))
+
+        # Fail if object class is not valid
+        # TODO this is too simple a check, need to look at caps,
+        # mandatory fields, unique objects, etc
+        obj_class = new_objects[0].obj_class
+        if obj_class not in self._idd:
+            return 0
+
+        # Set insert point to 'position' or end of list
+        if position is None:
+            position = -1
+
+        # Insert the new object(s)
+        self[obj_class][position:position] = new_objects
+        idd_obj = self._idd[obj_class]
+
+        # Add nodes for each field that requires one.
+        # print('new_objects: {}'.format(new_objects))
+        for obj in new_objects:
+            # print('obj: {}'.format(obj))
+            for j, field in enumerate(obj):
+                tags = idd_obj[j].tags
+                self._references.add_field(field, tags)
+
+                # tag_set = set(tags)
+                #
+                # if field and len(tag_set & ref_set) > 0:
+                #     ref_graph.add_node(field._uuid, data=field)
+                #     self.update_references(field)
+                #
+                #     # Update the reference list if required
+                #     if 'reference' in tags:
+                #         object_list_names = tags['reference']
+                #         if not isinstance(object_list_names, list):
+                #             object_list_names = [tags['reference']]
+                #         for object_list in object_list_names:
+                #             id_tup = (field._uuid, field)
+                #             val = field.value
+                #             try:
+                #                 self.idf.ref_lists[object_list][val].append(id_tup)
+                #             except (AttributeError, KeyError):
+                #                 self.idf.ref_lists[object_list][val] = [id_tup]
+
         # self._references.add_reference(field, cls_list, object_list_name)
         # self._add_reference(field, cls_list, object_list_name)
+        return len(new_objects)
 
     def update_object(self, obj_class, index, new_values):
         """Updates the specified object.
@@ -498,14 +564,45 @@ class IDFFile(OrderedDict):
         self[obj_class][index].update(new_values)
         self._update_reference()
 
-    def delete_object(self, obj_class, index):
+    def remove_objects(self, first_row, last_row):
         """Deletes specified object.
         :param obj_class:
         :param index:
         """
 
-        del self[obj_class][index]
-        self._delete_reference()
+        # Remove the fields from graph also
+        # ref_graph = self.idf._references
+        objects_to_delete = self.idf_objects[first_row:last_row]
+        obj_class = objects_to_delete[0].obj_class
+        # idd_obj = self.idd[self.obj_class]
+        # log.debug('nodes before delete: {}'.format(ref_graph.number_of_nodes()))
+
+        # Delete objects and update reference list
+        self._references.remove_references(objects_to_delete)
+        # for obj in objects_to_delete:
+        #     field_uuids = [field._uuid for field in obj]
+        #     ref_graph.remove_nodes_from(field_uuids)
+        #
+        #     # Also update reference list if required
+        #     for j, field in enumerate(obj):
+        #         tags = idd_obj[j].tags
+        #
+        #         if 'reference' in tags:
+        #             object_list_names = tags['reference']
+        #             if not isinstance(object_list_names, list):
+        #                 object_list_names = [tags['reference']]
+        #             for object_list in object_list_names:
+        #                 tup_list = self.idf.ref_lists[object_list][field.value]
+        #                 for id_tup in tup_list:
+        #                     if id_tup[0] == field._uuid:
+        #                         # Should only be one so it's ok to modify list here!
+        #                         tup_list.remove(id_tup)
+
+        # Delete the objects, update labels and inform that we're done inserting
+        del self[obj_class][first_row:last_row]
+
+        # del self[obj_class][index]
+        # self._delete_reference()
 
     def get_class(self, key):
         """Returns a list of classes for the specified class.
@@ -549,7 +646,7 @@ class IDFObject(list):
 
     # TODO This class is almost the same as IDDObject. It should subclass it.
 
-    def __init__(self, idf, **kwargs):
+    def __init__(self, outer, **kwargs):
         """Use kwargs to prepopulate some values, then remove them from kwargs
         Also sets the idd file for use by this object.
 
@@ -563,7 +660,7 @@ class IDFObject(list):
         """
 
         # Set various attributes of the idf object
-        self._idf = idf
+        self._outer = outer
         # self._idd = idf.idd
         # self._incoming_links = list()
         # self._outgoing_links = list()
@@ -654,8 +751,24 @@ class IDFObject(list):
         # Add the new field to self (a list)
         self.append(idf_field)
 
-        # Update the parent idf's references
-        self._idf._references.add_field(idf_field, tags)
+        # Update the outer class' (IDF file) references
+        self._outer._references.add_field(idf_field, tags)
+
+    def set_group(self, class_group):
+        """Sets this IDFObject's class group
+        :param class_group:
+        :return:
+        """
+
+        self._group = class_group
+
+    def set_class(self, obj_class):
+        """Sets this IDFObject's object-class
+        :param obj_class:
+        :return:
+        """
+
+        self._obj_class = obj_class
 
 
 class IDFField(object):
