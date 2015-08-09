@@ -138,6 +138,20 @@ class IDDFile(PODict):
 
         return self._conversions
 
+    def valid_class(self, obj_class):
+        """"Returns True if provided class is valid
+        :param obj_class: Object class to validate
+        """
+
+        if obj_class in self:
+            return True
+        elif obj_class.lower() in self:
+            return True
+        elif obj_class.upper() in self:
+            return True
+        else:
+            return False
+
 
 class IDDObject(list):
     """Represents objects in idd files.
@@ -512,7 +526,7 @@ class IDFFile(OrderedDict):
         # TODO this is too simple a check, need to look at caps,
         # mandatory fields, unique objects, etc
         obj_class = new_objects[0].obj_class
-        if obj_class not in self._idd:
+        if not self._idd.valid_class(obj_class):
             return 0
 
         # Set insert point to 'position' or end of list
