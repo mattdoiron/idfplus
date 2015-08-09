@@ -500,10 +500,10 @@ class IDFFile(OrderedDict):
 
     def get_objects(self, key, index, count=None):
         """Returns the specified object.
-        :param count
-        :param index:
-        :param key:
-        :returns list: List of IDFObjects
+        :param count: Number of objects to return.
+        :param index: Starting index.
+        :param key: Class of objects to return.
+        :returns list: List of IDFObjects.
         """
 
         if count is None:
@@ -518,13 +518,7 @@ class IDFFile(OrderedDict):
         :returns int: Number of objects added
         """
 
-        from datetime import datetime
-
-        print('add_objects called: {}'.format(datetime.now()))
-
         # Fail if object class is not valid
-        # TODO this is too simple a check, need to look at caps,
-        # mandatory fields, unique objects, etc
         obj_class = new_objects[0].obj_class
         if not self._idd.valid_class(obj_class):
             return 0
@@ -537,35 +531,12 @@ class IDFFile(OrderedDict):
         self[obj_class][position:position] = new_objects
         idd_obj = self._idd[obj_class]
 
-        # Add nodes for each field that requires one.
-        # print('new_objects: {}'.format(new_objects))
+        # Add nodes for each field.
         for obj in new_objects:
-            # print('obj: {}'.format(obj))
             for j, field in enumerate(obj):
                 tags = idd_obj[j].tags
                 self._references.add_field(field, tags)
 
-                # tag_set = set(tags)
-                #
-                # if field and len(tag_set & ref_set) > 0:
-                #     ref_graph.add_node(field._uuid, data=field)
-                #     self.update_references(field)
-                #
-                #     # Update the reference list if required
-                #     if 'reference' in tags:
-                #         object_list_names = tags['reference']
-                #         if not isinstance(object_list_names, list):
-                #             object_list_names = [tags['reference']]
-                #         for object_list in object_list_names:
-                #             id_tup = (field._uuid, field)
-                #             val = field.value
-                #             try:
-                #                 self.idf.ref_lists[object_list][val].append(id_tup)
-                #             except (AttributeError, KeyError):
-                #                 self.idf.ref_lists[object_list][val] = [id_tup]
-
-        # self._references.add_reference(field, cls_list, object_list_name)
-        # self._add_reference(field, cls_list, object_list_name)
         return len(new_objects)
 
     def update_object(self, obj_class, index, new_values):
@@ -575,73 +546,23 @@ class IDFFile(OrderedDict):
         :param new_values:
         """
 
+        self._references.update_reference(obj_class, index, new_values)
         self[obj_class][index].update(new_values)
-        self._update_reference()
 
-    def remove_objects(self, first_row, last_row):
+    def remove_objects(self, obj_class, first_row, last_row):
         """Deletes specified object.
         :param obj_class:
         :param index:
         """
 
         # Remove the fields from graph also
-        # ref_graph = self.idf._references
-        objects_to_delete = self.idf_objects[first_row:last_row]
+        objects_to_delete = self[obj_class][first_row:last_row]
         obj_class = objects_to_delete[0].obj_class
-        # idd_obj = self.idd[self.obj_class]
         # log.debug('nodes before delete: {}'.format(ref_graph.number_of_nodes()))
 
         # Delete objects and update reference list
         self._references.remove_references(objects_to_delete)
-        # for obj in objects_to_delete:
-        #     field_uuids = [field._uuid for field in obj]
-        #     ref_graph.remove_nodes_from(field_uuids)
-        #
-        #     # Also update reference list if required
-        #     for j, field in enumerate(obj):
-        #         tags = idd_obj[j].tags
-        #
-        #         if 'reference' in tags:
-        #             object_list_names = tags['reference']
-        #             if not isinstance(object_list_names, list):
-        #                 object_list_names = [tags['reference']]
-        #             for object_list in object_list_names:
-        #                 tup_list = self.idf.ref_lists[object_list][field.value]
-        #                 for id_tup in tup_list:
-        #                     if id_tup[0] == field._uuid:
-        #                         # Should only be one so it's ok to modify list here!
-        #                         tup_list.remove(id_tup)
-
-        # Delete the objects, update labels and inform that we're done inserting
         del self[obj_class][first_row:last_row]
-
-        # del self[obj_class][index]
-        # self._delete_reference()
-
-    def get_class(self, key):
-        """Returns a list of classes for the specified class.
-        :param key:
-        """
-
-        return self[key]
-
-    def _get_reference(self):
-        """Returns the node for the specified reference.
-        """
-
-        return self._references.reference()
-
-    def _update_reference(self):
-        """Updates the specified reference.
-        """
-
-        return self._references.update_reference()
-
-    def _delete_reference(self):
-        """Deletes the specified reference.
-        """
-
-        return self._references.delete_reference()
 
 
 class IDFObject(list):

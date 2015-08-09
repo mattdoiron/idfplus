@@ -82,7 +82,6 @@ class ReferenceModel(object):
 
         # Add a node to the graph for the new field
         self._ref_graph.add_node(field.uuid, data=field)
-        self.update_reference(field)
 
         # Add new entries to the reference list for the new field
         if 'reference' in idd_obj_tags:
@@ -100,18 +99,21 @@ class ReferenceModel(object):
                 except (AttributeError, KeyError):
                     self._ref_lists[object_list][field.value] = [id_tup]
 
-    def add_reference(self, field, cls_list, object_list_name):
-        """Creates the specified reference.
-        :param field:
-        :param cls_list:
-        :param object_list_name:
-        """
+        # Connect the reference to other existing references
+        self.update_references(field)
 
-        ref_node = self._ref_lists[cls_list][field.value]
-        for ref_uuid, ref in ref_node:
-            self._ref_graph.add_edge(field._uuid,
-                                     ref_uuid,
-                                     obj_list=object_list_name)
+    # def add_reference(self, field, cls_list, object_list_name):
+    #     """Creates the specified reference.
+    #     :param field:
+    #     :param cls_list:
+    #     :param object_list_name:
+    #     """
+    #
+    #     ref_node = self._ref_lists[cls_list][field.value]
+    #     for ref_uuid, ref in ref_node:
+    #         self._ref_graph.add_edge(field._uuid,
+    #                                  ref_uuid,
+    #                                  obj_list=object_list_name)
 
     def remove_references(self, objects_to_delete):
 
@@ -138,7 +140,7 @@ class ReferenceModel(object):
                                 # Should only be one so it's ok to modify list here!
                                 tup_list.remove(id_tup)
 
-    def update_reference(self):
+    def update_reference(self, obj_class, index, new_values):
         """Updates the specified reference.
         """
 
@@ -183,12 +185,10 @@ class ReferenceModel(object):
                                        obj_list=object_list_name)
 
                         # Remove old reference
-                        print('removing old ref')
+                        # print('removing old ref')
 
             except (IndexError, KeyError):
                 continue
-
-            # yield math.ceil(50 + (100 * 0.5 * (k+1) / node_count))
 
     def update_reference_names(self, field, old_value):
         """Update the list of names used for references
@@ -204,8 +204,8 @@ class ReferenceModel(object):
         new_value = field.value
         obj_list_set = set()
 
-        print('--------')
-        pprint.pprint(ref_lists['ScheduleTypeLimitsNames'])
+        # print('--------')
+        # pprint.pprint(ref_lists['ScheduleTypeLimitsNames'])
 
         # Continue only if there is a new value
         if new_value == old_value:
@@ -229,7 +229,7 @@ class ReferenceModel(object):
             edge = ref_graph.edge[node][field._uuid]
             obj_list_set.update(edge['obj_list'])
 
-        print('list of obj_lists: {}'.format(obj_list_set))
+        # print('list of obj_lists: {}'.format(obj_list_set))
 
         # Update the IDF's reference dictionary for each obj_list
         for obj_list in obj_list_set:
@@ -246,9 +246,9 @@ class ReferenceModel(object):
             else:
                 ref_lists[obj_list][old_value].remove((field._uuid, field))
 
-        print('--------')
-        pprint.pprint(self._ref_lists['ScheduleTypeLimitsNames'])
-        print('--------')
+        # print('--------')
+        # pprint.pprint(self._ref_lists['ScheduleTypeLimitsNames'])
+        # print('--------')
 
     def connect_references(self):
         """Processes the reference graph to connect its nodes.

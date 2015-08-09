@@ -305,38 +305,11 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
                 last_row = group[-1] + offset + delete_count
                 self.beginRemoveRows(QtCore.QModelIndex(), first_row, last_row - 1)
 
-            # # Remove the fields from graph also
-            # ref_graph = self.idf._references
-            # objects_to_delete = self.idf_objects[first_row:last_row]
-            # idd_obj = self.idd[self.obj_class]
-            # # log.debug('nodes before delete: {}'.format(ref_graph.number_of_nodes()))
-            #
-            # # Delete objects and update reference list
-            # self.idf._references.remove_references(objects_to_delete)
-            # # for obj in objects_to_delete:
-            # #     field_uuids = [field._uuid for field in obj]
-            # #     ref_graph.remove_nodes_from(field_uuids)
-            # #
-            # #     # Also update reference list if required
-            # #     for j, field in enumerate(obj):
-            # #         tags = idd_obj[j].tags
-            # #
-            # #         if 'reference' in tags:
-            # #             object_list_names = tags['reference']
-            # #             if not isinstance(object_list_names, list):
-            # #                 object_list_names = [tags['reference']]
-            # #             for object_list in object_list_names:
-            # #                 tup_list = self.idf.ref_lists[object_list][field.value]
-            # #                 for id_tup in tup_list:
-            # #                     if id_tup[0] == field._uuid:
-            # #                         # Should only be one so it's ok to modify list here!
-            # #                         tup_list.remove(id_tup)
-            #
-            # # Delete the objects, update labels and inform that we're done inserting
-            # del self.idf_objects[first_row:last_row]
-            self.idf.remove_objects(first_row, last_row)
+            # Delete the objects, update labels and inform that we're done inserting
+            self.idf.remove_objects(self.obj_class, first_row, last_row)
             self.get_labels()
             self.endRemoveRows()
+
         # print('--------')
         # import pprint
         # pprint.pprint(self.idf.ref_lists['ScheduleTypeLimitsNames'])
@@ -378,41 +351,12 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
 
             # Warn the model that we're about to add rows, then do it
             self.beginInsertRows(QtCore.QModelIndex(), first_row, last_row)
-            # self.idf_objects[first_row:first_row] = obj_list
             self.idf.add_objects(obj_list, first_row)
-
-            # Add the fields to graph also
-            # ref_graph = self.idf._references._ref_graph
-            # log.debug('nodes before add: {}'.format(ref_graph.number_of_nodes()))
-            # ref_set = {'object-list', 'reference'}
-            # idd_obj = self.idd[self.obj_class]
-
-            # # Add nodes for each field that requires one.
-            # for obj in obj_list:
-            #     for j, field in enumerate(obj):
-            #         tags = idd_obj[j].tags
-            #         tag_set = set(tags)
-            #
-            #         if field and len(tag_set & ref_set) > 0:
-            #             ref_graph.add_node(field._uuid, data=field)
-            #             self.update_references(field)
-            #
-            #             # Update the reference list if required
-            #             if 'reference' in tags:
-            #                 object_list_names = tags['reference']
-            #                 if not isinstance(object_list_names, list):
-            #                     object_list_names = [tags['reference']]
-            #                 for object_list in object_list_names:
-            #                     id_tup = (field._uuid, field)
-            #                     val = field.value
-            #                     try:
-            #                         self.idf.ref_lists[object_list][val].append(id_tup)
-            #                     except (AttributeError, KeyError):
-            #                         self.idf.ref_lists[object_list][val] = [id_tup]
 
             # Update labels and inform that we're done inserting
             self.get_labels()
             self.endInsertRows()
+
         # print('--------')
         # import pprint
         # pprint.pprint(self.idf.ref_lists['ScheduleTypeLimitsNames'])
