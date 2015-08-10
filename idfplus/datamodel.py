@@ -138,6 +138,13 @@ class IDDFile(PODict):
 
         return self._conversions
 
+    def get_class(self, key):
+        """Returns all the objects in the specified class.
+        :param key:
+        """
+
+        return self.get(key, PersistentList())
+
     def valid_class(self, obj_class):
         """"Returns True if provided class is valid
         :param obj_class: Object class to validate
@@ -496,7 +503,7 @@ class IDFFile(OrderedDict):
         :param key:
         """
 
-        return self[key]
+        return self.get(key, PersistentList())
 
     def get_objects(self, key, index, count=None):
         """Returns the specified object.
@@ -539,15 +546,25 @@ class IDFFile(OrderedDict):
 
         return len(new_objects)
 
-    def update_object(self, obj_class, index, new_values):
-        """Updates the specified object.
-        :param obj_class:
-        :param index:
-        :param new_values:
+    # def update_object(self, obj_class, index, new_values):
+    #     """Updates the specified object.
+    #     :param obj_class:
+    #     :param index:
+    #     :param new_values:
+    #     """
+    #
+    #     self._references.update_reference(obj_class, index, new_values)
+    #     self[obj_class][index].update(new_values)
+
+    def update_field(self, field, new_value):
+        """Updates the specified field with the given new value.
+        :param field:
+        :param new_value:
+        :return:
         """
 
-        self._references.update_reference(obj_class, index, new_values)
-        self[obj_class][index].update(new_values)
+        self._references.update_references(field)
+        field.value = new_value
 
     def remove_objects(self, obj_class, first_row, last_row):
         """Deletes specified object.

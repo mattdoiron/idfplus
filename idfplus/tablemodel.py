@@ -21,7 +21,6 @@ along with IDF+. If not, see <http://www.gnu.org/licenses/>.
 from __future__ import (print_function, division, absolute_import)
 
 # System imports
-from persistent.list import PersistentList
 from operator import itemgetter
 from itertools import groupby
 from copy import deepcopy
@@ -53,8 +52,8 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
         self.obj_class = obj_class
         self.idf = idf
         self.idd = idf._idd
-        self.idf_objects = idf.get(obj_class, PersistentList())
-        self.idd_object = idf._idd.get(obj_class, PersistentList())
+        self.idf_objects = idf.get_class(obj_class)
+        self.idd_object = idf._idd.get_class(obj_class)
         self.ureg = config.UNITS_REGISTRY
         self.config = config.Settings()
         self._get_labels()
@@ -538,18 +537,17 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
 
         # If SI units are requested, return now (SI is always the default)
         if self.idf.si_units is True:
-            field.value = value
-            return True
+            self.idf.update_field(field, value)
+            return
 
         # Get the unit conversion
         ip_unit_conversion = self._get_unit_conversion(row, column)
 
         # If the units were found, perform the conversion
         if ip_unit_conversion:
-            field.value = self.to_si(value, ip_unit_conversion)
+            self.idf.update_field(field, self._to_si(value, ip_unit_conversion))
         else:
-            field.value = value
-        return True
+            self.idf.update_field(field, value)
 
     def _get_data(self, field, row, column):
         """Retrieves data from the model and converts it to the desired units.
