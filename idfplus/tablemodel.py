@@ -534,19 +534,26 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
         :param value: string value from IDFField object
         """
 
-        # If SI units are requested, return now (SI is always the default)
-        if self.idf.si_units is True:
-            self.idf.update_field(field, value)
+        if not field:
+            # Return if no field is given
             return
-
-        # Get the unit conversion
-        ip_unit_conversion = self._get_unit_conversion(row, column)
-
-        # If the units were found, perform the conversion
-        if ip_unit_conversion:
-            self.idf.update_field(field, self._to_si(value, ip_unit_conversion))
+        elif field.value == new_value:
+            # Don't do anything if the value is unchanged
+            return
+        elif self.idf.si_units is True:
+            # Default is always SI, so don't convert here
+            converted_value = new_value
         else:
-            self.idf.update_field(field, value)
+            # Get the unit conversion
+            ip_unit_conversion = self._get_unit_conversion(row, column)
+
+            # If the units were found, perform the conversion
+            if ip_unit_conversion:
+                converted_value = self._to_si(new_value, ip_unit_conversion)
+            else:
+                converted_value = new_value
+
+        self.idf.update_field(field, converted_value)
 
     def _get_data(self, field, row, column):
         """Retrieves data from the model and converts it to the desired units.
@@ -555,20 +562,23 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
         :param field: IDFField object for which the value will be returned
         """
 
-        # If SI units are requested, return now (SI is always the default)
-        if self.idf.si_units is True:
-            if field:
-                return field.value
+        if not field:
+            # Return None if no field is given
+            converted_value = None
+        elif self.idf.si_units is True:
+            # Default is always SI, so don't convert here
+            converted_value = field.value
+        else:
+            # Get the unit conversion
+            ip_unit_conversion = self._get_unit_conversion(row, column)
+
+            # If the units were found, perform the conversion
+            if ip_unit_conversion:
+                converted_value = self._to_ip(field.value, ip_unit_conversion)
             else:
-                return None
+                converted_value = field.value
 
-        # Get the unit conversion
-        ip_unit_conversion = self._get_unit_conversion(row, column)
-
-        # If the units were found, perform the conversion
-        if ip_unit_conversion:
-            return self._to_ip(field.value, ip_unit_conversion)
-        return field.value
+        return converted_value
 
 
 class TransposeProxyModel(QtGui.QAbstractProxyModel):
