@@ -57,7 +57,7 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
         self.idd_object = idf._idd.get(obj_class, PersistentList())
         self.ureg = config.UNITS_REGISTRY
         self.config = config.Settings()
-        self.get_labels()
+        self._get_labels()
 
         super(IDFObjectTableModel, self).__init__(parent)
 
@@ -108,9 +108,9 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
 
         # Detect the role being request and return the correct data
         if role == QtCore.Qt.DisplayRole or role == QtCore.Qt.EditRole:
-            data = self.get_data(field, row, column)
+            data = self._get_data(field, row, column)
         elif role == QtCore.Qt.ToolTipRole:
-            data = self.get_units(field)
+            data = self._get_units(field)
         elif role == QtCore.Qt.DecorationRole:
             pass
         elif role == QtCore.Qt.StatusTipRole:
@@ -191,10 +191,8 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
             try:
                 field = self.idf_objects[row][column]
                 old_value = field.value
-                self.set_data(field, value, row, column)
-                self.update_reference_names(field, old_value)
-                self.update_references(field)
-            except (AttributeError, IndexError):
+                self._set_data(field, value, row, column)
+            except (IndexError):
                 # An invalid index means that we're trying to assign a value
                 # to a field that has not yet been 'allocated'. Check for max
                 # allowable fields and allocate more if necessary.
@@ -275,7 +273,7 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
         # Detect groups and and offset and ensure there is a value for offset
         if offset is None:
             offset = 0
-            groups = self.get_contiguous_rows(indexes, True)
+            groups = self._get_contiguous_rows(indexes, True)
         else:
             groups = indexes
 
@@ -307,7 +305,7 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
 
             # Delete the objects, update labels and inform that we're done inserting
             self.idf.remove_objects(self.obj_class, first_row, last_row)
-            self.get_labels()
+            self._get_labels()
             self.endRemoveRows()
 
         # print('--------')
@@ -354,7 +352,7 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
             self.idf.add_objects(obj_list, first_row)
 
             # Update labels and inform that we're done inserting
-            self.get_labels()
+            self._get_labels()
             self.endInsertRows()
 
         # print('--------')
@@ -364,7 +362,7 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
         return True
 
     @staticmethod
-    def get_contiguous_rows(indexes, reverse):
+    def _get_contiguous_rows(indexes, reverse):
         """
         :param indexes:
         :param reverse:
@@ -389,7 +387,7 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
         """
 
         # Get contiguous, groups of unique indexes
-        groups = self.get_contiguous_rows(indexes, reverse)
+        groups = self._get_contiguous_rows(indexes, reverse)
 
         # Cycle through each group of row indexes
         sub_list = []
@@ -402,7 +400,7 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
             sub_list = []
         return groups, obj_list
 
-    def get_labels(self):
+    def _get_labels(self):
         """Returns axis labels
         """
 
@@ -449,7 +447,7 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
                 else:
                     return units
 
-    def get_unit_conversion(self, row, column):
+    def _get_unit_conversion(self, row, column):
         """Gets the appropriate unit conversion value(s)
         :param row:
         :param column:
@@ -493,7 +491,7 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
         return None
 
     @staticmethod
-    def to_si(value, conv):
+    def _to_si(value, conv):
         """Accepts a value and a conversion factor, and returns the value in SI units.
         :param conv: Conversion factor to use to convert units
         :param value: string value from IDFField object
@@ -511,7 +509,7 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
         return data
 
     @staticmethod
-    def to_ip(value, conv):
+    def _to_ip(value, conv):
         """Accepts a value and a conversion factor, and returns the value in IP units.
         :param value: string value from IDFField object
         :param conv: Conversion factor to use to convert units
@@ -530,7 +528,7 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
             data = value
         return data
 
-    def set_data(self, field, value, row, column):
+    def _set_data(self, field, value, row, column):
         """Sets the value of the specified field taking into account units
         :param row:
         :param column:
@@ -544,7 +542,7 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
             return True
 
         # Get the unit conversion
-        ip_unit_conversion = self.get_unit_conversion(row, column)
+        ip_unit_conversion = self._get_unit_conversion(row, column)
 
         # If the units were found, perform the conversion
         if ip_unit_conversion:
@@ -553,7 +551,7 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
             field.value = value
         return True
 
-    def get_data(self, field, row, column):
+    def _get_data(self, field, row, column):
         """Retrieves data from the model and converts it to the desired units.
         :param row:
         :param column:
@@ -568,11 +566,11 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
                 return None
 
         # Get the unit conversion
-        ip_unit_conversion = self.get_unit_conversion(row, column)
+        ip_unit_conversion = self._get_unit_conversion(row, column)
 
         # If the units were found, perform the conversion
         if ip_unit_conversion:
-            return self.to_ip(field.value, ip_unit_conversion)
+            return self._to_ip(field.value, ip_unit_conversion)
         return field.value
 
 
