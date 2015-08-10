@@ -53,6 +53,15 @@ class IDDError(Exception):
         super(IDDError, self).__init__(*args, **kwargs)
 
 
+class IDFError(Exception):
+    """Base class for IDF exceptions.
+    """
+
+    def __init__(self, message, *args, **kwargs):
+        self.message = message
+        super(IDFError, self).__init__(*args, **kwargs)
+
+
 class PODict(_odict, PersistentMapping):
     """Persistent ordered dictionary
     """
@@ -556,6 +565,19 @@ class IDFFile(OrderedDict):
     #     self._references.update_reference(obj_class, index, new_values)
     #     self[obj_class][index].update(new_values)
 
+    def get_field(self, obj_class, row, column):
+        """Returns the specified field
+        :param obj_class:
+        :param row:
+        :param column:
+        :return:
+        """
+
+        try:
+            return self[obj_class][row][column]
+        except IndexError:
+            raise IDFError("Field does not exist")
+
     def update_field(self, field, new_value):
         """Updates the specified field with the given new value.
         :param field:
@@ -742,7 +764,7 @@ class IDFField(object):
 
         self.key = kwargs.pop('key', None)
         self.value = kwargs.pop('value', None)
-        self.tags = dict()
+        self._tags = dict()
         self._ureg = None
         self._outer = outer
         self._uuid = str(uuid.uuid4())
@@ -778,7 +800,7 @@ class IDFField(object):
 
     @property
     def name(self):
-        """
+        """Return this field's name (the 'field' tag)
         :rtype : str
         :return : The name of the field from the idd file
         """
@@ -790,7 +812,7 @@ class IDFField(object):
 
     @property
     def obj_class(self):
-        """
+        """Retuns this field's outer object's class
         :rtype : str
         :return : The name of the class from the outer object
         """
@@ -805,6 +827,14 @@ class IDFField(object):
         """
 
         return self._outer.index(self.value)
+
+    @property
+    def tags(self):
+        """Returns this field's tags
+        :return:
+        """
+
+        return self._tags
 
     @property
     def field_id(self):
@@ -826,3 +856,11 @@ class IDFField(object):
         """
 
         return self._uuid
+
+    def set_tags(self, tags):
+        """Sets this field's tags
+        :param tags:
+        :return:
+        """
+
+        self._tags = tags

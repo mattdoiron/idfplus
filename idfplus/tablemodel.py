@@ -32,6 +32,7 @@ from PySide import QtCore
 # Package imports
 from .datamodel import IDFObject
 from .datamodel import IDFField
+from .datamodel import IDFError
 
 # Package imports
 from . import logger
@@ -95,21 +96,20 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
         column = index.column()
         data = None
 
-        # Pre-fetch this only once to save lookups
+        # Pre-fetch this
         if role in [QtCore.Qt.DisplayRole, QtCore.Qt.EditRole,
                     QtCore.Qt.ToolTipRole, QtCore.Qt.BackgroundRole]:
             # Grab the correct field. Return None if it's blank.
             try:
-                field = self.idf_objects[row][column]
-                # print('field returned as: {}'.format(field))
-            except IndexError:
+                field = self.idf.get_field(self.obj_class, row, column)
+            except IDFError:
                 return None
 
         # Detect the role being request and return the correct data
         if role == QtCore.Qt.DisplayRole or role == QtCore.Qt.EditRole:
             data = self._get_data(field, row, column)
         elif role == QtCore.Qt.ToolTipRole:
-            data = self._get_units(field)
+            data = self.get_units(field)
         elif role == QtCore.Qt.DecorationRole:
             pass
         elif role == QtCore.Qt.StatusTipRole:
@@ -188,11 +188,10 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
 
             # Try to assign the value
             try:
-                field = self.idf_objects[row][column]
-                old_value = field.value
+                field = self.idf.get_field(self.obj_class, row, column)
                 self._set_data(field, value, row, column)
-            except (IndexError):
-                # An invalid index means that we're trying to assign a value
+            except (IDFError):
+                # An IDDError means that we're trying to assign a value
                 # to a field that has not yet been 'allocated'. Check for max
                 # allowable fields and allocate more if necessary.
                 max_field_count = len(self.idd.get(self.obj_class, []))
@@ -527,7 +526,7 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
             data = value
         return data
 
-    def _set_data(self, field, value, row, column):
+    def _set_data(self, field, new_value, row, column):
         """Sets the value of the specified field taking into account units
         :param row:
         :param column:
