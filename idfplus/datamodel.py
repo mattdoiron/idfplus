@@ -31,16 +31,11 @@ import networkx as nx
 
 # Package imports
 from . import refmodel
-from . import logger
-
-# Constants
 from . import config
+from .config import log
 
 # Investigate as replacement for large lists
 # https://pypi.python.org/pypi/blist
-
-# Setup logging
-log = logger.setup_logging(config.LOG_LEVEL, __name__, config.LOG_PATH)
 
 
 class IDDError(Exception):

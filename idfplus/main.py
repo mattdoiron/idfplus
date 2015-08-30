@@ -36,19 +36,16 @@ from PySide import QtCore
 from . import delegates
 from . import tablemodel
 from . import parser
-from . import config
 from . import datamodel
-from . import logger
 from . import commands
 from . import treemodel
 from . import gui
 from . import setupwiz
+from . import config
+from .config import log
 
 # Resource imports for icons
 from . import icons_rc
-
-# Global variables
-log = logger.setup_logging(config.LOG_LEVEL, __name__, config.LOG_PATH)
 
 
 class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow):

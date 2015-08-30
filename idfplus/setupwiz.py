@@ -27,12 +27,9 @@ import os
 from PySide import QtGui
 
 # Package imports
-from . import config
 from . import parser
-from . import logger
-
-# Global variables
-log = logger.setup_logging(config.LOG_LEVEL, __name__, config.LOG_PATH)
+from . import config
+from .config import log
 
 
 class SetupWizIntroPage(QtGui.QWizardPage):

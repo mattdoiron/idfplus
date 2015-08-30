@@ -29,12 +29,9 @@ from PySide import QtCore
 
 # Package imports
 from . import tablemodel
-from . import config
-from . import logger
 from . import treemodel
-
-# Global variables
-log = logger.setup_logging(config.LOG_LEVEL, __name__, config.LOG_PATH)
+from . import config
+from .config import log
 
 
 class UI_MainWindow(object):

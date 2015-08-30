@@ -26,13 +26,8 @@ import pprint
 import math
 
 # Package imports
-from . import logger
-
-# Constants
 from . import config
-
-# Setup logging
-log = logger.setup_logging(config.LOG_LEVEL, __name__, config.LOG_PATH)
+from .config import log
 
 
 class ReferenceModel(object):

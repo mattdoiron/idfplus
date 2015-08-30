@@ -33,16 +33,8 @@ from PySide import QtCore
 from .datamodel import IDFObject
 from .datamodel import IDFField
 from .datamodel import IDFError
-
-# Package imports
-from . import logger
-
-# Constants
 from . import config
-
-# Setup logging
-log = logger.setup_logging(config.LOG_LEVEL, __name__, config.LOG_PATH)
-
+from .config import log
 
 class IDFObjectTableModel(QtCore.QAbstractTableModel):
     """Qt object that handles interaction between the table and the data
@@ -191,7 +183,7 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
                 field = self.idf.get_field(self.obj_class, row, column)
                 self._set_data(field, value, row, column)
             except (IDFError):
-                # An IDDError means that we're trying to assign a value
+                # An IDFError means that we're trying to assign a value
                 # to a field that has not yet been 'allocated'. Check for max
                 # allowable fields and allocate more if necessary.
                 max_field_count = len(self.idd.get(self.obj_class, []))

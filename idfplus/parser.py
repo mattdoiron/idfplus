@@ -28,11 +28,9 @@ import cPickle as pickle
 
 # Package imports
 from . import datamodel
-from . import logger
 from .datamodel import IDDError
-
-# Constants
 from . import config
+from .config import log
 
 OPTIONS_LIST = ['OriginalOrderTop', 'UseSpecialFormat',
                 'ViewInIPunits', 'SortedOrder', 'HideEmptyClasses']
@@ -66,9 +64,6 @@ TAG_LIST = ['\\field', '\\Field,'
             '\\begin-extensible', '\\Begin-extensible',
             '\\format', '\\Format',
             '\\group', '\\Group']
-
-# Setup logging
-log = logger.setup_logging(config.LOG_LEVEL, __name__, config.LOG_PATH)
 
 
 class InvalidIDFObject(Exception):

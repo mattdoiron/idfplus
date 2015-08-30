@@ -29,10 +29,7 @@ from PySide import QtCore
 
 # Package imports
 from . import config
-from . import logger
-
-# Global variables
-log = logger.setup_logging(config.LOG_LEVEL, __name__, config.LOG_PATH)
+from .config import log
 
 
 class ObjectCmd(QtGui.QUndoCommand):
