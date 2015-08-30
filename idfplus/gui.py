@@ -699,7 +699,6 @@ class LogTab(QtGui.QWidget):
 
         log_label = QtGui.QLabel("Log Detail Level:")
         self.log_edit = QtGui.QComboBox(self)
-        self.log_edit.setDisabled(True)
         self.log_edit.addItems(['INFO', 'DEBUG', 'WARNING'])
         self.log_edit.setCurrentIndex(self.log_edit.findText(self.prefs['log_level']))
 
