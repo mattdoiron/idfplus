@@ -163,6 +163,19 @@ class IDDFile(PODict):
         else:
             return False
 
+    def field(self, obj_class, index_obj, index_field):
+        """Returns the specified field. Convenience function.
+        :param index_field:
+        :param index_obj:
+        :param obj_class:
+        """
+
+        try:
+            field = self[obj_class][index_obj][index_field]
+        except IndexError:
+            field = None
+        return field
+
 
 class IDDObject(list):
     """Represents objects in idd files.

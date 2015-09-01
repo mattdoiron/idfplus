@@ -172,16 +172,9 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
             row = index.row()
             column = index.column()
 
-            # Try to assign the value
-            try:
-                field = self.idf.get_field(self.obj_class, row, column)
-                self._set_data(field, value, row, column)
-            except (IDFError):
-                # An IDFError means that we're trying to assign a value
-                # to a field that has not yet been 'allocated'. Check for max
-                # allowable fields and allocate more if necessary.
-                max_field_count = len(self.idd.get(self.obj_class, []))
-                current_field_count = len(self.idf_objects[row])
+        index_obj = index.row()
+        index_field = index.column()
+        field = self.idf.field(self.obj_class, index_obj, index_field, create=True)
 
                 # If within limits allowed, allocate additional field 'slots'
                 if index.column() < max_field_count:
