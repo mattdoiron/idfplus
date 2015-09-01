@@ -758,8 +758,8 @@ class IDFField(object):
         """
 
         self.key = kwargs.pop('key', None)
-        self.value = kwargs.pop('value', None)
-        self._tags = dict()
+        self._value = kwargs.pop('value', None)
+        self.tags = dict()
         self._ureg = None
         self._outer = outer
         self._uuid = str(uuid.uuid4())
@@ -794,6 +794,23 @@ class IDFField(object):
         return result
 
     @property
+    def value(self):
+        """Returns value of field
+        """
+
+        return self._value
+
+    @value.setter
+    def value(self, new_value):
+        """Sets value of field
+        :param new_value:
+        """
+
+        # Update the IDFFile's references graph then set the value
+        self._outer._outer._references.update_references(self)
+        self._value = new_value
+
+    @property
     def name(self):
         """Return this field's name (the 'field' tag)
         :rtype : str
@@ -824,14 +841,6 @@ class IDFField(object):
         return self._outer.index(self.value)
 
     @property
-    def tags(self):
-        """Returns this field's tags
-        :return:
-        """
-
-        return self._tags
-
-    @property
     def field_id(self):
         """Read-only property that returns the id of this field
         """
@@ -851,11 +860,3 @@ class IDFField(object):
         """
 
         return self._uuid
-
-    def set_tags(self, tags):
-        """Sets this field's tags
-        :param tags:
-        :return:
-        """
-
-        self._tags = tags

@@ -742,7 +742,7 @@ class IDFParser(Parser):
                         new_field = datamodel.IDFField(idf_object)
                         new_field.key = key
                         new_field.value = field
-                        new_field.set_tags(tags)
+                        new_field.tags = tags
 
                         # Add the field to the object
                         idf_object.add_field(new_field, tags)
