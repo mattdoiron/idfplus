@@ -581,20 +581,30 @@ class IDFFile(OrderedDict):
         :param obj_class:
         """
 
+        field = None
+
         try:
-            return self[obj_class][row][column]
+            field = self[obj_class][index_obj][index_field]
         except IndexError:
-            raise IDFError("Field does not exist")
+            if create is True:
+                # An IndexError means that we're trying to assign a value
+                # to a field that has not yet been 'allocated'. Check for max
+                # allowable fields and allocate more if necessary.
+                max_field_count = len(self._idd.get(obj_class, []))
+                idf_object = self[obj_class][index_obj]
+                current_field_count = len(idf_object)
 
-    def update_field(self, field, new_value):
-        """Updates the specified field with the given new value.
-        :param field:
-        :param new_value:
-        :return:
-        """
+                # If within limits allowed, allocate additional field 'slots'
+                if index_field < max_field_count:
+                    extra_field_count = index_field - current_field_count + 1
+                    extra_fields = extra_field_count*[None]
+                    idf_object.extend(extra_fields)
 
-        self._references.update_references(field)
-        field.value = new_value
+                    # Create a new field object, give it a value and save it
+                    field = IDFField(self.idf_objects[index_obj])
+                    self[obj_class][index_obj][index_field] = field
+
+        return field
 
     def remove_objects(self, obj_class, first_row, last_row):
         """Deletes specified object.
@@ -611,6 +621,142 @@ class IDFFile(OrderedDict):
         # Delete objects and update reference list
         self._references.remove_references(objects_to_delete)
         del self[obj_class][first_row:last_row]
+
+    def units(self, field):
+        """Returns the given field's current display units.
+        :param field:
+        """
+
+        if field is None:
+            return None
+
+        # Look-up the default units
+        units = field.tags.get('units')
+
+        # If SI units are requested, return now (SI is always the default)
+        if self.si_units is True:
+            return units
+        else:
+            # Otherwise check for special ip-units exceptions
+            ip_units = field.tags.get('ip-units')
+            if ip_units:
+                return ip_units
+            else:
+                unit_dict = config.UNITS_REGISTRY.get(units)
+                if unit_dict:
+                    return unit_dict.keys()[0]
+                else:
+                    return units
+
+    def converted_value(self, field, row, column):
+        """Converts the value of the field if necessary
+        :param field:
+        :param row:
+        :param column:
+        :return: field value
+        """
+
+        if not field:
+            # Return None if no field is given
+            converted_value = None
+        elif self.si_units is True:
+            # Default is always SI, so don't convert here
+            converted_value = field.value
+        else:
+            # Get the unit conversion
+            ip_unit_conversion = self._unit_conversion(field, row, column)
+
+            # If the units were found, perform the conversion
+            if ip_unit_conversion:
+                converted_value = self._to_ip(field.value, ip_unit_conversion)
+            else:
+                converted_value = field.value
+
+        return converted_value
+
+    def _unit_conversion(self, field, row, column):
+        """Gets the appropriate unit conversion value(s)
+        :param field:
+        :param row:
+        :param column:
+        """
+
+        # Get the idd field corresponding to this idf field
+        idf_objects = self.idf_objects(field.obj_class)
+        idd_object = self.idd.idd_objects(field.obj_class)
+        idd_field = idd_object[column]
+
+        # Look-up the default units and any ip-unit exceptions
+        units = idd_field.tags.get('units')
+        ip_units = idd_field.tags.get('ip-units')
+
+        if units:
+            # Check for the special case of units based on another field
+            if units.startswith('BasedOnField'):
+                based_on_field_key = units.split()[-1]
+                based_on_field = None
+
+                # Find which idd object has the specified key
+                for f in idd_object:
+                    if f.key == based_on_field_key:
+                        ind = idd_object.index(f)
+                        if ind >= len(idf_objects[row]):
+                            return None
+                        based_on_field = idf_objects[row][ind]
+                        break
+
+                # Use these results to find the actual units to use
+                actual_units = config.UNIT_TYPES.get(based_on_field.value)
+
+                if actual_units:
+                    units = actual_units
+
+            # Lookup the dict of unit conversions for this SI unit.
+            conv = config.UNIT_TYPES.get(units)
+            if conv:
+                # Lookup the desired ip_units in the dict if specified, otherwise get the
+                # 'first' (only) one in the dict.
+                return conv.get(ip_units, conv.get(conv.keys()[0]))
+
+        return None
+
+    @staticmethod
+    def _to_si(value, conversion):
+        """Accepts a value and a conversion factor, and returns the value in SI units.
+        :param conversion: Conversion factor to use to convert units
+        :param value: string value from IDFField object
+        """
+
+        # If the units were found, perform the conversion
+        try:
+            # Convert units and force it back to a string
+            data = str(float(value) / conversion)
+        except TypeError:
+            # If there is a type error, it's actually a tuple (for temperatures)
+            multiplier = conversion[0]
+            adder = conversion[1]
+            data = str((float(value) - adder) / multiplier)
+        return data
+
+    @staticmethod
+    def _to_ip(value, conversion):
+        """Accepts a value and a conversion factor, and returns the value in IP units.
+        :param value: string value from IDFField object
+        :param conversion: Conversion factor to use to convert units
+        """
+
+        # If the units were found, perform the conversion
+        try:
+            # Convert units and force it back to a string
+            data = str(float(value) * conversion)
+        except TypeError:
+            # If there is a type error, it's actually a tuple (for temperatures)
+            multiplier = conversion[0]
+            adder = conversion[1]
+            data = str(float(value) * multiplier + adder)
+        except ValueError:
+            data = value
+        return data
 
 
 class IDFObject(list):

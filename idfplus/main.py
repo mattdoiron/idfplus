@@ -439,7 +439,7 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow):
         self.infoView.setText(obj_info + "\n\n" + field_info)
 
         # Also update the units label
-        units = self.classTable.model().get_units(idd_field)
+        units = self.idf.units(idd_field)
         self.unitsLabel.setText('Display Units: {}'.format(units))
 
         # Update the comments view
@@ -824,7 +824,7 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow):
         previous_model = self.classTable.model()
         source_sel = None
         if selection_model and previous_model:
-            if previous_model.get_obj_class() == obj_class:
+            if previous_model.obj_class == obj_class:
                 sel = selection_model.selection()
                 partial = previous_model.mapSelectionToSource(sel)
                 source_sel = previous_model.sourceModel().mapSelectionToSource(partial)

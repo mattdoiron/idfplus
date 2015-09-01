@@ -81,11 +81,12 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
         index_obj = index.row()
         index_field = index.column()
         data = None
+        field = None
 
         # If the role will require a field, get it now
         if role in [QtCore.Qt.DisplayRole, QtCore.Qt.EditRole,
-                    QtCore.Qt.ToolTipRole, QtCore.Qt.BackgroundRole]:
-            # Grab the correct field. Return None if it's blank.
+                    QtCore.Qt.ToolTipRole, QtCore.Qt.BackgroundRole,
+                    QtCore.Qt.StatusTipRole]:
             try:
                 field = self.idf.field(self.obj_class, index_obj, index_field)
             except IDFError:
@@ -95,11 +96,11 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
         if role == QtCore.Qt.DisplayRole or role == QtCore.Qt.EditRole:
             data = self.idf.converted_value(field, index_obj, index_field)
         elif role == QtCore.Qt.ToolTipRole:
-            data = self.get_units(field)
+            data = self.idf.units(field)
         elif role == QtCore.Qt.DecorationRole:
             pass
         elif role == QtCore.Qt.StatusTipRole:
-            pass
+            data = self.idf.units(field)
         elif role == QtCore.Qt.TextAlignmentRole:
             data = int(QtCore.Qt.AlignLeft | QtCore.Qt.AlignVCenter)
         elif role == QtCore.Qt.TextColorRole or role == QtCore.Qt.ForegroundRole:
@@ -168,31 +169,23 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
 
         if not index.isValid():
             return False
-        if role == QtCore.Qt.EditRole:
-            row = index.row()
-            column = index.column()
 
         index_obj = index.row()
         index_field = index.column()
         field = self.idf.field(self.obj_class, index_obj, index_field, create=True)
 
-                # If within limits allowed, allocate additional field 'slots'
-                if index.column() < max_field_count:
-                    extra_field_count = index.column() - current_field_count + 1
-                    extra_fields = extra_field_count*[None]
-                    self.idf_objects[row].extend(extra_fields)
-                else:
-                    return False
+        if not field:
+            return False
 
-                # Create a new field object, give it a value and save it
-                # TODO FIXME this new field needs a key! Once IDDObjects are dicts
-                # should be able to lookup the key. Until then, unit conversion
-                # is broken because all fields need a key to lookup units,
-                new_field = IDFField(self.idf_objects[row])
-                self.idf_objects[row][column] = new_field
-                self.set_data(new_field, value, row, column)
-            return True
-        return False
+        converted_value = self.idf.converted_value(field, index_obj, index_field)
+        if field.value == converted_value:
+            # Don't do anything if the value is unchanged
+            return False
+        else:
+            field.value = converted_value
+
+        #TODO help says dataChanged() signal should be emitted if successful...?
+        return True
 
     def mapToSource(self, source_index):
         """Dummy to ensure there is always a mapToSource method even when there is no
@@ -380,7 +373,7 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
         for field in self.idd_object:
             field_desc = field.tags.get('field', '')
             if self.config['show_units_in_headers']:
-                units = self.get_units(field)
+                units = self.idf.units(field)
                 unit_tag = ' ({})'.format(units) if units else ''
                 label = field_desc + unit_tag
             else:
@@ -389,167 +382,6 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
 
         self.objID_labels = obj_id_labels
         self.field_labels = field_labels
-
-    def get_units(self, field):
-        """Returns the given IDDField's current units.
-        :param field:
-        """
-
-        if field is None:
-            return None
-
-        # Look-up the default units
-        units = field.tags.get('units')
-
-        # If SI units are requested, return now (SI is always the default)
-        if self.idf.si_units is True:
-            return units
-        else:
-            # Otherwise check for special ip-units exceptions
-            ip_units = field.tags.get('ip-units')
-            if ip_units:
-                return ip_units
-            else:
-                unit_dict = self.ureg.get(units)
-                if unit_dict:
-                    return unit_dict.keys()[0]
-                else:
-                    return units
-
-    def _get_unit_conversion(self, row, column):
-        """Gets the appropriate unit conversion value(s)
-        :param row:
-        :param column:
-        """
-
-        # Get the idd field corresponding to this idf field
-        idd_field = self.idd_object[column]
-
-        # Look-up the default units and any ip-unit exceptions
-        units = idd_field.tags.get('units')
-        ip_units = idd_field.tags.get('ip-units')
-
-        if units:
-            # Check for the special case of units based on another field
-            if units.startswith('BasedOnField'):
-                based_on_field_key = units.split()[-1]
-                based_on_field = None
-
-                # Find which idd object has the specified key
-                for f in self.idd_object:
-                    if f.key == based_on_field_key:
-                        ind = self.idd_object.index(f)
-                        if ind >= len(self.idf_objects[row]):
-                            return None
-                        based_on_field = self.idf_objects[row][ind]
-                        break
-
-                # Use these results to find the actual units to use
-                actual_units = config.UNIT_TYPES.get(based_on_field.value)
-
-                if actual_units:
-                    units = actual_units
-
-            # Lookup the dict of unit conversions for this SI unit.
-            conv = self.ureg.get(units)
-            if conv:
-                # Lookup the desired ip_units in the dict if specified, otherwise get the
-                # 'first' (only) one in the dict.
-                return conv.get(ip_units, conv.get(conv.keys()[0]))
-
-        return None
-
-    @staticmethod
-    def _to_si(value, conv):
-        """Accepts a value and a conversion factor, and returns the value in SI units.
-        :param conv: Conversion factor to use to convert units
-        :param value: string value from IDFField object
-        """
-
-        # If the units were found, perform the conversion
-        try:
-            # Convert units and force it back to a string
-            data = str(float(value) / conv)
-        except TypeError:
-            # If there is a type error, it's actually a tuple (for temperatures)
-            multiplier = conv[0]
-            adder = conv[1]
-            data = str((float(value) - adder) / multiplier)
-        return data
-
-    @staticmethod
-    def _to_ip(value, conv):
-        """Accepts a value and a conversion factor, and returns the value in IP units.
-        :param value: string value from IDFField object
-        :param conv: Conversion factor to use to convert units
-        """
-
-        # If the units were found, perform the conversion
-        try:
-            # Convert units and force it back to a string
-            data = str(float(value) * conv)
-        except TypeError:
-            # If there is a type error, it's actually a tuple (for temperatures)
-            multiplier = conv[0]
-            adder = conv[1]
-            data = str(float(value) * multiplier + adder)
-        except ValueError:
-            data = value
-        return data
-
-    def _set_data(self, field, new_value, row, column):
-        """Sets the value of the specified field taking into account units
-        :param row:
-        :param column:
-        :param field: IDFField object whose value will be updated
-        :param value: string value from IDFField object
-        """
-
-        if not field:
-            # Return if no field is given
-            return
-        elif field.value == new_value:
-            # Don't do anything if the value is unchanged
-            return
-        elif self.idf.si_units is True:
-            # Default is always SI, so don't convert here
-            converted_value = new_value
-        else:
-            # Get the unit conversion
-            ip_unit_conversion = self._get_unit_conversion(row, column)
-
-            # If the units were found, perform the conversion
-            if ip_unit_conversion:
-                converted_value = self._to_si(new_value, ip_unit_conversion)
-            else:
-                converted_value = new_value
-
-        self.idf.update_field(field, converted_value)
-
-    def _get_data(self, field, row, column):
-        """Retrieves data from the model and converts it to the desired units.
-        :param row:
-        :param column:
-        :param field: IDFField object for which the value will be returned
-        """
-
-        if not field:
-            # Return None if no field is given
-            converted_value = None
-        elif self.idf.si_units is True:
-            # Default is always SI, so don't convert here
-            converted_value = field.value
-        else:
-            # Get the unit conversion
-            ip_unit_conversion = self._get_unit_conversion(row, column)
-
-            # If the units were found, perform the conversion
-            if ip_unit_conversion:
-                converted_value = self._to_ip(field.value, ip_unit_conversion)
-            else:
-                converted_value = field.value
-
-        return converted_value
 
 
 class TransposeProxyModel(QtGui.QAbstractProxyModel):
@@ -742,21 +574,13 @@ class TransposeProxyModel(QtGui.QAbstractProxyModel):
             new_orientation = QtCore.Qt.Horizontal
         self.headerDataChanged.emit(new_orientation, first, last)
 
-    def get_units(self, *args, **kwargs):
-        """
-        :param args:
-        :param kwargs:
-        :return: :rtype:
-        """
-
-        return self.sourceModel().get_units(*args, **kwargs)
-
-    def get_obj_class(self):
+    @property
+    def obj_class(self):
         """
         :return: :rtype:
         """
 
-        return self.sourceModel().get_obj_class()
+        return self.sourceModel().obj_class
 
 
 class SortFilterProxyModel(QtGui.QSortFilterProxyModel):
@@ -874,21 +698,13 @@ class SortFilterProxyModel(QtGui.QSortFilterProxyModel):
         # Do NOT map to source. Pass through only.
         return self.sourceModel().get_contiguous(*args, **kwargs)
 
-    def get_units(self, *args, **kwargs):
-        """
-        :param args:
-        :param kwargs:
-        :return: :rtype:
-        """
-
-        return self.sourceModel().get_units(*args, **kwargs)
-
-    def get_obj_class(self):
+    @property
+    def obj_class(self):
         """
         :return: :rtype:
         """
 
-        return self.sourceModel().get_obj_class()
+        return self.sourceModel().obj_class
 
 
 class TableView(QtGui.QTableView):
