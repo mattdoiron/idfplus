@@ -144,7 +144,7 @@ class IDDFile(PODict):
 
     def get_class(self, key):
         """Returns all the objects in the specified class.
-        :param key:
+        :param obj_class:
         """
 
         return self.get(key, PersistentList())
@@ -504,7 +504,7 @@ class IDFFile(OrderedDict):
 
     def get_class(self, key):
         """Returns all the objects in the specified class.
-        :param key:
+        :param obj_class:
         """
 
         return self.get(key, PersistentList())
@@ -563,9 +563,6 @@ class IDFFile(OrderedDict):
     def get_field(self, obj_class, row, column):
         """Returns the specified field
         :param obj_class:
-        :param row:
-        :param column:
-        :return:
         """
 
         try:
@@ -585,8 +582,9 @@ class IDFFile(OrderedDict):
 
     def remove_objects(self, obj_class, first_row, last_row):
         """Deletes specified object.
+        :param first_row:
+        :param last_row:
         :param obj_class:
-        :param index:
         """
 
         # Remove the fields from graph also
@@ -742,10 +740,9 @@ class IDFObject(list):
 
 class IDFField(object):
     """Basic component of the idf object classes.
-
+    Contains a key and value. Values must always be in metric units.
     Simply a regular dict containing keys which are the names of various
-    field tags from the following list:
-        required, field, type, minimum, etc.
+    field tags such as: required, field, type, minimum, etc.
     """
 
     # TODO This class is actually the same as IDDField. Merge them?
@@ -763,13 +760,6 @@ class IDFField(object):
         self._ureg = None
         self._outer = outer
         self._uuid = str(uuid.uuid4())
-
-        # self._idf_file = outer._outer
-        # idd = outer.idd
-        # self._units = outer.idd[self._obj_class][key].units
-        # self._ip_units = outer.idd[self._obj_class][key].ip_units
-        # if not self._ip_units:
-        #     self._ip_units = outer.idd.conversions[self._units]
 
         # Call the parent class' init method
         super(IDFField, self).__init__()
@@ -824,7 +814,7 @@ class IDFField(object):
 
     @property
     def obj_class(self):
-        """Retuns this field's outer object's class
+        """Returns this field's outer object's (IDFObject) class
         :rtype : str
         :return : The name of the class from the outer object
         """

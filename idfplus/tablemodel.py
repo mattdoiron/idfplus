@@ -34,11 +34,11 @@ from .datamodel import IDFObject
 from .datamodel import IDFField
 from .datamodel import IDFError
 from . import config
-from .config import log
+
 
 class IDFObjectTableModel(QtCore.QAbstractTableModel):
-    """Qt object that handles interaction between the table and the data
-    displayed in the table.
+    """Qt data model object that links the table widget and its
+     underlying data structure.
     """
 
     def __init__(self, obj_class, idf, parent):
@@ -61,9 +61,8 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
         return self.obj_class
 
     def flags(self, index):
-        """
-        :param index:
-        :return: :rtype:
+        """Override Qt flags method for custom editing behaviour
+        :param index: Target index
         """
 
         if not index.isValid():
@@ -75,8 +74,10 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
     def data(self, index, role):
         """Provides various data to Table models. Tables iterate through
         columns and rows with different roles to get different types of data.
-        :param index:
-        :param role:
+        :param index: QModelIndex of the cell for which data is requested
+        :type index: QtCore.QModelIndex()
+        :param role: Role being requested
+        :type role: int
         """
 
         # Check for valid qt index
@@ -88,7 +89,7 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
         column = index.column()
         data = None
 
-        # Pre-fetch this
+        # If the role will require a field, get it now
         if role in [QtCore.Qt.DisplayRole, QtCore.Qt.EditRole,
                     QtCore.Qt.ToolTipRole, QtCore.Qt.BackgroundRole]:
             # Grab the correct field. Return None if it's blank.
@@ -122,7 +123,7 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
         return data
 
     def headerData(self, section, orientation, role, old_orientation=None):
-        """
+        """Overrides Qt method to provide header text for table model.
         :param section:
         :param orientation:
         :param role:
@@ -149,23 +150,23 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
         return None
 
     def rowCount(self, parent=None):
-        """
+        """Overrides Qt method to provide the number of rows (idf objects).
         :param parent:
-        :return: :rtype:
+        :rtype int:
         """
 
         return len(self.idf_objects)
 
     def columnCount(self, parent=None):
-        """
+        """Overrides Qt method to provide the number of columns (idf fields).
         :param parent:
-        :return: :rtype:
+        :rtype int:
         """
 
         return len(self.idd_object)
 
     def setData(self, index, value, role):
-        """
+        """Overrides Qt method for setting data.
         :param index:
         :param value:
         :param role:
@@ -209,8 +210,9 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
 
     def mapToSource(self, source_index):
         """Dummy to ensure there is always a mapToSource method even when there is no
+        proxy layer.
         :param source_index:
-        proxy layer."""
+        """
 
         if not source_index.isValid():
             return QtCore.QModelIndex()
@@ -253,7 +255,7 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
         return self
 
     def removeObjects(self, indexes, offset=None, delete_count=None):
-        """
+        """Overrides Qt method to remove objects from the table
         :param indexes:
         :param offset:
         :param delete_count:
@@ -298,18 +300,13 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
             self._get_labels()
             self.endRemoveRows()
 
-        # print('--------')
-        # import pprint
-        # pprint.pprint(self.idf.ref_lists['ScheduleTypeLimitsNames'])
-        # log.debug('nodes after delete: {}'.format(ref_graph.number_of_nodes()))
         return True
 
     def insertObjects(self, indexes, objects=None, offset=None):
-        """
+        """Overrides Qt method to insert new objects into the table
         :param indexes:
         :param objects:
         :param offset:
-        :return: :rtype:
         """
 
         # If there are no objects to add, make new blank ones
@@ -345,15 +342,11 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
             self._get_labels()
             self.endInsertRows()
 
-        # print('--------')
-        # import pprint
-        # pprint.pprint(self.idf.ref_lists['ScheduleTypeLimitsNames'])
-        # log.debug('nodes after add: {}'.format(ref_graph.number_of_nodes()))
         return True
 
     @staticmethod
     def _get_contiguous_rows(indexes, reverse):
-        """
+        """Creates groups of contiguous rows
         :param indexes:
         :param reverse:
         :return: :rtype:
