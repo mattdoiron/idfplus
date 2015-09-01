@@ -147,7 +147,7 @@ class IDDFile(PODict):
         :param obj_class:
         """
 
-        return self.get(key, PersistentList())
+        return self.get(obj_class, PersistentList())
 
     def valid_class(self, obj_class):
         """"Returns True if provided class is valid
@@ -507,7 +507,7 @@ class IDFFile(OrderedDict):
         :param obj_class:
         """
 
-        return self.get(key, PersistentList())
+        return self.get(obj_class, PersistentList())
 
     def get_objects(self, key, index, count=None):
         """Returns the specified object.

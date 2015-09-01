@@ -78,8 +78,8 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
             return None
 
         # Get the row and column and prepare a blank data var to return
-        row = index.row()
-        column = index.column()
+        index_obj = index.row()
+        index_field = index.column()
         data = None
 
         # If the role will require a field, get it now
@@ -93,7 +93,7 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
 
         # Detect the role being request and return the correct data
         if role == QtCore.Qt.DisplayRole or role == QtCore.Qt.EditRole:
-            data = self._get_data(field, row, column)
+            data = self.idf.converted_value(field, index_obj, index_field)
         elif role == QtCore.Qt.ToolTipRole:
             data = self.get_units(field)
         elif role == QtCore.Qt.DecorationRole:
