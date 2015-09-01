@@ -45,20 +45,13 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
         self.obj_class = obj_class
         self.idf = idf
         self.idd = idf._idd
-        self.idf_objects = idf.get_class(obj_class)
-        self.idd_object = idf._idd.get_class(obj_class)
+        self.idf_objects = idf.idf_objects(obj_class)
+        self.idd_object = idf._idd.idd_objects(obj_class)
         self.ureg = config.UNITS_REGISTRY
         self.config = config.Settings()
-        self._get_labels()
+        self._refresh_labels()
 
         super(IDFObjectTableModel, self).__init__(parent)
-
-    def get_obj_class(self):
-        """
-        :return: :rtype:
-        """
-
-        return self.obj_class
 
     def flags(self, index):
         """Override Qt flags method for custom editing behaviour
@@ -94,7 +87,7 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
                     QtCore.Qt.ToolTipRole, QtCore.Qt.BackgroundRole]:
             # Grab the correct field. Return None if it's blank.
             try:
-                field = self.idf.get_field(self.obj_class, row, column)
+                field = self.idf.field(self.obj_class, index_obj, index_field)
             except IDFError:
                 return None
 
@@ -297,7 +290,7 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
 
             # Delete the objects, update labels and inform that we're done inserting
             self.idf.remove_objects(self.obj_class, first_row, last_row)
-            self._get_labels()
+            self._refresh_labels()
             self.endRemoveRows()
 
         return True
@@ -339,7 +332,7 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
             self.idf.add_objects(obj_list, first_row)
 
             # Update labels and inform that we're done inserting
-            self._get_labels()
+            self._refresh_labels()
             self.endInsertRows()
 
         return True
@@ -383,8 +376,8 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
             sub_list = []
         return groups, obj_list
 
-    def _get_labels(self):
-        """Returns axis labels
+    def _refresh_labels(self):
+        """Refreshes header labels after changes to table structure
         """
 
         field_labels = []

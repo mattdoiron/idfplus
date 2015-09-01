@@ -142,7 +142,7 @@ class IDDFile(PODict):
 
         return self._conversions
 
-    def get_class(self, key):
+    def idd_objects(self, obj_class):
         """Returns all the objects in the specified class.
         :param obj_class:
         """
@@ -502,7 +502,7 @@ class IDFFile(OrderedDict):
 
         pass
 
-    def get_class(self, key):
+    def idf_objects(self, obj_class):
         """Returns all the objects in the specified class.
         :param obj_class:
         """
@@ -560,8 +560,11 @@ class IDFFile(OrderedDict):
     #     self._references.update_reference(obj_class, index, new_values)
     #     self[obj_class][index].update(new_values)
 
-    def get_field(self, obj_class, row, column):
-        """Returns the specified field
+    def field(self, obj_class, index_obj, index_field, create=None):
+        """Returns the specified field. Convenience function.
+        :param create: Defines whether non-allocated fields should be created
+        :param index_field:
+        :param index_obj:
         :param obj_class:
         """
 
