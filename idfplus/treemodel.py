@@ -26,7 +26,8 @@ from PySide import QtGui
 
 
 class BaseTreeItem(object):
-    """Low level item for a custom tree views"""
+    """Low level item for a custom tree views
+    """
 
     def __init__(self, data, parent=None):
         self.parentItem = parent
@@ -309,7 +310,8 @@ class ReferenceTreeModel(CustomTreeModel):
             return None
 
 class TreeSortFilterProxyModel(QtGui.QSortFilterProxyModel):
-    """Proxy layer to sort and filter"""
+    """Proxy layer to sort and filter
+    """
 
     def __init__(self, *args, **kwargs):
         super(TreeSortFilterProxyModel, self).__init__(*args, **kwargs)
@@ -323,9 +325,9 @@ class TreeSortFilterProxyModel(QtGui.QSortFilterProxyModel):
         self.filter_empty = False
 
     def filterAcceptsRow(self, row, parent):
-        """ Filters rows
-            http://gaganpreet.in/blog/2013/07/04/qtreeview-and-custom-filter-models/
-            https://qt-project.org/forums/viewthread/7782/#45740
+        """Filters rows
+        http://gaganpreet.in/blog/2013/07/04/qtreeview-and-custom-filter-models/
+        https://qt-project.org/forums/viewthread/7782/#45740
         """
 
         # Filter out classes without and objects in them
@@ -347,9 +349,10 @@ class TreeSortFilterProxyModel(QtGui.QSortFilterProxyModel):
         return super(TreeSortFilterProxyModel, self).filterAcceptsRow(row, parent)
 
     def has_accepted_children(self, row, parent):
-        """ Starting from the current node as root, traverse all
-            the descendants and test if any of the children match
+        """Starting from the current node as root, traverse all the descendants and test if
+        any of the children match
         """
+
         model = self.sourceModel()
         source_index = model.index(row, 0, parent)
 

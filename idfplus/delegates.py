@@ -27,10 +27,7 @@ from PySide import QtCore
 # Package imports
 from . import commands
 from . import config
-from . import logger
-
-# Global variables
-log = logger.setup_logging(config.LOG_LEVEL, __name__, config.LOG_PATH)
+from .config import log
 
 
 class GenericDelegate(QtGui.QStyledItemDelegate):
@@ -46,6 +43,7 @@ class GenericDelegate(QtGui.QStyledItemDelegate):
 
     def insertDelegate(self, index, delegate):
         """
+
         :param index:
         :param delegate:
         """
@@ -55,6 +53,7 @@ class GenericDelegate(QtGui.QStyledItemDelegate):
 
     def removeDelegate(self, index):
         """
+
         :param index:
         """
 
@@ -63,6 +62,7 @@ class GenericDelegate(QtGui.QStyledItemDelegate):
 
     def getRowOrCol(self, index):
         """
+
         :param index:
         :return: :rtype:
         """
@@ -74,6 +74,7 @@ class GenericDelegate(QtGui.QStyledItemDelegate):
 
     def paint(self, painter, option, index):
         """
+
         :param painter:
         :param option:
         :param index:
@@ -87,6 +88,7 @@ class GenericDelegate(QtGui.QStyledItemDelegate):
 
     def createEditor(self, parent, option, index):
         """
+
         :param parent:
         :param option:
         :param index:
@@ -101,6 +103,7 @@ class GenericDelegate(QtGui.QStyledItemDelegate):
 
     def setEditorData(self, editor, index):
         """
+
         :param editor:
         :param index:
         """
@@ -113,6 +116,7 @@ class GenericDelegate(QtGui.QStyledItemDelegate):
 
     def setModelData(self, editor, model, index):
         """
+
         :param editor:
         :param model:
         :param index:
@@ -126,6 +130,7 @@ class GenericDelegate(QtGui.QStyledItemDelegate):
 
     def assignDelegates(self, idd_obj):
         """Cycle through table and assign delegates as needed depending on tags
+
         :param idd_obj:
         """
 
@@ -148,6 +153,7 @@ class GenericDelegate(QtGui.QStyledItemDelegate):
 
 class AlphaNumericDelegate(QtGui.QStyledItemDelegate):
     """
+
     :param main_window:
     :type main_window:
     """
@@ -158,6 +164,7 @@ class AlphaNumericDelegate(QtGui.QStyledItemDelegate):
 
     def createEditor(self, parent, option, index):
         """
+
         :param parent:
         :param option:
         :param index:
@@ -173,6 +180,7 @@ class AlphaNumericDelegate(QtGui.QStyledItemDelegate):
 
     def setEditorData(self, editor, index):
         """
+
         :param editor:
         :param index:
         """
@@ -182,6 +190,7 @@ class AlphaNumericDelegate(QtGui.QStyledItemDelegate):
 
     def setModelData(self, editor, model, index):
         """Create undo command and push it to the undo stack
+
         :param editor:
         :param model:
         :param index:
@@ -196,6 +205,7 @@ class AlphaNumericDelegate(QtGui.QStyledItemDelegate):
 
 class ChoiceDelegate(QtGui.QStyledItemDelegate):
     """
+
     :param field:
     :type field:
     :param main_window:
@@ -212,6 +222,7 @@ class ChoiceDelegate(QtGui.QStyledItemDelegate):
 
     def createEditor(self, parent, option, index):
         """Creates a custom editor based on an extended QCombobox
+
         :param parent:
         :param option:
         :param index:
@@ -310,6 +321,7 @@ class ChoiceDelegate(QtGui.QStyledItemDelegate):
 
     def setEditorData(self, editor, index):
         """
+
         :param editor:
         :param index:
         """
@@ -321,6 +333,7 @@ class ChoiceDelegate(QtGui.QStyledItemDelegate):
 
     def setModelData(self, editor, model, index):
         """Create undo command and push it to the undo stack
+
         :param editor:
         :param model:
         :param index:
@@ -340,6 +353,7 @@ class CustomValidator(QtGui.QValidator):
 
     def validate(self, input_str, pos):
         """
+
         :param input_str:
         :param pos:
         :return: :rtype:
@@ -396,6 +410,7 @@ class ExtendedComboBox(QtGui.QComboBox):
 
     def set_popup_width(self, width):
         """
+
         :param width:
         """
 
@@ -412,6 +427,7 @@ class ExtendedComboBox(QtGui.QComboBox):
 
     def setModel(self, model):
         """On model change, update the models of the filter and completer as well
+
         :param model:
         """
 
@@ -422,6 +438,7 @@ class ExtendedComboBox(QtGui.QComboBox):
 
     def setModelColumn(self, column):
         """On model column change, update the model column of the filter and completer
+
         :param column:
         """
 

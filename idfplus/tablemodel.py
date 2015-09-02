@@ -21,7 +21,6 @@ along with IDF+. If not, see <http://www.gnu.org/licenses/>.
 from __future__ import (print_function, division, absolute_import)
 
 # System imports
-from persistent.list import PersistentList
 from operator import itemgetter
 from itertools import groupby
 from copy import deepcopy
@@ -33,45 +32,30 @@ from PySide import QtCore
 # Package imports
 from .datamodel import IDFObject
 from .datamodel import IDFField
-
-# Package imports
-from . import logger
-
-# Constants
+from .datamodel import IDFError
 from . import config
-
-# Setup logging
-log = logger.setup_logging(config.LOG_LEVEL, __name__, config.LOG_PATH)
 
 
 class IDFObjectTableModel(QtCore.QAbstractTableModel):
-    """Qt object that handles interaction between the table and the data
-    displayed in the table.
+    """Qt data model object that links the table widget and its underlying data structure.
     """
 
     def __init__(self, obj_class, idf, parent):
         self.obj_class = obj_class
         self.idf = idf
         self.idd = idf._idd
-        self.idf_objects = idf.get(obj_class, PersistentList())
-        self.idd_object = idf._idd.get(obj_class, PersistentList())
+        self.idf_objects = idf.idf_objects(obj_class)
+        self.idd_object = idf._idd.idd_objects(obj_class)
         self.ureg = config.UNITS_REGISTRY
         self.config = config.Settings()
-        self.get_labels()
+        self._refresh_labels()
 
         super(IDFObjectTableModel, self).__init__(parent)
 
-    def get_obj_class(self):
-        """
-        :return: :rtype:
-        """
-
-        return self.obj_class
-
     def flags(self, index):
-        """
-        :param index:
-        :return: :rtype:
+        """Override Qt flags method for custom editing behaviour
+
+        :param index: Target index
         """
 
         if not index.isValid():
@@ -81,10 +65,15 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
         return QtCore.Qt.ItemFlags(current_flags | QtCore.Qt.ItemIsEditable)
 
     def data(self, index, role):
-        """Provides various data to Table models. Tables iterate through
-        columns and rows with different roles to get different types of data.
-        :param index:
-        :param role:
+        """Provides various data to Table models.
+
+        Tables iterate through columns and rows with different roles to get different types of
+        data.
+
+        :param index: QModelIndex of the cell for which data is requested
+        :type index: QtCore.QModelIndex()
+        :param role: Role being requested
+        :type role: int
         """
 
         # Check for valid qt index
@@ -92,28 +81,29 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
             return None
 
         # Get the row and column and prepare a blank data var to return
-        row = index.row()
-        column = index.column()
+        index_obj = index.row()
+        index_field = index.column()
         data = None
+        field = None
 
-        # Pre-fetch this only once to save lookups
+        # If the role will require a field, get it now
         if role in [QtCore.Qt.DisplayRole, QtCore.Qt.EditRole,
-                    QtCore.Qt.ToolTipRole, QtCore.Qt.BackgroundRole]:
-            # Grab the correct field. Return None if it's blank.
+                    QtCore.Qt.ToolTipRole, QtCore.Qt.BackgroundRole,
+                    QtCore.Qt.StatusTipRole]:
             try:
-                field = self.idf_objects[row][column]
-            except IndexError:
+                field = self.idf.field(self.obj_class, index_obj, index_field)
+            except IDFError:
                 return None
 
         # Detect the role being request and return the correct data
         if role == QtCore.Qt.DisplayRole or role == QtCore.Qt.EditRole:
-            data = self.get_data(field, row, column)
+            data = self.idf.converted_value(field, index_obj, index_field)
         elif role == QtCore.Qt.ToolTipRole:
-            data = self.get_units(field)
+            data = self.idf.units(field)
         elif role == QtCore.Qt.DecorationRole:
             pass
         elif role == QtCore.Qt.StatusTipRole:
-            pass
+            data = self.idf.units(field)
         elif role == QtCore.Qt.TextAlignmentRole:
             data = int(QtCore.Qt.AlignLeft | QtCore.Qt.AlignVCenter)
         elif role == QtCore.Qt.TextColorRole or role == QtCore.Qt.ForegroundRole:
@@ -123,17 +113,20 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
             ref_node_count = self.idf.reference_count(field)
             if ref_node_count == -1:
                 data = None
-            if field.value and ref_node_count == 0:
+            elif field.value and ref_node_count == 0:
                 data = QtGui.QColor(255, 232, 150)
+            else:
+                data = None
         return data
 
     def headerData(self, section, orientation, role, old_orientation=None):
-        """
-        :param section:
-        :param orientation:
-        :param role:
-        :param old_orientation:
-        :return: :rtype:
+        """Overrides Qt method to provide header text for table model.
+
+        :param section: Index of header being requested
+        :param orientation: Vertical or Horizontal header requested
+        :param role: QtCore.Qt.Role
+        :param old_orientation: (optional) Previous orientation
+        :return: Data of various types depending on requested role
         """
 
         if role == QtCore.Qt.TextAlignmentRole:
@@ -155,70 +148,59 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
         return None
 
     def rowCount(self, parent=None):
-        """
+        """Overrides Qt method to provide the number of rows (idf objects).
+
         :param parent:
-        :return: :rtype:
+        :rtype int:
         """
 
         return len(self.idf_objects)
 
     def columnCount(self, parent=None):
-        """
+        """Overrides Qt method to provide the number of columns (idf fields).
+
         :param parent:
-        :return: :rtype:
+        :rtype int:
         """
 
         return len(self.idd_object)
 
     def setData(self, index, value, role):
-        """
-        :param index:
-        :param value:
-        :param role:
-        :return: :rtype:
+        """Overrides Qt method for setting data.
+
+        :param index: Index of field to be set
+        :type index: QtCore.QModelIndex
+        :param value: The value to use when setting the field's data
+        :param role: QtCore.Qt.Role
+        :return: True or False for success or failure respectively
+        :rtype: bool
         """
 
         if not index.isValid():
             return False
-        if role == QtCore.Qt.EditRole:
-            row = index.row()
-            column = index.column()
 
-            # Try to assign the value
-            try:
-                field = self.idf_objects[row][column]
-                old_value = field.value
-                self.set_data(field, value, row, column)
-                self.update_reference_names(field, old_value)
-            except (AttributeError, IndexError):
-                # An invalid index means that we're trying to assign a value
-                # to a field that has not yet been 'allocated'. Check for max
-                # allowable fields and allocate more if necessary.
-                max_field_count = len(self.idd.get(self.obj_class, []))
-                current_field_count = len(self.idf_objects[row])
+        index_obj = index.row()
+        index_field = index.column()
+        field = self.idf.field(self.obj_class, index_obj, index_field, create=True)
 
-                # If within limits allowed, allocate additional field 'slots'
-                if index.column() < max_field_count:
-                    extra_field_count = index.column() - current_field_count + 1
-                    extra_fields = extra_field_count*[None]
-                    self.idf_objects[row].extend(extra_fields)
-                else:
-                    return False
+        if not field:
+            return False
 
-                # Create a new field object, give it a value and save it
-                # TODO FIXME this new field needs a key! Once IDDObjects are dicts
-                # should be able to lookup the key. Until then, unit conversion
-                # is broken because all fields need a key to lookup units,
-                new_field = IDFField(self.idf_objects[row])
-                self.idf_objects[row][column] = new_field
-                self.set_data(new_field, value, row, column)
-            return True
-        return False
+        converted_value = self.idf.converted_value(field, index_obj, index_field)
+        if field.value == converted_value:
+            # Don't do anything if the value is unchanged
+            return False
+        else:
+            field.value = converted_value
+
+        #TODO help says dataChanged() signal should be emitted if successful...?
+        return True
 
     def mapToSource(self, source_index):
-        """Dummy to ensure there is always a mapToSource method even when there is no
+        """Dummy to ensure there is always a mapToSource method even when there is no proxy layer.
+
         :param source_index:
-        proxy layer."""
+        """
 
         if not source_index.isValid():
             return QtCore.QModelIndex()
@@ -226,6 +208,7 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
 
     def mapFromSource(self, source_index):
         """Provide an index when this model is used as a source model.
+
         :param source_index:
         """
 
@@ -235,6 +218,7 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
 
     def mapSelectionFromSource(self, selection):
         """
+
         :param selection:
         :return: :rtype:
         """
@@ -249,19 +233,23 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
 
     def mapSelectionToSource(self, selection):
         """Dummy to ensure there is always a mapSelectionToSource method even when there
+        is no proxy layer.
+
         :param selection:
-        is no proxy layer."""
+        """
 
         return selection
 
     def sourceModel(self):
         """Dummy to ensure there is always a sourceModel method even when there is no
-         proxy layer."""
+        proxy layer.
+        """
 
         return self
 
     def removeObjects(self, indexes, offset=None, delete_count=None):
-        """
+        """Overrides Qt method to remove objects from the table
+
         :param indexes:
         :param offset:
         :param delete_count:
@@ -271,7 +259,7 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
         # Detect groups and and offset and ensure there is a value for offset
         if offset is None:
             offset = 0
-            groups = self.get_contiguous_rows(indexes, True)
+            groups = self._get_contiguous_rows(indexes, True)
         else:
             groups = indexes
 
@@ -301,44 +289,19 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
                 last_row = group[-1] + offset + delete_count
                 self.beginRemoveRows(QtCore.QModelIndex(), first_row, last_row - 1)
 
-            # Remove the fields from graph also
-            ref_graph = self.idf._ref_graph
-            objects_to_delete = self.idf_objects[first_row:last_row]
-            idd_obj = self.idd[self.obj_class]
-
-            # Delete objects and update reference list
-            for obj in objects_to_delete:
-                field_uuids = [field._uuid for field in obj]
-                ref_graph.remove_nodes_from(field_uuids)
-
-                # Also update reference list if required
-                for j, field in enumerate(obj):
-                    tags = idd_obj[j].tags
-
-                    if 'reference' in tags:
-                        object_list_names = tags['reference']
-                        if not isinstance(object_list_names, list):
-                            object_list_names = [tags['reference']]
-                        for object_list in object_list_names:
-                            tup_list = self.idf.ref_lists[object_list][field.value]
-                            for id_tup in tup_list:
-                                if id_tup[0] == field._uuid:
-                                    # Should only be one so it's ok to modify list here!
-                                    tup_list.remove(id_tup)
-
             # Delete the objects, update labels and inform that we're done inserting
-            del self.idf_objects[first_row:last_row]
-            self.get_labels()
+            self.idf.remove_objects(self.obj_class, first_row, last_row)
+            self._refresh_labels()
             self.endRemoveRows()
 
         return True
 
     def insertObjects(self, indexes, objects=None, offset=None):
-        """
+        """Overrides Qt method to insert new objects into the table
+
         :param indexes:
         :param objects:
         :param offset:
-        :return: :rtype:
         """
 
         # If there are no objects to add, make new blank ones
@@ -368,46 +331,18 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
 
             # Warn the model that we're about to add rows, then do it
             self.beginInsertRows(QtCore.QModelIndex(), first_row, last_row)
-            self.idf_objects[first_row:first_row] = obj_list
-
-            # Add the fields to graph also
-            ref_graph = self.idf._ref_graph
-            # log.debug('nodes before add: {}'.format(ref_graph.number_of_nodes()))
-            ref_set = {'object-list', 'reference'}
-            idd_obj = self.idd[self.obj_class]
-
-            # Add nodes for each field that requires one.
-            for obj in obj_list:
-                for j, field in enumerate(obj):
-                    tags = idd_obj[j].tags
-                    tag_set = set(tags)
-
-                    if field and len(tag_set & ref_set) > 0:
-                        ref_graph.add_node(field._uuid, data=field)
-                        self.update_references(field)
-
-                        # Update the reference list if required
-                        if 'reference' in tags:
-                            object_list_names = tags['reference']
-                            if not isinstance(object_list_names, list):
-                                object_list_names = [tags['reference']]
-                            for object_list in object_list_names:
-                                id_tup = (field._uuid, field)
-                                val = field.value
-                                try:
-                                    self.idf.ref_lists[object_list][val].append(id_tup)
-                                except (AttributeError, KeyError):
-                                    self.idf.ref_lists[object_list][val] = [id_tup]
+            self.idf.add_objects(obj_list, first_row)
 
             # Update labels and inform that we're done inserting
-            self.get_labels()
+            self._refresh_labels()
             self.endInsertRows()
 
         return True
 
     @staticmethod
-    def get_contiguous_rows(indexes, reverse):
-        """
+    def _get_contiguous_rows(indexes, reverse):
+        """Creates groups of contiguous rows
+
         :param indexes:
         :param reverse:
         :return: :rtype:
@@ -425,13 +360,14 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
 
     def get_contiguous(self, indexes, reverse):
         """
+
         :param indexes:
         :param reverse:
         :return: :rtype:
         """
 
         # Get contiguous, groups of unique indexes
-        groups = self.get_contiguous_rows(indexes, reverse)
+        groups = self._get_contiguous_rows(indexes, reverse)
 
         # Cycle through each group of row indexes
         sub_list = []
@@ -444,8 +380,8 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
             sub_list = []
         return groups, obj_list
 
-    def get_labels(self):
-        """Returns axis labels
+    def _refresh_labels(self):
+        """Refreshes header labels after changes to table structure
         """
 
         field_labels = []
@@ -455,7 +391,7 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
         for field in self.idd_object:
             field_desc = field.tags.get('field', '')
             if self.config['show_units_in_headers']:
-                units = self.get_units(field)
+                units = self.idf.units(field)
                 unit_tag = ' ({})'.format(units) if units else ''
                 label = field_desc + unit_tag
             else:
@@ -465,179 +401,6 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
         self.objID_labels = obj_id_labels
         self.field_labels = field_labels
 
-    def get_units(self, field):
-        """Returns the given IDDField's current units.
-        :param field:
-        """
-
-        if field is None:
-            return None
-
-        # Look-up the default units
-        units = field.tags.get('units')
-
-        # If SI units are requested, return now (SI is always the default)
-        if self.idf.si_units is True:
-            return units
-        else:
-            # Otherwise check for special ip-units exceptions
-            ip_units = field.tags.get('ip-units')
-            if ip_units:
-                return ip_units
-            else:
-                unit_dict = self.ureg.get(units)
-                if unit_dict:
-                    return unit_dict.keys()[0]
-                else:
-                    return units
-
-    def get_unit_conversion(self, row, column):
-        """Gets the appropriate unit conversion value(s)
-        :param row:
-        :param column:
-        """
-
-        # Get the idd field corresponding to this idf field
-        idd_field = self.idd_object[column]
-
-        # Look-up the default units and any ip-unit exceptions
-        units = idd_field.tags.get('units')
-        ip_units = idd_field.tags.get('ip-units')
-
-        if units:
-            # Check for the special case of units based on another field
-            if units.startswith('BasedOnField'):
-                based_on_field_key = units.split()[-1]
-                based_on_field = None
-
-                # Find which idd object has the specified key
-                for f in self.idd_object:
-                    if f.key == based_on_field_key:
-                        ind = self.idd_object.index(f)
-                        if ind >= len(self.idf_objects[row]):
-                            return None
-                        based_on_field = self.idf_objects[row][ind]
-                        break
-
-                # Use these results to find the actual units to use
-                actual_units = config.UNIT_TYPES.get(based_on_field.value)
-
-                if actual_units:
-                    units = actual_units
-
-            # Lookup the dict of unit conversions for this SI unit.
-            conv = self.ureg.get(units)
-            if conv:
-                # Lookup the desired ip_units in the dict if specified, otherwise get the
-                # 'first' (only) one in the dict.
-                return conv.get(ip_units, conv.get(conv.keys()[0]))
-
-        return None
-
-    @staticmethod
-    def to_si(value, conv):
-        """Accepts a value and a conversion factor, and returns the value in SI units.
-        :param conv: Conversion factor to use to convert units
-        :param value: string value from IDFField object
-        """
-
-        # If the units were found, perform the conversion
-        try:
-            # Convert units and force it back to a string
-            data = str(float(value) / conv)
-        except TypeError:
-            # If there is a type error, it's actually a tuple (for temperatures)
-            multiplier = conv[0]
-            adder = conv[1]
-            data = str((float(value) - adder) / multiplier)
-        return data
-
-    @staticmethod
-    def to_ip(value, conv):
-        """Accepts a value and a conversion factor, and returns the value in IP units.
-        :param value: string value from IDFField object
-        :param conv: Conversion factor to use to convert units
-        """
-
-        # If the units were found, perform the conversion
-        try:
-            # Convert units and force it back to a string
-            data = str(float(value) * conv)
-        except TypeError:
-            # If there is a type error, it's actually a tuple (for temperatures)
-            multiplier = conv[0]
-            adder = conv[1]
-            data = str(float(value) * multiplier + adder)
-        except ValueError:
-            data = value
-        return data
-
-    def set_data(self, field, value, row, column):
-        """Sets the value of the specified field taking into account units
-        :param row:
-        :param column:
-        :param field: IDFField object whose value will be updated
-        :param value: string value from IDFField object
-        """
-
-        # If SI units are requested, return now (SI is always the default)
-        if self.idf.si_units is True:
-            field.value = value
-            return True
-
-        # Get the unit conversion
-        ip_unit_conversion = self.get_unit_conversion(row, column)
-
-        # If the units were found, perform the conversion
-        if ip_unit_conversion:
-            field.value = self.to_si(value, ip_unit_conversion)
-        else:
-            field.value = value
-        return True
-
-    def get_data(self, field, row, column):
-        """Retrieves data from the model and converts it to the desired units.
-        :param row:
-        :param column:
-        :param field: IDFField object for which the value will be returned
-        """
-
-        # If SI units are requested, return now (SI is always the default)
-        if self.idf.si_units is True:
-            if field:
-                return field.value
-            else:
-                return None
-
-        # Get the unit conversion
-        ip_unit_conversion = self.get_unit_conversion(row, column)
-
-        # If the units were found, perform the conversion
-        if ip_unit_conversion:
-            return self.to_ip(field.value, ip_unit_conversion)
-        return field.value
-
-    def update_references(self, field):
-        ref_graph = self.idf._ref_graph
-
-    def update_reference_names(self, field, old_value):
-
-        # Get the graph and the connections to this field
-        ref_graph = self.idf._ref_graph
-        ref_lists = self.idf.ref_lists
-        ancestors = nx.ancestors(ref_graph, field._uuid)
-        new_value = field.value
-
-        # Update ancestors
-        for node in ancestors:
-            idf_field = ref_graph.node[node]['data']
-            idf_field.value = new_value
-
-        # Update the idf's reference dictionary
-        obj_list = ref_graph[ancestors[0], field]['obj_list']
-        if new_value != old_value:
-            ref_lists[obj_list][new_value] = ref_lists[obj_list].pop(old_value)
-
 
 class TransposeProxyModel(QtGui.QAbstractProxyModel):
     """Translates columns to rows or vice versa
@@ -645,6 +408,7 @@ class TransposeProxyModel(QtGui.QAbstractProxyModel):
 
     def setSourceModel(self, source):
         """
+
         :param source:
         """
 
@@ -664,6 +428,7 @@ class TransposeProxyModel(QtGui.QAbstractProxyModel):
 
     def mapFromSource(self, source_index):
         """
+
         :param source_index:
         :return: :rtype:
         """
@@ -674,6 +439,7 @@ class TransposeProxyModel(QtGui.QAbstractProxyModel):
 
     def mapToSource(self, proxy_index):
         """
+
         :param proxy_index:
         :return: :rtype:
         """
@@ -684,6 +450,7 @@ class TransposeProxyModel(QtGui.QAbstractProxyModel):
 
     def mapSelectionFromSource(self, selection):
         """
+
         :param selection:
         :return: :rtype:
         """
@@ -698,6 +465,7 @@ class TransposeProxyModel(QtGui.QAbstractProxyModel):
 
     def mapSelectionToSource(self, selection):
         """
+
         :param selection:
         :return: :rtype:
         """
@@ -712,6 +480,7 @@ class TransposeProxyModel(QtGui.QAbstractProxyModel):
 
     def index(self, row, col, parent=None):
         """
+
         :param row:
         :param col:
         :param parent:
@@ -722,6 +491,7 @@ class TransposeProxyModel(QtGui.QAbstractProxyModel):
 
     def parent(self, index):
         """
+
         :param index:
         :return: :rtype:
         """
@@ -730,6 +500,7 @@ class TransposeProxyModel(QtGui.QAbstractProxyModel):
 
     def rowCount(self, parent=None):
         """
+
         :param parent:
         :return: :rtype:
         """
@@ -746,6 +517,7 @@ class TransposeProxyModel(QtGui.QAbstractProxyModel):
 
     def data(self, index, role):
         """
+
         :param index:
         :param role:
         :return: :rtype:
@@ -755,6 +527,7 @@ class TransposeProxyModel(QtGui.QAbstractProxyModel):
 
     def headerData(self, section, orientation, role):
         """
+
         :param section:
         :param orientation:
         :param role:
@@ -769,6 +542,7 @@ class TransposeProxyModel(QtGui.QAbstractProxyModel):
 
     def removeObjects(self, *args, **kwargs):
         """
+
         :param args:
         :param kwargs:
         :return: :rtype:
@@ -779,6 +553,7 @@ class TransposeProxyModel(QtGui.QAbstractProxyModel):
 
     def insertObjects(self, *args, **kwargs):
         """
+
         :param args:
         :param kwargs:
         :return: :rtype:
@@ -789,6 +564,7 @@ class TransposeProxyModel(QtGui.QAbstractProxyModel):
 
     def get_contiguous(self, *args, **kwargs):
         """
+
         :param args:
         :param kwargs:
         :return: :rtype:
@@ -799,6 +575,7 @@ class TransposeProxyModel(QtGui.QAbstractProxyModel):
 
     def setData(self, index, value, role):
         """
+
         :param index:
         :param value:
         :param role:
@@ -809,6 +586,7 @@ class TransposeProxyModel(QtGui.QAbstractProxyModel):
 
     def data_changed(self, top_left, bottom_right):
         """
+
         :param top_left:
         :param bottom_right:
         """
@@ -818,6 +596,7 @@ class TransposeProxyModel(QtGui.QAbstractProxyModel):
 
     def header_data_changed(self, orientation, first, last):
         """
+
         :param orientation:
         :param first:
         :param last:
@@ -829,21 +608,14 @@ class TransposeProxyModel(QtGui.QAbstractProxyModel):
             new_orientation = QtCore.Qt.Horizontal
         self.headerDataChanged.emit(new_orientation, first, last)
 
-    def get_units(self, *args, **kwargs):
+    @property
+    def obj_class(self):
         """
-        :param args:
-        :param kwargs:
+
         :return: :rtype:
         """
 
-        return self.sourceModel().get_units(*args, **kwargs)
-
-    def get_obj_class(self):
-        """
-        :return: :rtype:
-        """
-
-        return self.sourceModel().get_obj_class()
+        return self.sourceModel().obj_class
 
 
 class SortFilterProxyModel(QtGui.QSortFilterProxyModel):
@@ -863,6 +635,7 @@ class SortFilterProxyModel(QtGui.QSortFilterProxyModel):
 
     def filterAcceptsColumn(self, col, parent):
         """
+
         :param col:
         :param parent:
         :return: :rtype:
@@ -884,6 +657,7 @@ class SortFilterProxyModel(QtGui.QSortFilterProxyModel):
 
     def filterAcceptsRow(self, row, parent):
         """
+
         :param row:
         :param parent:
         :return: :rtype:
@@ -905,6 +679,7 @@ class SortFilterProxyModel(QtGui.QSortFilterProxyModel):
 
     def mapSelectionFromSource(self, selection):
         """
+
         :param selection:
         :return: :rtype:
         """
@@ -919,6 +694,7 @@ class SortFilterProxyModel(QtGui.QSortFilterProxyModel):
 
     def mapSelectionToSource(self, selection):
         """
+
         :param selection:
         :return: :rtype:
         """
@@ -933,6 +709,7 @@ class SortFilterProxyModel(QtGui.QSortFilterProxyModel):
 
     def removeObjects(self, *args, **kwargs):
         """
+
         :param args:
         :param kwargs:
         :return: :rtype:
@@ -943,6 +720,7 @@ class SortFilterProxyModel(QtGui.QSortFilterProxyModel):
 
     def insertObjects(self, *args, **kwargs):
         """
+
         :param args:
         :param kwargs:
         :return: :rtype:
@@ -953,6 +731,7 @@ class SortFilterProxyModel(QtGui.QSortFilterProxyModel):
 
     def get_contiguous(self, *args, **kwargs):
         """
+
         :param args:
         :param kwargs:
         :return: :rtype:
@@ -961,21 +740,14 @@ class SortFilterProxyModel(QtGui.QSortFilterProxyModel):
         # Do NOT map to source. Pass through only.
         return self.sourceModel().get_contiguous(*args, **kwargs)
 
-    def get_units(self, *args, **kwargs):
+    @property
+    def obj_class(self):
         """
-        :param args:
-        :param kwargs:
+
         :return: :rtype:
         """
 
-        return self.sourceModel().get_units(*args, **kwargs)
-
-    def get_obj_class(self):
-        """
-        :return: :rtype:
-        """
-
-        return self.sourceModel().get_obj_class()
+        return self.sourceModel().obj_class
 
 
 class TableView(QtGui.QTableView):
@@ -984,6 +756,7 @@ class TableView(QtGui.QTableView):
 
     def keyPressEvent(self, event):
         """
+
         :param event:
         """
         if (event.key() == QtCore.Qt.Key_Return or event.key() == QtCore.Qt.Key_Enter) \

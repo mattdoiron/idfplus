@@ -64,7 +64,9 @@ class Settings(dict):
     """
 
     def __init__(self, *args, **kwargs):
-        """Create the settings object and set some of its own settings."""
+        """Create the settings object and set some of its own settings.
+        """
+
         super(Settings, self).__init__(*args, **kwargs)
         self.prefs = dict()
         self.settings = QtCore.QSettings(QtCore.QSettings.IniFormat,
@@ -107,11 +109,7 @@ class Settings(dict):
         settings.beginGroup("Global")
         self['log_level'] = settings.value("log_level", 'DEBUG')
         settings.endGroup()
-
-        global LOG_LEVEL
-        LOG_LEVEL = self['log_level']
-        for handler in log.handlers:
-            handler.setLevel(self['log_level'])
+        self.update_log_level()
 
     def write_settings(self):
         """Writes application settings to QSettings object.
@@ -149,9 +147,11 @@ class Settings(dict):
         # settings.setValue("file_encoding", self['file_encoding'])
         settings.setValue("log_level", self['log_level'])
         settings.endGroup()
+        self.update_log_level()
 
     def save_state(self, window):
         """Saves application state to QSettings.
+
         :param window:
         """
 
@@ -166,6 +166,7 @@ class Settings(dict):
 
     def restore_state(self, window):
         """Restore application state.
+
         :param window:
         """
 
@@ -184,6 +185,15 @@ class Settings(dict):
         window.restoreGeometry(self['geometry'])
         window.restoreState(self['state'])
         QtGui.QApplication.setStyle(QtGui.QStyleFactory.create(self['style']))
+
+    def update_log_level(self):
+        """Refreshes handlers' log level and global variable
+        """
+
+        global LOG_LEVEL
+        LOG_LEVEL = self['log_level']
+        for handler in log.handlers:
+            handler.setLevel(self['log_level'])
 
     def get_path(self):
         """get path
@@ -207,7 +217,8 @@ class Settings(dict):
 
 
 def default_style():
-    """
+    """Retrieves the default style.
+
     :return: :rtype:
     """
 
@@ -222,7 +233,8 @@ def default_style():
 
 
 def get_os():
-    """
+    """Returns the current operating system.
+
     :return: :rtype:
     """
 

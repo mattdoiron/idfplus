@@ -1,17 +1,17 @@
 PySide==1.2.2
-BTrees==4.1.1
-Jinja2==2.7.3
+BTrees==4.1.4
+Jinja2==2.8
 MarkupSafe==0.23
-Pygments==2.0.1
+Pygments==2.0.2
 Sphinx==1.2.3
 argparse==1.2.1
 docutils==0.12
-nose==1.3.4
+nose==1.3.7
 persistent==4.0.8
 six==1.9.0
 zope.interface==4.1.1
 odict==1.5.1
-networkx==1.9.1
+networkx==1.10
 -e git+https://github.com/pyinstaller/pyinstaller.git#egg=pyinstaller
 appdirs==1.4.0
 faulthandler==2.4

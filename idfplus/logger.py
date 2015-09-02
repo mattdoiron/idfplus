@@ -31,7 +31,8 @@ from PySide.QtCore import QObject
 
 def setup_logging(_level, name, log_path):
     """Sets up and configures the logger
-    :rtype : logging.logger
+
+    :rtype: logging.logger
     :param _level: 
     :param name:
     :param log_path:
@@ -67,6 +68,7 @@ def setup_logging(_level, name, log_path):
 class Communicate(QObject):
     """Create a new signal on the fly and name it 'speak'
     """
+
     signal = Signal(str)
 
 
@@ -78,6 +80,7 @@ class ConsoleLogHandler(logging.StreamHandler):
 
     def emit(self, record):
         """
+
         :param record:
         :raise:
         """
