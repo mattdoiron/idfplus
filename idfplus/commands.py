@@ -88,6 +88,7 @@ class ObjectCmd(QtGui.QUndoCommand):
 
     def update_selection(self, highlight_size=None, offset=None):
         """Ensures that the selection is up-to-date and changes it if not.
+
         :param highlight_size:
         :param offset:
         """

@@ -34,6 +34,7 @@ from .config import log
 
 class SetupWizIntroPage(QtGui.QWizardPage):
     """
+
     :param parent:
     :type parent:
     :param version:
@@ -74,6 +75,7 @@ class SetupWizIntroPage(QtGui.QWizardPage):
 
 class SetupWizLoadPage(QtGui.QWizardPage):
     """
+
     :param parent:
     :type parent:
     :param version:
@@ -140,6 +142,7 @@ class SetupWizLoadPage(QtGui.QWizardPage):
 
     def isComplete(self):
         """
+
         :return: :rtype:
         """
 
@@ -148,6 +151,7 @@ class SetupWizLoadPage(QtGui.QWizardPage):
 
 class SetupWizard(QtGui.QWizard):
     """
+
     :param parent:
     :type parent:
     :param version:

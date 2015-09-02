@@ -37,8 +37,7 @@ from . import config
 
 
 class IDFObjectTableModel(QtCore.QAbstractTableModel):
-    """Qt data model object that links the table widget and its
-     underlying data structure.
+    """Qt data model object that links the table widget and its underlying data structure.
     """
 
     def __init__(self, obj_class, idf, parent):
@@ -55,6 +54,7 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
 
     def flags(self, index):
         """Override Qt flags method for custom editing behaviour
+
         :param index: Target index
         """
 
@@ -65,8 +65,11 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
         return QtCore.Qt.ItemFlags(current_flags | QtCore.Qt.ItemIsEditable)
 
     def data(self, index, role):
-        """Provides various data to Table models. Tables iterate through
-        columns and rows with different roles to get different types of data.
+        """Provides various data to Table models.
+
+        Tables iterate through columns and rows with different roles to get different types of
+        data.
+
         :param index: QModelIndex of the cell for which data is requested
         :type index: QtCore.QModelIndex()
         :param role: Role being requested
@@ -118,11 +121,12 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
 
     def headerData(self, section, orientation, role, old_orientation=None):
         """Overrides Qt method to provide header text for table model.
-        :param section:
-        :param orientation:
-        :param role:
-        :param old_orientation:
-        :return: :rtype:
+
+        :param section: Index of header being requested
+        :param orientation: Vertical or Horizontal header requested
+        :param role: QtCore.Qt.Role
+        :param old_orientation: (optional) Previous orientation
+        :return: Data of various types depending on requested role
         """
 
         if role == QtCore.Qt.TextAlignmentRole:
@@ -145,6 +149,7 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
 
     def rowCount(self, parent=None):
         """Overrides Qt method to provide the number of rows (idf objects).
+
         :param parent:
         :rtype int:
         """
@@ -153,6 +158,7 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
 
     def columnCount(self, parent=None):
         """Overrides Qt method to provide the number of columns (idf fields).
+
         :param parent:
         :rtype int:
         """
@@ -161,10 +167,13 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
 
     def setData(self, index, value, role):
         """Overrides Qt method for setting data.
-        :param index:
-        :param value:
-        :param role:
-        :return: :rtype:
+
+        :param index: Index of field to be set
+        :type index: QtCore.QModelIndex
+        :param value: The value to use when setting the field's data
+        :param role: QtCore.Qt.Role
+        :return: True or False for success or failure respectively
+        :rtype: bool
         """
 
         if not index.isValid():
@@ -188,8 +197,8 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
         return True
 
     def mapToSource(self, source_index):
-        """Dummy to ensure there is always a mapToSource method even when there is no
-        proxy layer.
+        """Dummy to ensure there is always a mapToSource method even when there is no proxy layer.
+
         :param source_index:
         """
 
@@ -199,6 +208,7 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
 
     def mapFromSource(self, source_index):
         """Provide an index when this model is used as a source model.
+
         :param source_index:
         """
 
@@ -208,6 +218,7 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
 
     def mapSelectionFromSource(self, selection):
         """
+
         :param selection:
         :return: :rtype:
         """
@@ -222,19 +233,23 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
 
     def mapSelectionToSource(self, selection):
         """Dummy to ensure there is always a mapSelectionToSource method even when there
+        is no proxy layer.
+
         :param selection:
-        is no proxy layer."""
+        """
 
         return selection
 
     def sourceModel(self):
         """Dummy to ensure there is always a sourceModel method even when there is no
-         proxy layer."""
+        proxy layer.
+        """
 
         return self
 
     def removeObjects(self, indexes, offset=None, delete_count=None):
         """Overrides Qt method to remove objects from the table
+
         :param indexes:
         :param offset:
         :param delete_count:
@@ -283,6 +298,7 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
 
     def insertObjects(self, indexes, objects=None, offset=None):
         """Overrides Qt method to insert new objects into the table
+
         :param indexes:
         :param objects:
         :param offset:
@@ -326,6 +342,7 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
     @staticmethod
     def _get_contiguous_rows(indexes, reverse):
         """Creates groups of contiguous rows
+
         :param indexes:
         :param reverse:
         :return: :rtype:
@@ -343,6 +360,7 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
 
     def get_contiguous(self, indexes, reverse):
         """
+
         :param indexes:
         :param reverse:
         :return: :rtype:
@@ -390,6 +408,7 @@ class TransposeProxyModel(QtGui.QAbstractProxyModel):
 
     def setSourceModel(self, source):
         """
+
         :param source:
         """
 
@@ -409,6 +428,7 @@ class TransposeProxyModel(QtGui.QAbstractProxyModel):
 
     def mapFromSource(self, source_index):
         """
+
         :param source_index:
         :return: :rtype:
         """
@@ -419,6 +439,7 @@ class TransposeProxyModel(QtGui.QAbstractProxyModel):
 
     def mapToSource(self, proxy_index):
         """
+
         :param proxy_index:
         :return: :rtype:
         """
@@ -429,6 +450,7 @@ class TransposeProxyModel(QtGui.QAbstractProxyModel):
 
     def mapSelectionFromSource(self, selection):
         """
+
         :param selection:
         :return: :rtype:
         """
@@ -443,6 +465,7 @@ class TransposeProxyModel(QtGui.QAbstractProxyModel):
 
     def mapSelectionToSource(self, selection):
         """
+
         :param selection:
         :return: :rtype:
         """
@@ -457,6 +480,7 @@ class TransposeProxyModel(QtGui.QAbstractProxyModel):
 
     def index(self, row, col, parent=None):
         """
+
         :param row:
         :param col:
         :param parent:
@@ -467,6 +491,7 @@ class TransposeProxyModel(QtGui.QAbstractProxyModel):
 
     def parent(self, index):
         """
+
         :param index:
         :return: :rtype:
         """
@@ -475,6 +500,7 @@ class TransposeProxyModel(QtGui.QAbstractProxyModel):
 
     def rowCount(self, parent=None):
         """
+
         :param parent:
         :return: :rtype:
         """
@@ -491,6 +517,7 @@ class TransposeProxyModel(QtGui.QAbstractProxyModel):
 
     def data(self, index, role):
         """
+
         :param index:
         :param role:
         :return: :rtype:
@@ -500,6 +527,7 @@ class TransposeProxyModel(QtGui.QAbstractProxyModel):
 
     def headerData(self, section, orientation, role):
         """
+
         :param section:
         :param orientation:
         :param role:
@@ -514,6 +542,7 @@ class TransposeProxyModel(QtGui.QAbstractProxyModel):
 
     def removeObjects(self, *args, **kwargs):
         """
+
         :param args:
         :param kwargs:
         :return: :rtype:
@@ -524,6 +553,7 @@ class TransposeProxyModel(QtGui.QAbstractProxyModel):
 
     def insertObjects(self, *args, **kwargs):
         """
+
         :param args:
         :param kwargs:
         :return: :rtype:
@@ -534,6 +564,7 @@ class TransposeProxyModel(QtGui.QAbstractProxyModel):
 
     def get_contiguous(self, *args, **kwargs):
         """
+
         :param args:
         :param kwargs:
         :return: :rtype:
@@ -544,6 +575,7 @@ class TransposeProxyModel(QtGui.QAbstractProxyModel):
 
     def setData(self, index, value, role):
         """
+
         :param index:
         :param value:
         :param role:
@@ -554,6 +586,7 @@ class TransposeProxyModel(QtGui.QAbstractProxyModel):
 
     def data_changed(self, top_left, bottom_right):
         """
+
         :param top_left:
         :param bottom_right:
         """
@@ -563,6 +596,7 @@ class TransposeProxyModel(QtGui.QAbstractProxyModel):
 
     def header_data_changed(self, orientation, first, last):
         """
+
         :param orientation:
         :param first:
         :param last:
@@ -577,6 +611,7 @@ class TransposeProxyModel(QtGui.QAbstractProxyModel):
     @property
     def obj_class(self):
         """
+
         :return: :rtype:
         """
 
@@ -600,6 +635,7 @@ class SortFilterProxyModel(QtGui.QSortFilterProxyModel):
 
     def filterAcceptsColumn(self, col, parent):
         """
+
         :param col:
         :param parent:
         :return: :rtype:
@@ -621,6 +657,7 @@ class SortFilterProxyModel(QtGui.QSortFilterProxyModel):
 
     def filterAcceptsRow(self, row, parent):
         """
+
         :param row:
         :param parent:
         :return: :rtype:
@@ -642,6 +679,7 @@ class SortFilterProxyModel(QtGui.QSortFilterProxyModel):
 
     def mapSelectionFromSource(self, selection):
         """
+
         :param selection:
         :return: :rtype:
         """
@@ -656,6 +694,7 @@ class SortFilterProxyModel(QtGui.QSortFilterProxyModel):
 
     def mapSelectionToSource(self, selection):
         """
+
         :param selection:
         :return: :rtype:
         """
@@ -670,6 +709,7 @@ class SortFilterProxyModel(QtGui.QSortFilterProxyModel):
 
     def removeObjects(self, *args, **kwargs):
         """
+
         :param args:
         :param kwargs:
         :return: :rtype:
@@ -680,6 +720,7 @@ class SortFilterProxyModel(QtGui.QSortFilterProxyModel):
 
     def insertObjects(self, *args, **kwargs):
         """
+
         :param args:
         :param kwargs:
         :return: :rtype:
@@ -690,6 +731,7 @@ class SortFilterProxyModel(QtGui.QSortFilterProxyModel):
 
     def get_contiguous(self, *args, **kwargs):
         """
+
         :param args:
         :param kwargs:
         :return: :rtype:
@@ -701,6 +743,7 @@ class SortFilterProxyModel(QtGui.QSortFilterProxyModel):
     @property
     def obj_class(self):
         """
+
         :return: :rtype:
         """
 
@@ -713,6 +756,7 @@ class TableView(QtGui.QTableView):
 
     def keyPressEvent(self, event):
         """
+
         :param event:
         """
         if (event.key() == QtCore.Qt.Key_Return or event.key() == QtCore.Qt.Key_Enter) \

@@ -33,7 +33,8 @@ log = logger.setup_logging(config.LOG_LEVEL, 'IDF+', config.LOG_PATH)
 
 
 def main():
-    """Main function to start the program."""
+    """Main function to start the program.
+    """
 
     # Retrieve the currently running instance or make a new one
     app = QtGui.QApplication.instance()

@@ -89,6 +89,7 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow):
 
     def closeEvent(self, event):
         """Called when the application is closed.
+
         :param event:
         """
 
@@ -127,6 +128,7 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow):
 
     def load_idf(self, file_path):
         """
+
         :param file_path:
         """
 
@@ -148,6 +150,7 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow):
 
     def load_file(self, file_path=None):
         """Loads a specified file or gets the file_path from the sender.
+
         :rtype : bool
         :param file_path:
         """
@@ -217,6 +220,7 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow):
 
     def launch_idd_wizard(self, file_path, version, message):
         """Launches the IDD wizard to help user point the editor to IDD file
+
         :param version:
         :param message:
         :param file_path:
@@ -415,6 +419,7 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow):
 
     def table_selection_changed(self, selected):
         """
+
         :param selected:
         :return: :rtype:
         """
@@ -451,6 +456,7 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow):
 
     def update_reference_view(self, index):
         """Updates the reference tree view widget
+
         :param index:
         """
 
@@ -474,6 +480,7 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow):
 
     def ref_tree_double_clicked(self, index):
         """Responds when the reference tree widget is double-clicked.
+
         :param index:
         """
 
@@ -518,6 +525,7 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow):
 
     def addActions(self, target, actions):
         """Helper to add actions or a separator easily.
+
         :param target:
         :param actions:
         """
@@ -528,6 +536,7 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow):
 
     def tableFilterRegExpChanged(self):
         """
+
         :return: :rtype:
         """
 
@@ -542,6 +551,7 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow):
 
     def treeFilterRegExpChanged(self):
         """
+
         :return: :rtype:
         """
 
@@ -587,6 +597,7 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow):
 
     def set_current_file(self, file_name):
         """Sets the current file globally and updates title, statusbar, etc.
+
         :param file_name:
         """
 
@@ -623,6 +634,7 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow):
 
     def add_recent_file(self, file_name):
         """Adds file_path to the list of recent files for the file menu.
+
         :param file_name:
         """
 
@@ -638,6 +650,7 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow):
 
     def update_status(self, message):
         """Updates the window title and status bar with a message.
+
         :param message:
         """
 
@@ -651,6 +664,7 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow):
 
     def setVisible(self, visible):
         """Integrates system tray with minimize/maximize.
+
         :param visible:
         """
 
@@ -814,6 +828,7 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow):
 
     def load_table_view(self, obj_class):
         """Loads the table of objects for the specified class name.
+
         :param obj_class:
         """
 
@@ -927,6 +942,7 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow):
 
     def class_selected(self, current):
         """Loads the table view when a new class is selected
+
         :param current:
         """
 
@@ -953,6 +969,7 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow):
 
     def comment_view_changed(self):
         """
+
         :return: :rtype:
         """
 
@@ -979,6 +996,7 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow):
 
     def update_log_viewer(self, log_text):
         """
+
         :param log_text:
         """
 
@@ -1003,6 +1021,7 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow):
 
     def set_dirty(self, dirty_state):
         """
+
         :param dirty_state:
         """
 

@@ -84,7 +84,9 @@ class Writer(object):
     @staticmethod
     def write_idf(idf):
         """Write an IDF from the specified idfObject
-        :param idf: :type IDFObject
+
+        :param idf:
+        :type idf: IDFObject
         """
 
         idd = idf._idd
@@ -181,6 +183,7 @@ class Parser(object):
     @staticmethod
     def get_fields(line_in):
         """Strips all comments, etc and returns what's left
+
         :rtype : list:
         :param line_in:
         """
@@ -221,6 +224,7 @@ class Parser(object):
     @staticmethod
     def get_comments_general(line_in):
         """Parses a string and returns the general comment if it exists
+
         :param line_in:
         :rtype : str:
         """
@@ -260,6 +264,7 @@ class Parser(object):
     @staticmethod
     def get_comments_special(line_in):
         """Parses a line and returns any special comments present.
+
         :rtype : str
         :param line_in:
         """
@@ -276,6 +281,7 @@ class Parser(object):
     @staticmethod
     def get_tags(line_in):
         """Parses a line and gets any fields tags present
+
         :rtype : dict:
         :param line_in:
         """
@@ -307,6 +313,7 @@ class Parser(object):
     @staticmethod
     def get_options(line_in):
         """Parses a line and returns any options present.
+
         :rtype : list
         :param line_in:
         """
@@ -322,6 +329,7 @@ class Parser(object):
 
     def parse_line(self, line_in):
         """Parses a line from the IDD/IDF file and returns results
+
         :rtype : dict:
         :param line_in: 
         """
@@ -357,11 +365,13 @@ class Parser(object):
 
 class IDDParser(Parser):
     """Class that handles all parsing related specifically to IDD files.
+
     :param idd:
     """
 
     def __init__(self, idd=None):
         """Initialize the parser
+
         :type idd: IDDFile
         :param idd:
         """
@@ -378,6 +388,7 @@ class IDDParser(Parser):
 
     def parse_idd(self, file_path):
         """Parse the provided idd (or idf) file
+
         :rtype : generator
         :param file_path: 
         """
@@ -575,7 +586,9 @@ class IDDParser(Parser):
     @staticmethod
     def load_idd(version):
         """Loads an idd file into the object instance variable.
+
         Also sets some attributes of the file.
+
         :rtype : IDDFile
         :param version:
         :return: :raise IDDFileDoesNotExist:
@@ -630,6 +643,7 @@ class IDFParser(Parser):
 
     def __init__(self, idf=None):
         """Initializes the IDFParser class with an option idf file.
+
         :param idf:
         """
 
@@ -645,6 +659,7 @@ class IDFParser(Parser):
 
     def parse_idf(self, file_path):
         """Parse the provided idf file and return an IDFObject.
+
         :param file_path:
         :rtype : iterator
         """

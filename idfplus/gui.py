@@ -39,7 +39,8 @@ class UI_MainWindow(object):
     """
 
     def create_ui(self):
-        """Setup main UI elements, dock widgets, UI-related elements, etc. """
+        """Setup main UI elements, dock widgets, UI-related elements, etc.
+        """
 
         log.debug('Loading UI')
 
@@ -424,7 +425,8 @@ class UI_MainWindow(object):
         self.redoAct.setEnabled(new_state)
 
     def create_menus(self):
-        """Create all required items for menus."""
+        """Create all required items for menus.
+        """
 
         # File Menu
         self.fileMenu = self.menuBar().addMenu("&File")
@@ -483,7 +485,8 @@ class UI_MainWindow(object):
         self.helpMenu.addAction(self.aboutAct)
 
     def create_tool_bars(self):
-        """Creates the necessary toolbars."""
+        """Creates the necessary toolbars.
+        """
 
         # File Toolbar
         self.fileToolBar = self.addToolBar("File Toolbar")
@@ -537,7 +540,9 @@ class UI_MainWindow(object):
         self.filterToolBar.addAction(self.transposeAct)
 
     def create_shortcuts(self):
-        """Creates keyboard shortcuts."""
+        """Creates keyboard shortcuts.
+        """
+
         # QtGui.QShortcut(QtGui.QKeySequence('Ctrl+l'), self).activated.connect(self.toggle_full_tree)
         QtGui.QShortcut(QtGui.QKeySequence('Ctrl+d'), self).activated.connect(self.fill_right)
         # QtGui.QShortcut(QtGui.QKeySequence('Ctrl+d'), self).activated.connect(self.fill_right)
@@ -592,14 +597,18 @@ class UI_MainWindow(object):
         self.progressDialogIDD.setCancelButton(None)
 
     def center(self):
-        """Called to center the window on the screen on startup."""
+        """Called to center the window on the screen on startup.
+        """
+
         screen = QtGui.QDesktopWidget().screenGeometry()
         size = self.geometry()
         self.move((screen.width() - size.width()) / 2,
                   (screen.height() - size.height()) / 2)
 
     def show_prefs_dialog(self):
-        """Handles showing the settings dialog and setting its values."""
+        """Handles showing the settings dialog and setting its values.
+        """
+
         dlg = PrefsDialog(self, self.prefs)
         if dlg.exec_():
             result = dlg.prefs
@@ -608,7 +617,7 @@ class UI_MainWindow(object):
 
 
 class PrefsDialog(QtGui.QDialog):
-    """ Form used to view and edit global program options
+    """Form used to view and edit global program options
     """
 
     def __init__(self, parent, prefs):
@@ -636,7 +645,7 @@ class PrefsDialog(QtGui.QDialog):
         button_box.rejected.connect(self.reject)
 
     def accept(self):
-        """ Override default accept method to save settings
+        """Override default accept method to save settings
         """
         self.prefs.write_settings()
         super(PrefsDialog, self).accept()

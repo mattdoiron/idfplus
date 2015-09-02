@@ -64,7 +64,9 @@ class Settings(dict):
     """
 
     def __init__(self, *args, **kwargs):
-        """Create the settings object and set some of its own settings."""
+        """Create the settings object and set some of its own settings.
+        """
+
         super(Settings, self).__init__(*args, **kwargs)
         self.prefs = dict()
         self.settings = QtCore.QSettings(QtCore.QSettings.IniFormat,
@@ -149,6 +151,7 @@ class Settings(dict):
 
     def save_state(self, window):
         """Saves application state to QSettings.
+
         :param window:
         """
 
@@ -163,6 +166,7 @@ class Settings(dict):
 
     def restore_state(self, window):
         """Restore application state.
+
         :param window:
         """
 
@@ -213,7 +217,8 @@ class Settings(dict):
 
 
 def default_style():
-    """
+    """Retrieves the default style.
+
     :return: :rtype:
     """
 
@@ -228,7 +233,8 @@ def default_style():
 
 
 def get_os():
-    """
+    """Returns the current operating system.
+
     :return: :rtype:
     """
 

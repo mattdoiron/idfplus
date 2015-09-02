@@ -70,8 +70,11 @@ class IDDFile(PODict):
 
     Is an OrderedDict of IDDObjects with the class type as a
     key. For example:
-        {'ScheduleTypeLimits': IDDObject,
-         'SimulationControl':  IDDObject}
+
+    .. code-block:: python
+
+    {'ScheduleTypeLimits': IDDObject,
+    'SimulationControl':  IDDObject}
 
     :attr str version: IDD file version
     :attr list groups: List of groups to which classes can belong
@@ -144,13 +147,15 @@ class IDDFile(PODict):
 
     def idd_objects(self, obj_class):
         """Returns all the objects in the specified class.
+
         :param obj_class:
         """
 
         return self.get(obj_class, PersistentList())
 
     def valid_class(self, obj_class):
-        """"Returns True if provided class is valid
+        """Returns True if provided class is valid
+
         :param obj_class: Object class to validate
         """
 
@@ -165,6 +170,7 @@ class IDDFile(PODict):
 
     def field(self, obj_class, index_obj, index_field):
         """Returns the specified field. Convenience function.
+
         :param index_field:
         :param index_obj:
         :param obj_class:
@@ -180,12 +186,12 @@ class IDDFile(PODict):
 class IDDObject(list):
     """Represents objects in idd files.
 
-    Contains a list of fields in the form:
-        [IDDField1, IDDField2, IDDField3}
+    Contains a list of fields in the form: [IDDField1, IDDField2, IDDField3}
     """
 
     def __init__(self, outer, data=(), **kwargs):
         """Use kwargs to prepopulate some values, then remove them from kwargs
+
         Also sets the idd file for use by this object.
 
         :param str obj_class: Class type of this idf object
@@ -218,6 +224,7 @@ class IDDObject(list):
     @property
     def obj_class(self):
         """Read-only property containing idd object's class type
+
         :returns str: Returns the obj_class string
         """
 
@@ -226,7 +233,8 @@ class IDDObject(list):
     @property
     def group(self):
         """Read-only property containing idd object's group.
-        :rtype : str
+
+        :rtype: str
         """
 
         return self._group
@@ -268,8 +276,7 @@ class IDDField(object):
     """Basic component of the idd object classes.
 
     A regular object containing parameters such as key, value, tags.
-    Examples of tags from are:
-        required, field, type, minimum, etc.
+    Examples of tags from are: required, field, type, minimum, etc.
     """
 
     # TODO Values should be Quantities from the pint python library.
@@ -338,9 +345,10 @@ class IDDField(object):
 
     @property
     def obj_class(self):
-        """
-        :rtype : str
-        :return : The name of the class from the outer object
+        """Returns the object's class.
+
+        :rtype: str
+        :return: The name of the class from the outer object
         """
 
         return self._outer._obj_class
@@ -348,7 +356,8 @@ class IDDField(object):
     @property
     def units(self):
         """Read-only property containing idd field's SI units.
-        :rtype : str
+
+        :rtype: str
         """
 
         return self.tags.get('units')
@@ -356,7 +365,8 @@ class IDDField(object):
     @property
     def ip_units(self):
         """Read-only property containing idd field's IP units.
-        :rtype : str
+
+        :rtype: str
         """
 
         return self.tags.get('ip-units')
@@ -367,12 +377,12 @@ class IDFFile(OrderedDict):
 
     Contains an OrderedDict of lists of IDFObjects with the class type as a
     key. For example:
-        {'ScheduleTypeLimits': [IDFObject1, IDFObject2, IDFObject3],
-         'SimulationControl':  [IDFObject4]}
+    {'ScheduleTypeLimits': [IDFObject1, IDFObject2, IDFObject3],
+    'SimulationControl':  [IDFObject4]}
 
     :attr IDDFile idd: IDDFile object containing precompiled idd file
     :attr str version: EnergyPlus version number (eg. 8.1.0.008)
-    :attr str eol_char: depends on file (could be \n or \r\n, etc)
+    :attr str eol_char: depends on file (could be \\n or \\r\\n, etc)
     :attr list options: options that may have been found in idf file
     :attr str file_path: full, absolute path to idf file
     """
@@ -381,8 +391,8 @@ class IDFFile(OrderedDict):
         """Initializes a new idf, blank or opens the given file_path
 
         :param str file_path:
-        :param *args: arguments to pass to base dictionary type
-        :param **kwargs: keyword arguments to pass to base dictionary type
+        :param \*args: arguments to pass to base dictionary type
+        :param \*\*kwargs: keyword arguments to pass to base dictionary type
         """
 
         # Call the parent class' init method
@@ -455,6 +465,7 @@ class IDFFile(OrderedDict):
 
     def reference_tree_data(self, current_obj_class, index):
         """Constructs a list of lists of nodes for the reference tree view.
+
         :param index:
         :param current_obj_class:
         """
@@ -477,6 +488,7 @@ class IDFFile(OrderedDict):
 
     def reference_count(self, field):
         """Returns a count of references for the given field.
+
         :param field:
         """
 
@@ -501,15 +513,16 @@ class IDFFile(OrderedDict):
 
     def _populate_obj_classes(self):
         """Pre-allocates the keys of the IDFFile.
+
         This must be done early so that all objects added later are added
         in the proper order (this is an OrderedDict!).
-        :param idd:
         """
 
         self.update((k, list()) for k in self._idd.iterkeys())
 
     def find(self, contains=None):
         """Searches within the file for objects having 'contains'
+
         :param str contains:  (Default value = None)
         """
 
@@ -517,6 +530,7 @@ class IDFFile(OrderedDict):
 
     def idf_objects(self, obj_class):
         """Returns all the objects in the specified class.
+
         :param obj_class:
         """
 
@@ -524,6 +538,7 @@ class IDFFile(OrderedDict):
 
     def get_objects(self, key, index, count=None):
         """Returns the specified object.
+
         :param count: Number of objects to return.
         :param index: Starting index.
         :param key: Class of objects to return.
@@ -537,6 +552,7 @@ class IDFFile(OrderedDict):
 
     def add_objects(self, new_objects, position=None):
         """Adds the specified object(s) to the IDFFile.
+
         :param position:
         :param new_objects: List of IDFObjects
         :returns int: Number of objects added
@@ -575,6 +591,7 @@ class IDFFile(OrderedDict):
 
     def field(self, obj_class, index_obj, index_field, create=None):
         """Returns the specified field. Convenience function.
+
         :param create: Defines whether non-allocated fields should be created
         :param index_field:
         :param index_obj:
@@ -608,6 +625,7 @@ class IDFFile(OrderedDict):
 
     def remove_objects(self, obj_class, first_row, last_row):
         """Deletes specified object.
+
         :param first_row:
         :param last_row:
         :param obj_class:
@@ -624,6 +642,7 @@ class IDFFile(OrderedDict):
 
     def units(self, field):
         """Returns the given field's current display units.
+
         :param field:
         """
 
@@ -650,6 +669,7 @@ class IDFFile(OrderedDict):
 
     def converted_value(self, field, row, column):
         """Converts the value of the field if necessary
+
         :param field:
         :param row:
         :param column:
@@ -676,6 +696,7 @@ class IDFFile(OrderedDict):
 
     def _unit_conversion(self, field, row, column):
         """Gets the appropriate unit conversion value(s)
+
         :param field:
         :param row:
         :param column:
@@ -723,6 +744,7 @@ class IDFFile(OrderedDict):
     @staticmethod
     def _to_si(value, conversion):
         """Accepts a value and a conversion factor, and returns the value in SI units.
+
         :param conversion: Conversion factor to use to convert units
         :param value: string value from IDFField object
         """
@@ -741,6 +763,7 @@ class IDFFile(OrderedDict):
     @staticmethod
     def _to_ip(value, conversion):
         """Accepts a value and a conversion factor, and returns the value in IP units.
+
         :param value: string value from IDFField object
         :param conversion: Conversion factor to use to convert units
         """
@@ -762,8 +785,7 @@ class IDFFile(OrderedDict):
 class IDFObject(list):
     """Represents objects in idf files.
 
-    Contains a list of fields in the form:
-        [IDFField1, IDFField2, IDFField3]
+    Contains a list of fields in the form: [IDFField1, IDFField2, IDFField3]
 
     :attr str obj_class: Class type of object
     :attr str group: Group to which this object belongs
@@ -777,6 +799,7 @@ class IDFObject(list):
 
     def __init__(self, outer, **kwargs):
         """Use kwargs to prepopulate some values, then remove them from kwargs
+
         Also sets the idd file for use by this object.
 
         :param str group:
@@ -784,8 +807,8 @@ class IDFObject(list):
         :param str args:
         :param IDDFile idd: idd file used by this idf file
         :param str obj_class: Class type of this idf object
-        :param *args: arguments to pass to dictionary
-        :param **kwargs: keyword arguments to pass to dictionary
+        :param \*args: arguments to pass to dictionary
+        :param \*\*kwargs: keyword arguments to pass to dictionary
         """
 
         # Set various attributes of the idf object
@@ -831,6 +854,7 @@ class IDFObject(list):
     @property
     def obj_class(self):
         """Read-only property containing idf object's class type
+
         :rtype : str
         """
 
@@ -839,6 +863,7 @@ class IDFObject(list):
     @property
     def group(self):
         """Read-only property containing idf object's group
+
         :rtype : str
         """
 
@@ -847,6 +872,7 @@ class IDFObject(list):
     @property
     def uuid(self):
         """Read-only property containing uuid
+
         :return: :rtype:
         """
 
@@ -854,6 +880,7 @@ class IDFObject(list):
 
     def set_defaults(self, idd):
         """Populates the field with its defaults
+
         :param idd:
         """
 
@@ -873,6 +900,7 @@ class IDFObject(list):
 
     def add_field(self, idf_field, tags):
         """Adds a field to self and takes care of references.
+
         :param idf_field:
         :param tags:
         """
@@ -885,6 +913,7 @@ class IDFObject(list):
 
     def set_group(self, class_group):
         """Sets this IDFObject's class group
+
         :param class_group:
         :return:
         """
@@ -893,6 +922,7 @@ class IDFObject(list):
 
     def set_class(self, obj_class):
         """Sets this IDFObject's object-class
+
         :param obj_class:
         :return:
         """
@@ -902,6 +932,7 @@ class IDFObject(list):
 
 class IDFField(object):
     """Basic component of the idf object classes.
+
     Contains a key and value. Values must always be in metric units.
     Simply a regular dict containing keys which are the names of various
     field tags such as: required, field, type, minimum, etc.
@@ -911,6 +942,7 @@ class IDFField(object):
 
     def __init__(self, outer, *args, **kwargs):
         """Initializes a new idf field
+
         :param str key:
         :param value:
         :param IDFObject outer:
@@ -955,6 +987,7 @@ class IDFField(object):
     @value.setter
     def value(self, new_value):
         """Sets value of field
+
         :param new_value:
         """
 
@@ -965,8 +998,9 @@ class IDFField(object):
     @property
     def name(self):
         """Return this field's name (the 'field' tag)
-        :rtype : str
-        :return : The name of the field from the idd file
+
+        :rtype: str
+        :return: The name of the field from the idd file
         """
 
         if 'field' in self.tags:
@@ -977,8 +1011,9 @@ class IDFField(object):
     @property
     def obj_class(self):
         """Returns this field's outer object's (IDFObject) class
-        :rtype : str
-        :return : The name of the class from the outer object
+
+        :rtype: str
+        :return: The name of the class from the outer object
         """
 
         return self._outer._obj_class
@@ -986,8 +1021,9 @@ class IDFField(object):
     @property
     def position(self):
         """Read-only property that returns the position (index) of this field
-        :rtype : int
-        :return : The index of this field in its outer class
+
+        :rtype: int
+        :return: The index of this field in its outer class
         """
 
         return self._outer.index(self.value)
@@ -1008,6 +1044,7 @@ class IDFField(object):
     @property
     def uuid(self):
         """Read-only property containing uuid
+
         :return: :rtype:
         """
 

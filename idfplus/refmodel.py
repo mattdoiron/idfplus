@@ -56,11 +56,13 @@ class ReferenceModel(object):
 
     def reference(self, node_id):
         """Returns the node for the specified reference.
+
         :param node_id:
         """
 
     def add_field(self, field, idd_obj_tags):
         """Adds a new field and takes care of the references
+
         :param field:
         :param idd_obj_tags:
         """
@@ -149,6 +151,7 @@ class ReferenceModel(object):
 
     def update_references(self, field):
         """Updates the reference graph for the specified field
+
         :param field:
         """
 
