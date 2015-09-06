@@ -31,22 +31,26 @@ from PySide import QtCore
 
 # Package imports
 from .datamodel import IDFObject
-from .datamodel import IDFField
+# from .datamodel import IDFField
 from .datamodel import IDFError
 from . import config
 
 
 class IDFObjectTableModel(QtCore.QAbstractTableModel):
-    """Qt data model object that links the table widget and its underlying data structure.
+    """Qt table model object that links the table widget and its underlying data structure.
     """
 
     def __init__(self, obj_class, idf, parent):
+        """
+
+        :param obj_class: Class of objects the table model will display.
+        :type obj_class: str
+        """
         self.obj_class = obj_class
         self.idf = idf
         self.idd = idf._idd
         self.idf_objects = idf.idf_objects(obj_class)
         self.idd_object = idf._idd.idd_objects(obj_class)
-        self.ureg = config.UNITS_REGISTRY
         self.config = config.Settings()
         self._refresh_labels()
 
@@ -65,7 +69,7 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
         return QtCore.Qt.ItemFlags(current_flags | QtCore.Qt.ItemIsEditable)
 
     def data(self, index, role):
-        """Provides various data to Table models.
+        """Overrides Qt method to provides various data to QtTable models.
 
         Tables iterate through columns and rows with different roles to get different types of
         data.
@@ -193,7 +197,6 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
         else:
             field.value = converted_value
 
-        #TODO help says dataChanged() signal should be emitted if successful...?
         return True
 
     def mapToSource(self, source_index):
