@@ -17,17 +17,9 @@ You should have received a copy of the GNU General Public License
 along with IDF+. If not, see <http://www.gnu.org/licenses/>.
 """
 
-# Prepare for Python 3
-from __future__ import (print_function, division, absolute_import)
-
 # System imports
 import networkx as nx
-import pprint
 import math
-
-# Package imports
-# from . import config
-# from .config import log
 
 
 class ReferenceModel(object):

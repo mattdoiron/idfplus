@@ -17,19 +17,14 @@ You should have received a copy of the GNU General Public License
 along with IDF+. If not, see <http://www.gnu.org/licenses/>.
 """
 
-# Prepare for Python 3
-from __future__ import (print_function, division, absolute_import)
-
 # System imports
 import os
 import appdirs
+import logging
 
 # PySide imports
 from PySide import QtGui
 from PySide import QtCore
-
-# Package imports
-from . import logger
 
 # Constants
 LOG_LEVEL = 'DEBUG'
@@ -55,8 +50,8 @@ for directory in [LOG_DIR]:
         if not os.path.isdir(directory):
             raise
 
-# Global variables
-log = logger.setup_logging(LOG_LEVEL, __name__, LOG_PATH)
+# Setup logging
+log = logging.getLogger(__name__)
 
 
 class Settings(dict):
@@ -192,7 +187,7 @@ class Settings(dict):
 
         global LOG_LEVEL
         LOG_LEVEL = self['log_level']
-        for handler in log.handlers:
+        for handler in log.parent.handlers:
             handler.setLevel(self['log_level'])
 
     def get_path(self):

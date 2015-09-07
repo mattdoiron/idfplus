@@ -17,9 +17,6 @@ You should have received a copy of the GNU General Public License
 along with IDF+. If not, see <http://www.gnu.org/licenses/>.
 """
 
-# Prepare for Python 3
-from __future__ import (print_function, division, absolute_import)
-
 # System imports
 import os
 import platform
@@ -35,15 +32,19 @@ from PySide import QtCore
 # Package imports
 from . import delegates
 from . import tablemodel
-from eplusio import idfmodel
-from eplusio import iddmodel
-from eplusio import parser
 from . import commands
 from . import treemodel
 from . import gui
 from . import setupwiz
 from . import config
-from .config import log
+from . import logger
+from eplusio import idfmodel
+from eplusio import iddmodel
+from eplusio import parser
+
+# Setup logging
+log = logger.setup_logging(config.LOG_LEVEL, 'idfplus', config.LOG_PATH)
+log.info('----==== Launching IDF+ ====----')
 
 # Resource imports for icons
 from . import icons_rc
@@ -1013,8 +1014,7 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow):
         # Populate logView widget with contents of existing log file
         log_path = os.path.join(config.LOG_DIR, config.LOG_FILE_NAME)
         with open(log_path) as f:
-            self.logView.clear()
-            self.logView.insertPlainText(f.read())
+            self.logView.setPlainText(f.read().strip())
             self.logView.moveCursor(QtGui.QTextCursor.End)
             self.logView.moveCursor(QtGui.QTextCursor.StartOfLine)
 

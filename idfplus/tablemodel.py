@@ -17,10 +17,8 @@ You should have received a copy of the GNU General Public License
 along with IDF+. If not, see <http://www.gnu.org/licenses/>.
 """
 
-# Prepare for Python 3
-from __future__ import (print_function, division, absolute_import)
-
 # System imports
+import logging
 from operator import itemgetter
 from itertools import groupby
 from copy import deepcopy
@@ -30,9 +28,12 @@ from PySide import QtGui
 from PySide import QtCore
 
 # Package imports
+from . import config
 from eplusio.idfmodel import IDFObject
 from eplusio.idfmodel import IDFError
-from . import config
+
+# Setup logging
+log = logging.getLogger(__name__)
 
 
 class IDFObjectTableModel(QtCore.QAbstractTableModel):

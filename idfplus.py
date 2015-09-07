@@ -17,6 +17,9 @@ You should have received a copy of the GNU General Public License
 along with IDF+. If not, see <http://www.gnu.org/licenses/>.
 """
 
+# Prepare for Python 3
+from __future__ import (print_function, division, absolute_import)
+
 # Standard library imports
 import sys
 
@@ -24,12 +27,7 @@ import sys
 from PySide import QtGui
 
 # Local imports
-from idfplus import logger
 from idfplus.main import IDFPlus
-from idfplus import config
-
-# Setup logging
-log = logger.setup_logging(config.LOG_LEVEL, 'IDF+', config.LOG_PATH)
 
 
 def main():
@@ -52,5 +50,4 @@ def main():
 
 
 if __name__ == '__main__':
-    log.info('----==== Launching IDF+ ====----')
     main()

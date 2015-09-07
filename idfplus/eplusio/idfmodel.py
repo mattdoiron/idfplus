@@ -17,15 +17,12 @@ You should have received a copy of the GNU General Public License
 along with IDF+. If not, see <http://www.gnu.org/licenses/>.
 """
 
-# Prepare for Python 3
-from __future__ import (print_function, division, absolute_import)
-
 # System imports
-from collections import OrderedDict
-from persistent.list import PersistentList
 import uuid
 import copy
 import networkx as nx
+from collections import OrderedDict
+from persistent.list import PersistentList
 
 # Package imports
 from . import refmodel

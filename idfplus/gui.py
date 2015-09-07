@@ -17,10 +17,8 @@ You should have received a copy of the GNU General Public License
 along with IDF+. If not, see <http://www.gnu.org/licenses/>.
 """
 
-# Prepare for Python 3
-from __future__ import (print_function, division, absolute_import)
-
 # System imports
+import logging
 from collections import deque
 
 # PySide imports
@@ -31,7 +29,9 @@ from PySide import QtCore
 from . import tablemodel
 from . import treemodel
 from . import config
-from .config import log
+
+# Setup logging
+log = logging.getLogger(__name__)
 
 
 class UI_MainWindow(object):

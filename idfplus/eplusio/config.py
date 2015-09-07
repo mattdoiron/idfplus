@@ -17,13 +17,9 @@ You should have received a copy of the GNU General Public License
 along with IDF+. If not, see <http://www.gnu.org/licenses/>.
 """
 
-# Prepare for Python 3
-from __future__ import (print_function, division, absolute_import)
-
 # System imports
 import os
 import appdirs
-import logging
 
 # Constants
 FILE_ENCODING = 'latin_1'
@@ -41,6 +37,3 @@ for directory in [DATA_DIR]:
     except OSError:
         if not os.path.isdir(directory):
             raise
-
-# Global variables
-log = logging.getLogger(__name__)

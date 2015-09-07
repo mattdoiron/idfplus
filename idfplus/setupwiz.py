@@ -17,19 +17,18 @@ You should have received a copy of the GNU General Public License
 along with IDF+. If not, see <http://www.gnu.org/licenses/>.
 """
 
-# Prepare for Python 3
-from __future__ import (print_function, division, absolute_import)
-
 # System imports
 import os
+import logging
 
 # PySide imports
 from PySide import QtGui
 
 # Package imports
 from eplusio import parser
-from . import config
-from .config import log
+
+# Setup logging
+log = logging.getLogger(__name__)
 
 
 class SetupWizIntroPage(QtGui.QWizardPage):

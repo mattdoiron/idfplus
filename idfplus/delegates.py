@@ -17,8 +17,8 @@ You should have received a copy of the GNU General Public License
 along with IDF+. If not, see <http://www.gnu.org/licenses/>.
 """
 
-# Prepare for Python 3
-from __future__ import (print_function, division, absolute_import)
+# System imports
+import logging
 
 # PySide imports
 from PySide import QtGui
@@ -26,8 +26,9 @@ from PySide import QtCore
 
 # Package imports
 from . import commands
-from . import config
-from .config import log
+
+# Setup logging
+log = logging.getLogger(__name__)
 
 
 class GenericDelegate(QtGui.QStyledItemDelegate):

@@ -17,13 +17,11 @@ You should have received a copy of the GNU General Public License
 along with IDF+. If not, see <http://www.gnu.org/licenses/>.
 """
 
-# Prepare for Python 3
-from __future__ import (print_function, division, absolute_import)
-
 # System imports
 import os
 import codecs
 import math
+import logging
 import cPickle as pickle
 
 # Package imports
@@ -31,7 +29,9 @@ from . import idfmodel
 from . import iddmodel
 from . import config
 from .iddmodel import IDDError
-from .config import log
+
+# Setup logging
+log = logging.getLogger(__name__)
 
 OPTIONS_LIST = ['OriginalOrderTop', 'UseSpecialFormat',
                 'ViewInIPunits', 'SortedOrder', 'HideEmptyClasses']
