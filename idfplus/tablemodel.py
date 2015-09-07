@@ -29,7 +29,6 @@ from PySide import QtCore
 
 # Package imports
 from . import config
-from eplusio.idfmodel import IDFObject
 from eplusio.idfmodel import IDFError
 
 # Setup logging
@@ -53,9 +52,9 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
 
         self.obj_class = obj_class
         self.idf = idf
-        self.idd = idf._idd
+        self.idd = idf.idd
         self.idf_objects = idf.idf_objects(obj_class)
-        self.idd_object = idf._idd.idd_object(obj_class)
+        self.idd_object = idf.idd.idd_object(obj_class)
         self.config = config.Settings()
         self._refresh_labels()
 
@@ -157,7 +156,7 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
             if orientation == QtCore.Qt.Horizontal:
                 return self.field_labels[section]
             if orientation == QtCore.Qt.Vertical:
-                return self.objID_labels[section]
+                return self.object_labels[section]
         elif role == QtCore.Qt.BackgroundRole:
             return QtGui.QColor(244, 244, 244)
         return None
@@ -191,6 +190,7 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
         :rtype: bool
         """
 
+        # Check for valid qt index
         if not index.isValid():
             return False
 
@@ -202,11 +202,13 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
             if not field:
                 return False
 
+            # Convert the value only if required
             if self.idf.si_units is True:
                 converted_value = value
             else:
                 converted_value = self.idf.to_si(field, override_value=value)
 
+            # Don't overwite unless the value is new
             if field.value != converted_value:
                 field.value = converted_value
                 return True
@@ -244,8 +246,8 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
         for sel in selection:
             top_left = self.mapFromSource(sel.topLeft())
             bottom_right = self.mapFromSource(sel.bottomRight())
-            sel_range = QtGui.QItemSelectionRange(top_left, bottom_right)
-            return_selection.append(sel_range)
+            selection_range = QtGui.QItemSelectionRange(top_left, bottom_right)
+            return_selection.append(selection_range)
         return return_selection
 
     def mapSelectionToSource(self, selection):
@@ -321,13 +323,11 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
         :param offset:
         """
 
-        # If there are no objects to add, make new blank ones
+        # Make sure we're dealing with a list of object lists
         if not objects:
-            new_obj = IDFObject(self.idf, obj_class=self.obj_class)
-            new_obj.set_defaults(self.idd)
-            objs_to_insert = [[new_obj]]
+            objects_to_insert = [[objects]]
         else:
-            objs_to_insert = objects
+            objects_to_insert = objects
 
         # Ensure there is a row_offset
         if offset:
@@ -336,7 +336,7 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
             row_offset = 0
 
         # Cycle through each groups of indexes in the object list
-        for ind, obj_list in enumerate(objs_to_insert):
+        for ind, obj_list in enumerate(objects_to_insert):
             count = len(obj_list)
             if indexes and offset:
                 first_row = indexes[ind][-1] + row_offset
@@ -348,7 +348,7 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
 
             # Warn the model that we're about to add rows, then do it
             self.beginInsertRows(QtCore.QModelIndex(), first_row, last_row)
-            self.idf.add_objects(obj_list, first_row)
+            self.idf.add_objects(self.obj_class, obj_list, first_row)
 
             # Update labels and inform that we're done inserting
             self._refresh_labels()
@@ -358,10 +358,10 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
 
     @staticmethod
     def _get_contiguous_rows(indexes, reverse):
-        """Creates groups of contiguous rows
+        """Creates groups of contiguous rows from the provided indexes.
 
-        :param indexes:
-        :param reverse:
+        :param indexes: List of indexes
+        :param reverse: Whether or not to reverse the order of the groups
         :return: :rtype:
         """
 
@@ -376,7 +376,7 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
         return groups
 
     def get_contiguous(self, indexes, reverse):
-        """
+        """Gets contiguous groups of rows and objects.
 
         :param indexes:
         :param reverse:
@@ -415,7 +415,7 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
                 label = field_desc
             field_labels.append(label)
 
-        self.objID_labels = obj_id_labels
+        self.object_labels = obj_id_labels
         self.field_labels = field_labels
 
 
@@ -424,9 +424,9 @@ class TransposeProxyModel(QtGui.QAbstractProxyModel):
     """
 
     def setSourceModel(self, source):
-        """
+        """Defines the source model to use and connects some signals.
 
-        :param source:
+        :param source: QAbstractModel to use
         """
 
         super(TransposeProxyModel, self).setSourceModel(source)
@@ -772,7 +772,7 @@ class TableView(QtGui.QTableView):
     """
 
     def keyPressEvent(self, event):
-        """
+        """Overrides Qt key press method to filter return or enter keys.
 
         :param event:
         """

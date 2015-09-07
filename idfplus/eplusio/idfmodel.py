@@ -206,26 +206,35 @@ class IDFFile(OrderedDict):
 
         return self[key][index:count]
 
-    def add_objects(self, new_objects, position=None):
+    def add_objects(self, obj_class, new_objects, position=None):
         """Adds the specified object(s) to the IDFFile.
 
+        :param obj_class:
         :param position:
-        :param new_objects: List of IDFObjects
+        :param new_objects: List of IDFObjects or single IDFObject
         :returns int: Number of objects added
         """
 
+        # We accept lists or single objects, but must use lists later on
+        if isinstance(new_objects, IDFObject):
+            new_objects = [new_objects]
+
         # Fail if object class is not valid
-        obj_class = new_objects[0].obj_class
-        if not self._idd.valid_class(obj_class):
+        if not self.idd.valid_class(obj_class):
             return 0
 
         # Set insert point to 'position' or end of list
         if position is None:
             position = -1
 
+        # If there are no objects to add, make a new blank one
+        if not new_objects or (len(new_objects) == 1 and new_objects[0] is None):
+            new_objects = [IDFObject(self, obj_class=obj_class)]
+            new_objects[0].set_defaults(self.idd)
+
         # Insert the new object(s)
         self[obj_class][position:position] = new_objects
-        idd_obj = self._idd[obj_class]
+        idd_obj = self.idd.idd_object(obj_class)
 
         # Add nodes for each field.
         for obj in new_objects:
@@ -250,15 +259,26 @@ class IDFFile(OrderedDict):
         """Returns the specified field. Convenience function.
 
         :param create: Defines whether non-allocated fields should be created
+        :type create: bool
         :param index_field:
+        :type index_field: int
         :param index_obj:
+        :type index_obj: int
         :param obj_class:
+        :type obj_class: str
         """
 
         field = None
 
         try:
+            # print('{}, {}, {}'.format(obj_class, index_obj, index_field))
+            # print('self[obj_class]={}'.format(self[obj_class]))
+            # print('self[obj_class][index_obj]={}'.format(self[obj_class][index_obj]))
+            # print('self[obj_class][index_obj][index_field]={}'.format(self[obj_class][index_obj][index_field]))
             field = self[obj_class][index_obj][index_field]
+        except TypeError:
+            message = 'Field does not exist. ({}:{}:{})'.format(obj_class, index_obj, index_field)
+            raise IDFError(message)
         except IndexError:
             if create is True:
                 # An IndexError means that we're trying to assign a value
@@ -277,6 +297,8 @@ class IDFFile(OrderedDict):
                     # Create a new field object, give it a value and save it
                     field = IDFField(self.idf_objects[index_obj])
                     self[obj_class][index_obj][index_field] = field
+            else:
+                field = None
 
         return field
 
@@ -475,8 +497,10 @@ class IDFObject(list):
                 setattr(result, key, copy.copy(val))
 
         # The copied objects will use references to the old object, update them
-        for field in result:
-            field._outer = result
+        if result:
+            for field in result:
+                if field:
+                    field._outer = result
 
         return result
 
