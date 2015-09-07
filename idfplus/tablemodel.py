@@ -30,8 +30,8 @@ from PySide import QtGui
 from PySide import QtCore
 
 # Package imports
-from .datamodel import IDFObject
-from .datamodel import IDFError
+from eplusio.idfmodel import IDFObject
+from eplusio.idfmodel import IDFError
 from . import config
 
 

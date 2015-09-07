@@ -34,7 +34,7 @@ from . import logger
 # Constants
 LOG_LEVEL = 'DEBUG'
 DEFAULT_COLUMN_WIDTH = 120
-FILE_ENCODING = 'latin_1'
+# FILE_ENCODING = 'latin_1'
 IDD_FILE_NAME_ROOT = 'EnergyPlus_IDD_v{}.dat'
 COMPANY_NAME_FULL = "Mindful Modeller"
 COMPANY_NAME = 'mindfulmodeller'
@@ -44,11 +44,11 @@ LOG_DIR = appdirs.user_log_dir(APP_NAME, COMPANY_NAME)
 LOG_FILE_NAME = "idfplus.log"
 LOG_PATH = os.path.join(LOG_DIR, LOG_FILE_NAME)
 MAX_OBJ_HISTORY = 100
-DEFAULT_IDD_VERSION = '8.2'
+# DEFAULT_IDD_VERSION = '8.2'
 __version__ = '0.0.3'
 
 # Make sure necessary folders exist
-for directory in [DATA_DIR, LOG_DIR]:
+for directory in [LOG_DIR]:
     try:
         os.makedirs(directory)
     except OSError:

@@ -26,8 +26,8 @@ import pprint
 import math
 
 # Package imports
-from . import config
-from .config import log
+# from . import config
+# from .config import log
 
 
 class ReferenceModel(object):

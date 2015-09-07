@@ -27,9 +27,10 @@ import math
 import cPickle as pickle
 
 # Package imports
-from . import datamodel
-from .datamodel import IDDError
+from . import idfmodel
+from . import iddmodel
 from . import config
+from .iddmodel import IDDError
 from .config import log
 
 OPTIONS_LIST = ['OriginalOrderTop', 'UseSpecialFormat',
@@ -385,7 +386,7 @@ class IDDParser(Parser):
             self.idd = idd
         else:
             log.debug('No IDD received by parser - using a blank one.')
-            self.idd = datamodel.IDDFile(parser_version=self.__parser_version__)
+            self.idd = iddmodel.IDDFile(parser_version=self.__parser_version__)
 
     def parse_idd(self, file_path):
         """Parse the provided idd (or idf) file
@@ -421,7 +422,7 @@ class IDDParser(Parser):
             group_list = list()
             conversions = list()
             end_object = False
-            idd_object = datamodel.IDDObject(idd)
+            idd_object = iddmodel.IDDObject(idd)
 
             # Cycle through each line in the file (yes, use while!)
             while True:
@@ -508,7 +509,7 @@ class IDDParser(Parser):
 
                     # Create IDDField objects for all fields
                     for i, field_key in enumerate(field_list):
-                        new_field = datamodel.IDDField(idd_object, field_key)
+                        new_field = iddmodel.IDDField(idd_object, field_key)
                         new_field.value = None
                         ordered_fields.append(field_key)
                         try:
@@ -562,7 +563,7 @@ class IDDParser(Parser):
                     obj_tag_dict = dict()
                     ordered_fields = list()
                     end_object = False
-                    idd_object = datamodel.IDDObject(idd)
+                    idd_object = iddmodel.IDDObject(idd)
 
                 # Detect end of file and break. Do it this way to be sure
                 # the last line can be processed AND identified as last!
@@ -653,7 +654,7 @@ class IDFParser(Parser):
         if idf is not None:
             self.idf = idf
         else:
-            self.idf = datamodel.IDFFile()
+            self.idf = idfmodel.IDFFile()
         self.idd = None
 
         # Call the parent class' init method
@@ -683,7 +684,7 @@ class IDFParser(Parser):
             comment_list = list()
             comment_list_special = list()
             end_object = False
-            idf_object = datamodel.IDFObject(self.idf)
+            idf_object = idfmodel.IDFObject(self.idf)
 
             # Cycle through each line in the file (yes, use while!)
             while True:
@@ -756,7 +757,7 @@ class IDFParser(Parser):
                         else:
                             key = obj_class
                             tags = dict()
-                        new_field = datamodel.IDFField(idf_object)
+                        new_field = idfmodel.IDFField(idf_object)
                         new_field.key = key
                         new_field.value = field_value
                         new_field.tags = tags
@@ -783,7 +784,7 @@ class IDFParser(Parser):
                     comment_list = list()
                     comment_list_special = list()
                     end_object = False
-                    idf_object = datamodel.IDFObject(self.idf)
+                    idf_object = idfmodel.IDFObject(self.idf)
 
                 # Detect end of file and break. Do it this way to be sure
                 # the last line can be processed AND identified as last!

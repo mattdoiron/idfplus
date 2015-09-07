@@ -35,8 +35,9 @@ from PySide import QtCore
 # Package imports
 from . import delegates
 from . import tablemodel
-from . import parser
-from . import datamodel
+from eplusio import idfmodel
+from eplusio import iddmodel
+from eplusio import parser
 from . import commands
 from . import treemodel
 from . import gui
@@ -134,7 +135,7 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow):
 
         log.info('Trying to load file: {}'.format(file_path))
 
-        idf = datamodel.IDFFile()
+        idf = idfmodel.IDFFile()
         # self.files.update({0:idf})
 
         if file_path:
@@ -180,7 +181,7 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow):
             # Try to load the specified IDF file
             self.load_idf(file_path)
 
-        except datamodel.IDDError as e:
+        except iddmodel.IDDError as e:
             # Required IDD file doesn't exist so launch IDD wizard
             if not self.launch_idd_wizard(file_path, e.version, e.message):
                 # Wizard failed, warn user and cancel
@@ -232,7 +233,7 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow):
             if wizard.exec_():
                 self.load_idf(file_path)
                 return True
-        except (AttributeError, datamodel.IDDError):
+        except (AttributeError, iddmodel.IDDError):
             return False
 
     def save(self):

@@ -27,7 +27,7 @@ import os
 from PySide import QtGui
 
 # Package imports
-from . import parser
+from eplusio import parser
 from . import config
 from .config import log
 
