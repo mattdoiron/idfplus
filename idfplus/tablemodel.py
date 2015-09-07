@@ -49,7 +49,7 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
         self.idf = idf
         self.idd = idf._idd
         self.idf_objects = idf.idf_objects(obj_class)
-        self.idd_object = idf._idd.idd_objects(obj_class)
+        self.idd_object = idf._idd.idd_object(obj_class)
         self.config = config.Settings()
         self._refresh_labels()
 
@@ -390,7 +390,7 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
         obj_count = len(self.idf_objects)
         obj_id_labels = ['Obj{}'.format(i) for i in range(1, obj_count + 1)]
 
-        for field in self.idd_object:
+        for field in self.idd_object.itervalues():
             field_desc = field.tags.get('field', '')
             if self.config['show_units_in_headers']:
                 units = self.idf.units(field)

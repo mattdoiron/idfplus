@@ -139,9 +139,10 @@ class GenericDelegate(QtGui.QStyledItemDelegate):
                         'key', 'object-list']
 
         # Cycle through field tags
-        for i, field in enumerate(idd_obj):
+        for i, field_key in enumerate(idd_obj.ordered_fields()):
 
             # Create a list of tags which would go in a combo box
+            field = idd_obj[field_key]
             matches = set(combo_fields).intersection(set(field.tags))
 
             # If there are choices then use the choiceDelegate, otherwise check type

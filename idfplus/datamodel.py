@@ -307,7 +307,7 @@ class IDDFile(PODict):
         else:
             return False
 
-    def field(self, obj_class, index_obj, index_field):
+    def field(self, obj_class, index):
         """Returns the specified field. Convenience function.
 
         :param index:
@@ -315,16 +315,18 @@ class IDDFile(PODict):
         """
 
         try:
-            field = self[obj_class][index_obj][index_field]
+            idd_object = self[obj_class]
+            idd_field_key = idd_object.key(index)
+            field = idd_object[idd_field_key]
         except IndexError:
             field = None
         return field
 
 
-class IDDObject(list):
+class IDDObject(dict):
     """Represents objects in idd files.
 
-    Contains a list of fields in the form: [IDDField1, IDDField2, IDDField3}
+    Contains a dictionary of fields in the form: {'A1':IDDField1, 'N1':IDDField2}
     """
 
     def __init__(self, outer, data=(), **kwargs):
@@ -342,6 +344,7 @@ class IDDObject(list):
         # Set various attributes of the idf object
         self._obj_class = kwargs.pop('obj_class', None)
         self._group = kwargs.pop('group', None)
+        self._ordered_fields = list()
         self._idd = outer
         self.tags = dict()
         self.comments = kwargs.pop('comments', None)
@@ -367,6 +370,19 @@ class IDDObject(list):
         """
 
         return self._group
+
+    def key(self, index):
+        """Finds the key from the given index.
+        :param index:
+        """
+
+        return self._ordered_fields[index]
+
+    def ordered_fields(self):
+        """Read-only version of the list of field keys.
+        """
+
+        return self._ordered_fields
 
     def get_info(self):
         """Read-only property returning a collection of comments/notes about the obj
@@ -410,13 +426,12 @@ class IDDField(object):
 
     # TODO merge this class with IDFField?
 
-    def __init__(self, outer, **kwargs):
+    def __init__(self, outer, key, **kwargs):
 
-        self.value = kwargs.pop('value', None)
-        self.key = kwargs.pop('key', None)
-        # self._idd = outer._idd
+        self._key = key
         self._outer = outer
         self._obj_class = outer.obj_class
+        self.value = kwargs.pop('value', None)
         self.tags = dict()
 
         # Call the parent class' init method
@@ -470,6 +485,16 @@ class IDDField(object):
         info += '\nAutocalculatable: Yes' if autocalculatable else ''
 
         return info
+
+    @property
+    def key(self):
+        """Returns the object's key.
+
+        :rtype: str
+        :return: The object's key
+        """
+
+        return self._key
 
     @property
     def obj_class(self):
@@ -688,7 +713,8 @@ class IDFFile(OrderedDict):
         # Add nodes for each field.
         for obj in new_objects:
             for j, field in enumerate(obj):
-                tags = idd_obj[j].tags
+                key = idd_obj.key(j)
+                tags = idd_obj[key].tags
                 self._references.add_field(field, tags)
 
         return len(new_objects)
@@ -817,9 +843,8 @@ class IDFFile(OrderedDict):
         """
 
         # Get the idd field corresponding to this idf field
-        # idf_objects = self.idf_objects(field.obj_class)
         idd_object = self.idd.idd_object(field.obj_class)
-        idd_field = idd_object[column]
+        idd_field = idd_object[field.key]
 
         # Look-up the default units and any ip-unit exceptions
         units = idd_field.tags.get('units')
@@ -997,7 +1022,7 @@ class IDFObject(list):
         """
 
         idd_objects = idd.get(self.obj_class)
-        for i, field in enumerate(idd_objects):
+        for i, field in enumerate(idd_objects.itervalues()):
             default = field.tags.get('default', None)
             try:
                 # If there is a field present, set its value

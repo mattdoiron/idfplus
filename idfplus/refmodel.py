@@ -124,7 +124,7 @@ class ReferenceModel(object):
 
             # Also update reference list if required
             for j, field in enumerate(obj):
-                tags = idd_obj[j].tags
+                tags = idd_obj[field.key].tags
 
                 if 'reference' in tags:
                     object_list_names = tags['reference']

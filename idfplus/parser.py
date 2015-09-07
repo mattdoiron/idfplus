@@ -144,8 +144,7 @@ class Writer(object):
                         # if obj['fields']:
                         field_count = len(obj)
                         for i, field in enumerate(obj):
-
-                            field_note = idd[obj_class][i].tags.get('field', None)
+                            field_note = idd.field(obj_class, i).tags.get('field', None)
                             if field_note:
                                 note = '  !- {}'.format(field_note)
                             else:
@@ -416,6 +415,7 @@ class IDDParser(Parser):
             tag_list = list()
             tag_dict = dict()
             obj_tag_dict = dict()
+            ordered_fields = list()
             version = None
             group = None
             group_list = list()
@@ -507,10 +507,10 @@ class IDDParser(Parser):
                     obj_class = field_list.pop(0)
 
                     # Create IDDField objects for all fields
-                    for i, field in enumerate(field_list):
-                        new_field = datamodel.IDDField(idd_object)
-                        new_field.key = field
+                    for i, field_key in enumerate(field_list):
+                        new_field = datamodel.IDDField(idd_object, field_key)
                         new_field.value = None
+                        ordered_fields.append(field_key)
                         try:
                             new_field.tags = tag_list[i]
                         except IndexError:
@@ -531,11 +531,12 @@ class IDDParser(Parser):
                                 except KeyError:
                                     object_lists[tags['reference']] = {obj_class}
 
-                        idd_object.append(new_field)
+                        idd_object[field_key] = new_field
 
                     # Save the parsed variables in the idd_object
                     idd_object._obj_class = obj_class
                     idd_object._group = group
+                    idd_object._ordered_fields = ordered_fields
                     idd_object.comments_special = comment_list_special
                     idd_object.comments = comment_list
                     idd_object.tags = obj_tag_dict
@@ -559,6 +560,7 @@ class IDDParser(Parser):
                     tag_list = list()
                     tag_dict = dict()
                     obj_tag_dict = dict()
+                    ordered_fields = list()
                     end_object = False
                     idd_object = datamodel.IDDObject(idd)
 
@@ -735,11 +737,11 @@ class IDFParser(Parser):
                     obj_class = field_list.pop(0)
 
                     try:
-                        idd_fields = self.idd[obj_class]
+                        idd_object = self.idd[obj_class]
                     except KeyError:
                         if obj_class.lower() == 'version':
                             obj_class = 'Version'
-                            idd_fields = self.idd[obj_class]
+                            idd_object = self.idd[obj_class]
                         else:
                             msg = "Invalid or unknown IDF " \
                                   "object: {}".format(obj_class)
@@ -747,16 +749,16 @@ class IDFParser(Parser):
                             raise InvalidIDFObject(msg)
 
                     # Create IDFField objects for all fields
-                    for i, field in enumerate(field_list):
-                        if idd_fields:
-                            key = idd_fields[i].key
-                            tags = idd_fields[i].tags
+                    for i, field_value in enumerate(field_list):
+                        if idd_object:
+                            key = idd_object.key(i)
+                            tags = idd_object[key].tags
                         else:
                             key = obj_class
                             tags = dict()
                         new_field = datamodel.IDFField(idf_object)
                         new_field.key = key
-                        new_field.value = field
+                        new_field.value = field_value
                         new_field.tags = tags
 
                         # Add the field to the object

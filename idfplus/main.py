@@ -437,7 +437,7 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow):
 
         # Also update the infoview
         obj_info = self.idd[self.current_obj_class].get_info()
-        idd_field = self.idd[self.current_obj_class][index.column()]
+        idd_field = self.idd.field(self.current_obj_class, index.column())
         field_info = idd_field.get_info()
         self.infoView.setText(obj_info + "\n\n" + field_info)
 
