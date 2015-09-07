@@ -807,39 +807,10 @@ class IDFFile(OrderedDict):
                 else:
                     return units
 
-    def converted_value(self, field, row, column):
-        """Converts the value of the field if necessary
-
-        :param field:
-        :param row:
-        :param column:
-        :return: field value
-        """
-
-        if not field:
-            # Return None if no field is given
-            converted_value = None
-        elif self.si_units is True:
-            # Default is always SI, so don't convert here
-            converted_value = field.value
-        else:
-            # Get the unit conversion
-            ip_unit_conversion = self._unit_conversion(field, row, column)
-
-            # If the units were found, perform the conversion
-            if ip_unit_conversion:
-                converted_value = self._to_ip(field.value, ip_unit_conversion)
-            else:
-                converted_value = field.value
-
-        return converted_value
-
-    def _unit_conversion(self, field, row, column):
+    def _unit_conversion(self, field):
         """Gets the appropriate unit conversion value(s)
 
         :param field:
-        :param row:
-        :param column:
         """
 
         # Get the idd field corresponding to this idf field
@@ -854,17 +825,7 @@ class IDFFile(OrderedDict):
             # Check for the special case of units based on another field
             if units.startswith('BasedOnField'):
                 based_on_field_key = units.split()[-1]
-                based_on_field = None
-
-                # Find which idd object has the specified key
-                for fld in idd_object:
-                    if fld.key == based_on_field_key:
-                        # ind = idd_object.index(f)
-                        # if ind >= len(idf_objects[row]):
-                        #     return None
-                        # based_on_field = idd_object[ind]
-                        based_on_field = fld
-                        break
+                based_on_field = idd_object[based_on_field_key]
 
                 # Use these results to find the actual units to use
                 actual_units = UNIT_TYPES.get(based_on_field.value)
@@ -873,23 +834,30 @@ class IDFFile(OrderedDict):
                     units = actual_units
 
             # Lookup the dict of unit conversions for this SI unit.
-            conv = UNIT_TYPES.get(units)
-            if conv:
+            conversion = UNITS_REGISTRY.get(units)
+            if conversion:
                 # Lookup the desired ip_units in the dict if specified, otherwise get the
                 # 'first' (only) one in the dict.
-                return conv.get(ip_units, conv.get(conv.keys()[0]))
+                return conversion.get(ip_units, conversion.get(conversion.keys()[0]))
 
         return None
 
-    @staticmethod
-    def _to_si(value, conversion):
-        """Accepts a value and a conversion factor, and returns the value in SI units.
+    def to_si(self, field, override_value=None):
+        """Accepts field, and returns the value in SI units.
 
-        :param conversion: Conversion factor to use to convert units
-        :param value: string value from IDFField object
+        :param override_value: Convert this value instead of the field's current value
+        :param field: IDFField object containing the value to be converted
         """
 
-        # If the units were found, perform the conversion
+        if not field:
+            return
+
+        # Get the unit conversion
+        conversion = self._unit_conversion(field)
+        value = override_value or field.value
+        if not conversion:
+            return override_value or field.value
+
         try:
             # Convert units and force it back to a string
             data = str(float(value) / conversion)
@@ -898,27 +866,34 @@ class IDFFile(OrderedDict):
             multiplier = conversion[0]
             adder = conversion[1]
             data = str((float(value) - adder) / multiplier)
+
         return data
 
-    @staticmethod
-    def _to_ip(value, conversion):
-        """Accepts a value and a conversion factor, and returns the value in IP units.
+    def to_ip(self, field):
+        """Accepts a field, and returns the value in IP units.
 
-        :param value: string value from IDFField object
-        :param conversion: Conversion factor to use to convert units
+        :param field: IDFField object containing the value to be converted
         """
 
-        # If the units were found, perform the conversion
+        if not field:
+            return
+
+        # Get the unit conversion
+        conversion = self._unit_conversion(field)
+        if not conversion:
+            return field.value
+
         try:
             # Convert units and force it back to a string
-            data = str(float(value) * conversion)
+            data = str(float(field.value) * conversion)
         except TypeError:
             # If there is a type error, it's actually a tuple (for temperatures)
             multiplier = conversion[0]
             adder = conversion[1]
-            data = str(float(value) * multiplier + adder)
+            data = str(float(field.value) * multiplier + adder)
         except ValueError:
-            data = value
+            data = field.value
+
         return data
 
 

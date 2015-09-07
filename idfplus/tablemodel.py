@@ -100,7 +100,12 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
 
         # Detect the role being request and return the correct data
         if role == QtCore.Qt.DisplayRole or role == QtCore.Qt.EditRole:
-            data = self.idf.converted_value(field, index_obj, index_field)
+            if not field:
+                data = None
+            elif self.idf.si_units is True:
+                data = field.value
+            else:
+                data = self.idf.to_ip(field)
         elif role == QtCore.Qt.ToolTipRole:
             data = self.idf.units(field)
         elif role == QtCore.Qt.DecorationRole:
@@ -182,21 +187,24 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
         if not index.isValid():
             return False
 
-        index_obj = index.row()
-        index_field = index.column()
-        field = self.idf.field(self.obj_class, index_obj, index_field, create=True)
+        if role == QtCore.Qt.EditRole:
+            index_obj = index.row()
+            index_field = index.column()
+            field = self.idf.field(self.obj_class, index_obj, index_field, create=True)
 
-        if not field:
-            return False
+            if not field:
+                return False
 
-        converted_value = self.idf.converted_value(field, index_obj, index_field)
-        if field.value == converted_value:
-            # Don't do anything if the value is unchanged
-            return False
-        else:
-            field.value = converted_value
+            if self.idf.si_units is True:
+                converted_value = value
+            else:
+                converted_value = self.idf.to_si(field, override_value=value)
 
-        return True
+            if field.value != converted_value:
+                field.value = converted_value
+                return True
+
+        return False
 
     def mapToSource(self, source_index):
         """Dummy to ensure there is always a mapToSource method even when there is no proxy layer.
