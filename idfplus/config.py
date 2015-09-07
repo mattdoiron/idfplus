@@ -45,7 +45,6 @@ LOG_FILE_NAME = "idfplus.log"
 LOG_PATH = os.path.join(LOG_DIR, LOG_FILE_NAME)
 MAX_OBJ_HISTORY = 100
 DEFAULT_IDD_VERSION = '8.2'
-PARSER_VERSION = '0.0.3'
 __version__ = '0.0.3'
 
 # Make sure necessary folders exist
@@ -58,6 +57,7 @@ for directory in [DATA_DIR, LOG_DIR]:
 
 # Global variables
 log = logger.setup_logging(LOG_LEVEL, __name__, LOG_PATH)
+
 
 class Settings(dict):
     """Object to handle setting and getting settings or info about them.

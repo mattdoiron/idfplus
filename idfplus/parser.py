@@ -369,6 +369,8 @@ class IDDParser(Parser):
     :param idd:
     """
 
+    __parser_version__ = '0.0.4'
+
     def __init__(self, idd=None):
         """Initialize the parser
 
@@ -384,7 +386,7 @@ class IDDParser(Parser):
             self.idd = idd
         else:
             log.debug('No IDD received by parser - using a blank one.')
-            self.idd = datamodel.IDDFile()
+            self.idd = datamodel.IDDFile(parser_version=self.__parser_version__)
 
     def parse_idd(self, file_path):
         """Parse the provided idd (or idf) file
@@ -583,8 +585,7 @@ class IDDParser(Parser):
         # Yield the final progress for progress bars
         yield math.ceil(100 * total_read / total_size)
 
-    @staticmethod
-    def load_idd(version):
+    def load_idd(self, version):
         """Loads an idd file into the object instance variable.
 
         Also sets some attributes of the file.
@@ -614,13 +615,13 @@ class IDDParser(Parser):
                     message = "IDD file does not contain version information!"
                     log.debug(message)
                     raise IDDError(message, version)
-                elif idd.parser_version != config.PARSER_VERSION:
+                elif idd.parser_version != self.__parser_version__:
                     message = "This IDD fle was processed by an old " \
                               "and/or incompatible version of IDFPlus " \
                               "parser ({})! It must be reprocessed to be " \
                               "compatible with the current version ({}).". \
                               format(idd.parser_version,
-                                     config.PARSER_VERSION)
+                                     self.__parser_version__)
                     log.debug(message)
                     raise IDDError(message, version)
                 log.debug(message)

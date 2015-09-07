@@ -220,7 +220,7 @@ class IDDFile(PODict):
     :attr list groups: List of groups to which classes can belong
     """
 
-    def __init__(self, version=None, data=(), **kwargs):
+    def __init__(self, data=(), **kwargs):
         """Initializes the idd file
 
         :param str version: IDD file version
@@ -234,8 +234,8 @@ class IDDFile(PODict):
         self._groups = list()
         self._conversions = list()
         self._version_set = False
-        self._version = version
-        self._parser_version = config.PARSER_VERSION
+        self._version = kwargs.pop('version', None)
+        self._parser_version = kwargs.pop('parser_version', None)
         self.options = list()
         self.tags = dict()
         self.object_lists = dict()
