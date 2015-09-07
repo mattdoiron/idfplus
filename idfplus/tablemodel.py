@@ -31,7 +31,6 @@ from PySide import QtCore
 
 # Package imports
 from .datamodel import IDFObject
-# from .datamodel import IDFField
 from .datamodel import IDFError
 from . import config
 
@@ -173,7 +172,7 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
         """Overrides Qt method for setting data.
 
         :param index: Index of field to be set
-        :type index: QtCore.QModelIndex
+        :type index: QtCore.QModelIndex()
         :param value: The value to use when setting the field's data
         :param role: QtCore.Qt.Role
         :return: True or False for success or failure respectively

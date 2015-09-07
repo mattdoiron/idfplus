@@ -379,8 +379,6 @@ class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow):
             except ValueError:
                 pass
 
-        print(self.idf.options)
-
         # Refresh the view
         self.load_table_view(self.current_obj_class)
 

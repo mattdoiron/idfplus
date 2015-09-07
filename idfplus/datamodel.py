@@ -32,7 +32,6 @@ import networkx as nx
 # Package imports
 from . import refmodel
 from . import config
-from .config import log
 
 # Investigate as replacement for large lists
 # https://pypi.python.org/pypi/blist
@@ -311,8 +310,7 @@ class IDDFile(PODict):
     def field(self, obj_class, index_obj, index_field):
         """Returns the specified field. Convenience function.
 
-        :param index_field:
-        :param index_obj:
+        :param index:
         :param obj_class:
         """
 
@@ -330,7 +328,7 @@ class IDDObject(list):
     """
 
     def __init__(self, outer, data=(), **kwargs):
-        """Use kwargs to prepopulate some values, then remove them from kwargs
+        """Use kwargs to pre-populate some values, then remove them from kwargs
 
         Also sets the idd file for use by this object.
 
@@ -351,15 +349,6 @@ class IDDObject(list):
 
         # Call the parent class' init method
         super(IDDObject, self).__init__(data)
-
-    # def __setitem__(self, key, value):
-    #     """Override the default __setitem__ to ensure that only certain
-    #     object types are allowed."""
-    #
-    #     if not isinstance(value, IDDField):
-    #         raise TypeError('Only items of type IDDField can be added!')
-    #
-    #     super(IDDObject, self).__setitem__(key, value)
 
     @property
     def obj_class(self):
@@ -419,7 +408,6 @@ class IDDField(object):
     Examples of tags from are: required, field, type, minimum, etc.
     """
 
-    # TODO Values should be Quantities from the pint python library.
     # TODO merge this class with IDFField?
 
     def __init__(self, outer, **kwargs):
@@ -520,7 +508,7 @@ class IDFFile(OrderedDict):
     {'ScheduleTypeLimits': [IDFObject1, IDFObject2, IDFObject3],
     'SimulationControl':  [IDFObject4]}
 
-    :attr IDDFile idd: IDDFile object containing precompiled idd file
+    :attr IDDFile idd: IDDFile object containing pre-compiled idd file
     :attr str version: EnergyPlus version number (eg. 8.1.0.008)
     :attr str eol_char: depends on file (could be \\n or \\r\\n, etc)
     :attr list options: options that may have been found in idf file
@@ -539,7 +527,6 @@ class IDFFile(OrderedDict):
         super(IDFFile, self).__init__(*args, **kwargs)
 
         # Various attributes of the idf file
-        # self._version_set = False
         self._idd = None
         self._eol_char = '\n'
         self.file_path = None
@@ -547,7 +534,6 @@ class IDFFile(OrderedDict):
         self._version = None
         self.si_units = True
         self._uuid = str(uuid.uuid4())
-        # self.ref_lists = dict()
         self._references = refmodel.ReferenceModel()
 
     def init_blank(self):
@@ -567,19 +553,6 @@ class IDFFile(OrderedDict):
         version_obj.append(version_field)
         self['Version'].append(version_obj)
 
-    # def __setitem__(self, key, value, dict_setitem=dict.__setitem__):
-    #     """Override the default __setitem__ to ensure that only certain
-    #     object types are allowed."""
-    #
-    #     if not isinstance(value, list):
-    #         raise TypeError('Only lists of IDFObjects can be added!')
-    #
-    #     for val in value:
-    #         if not isinstance(val, IDFObject):
-    #             raise TypeError('Only items of type IDFObject can be added!')
-    #
-    #     super(IDFFile, self).__setitem__(key, value, dict_setitem)
-
     @property
     def version(self):
         """Read-only property containing idf file version
@@ -596,6 +569,7 @@ class IDFFile(OrderedDict):
 
     def set_idd(self, idd):
         """Sets the IDD file and takes care of some setup operations
+        :param idd:
         """
 
         self._idd = idd
@@ -939,7 +913,7 @@ class IDFObject(list):
     # TODO This class is almost the same as IDDObject. It should subclass it.
 
     def __init__(self, outer, **kwargs):
-        """Use kwargs to prepopulate some values, then remove them from kwargs
+        """Use kwargs to pre-populate some values, then remove them from kwargs
 
         Also sets the idd file for use by this object.
 
@@ -954,9 +928,6 @@ class IDFObject(list):
 
         # Set various attributes of the idf object
         self._outer = outer
-        # self._idd = idf.idd
-        # self._incoming_links = list()
-        # self._outgoing_links = list()
         self._ref_graph = None
         self._group = kwargs.pop('group', None)
         self._obj_class = kwargs.pop('obj_class', None)
@@ -1025,7 +996,6 @@ class IDFObject(list):
         :param idd:
         """
 
-        # print('setting defaults')
         idd_objects = idd.get(self.obj_class)
         for i, field in enumerate(idd_objects):
             default = field.tags.get('default', None)

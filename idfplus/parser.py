@@ -442,8 +442,7 @@ class IDDParser(Parser):
 
                 # If there are any comments save them
                 if line_parsed['comments']:
-                    comment_list.append(line_parsed['comments'].rstrip()
-                                        + eol_char)
+                    comment_list.append(line_parsed['comments'].rstrip() + eol_char)
 
                     # Detect file version
                     if 'IDD_Version' in line_parsed['comments']:
