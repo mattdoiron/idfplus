@@ -50,7 +50,7 @@ log.info('----==== Launching IDF+ ====----')
 from . import icons_rc
 
 
-class IDFPlus(QtGui.QMainWindow, gui.UI_MainWindow):
+class IDFPlus(QtGui.QMainWindow, gui.UIMainWindow):
     """Main GUI window for IDFPlus program.
     """
 

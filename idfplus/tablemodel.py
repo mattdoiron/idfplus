@@ -41,11 +41,16 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
     """
 
     def __init__(self, obj_class, idf, parent):
-        """
+        """Initialises table model
 
+        :param idf: idf model to use as the underlying data structure for this model
+        :type idf: idfplus.datamodel.IDFFile
         :param obj_class: Class of objects the table model will display.
         :type obj_class: str
+        :param parent: Parent qt object to which this model belongs
+        :type parent: QtGui.QTableView
         """
+
         self.obj_class = obj_class
         self.idf = idf
         self.idd = idf._idd
@@ -60,6 +65,7 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
         """Override Qt flags method for custom editing behaviour
 
         :param index: Target index
+        :type index: QtCore.QModelIndex
         """
 
         if not index.isValid():
@@ -75,7 +81,7 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
         data.
 
         :param index: QModelIndex of the cell for which data is requested
-        :type index: QtCore.QModelIndex()
+        :type index: QtCore.QModelIndex
         :param role: Role being requested
         :type role: int
         """

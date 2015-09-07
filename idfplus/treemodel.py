@@ -41,7 +41,6 @@ class BaseTreeItem(object):
         return len(self.childItems)
 
     def columnCount(self):
-        # return len(self.itemData)
         return 2
 
     def data(self, column):
@@ -56,22 +55,21 @@ class BaseTreeItem(object):
             return self.parentItem.childItems.index(self)
         return 0
 
-    # def setData(self, column, value):
-    #     if column < 0 or column >= len(self.itemData):
-    #         return False
-    #
-    #     self.itemData[column] = value
-    #
-    #     return True
-
     def item(self):
         return self.itemData
+
 
 class TreeItem(BaseTreeItem):
     """Low level item for a custom class tree view
     """
 
     def data(self, column):
+        """Returns data for specified column in the tree
+
+        :type column: int
+        :return:
+        """
+
         data = self.itemData[column]
         try:
             if column == 1:
@@ -96,17 +94,19 @@ class RefTreeItem(BaseTreeItem):
     """
 
     def data(self, column):
+        """Returns data for specified column in specialized reference tree
+
+        :type column: int
+        :return:
+        """
+
         data = self.itemData[column]
         try:
             if data in ['Class', 'Field', 'Outgoing:', 'Incoming:', '']:
                 return data
             if column == 1:
-                # if data == 'Class':
-                #     return data
                 return self.itemData[column].obj_class
             else:
-                # if data == 'Field':
-                #     return data
                 return self.itemData[column].value
         except IndexError:
             return None
@@ -118,6 +118,15 @@ class CustomTreeModel(QtCore.QAbstractItemModel):
     """
 
     def data(self, index, role):
+        """Returns data for specified column in the tree
+
+        :param index: Index of tree item for which data is requested
+        :type index: QtCore.QModelIndex()
+        :param role: QtCore.Qt.Role
+        :type role: int
+        :return: Various data related to the tree item
+        """
+
         if not index.isValid():
             return None
 
@@ -245,18 +254,15 @@ class ObjectClassTreeModel(CustomTreeModel):
                 if group != obj.group:
 
                     group = obj.group
-                    group_root = TreeItem((group,''), parent)
+                    group_root = TreeItem((group, ''), parent)
                     parent.appendChild(group_root)
 
-                    blank = TreeItem(('',''), parent)
+                    blank = TreeItem(('', ''), parent)
                     parent.appendChild(blank)
-                    # blank.setDisabled(True)
 
                 objs = idf.get(obj_class, None)
-                # obj_count = len(objs or []) or ''
 
                 child = TreeItem((obj_class, objs), group_root)
-                # child = TreeItem((objs, objs), group_root)
                 group_root.appendChild(child)
 
     def setData(self, index, value, role=QtCore.Qt.EditRole):
@@ -288,9 +294,7 @@ class ReferenceTreeModel(CustomTreeModel):
                 ancestor_root = RefTreeItem(('Incoming:',''), parent)
                 parent.appendChild(ancestor_root)
                 for item in data[0]:
-                    # print('type of item: {}'.format(type(item)))
                     tree_data = (item._outer[0], item)
-                    # tree_data = (str(item._outer[0].value), item.obj_class)
                     ancestor_root.appendChild(RefTreeItem(tree_data, ancestor_root))
             if data[1]:
                 descendant_root = RefTreeItem(('Outgoing:',''), parent)
@@ -306,6 +310,7 @@ class ReferenceTreeModel(CustomTreeModel):
         else:
             return None
 
+
 class TreeSortFilterProxyModel(QtGui.QSortFilterProxyModel):
     """Proxy layer to sort and filter
     """
@@ -314,10 +319,10 @@ class TreeSortFilterProxyModel(QtGui.QSortFilterProxyModel):
         super(TreeSortFilterProxyModel, self).__init__(*args, **kwargs)
 
         syntax = QtCore.QRegExp.PatternSyntax(QtCore.QRegExp.Wildcard)
-        caseSensitivity = QtCore.Qt.CaseInsensitive
+        case_sensitivity = QtCore.Qt.CaseInsensitive
 
-        self.setFilterRegExp(QtCore.QRegExp('', caseSensitivity, syntax))
-        self.setFilterCaseSensitivity(caseSensitivity)
+        self.setFilterRegExp(QtCore.QRegExp('', case_sensitivity, syntax))
+        self.setFilterCaseSensitivity(case_sensitivity)
 
         self.filter_empty = False
 

@@ -34,7 +34,7 @@ from . import config
 log = logging.getLogger(__name__)
 
 
-class UI_MainWindow(object):
+class UIMainWindow(object):
     """Container class to hold all UI-related creation methods. Must be sublcassed.
     """
 
