@@ -197,7 +197,12 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
         if role == QtCore.Qt.EditRole:
             index_obj = index.row()
             index_field = index.column()
-            field = self.idf.field(self.obj_class, index_obj, index_field, create=True)
+
+            try:
+                field = self.idf.field(self.obj_class, index_obj, index_field)
+            except IDFError:
+                self.idf.allocate_fields(self.obj_class, index_obj, index_field)
+                field = self.idf.field(self.obj_class, index_obj, index_field)
 
             if not field:
                 return False
@@ -208,7 +213,7 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
             else:
                 converted_value = self.idf.to_si(field, override_value=value)
 
-            # Don't overwite unless the value is new
+            # Don't overwrite unless the value is new
             if field.value != converted_value:
                 field.value = converted_value
                 return True

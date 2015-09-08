@@ -255,11 +255,32 @@ class IDFFile(OrderedDict):
     #     self._references.update_reference(obj_class, index, new_values)
     #     self[obj_class][index].update(new_values)
 
-    def field(self, obj_class, index_obj, index_field, create=None):
+    def field(self, obj_class, index_obj, index_field):
         """Returns the specified field. Convenience function.
 
-        :param create: Defines whether non-allocated fields should be created
-        :type create: bool
+        :param index_field:
+        :type index_field: int
+        :param index_obj:
+        :type index_obj: int
+        :param obj_class:
+        :type obj_class: str
+        :return: IDFField object
+        """
+
+        try:
+            field = self[obj_class][index_obj][index_field]
+        except (IndexError, TypeError):
+            field = None
+
+        if not field:
+            message = 'Field does not exist. ({}:{}:{})'.format(obj_class, index_obj, index_field)
+            raise IDFError(message)
+        else:
+            return field
+
+    def allocate_fields(self, obj_class, index_obj, index_field):
+        """Checks for max allowable fields and allocates more if necessary.
+
         :param index_field:
         :type index_field: int
         :param index_obj:
@@ -268,39 +289,20 @@ class IDFFile(OrderedDict):
         :type obj_class: str
         """
 
-        field = None
+        print('allocating')
+        max_field_count = len(self._idd.get(obj_class, []))
+        idf_object = self[obj_class][index_obj]
+        current_field_count = len(idf_object)
 
-        try:
-            # print('{}, {}, {}'.format(obj_class, index_obj, index_field))
-            # print('self[obj_class]={}'.format(self[obj_class]))
-            # print('self[obj_class][index_obj]={}'.format(self[obj_class][index_obj]))
-            # print('self[obj_class][index_obj][index_field]={}'.format(self[obj_class][index_obj][index_field]))
-            field = self[obj_class][index_obj][index_field]
-        except TypeError:
-            message = 'Field does not exist. ({}:{}:{})'.format(obj_class, index_obj, index_field)
-            raise IDFError(message)
-        except IndexError:
-            if create is True:
-                # An IndexError means that we're trying to assign a value
-                # to a field that has not yet been 'allocated'. Check for max
-                # allowable fields and allocate more if necessary.
-                max_field_count = len(self._idd.get(obj_class, []))
-                idf_object = self[obj_class][index_obj]
-                current_field_count = len(idf_object)
+        # If within limits allowed, allocate additional field 'slots'
+        if index_field < max_field_count:
+            extra_field_count = index_field - current_field_count + 1
+            extra_fields = extra_field_count * [None]
+            idf_object.extend(extra_fields)
 
-                # If within limits allowed, allocate additional field 'slots'
-                if index_field < max_field_count:
-                    extra_field_count = index_field - current_field_count + 1
-                    extra_fields = extra_field_count*[None]
-                    idf_object.extend(extra_fields)
-
-                    # Create a new field object, give it a value and save it
-                    field = IDFField(self.idf_objects[index_obj])
-                    self[obj_class][index_obj][index_field] = field
-            else:
-                field = None
-
-        return field
+            # Create a new field object, give it a value and save it
+            field = IDFField(self[obj_class][index_obj])
+            self[obj_class][index_obj][index_field] = field
 
     def remove_objects(self, obj_class, first_row, last_row):
         """Deletes specified object.
