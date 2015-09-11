@@ -109,8 +109,7 @@ class Writer(object):
                              encoding=config.FILE_ENCODING,
                              errors='backslashreplace') as idf_file:
 
-                idf_file.write("!-Generator IDFPlus {}{}".format(config.__version__,
-                                                                 eol_char))
+                idf_file.write("!-Generator IDFPlus {}{}".format(config.__version__, eol_char))
                 idf_file.write("!-Option {}{}".format(options, eol_char))
                 idf_file.write("!-NOTE: All comments with '!-' are ignored by the "
                                "IDFEditor and are generated "
@@ -142,7 +141,6 @@ class Writer(object):
                         idf_file.write("  {},{}".format(obj_class, eol_char))
 
                         # Write the fields
-                        # if obj['fields']:
                         field_count = len(obj)
                         for i, field in enumerate(obj):
                             field_note = idd.field(obj_class, i).tags.get('field', None)
@@ -229,11 +227,11 @@ class Parser(object):
         :rtype : str:
         """
 
-        comments = str()
+        comments = None
 
         if line_in.find(COMMENT_DELIMITER_GENERAL) == -1:
             # No comments found at all
-            comments = str()
+            comments = None
 
         elif line_in.find(COMMENT_DELIMITER_SPECIAL) == -1:
             # No special comment found so parse simply
@@ -243,7 +241,7 @@ class Parser(object):
         elif line_in.find(COMMENT_DELIMITER_SPECIAL) != -1 and \
              line_in.count(COMMENT_DELIMITER_GENERAL) == 1:
             # Special comment found, but no general comment
-            comments = str()
+            comments = None
 
         else:
             # Both types of comments may be present so parse in more detail
@@ -256,7 +254,7 @@ class Parser(object):
 
             elif part_a[-1].find(COMMENT_DELIMITER_GENERAL) != -1:
                 # General comment is in the last item (part of special comment)
-                comments = str()
+                comments = None
 
         # Return comments
         return comments
@@ -336,15 +334,15 @@ class Parser(object):
 
         # Get results
         fields = self.get_fields(line_in)
-        comments = self.get_comments_general(line_in).rstrip()
-        comments_special = self.get_comments_special(line_in).rstrip()
+        comments = self.get_comments_general(line_in)
+        comments_special = self.get_comments_special(line_in)
         options = self.get_options(line_in)
         tags = self.get_tags(line_in)
         end_object = False
         empty_line = False
 
         # Check for an empty line
-        if not (fields or comments or tags or comments_special or options):
+        if not (fields or tags or options):
             empty_line = True
 
         # Check for and remove the semicolon, indicating the end of an object
@@ -704,21 +702,19 @@ class IDFParser(Parser):
                     self.idf.options.extend(line_parsed['options'])
 
                 # If there are any comments save them
-                if line_parsed['comments']:
-                    comment_list.append(line_parsed['comments'] + eol_char)
+                if line_parsed['comments'] is not None:
+                    comment_list.append(line_parsed['comments'].rstrip() + eol_char)
 
                 # Check for special comments and options
-                if line_parsed['comments_special']:
-                    comment_list_special.append(line_parsed['comments_special']
-                                                + eol_char)
+                if line_parsed['comments_special'] is not None:
+                    comment_list_special.append(line_parsed['comments_special'].rstrip() + eol_char)
 
                 # If there are any fields save them
                 if line_parsed['fields']:
                     field_list.extend(line_parsed['fields'])
 
                     # Detect idf file version and use it to select idd file
-                    if field_list[0].lower() == 'version' \
-                            and len(field_list) > 1:
+                    if field_list[0].lower() == 'version' and len(field_list) > 1:
                         version = field_list[1]
                         log.debug('IDF version detected: {}'.format(version))
                         log.debug('Checking for IDD...')
@@ -728,8 +724,7 @@ class IDFParser(Parser):
                             idd = idd_parser.load_idd(version)
                             self.idf.set_idd(idd)
                             self.idd = self.idf.idd
-                        log.debug("IDD version "
-                                  "loaded: {}".format(self.idd.version))
+                        log.debug("IDD version loaded: {}".format(self.idd.version))
 
                 # If this is the end of an object save it
                 if end_object and empty_line:
@@ -744,8 +739,7 @@ class IDFParser(Parser):
                             obj_class = 'Version'
                             idd_object = self.idd[obj_class]
                         else:
-                            msg = "Invalid or unknown IDF " \
-                                  "object: {}".format(obj_class)
+                            msg = "Invalid or unknown IDF object: {}".format(obj_class)
                             log.debug(msg)
                             raise InvalidIDFObject(msg)
 

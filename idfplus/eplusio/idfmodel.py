@@ -289,7 +289,6 @@ class IDFFile(OrderedDict):
         :type obj_class: str
         """
 
-        print('allocating')
         max_field_count = len(self._idd.get(obj_class, []))
         idf_object = self[obj_class][index_obj]
         current_field_count = len(idf_object)
