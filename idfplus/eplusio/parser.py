@@ -179,7 +179,7 @@ class Parser(object):
         super(Parser, self).__init__()
 
     @staticmethod
-    def get_fields(line_in):
+    def fields(line_in):
         """Strips all comments, etc and returns what's left
 
         :rtype : list:
@@ -220,11 +220,11 @@ class Parser(object):
         return fields
 
     @staticmethod
-    def get_comments_general(line_in):
+    def comments_general(line_in):
         """Parses a string and returns the general comment if it exists
 
         :param line_in:
-        :rtype : str:
+        :rtype str:
         """
 
         comments = None
@@ -260,10 +260,10 @@ class Parser(object):
         return comments
 
     @staticmethod
-    def get_comments_special(line_in):
+    def comments_special(line_in):
         """Parses a line and returns any special comments present.
 
-        :rtype : str
+        :rtype str:
         :param line_in:
         """
 
@@ -277,7 +277,7 @@ class Parser(object):
         return comment_list_special
 
     @staticmethod
-    def get_tags(line_in):
+    def tags(line_in):
         """Parses a line and gets any fields tags present
 
         :rtype : dict:
@@ -309,7 +309,7 @@ class Parser(object):
         return tag_result
 
     @staticmethod
-    def get_options(line_in):
+    def options(line_in):
         """Parses a line and returns any options present.
 
         :rtype : list
@@ -333,11 +333,11 @@ class Parser(object):
         """
 
         # Get results
-        fields = self.get_fields(line_in)
-        comments = self.get_comments_general(line_in)
-        comments_special = self.get_comments_special(line_in)
-        options = self.get_options(line_in)
-        tags = self.get_tags(line_in)
+        fields = self.fields(line_in)
+        comments = self.comments_general(line_in)
+        comments_special = self.comments_special(line_in)
+        options = self.options(line_in)
+        tags = self.tags(line_in)
         end_object = False
         empty_line = False
 
