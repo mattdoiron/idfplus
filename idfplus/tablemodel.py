@@ -108,10 +108,17 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
         if role == QtCore.Qt.DisplayRole or role == QtCore.Qt.EditRole:
             if not field:
                 data = None
-            elif self.idf.si_units is True:
-                data = field.value
             else:
-                data = self.idf.to_ip(field)
+                if role != QtCore.Qt.EditRole and field and self.config['show_units_in_cells']:
+                    text_units = self.idf.units(field) or ''
+                    spacing = ' ' if text_units else ''
+                else:
+                    text_units = ''
+                    spacing = ''
+                if self.idf.si_units is True:
+                    data = '{}{}{}'.format(field.value, spacing, text_units)
+                else:
+                    data = '{}{}{}'.format(self.idf.to_ip(field), spacing, text_units)
         elif role == QtCore.Qt.ToolTipRole:
             data = self.idf.units(field)
         elif role == QtCore.Qt.DecorationRole:

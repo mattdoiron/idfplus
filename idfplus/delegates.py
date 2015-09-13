@@ -187,7 +187,7 @@ class AlphaNumericDelegate(QtGui.QStyledItemDelegate):
         :param index:
         """
 
-        value = index.data(QtCore.Qt.DisplayRole)
+        value = index.data(QtCore.Qt.EditRole)
         editor.setText(value)
 
     def setModelData(self, editor, model, index):
@@ -199,7 +199,7 @@ class AlphaNumericDelegate(QtGui.QStyledItemDelegate):
         :return: :rtype:
         """
 
-        if index.data() == editor.text():
+        if index.data(QtCore.Qt.EditRole) == editor.text():
             return
         cmd = commands.ModifyObjectCmd(self.main_window, value=editor.text())
         self.main_window.undo_stack.push(cmd)
@@ -281,7 +281,7 @@ class ChoiceDelegate(QtGui.QStyledItemDelegate):
                 self.model.removeRow(myitem[0].row())
 
             # Make a special item for the 'current' item
-            value = index.data(QtCore.Qt.DisplayRole)
+            value = index.data(QtCore.Qt.EditRole)
             current_item = QtGui.QStandardItem('current')
             value_item = QtGui.QStandardItem(value)
             self.model.insertRow(0, [value_item, current_item])
@@ -328,7 +328,7 @@ class ChoiceDelegate(QtGui.QStyledItemDelegate):
         :param index:
         """
 
-        value = index.data(QtCore.Qt.DisplayRole)
+        value = index.data(QtCore.Qt.EditRole)
         combo_index = editor.findText(value)
         if combo_index >= 0:
             editor.setCurrentIndex(combo_index)
@@ -342,7 +342,7 @@ class ChoiceDelegate(QtGui.QStyledItemDelegate):
         :return: :rtype:
         """
 
-        if index.data() == editor.currentText():
+        if index.data(QtCore.Qt.EditRole) == editor.currentText():
             return
         cmd = commands.ModifyObjectCmd(self.main_window,
                                        value=editor.currentText())

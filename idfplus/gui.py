@@ -612,6 +612,7 @@ class UIMainWindow(object):
         dlg = PrefsDialog(self, self.prefs)
         if dlg.exec_():
             result = dlg.prefs
+            self.load_table_view(self.current_obj_class)
         if self.prefs.get('clear_idd_cache', False) == True:
             self.clear_idd_cache()
 
@@ -673,7 +674,6 @@ class AppearanceTab(QtGui.QWidget):
         checked_header = QtCore.Qt.Checked if self.prefs['show_units_in_headers'] == 1 else QtCore.Qt.Unchecked
         self.header_units_check.setCheckState(checked_header)
         self.cells_units_check = QtGui.QCheckBox('Show Units in Cells', self)
-        self.cells_units_check.setDisabled(True)
         checked_cells = QtCore.Qt.Checked if self.prefs['show_units_in_cells'] == 1 else QtCore.Qt.Unchecked
         self.cells_units_check.setCheckState(checked_cells)
 

@@ -290,7 +290,8 @@ class IDFFile(OrderedDict):
         :type obj_class: str
         """
 
-        max_field_count = len(self._idd.get(obj_class, []))
+        idd_object = self._idd.idd_object(obj_class)
+        max_field_count = len(idd_object)
         idf_object = self[obj_class][index_obj]
         current_field_count = len(idf_object)
 
@@ -331,14 +332,18 @@ class IDFFile(OrderedDict):
             return None
 
         # Look-up the default units
-        units = field.tags.get('units')
+        if isinstance(field, IDFField):
+            idd_field = self.idd.field(field.obj_class, field.index)
+        else:
+            idd_field = field
+        units = idd_field.tags.get('units')
 
         # If SI units are requested, return now (SI is always the default)
         if self.si_units is True:
             return units
         else:
             # Otherwise check for special ip-units exceptions
-            ip_units = field.tags.get('ip-units')
+            ip_units = idd_field.tags.get('ip-units')
             if ip_units:
                 return ip_units
             else:
