@@ -682,7 +682,6 @@ class IDFParser(Parser):
             comment_list = list()
             comment_list_special = list()
             end_object = False
-            idf_object = idfmodel.IDFObject(self.idf)
 
             # Cycle through each line in the file (yes, use while!)
             while True:
@@ -731,6 +730,7 @@ class IDFParser(Parser):
 
                     # The first field is the object class name
                     obj_class = field_list.pop(0)
+                    idf_object = idfmodel.IDFObject(self.idf, obj_class)
 
                     try:
                         idd_object = self.idd[obj_class]
@@ -751,7 +751,7 @@ class IDFParser(Parser):
                         else:
                             key = obj_class
                             tags = dict()
-                        new_field = idfmodel.IDFField(idf_object)
+                        new_field = idfmodel.IDFField(idf_object, key)
                         new_field.key = key
                         new_field.value = field_value
                         new_field.tags = tags
@@ -778,7 +778,6 @@ class IDFParser(Parser):
                     comment_list = list()
                     comment_list_special = list()
                     end_object = False
-                    idf_object = idfmodel.IDFObject(self.idf)
 
                 # Detect end of file and break. Do it this way to be sure
                 # the last line can be processed AND identified as last!

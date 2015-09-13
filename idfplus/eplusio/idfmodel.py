@@ -89,8 +89,8 @@ class IDFFile(OrderedDict):
         self.update((k, list()) for k, v in self._idd.iteritems())
 
         # Create the only mandatory object (version)
-        version_obj = IDFObject(self)
-        version_field = IDFField(version_obj)
+        version_obj = IDFObject(self, 'Version')
+        version_field = IDFField(version_obj, 'A1')
         version_field.value = config.DEFAULT_IDD_VERSION
         version_obj.append(version_field)
         self['Version'].append(version_obj)
@@ -229,8 +229,9 @@ class IDFFile(OrderedDict):
 
         # If there are no objects to add, make a new blank one
         if not new_objects or (len(new_objects) == 1 and new_objects[0] is None):
-            new_objects = [IDFObject(self, obj_class=obj_class)]
-            new_objects[0].set_defaults(self.idd)
+            obj = IDFObject(self, obj_class)
+            obj.set_defaults(self.idd)
+            new_objects = [obj]
 
         # Insert the new object(s)
         self[obj_class][position:position] = new_objects
@@ -300,7 +301,7 @@ class IDFFile(OrderedDict):
             idf_object.extend(extra_fields)
 
             # Create a new field object, give it a value and save it
-            field = IDFField(self[obj_class][index_obj])
+            field = IDFField(idf_object, idd_object.key(index_field))
             self[obj_class][index_obj][index_field] = field
 
     def remove_objects(self, obj_class, first_row, last_row):
@@ -452,7 +453,7 @@ class IDFObject(list):
 
     # TODO This class is almost the same as IDDObject. It should subclass it.
 
-    def __init__(self, outer, **kwargs):
+    def __init__(self, outer, obj_class, **kwargs):
         """Use kwargs to pre-populate some values, then remove them from kwargs
 
         Also sets the idd file for use by this object.
@@ -467,11 +468,11 @@ class IDFObject(list):
         """
 
         # Set various attributes of the idf object
+        self.comments = kwargs.pop('comments', [])
         self._outer = outer
         self._ref_graph = None
+        self._obj_class = obj_class
         self._group = kwargs.pop('group', None)
-        self._obj_class = kwargs.pop('obj_class', None)
-        self.comments = kwargs.pop('comments', [])
         self._uuid = str(uuid.uuid4())
 
         # Call the parent class' init method
@@ -533,14 +534,14 @@ class IDFObject(list):
         return self._uuid
 
     def set_defaults(self, idd):
-        """Populates the field with its defaults
+        """Populates the object's fields with their defaults
 
         :param idd:
         """
 
-        idd_objects = idd.get(self.obj_class)
-        for i, field in enumerate(idd_objects.itervalues()):
-            default = field.tags.get('default', None)
+        idd_object = idd.idd_object(self.obj_class)
+        for i, idd_field in enumerate(idd_object.itervalues()):
+            default = idd_field.tags.get('default', None)
             try:
                 # If there is a field present, set its value
                 self[i].value = default
@@ -549,7 +550,7 @@ class IDFObject(list):
                 if default is None:
                     self.append(default)
                 else:
-                    self.append(IDFField(self, value=default))
+                    self.append(IDFField(self, idd_field.key, value=default))
 
     def add_field(self, idf_field, tags):
         """Adds a field to self and takes care of references.
@@ -593,7 +594,7 @@ class IDFField(object):
 
     # TODO This class is actually the same as IDDField. Merge them?
 
-    def __init__(self, outer, *args, **kwargs):
+    def __init__(self, outer, key, *args, **kwargs):
         """Initializes a new idf field
 
         :param str key:
@@ -601,9 +602,9 @@ class IDFField(object):
         :param IDFObject outer:
         """
 
-        self.key = kwargs.pop('key', None)
-        self._value = kwargs.pop('value', None)
+        self.key = key
         self.tags = dict()
+        self._value = kwargs.pop('value', None)
         self._ureg = None
         self._outer = outer
         self._uuid = str(uuid.uuid4())
@@ -672,14 +673,14 @@ class IDFField(object):
         return self._outer._obj_class
 
     @property
-    def position(self):
-        """Read-only property that returns the position (index) of this field
+    def index(self):
+        """Read-only property that returns the index of this field
 
         :rtype: int
         :return: The index of this field in its outer class
         """
 
-        return self._outer.index(self.value)
+        return self._outer.index(self)
 
     @property
     def field_id(self):

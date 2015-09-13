@@ -292,7 +292,10 @@ class IDDFile(PODict):
 
         try:
             idd_object = self[obj_class]
-            idd_field_key = idd_object.key(index)
+            if isinstance(index, int):
+                idd_field_key = idd_object.key(index)
+            else:
+                idd_field_key = index
             field = idd_object[idd_field_key]
         except IndexError:
             field = None
@@ -337,6 +340,15 @@ class IDDObject(dict):
         """
 
         return self._obj_class
+
+    # def index(self, key):
+    #     """Read-only property that returns the index of this field
+    #
+    #     :rtype: int
+    #     :return: The index of this field in its outer class
+    #     """
+    #
+    #     return self._ordered_fields.index(key)
 
     @property
     def group(self):
