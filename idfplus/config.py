@@ -103,6 +103,9 @@ class Settings(dict):
 
         settings.beginGroup("Global")
         self['log_level'] = settings.value("log_level", 'DEBUG')
+        self['sort_order'] = settings.value("sort_order", "SortedOrder")
+        self['special_formatting'] = settings.value("special_formatting", "UseSpecialFormat)")
+        self['format_behaviour'] = int(settings.value("format_behaviour", 1))
         settings.endGroup()
         self.update_log_level()
 
@@ -141,6 +144,9 @@ class Settings(dict):
         settings.beginGroup("Global")
         # settings.setValue("file_encoding", self['file_encoding'])
         settings.setValue("log_level", self['log_level'])
+        settings.setValue("sort_order", self['sort_order'])
+        settings.setValue("special_formatting", self['special_formatting'])
+        settings.setValue("format_behaviour", self['format_behaviour'])
         settings.endGroup()
         self.update_log_level()
 
