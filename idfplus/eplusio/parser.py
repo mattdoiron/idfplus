@@ -86,7 +86,7 @@ class Writer(object):
     def write_idf(idf):
         """Write an IDF from the specified idfObject
 
-        :param idf:
+        :param idf: IDFObject to write
         :type idf: IDFObject
         """
 
@@ -109,7 +109,7 @@ class Writer(object):
                              encoding=config.FILE_ENCODING,
                              errors='backslashreplace') as idf_file:
 
-                idf_file.write("!-Generator IDFPlus {}{}".format(config.__version__, eol_char))
+                idf_file.write("!-Generator IDFPlus v{}{}".format(config.__version__, eol_char))
                 idf_file.write("!-Option {}{}".format(options, eol_char))
                 idf_file.write("!-NOTE: All comments with '!-' are ignored by the "
                                "IDFEditor and are generated "
@@ -143,9 +143,13 @@ class Writer(object):
                         # Write the fields
                         field_count = len(obj)
                         for i, field in enumerate(obj):
-                            field_note = idd.field(obj_class, i).tags.get('field', None)
+                            idd_field = idd.field(obj_class, i)
+                            _units = idd_field.units or ''
+                            units = _units if not _units.startswith('BasedOnField') else None
+                            units_note = ' {{{}}}'.format(units) if units else ''
+                            field_note = idd_field.tags.get('field', None)
                             if field_note:
-                                note = '  !- {}'.format(field_note)
+                                note = '  !- {}{}'.format(field_note, units_note)
                             else:
                                 note = ''
 

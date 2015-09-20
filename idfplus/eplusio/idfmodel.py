@@ -338,6 +338,18 @@ class IDFFile(OrderedDict):
             idd_field = field
         units = idd_field.tags.get('units')
 
+        # Check for special cases where units are based on another field
+        if units:
+            if units.startswith('BasedOnField'):
+                based_on_field_key = units.split()[-1]
+                based_on_field = self.idd.field(field.obj_class, based_on_field_key)
+
+                # Use these results to find the actual units to use
+                actual_units = UNIT_TYPES.get(based_on_field.value)
+
+                if actual_units:
+                    units = actual_units
+
         # If SI units are requested, return now (SI is always the default)
         if self.si_units is True:
             return units
