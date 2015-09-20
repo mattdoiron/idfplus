@@ -373,13 +373,9 @@ class IDFPlus(QtGui.QMainWindow, gui.UIMainWindow):
 
         self.idf.si_units = not self.idf.si_units
 
-        if self.idf.si_units is not True:
-            self.idf.options.append('ViewInIPunits')
-        else:
-            try:
-                self.idf.options.remove('ViewInIPunits')
-            except ValueError:
-                pass
+        if self.prefs['save_units'] == 1:
+            save_units = 'ViewInIPunits' if self.idf.si_units is False else ''
+            self.idf.set_options({'save_units': save_units})
 
         # Refresh the view
         self.load_table_view(self.current_obj_class)
@@ -808,13 +804,9 @@ class IDFPlus(QtGui.QMainWindow, gui.UIMainWindow):
         current = tree.currentIndex()
         current_persistent = QtCore.QPersistentModelIndex(current)
 
-        if self.fullTree is not True:
-            self.idf.options.append('HideEmptyClasses')
-        else:
-            try:
-                self.idf.options.remove('HideEmptyClasses')
-            except ValueError:
-                pass
+        if self.prefs['save_hidden_classes'] == 1:
+            save_hidden = 'HideEmptyClasses' if self.fullTree is False else ''
+            self.idf.set_options({'save_hidden_classes': save_hidden})
 
         tree_model = self.classTree.model()
         if tree_model:
@@ -833,6 +825,9 @@ class IDFPlus(QtGui.QMainWindow, gui.UIMainWindow):
         """
 
         # TODO instantiate TransposeProxyModel and IDFObjectTableModel elsewhere?
+
+        if not self.idf:
+            return
 
         # Save the previous selection to potential re-apply. Save in terms of source
         selection_model = self.classTable.selectionModel()

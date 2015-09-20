@@ -106,6 +106,8 @@ class Settings(dict):
         self['sort_order'] = settings.value("sort_order", "SortedOrder")
         self['special_formatting'] = settings.value("special_formatting", "UseSpecialFormat)")
         self['format_behaviour'] = int(settings.value("format_behaviour", 1))
+        self['save_units'] = int(settings.value("save_units", 0))
+        self['save_hidden_classes'] = int(settings.value("save_hidden_classes", 0))
         settings.endGroup()
         self.update_log_level()
 
@@ -147,6 +149,8 @@ class Settings(dict):
         settings.setValue("sort_order", self['sort_order'])
         settings.setValue("special_formatting", self['special_formatting'])
         settings.setValue("format_behaviour", self['format_behaviour'])
+        settings.setValue("save_units", self['save_units'])
+        settings.setValue("save_hidden_classes", self['save_hidden_classes'])
         settings.endGroup()
         self.update_log_level()
 

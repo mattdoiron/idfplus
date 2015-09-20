@@ -160,6 +160,10 @@ UNIT_TYPES = {
     'Control': 'Control',
     'Mode': 'Mode'
 }
+ALLOWED_OPTIONS = {'sort_order': ['SortedOrder', 'OriginalOrderTop', 'OriginalOrderBottom'],
+                   'special_formatting': ['UseSpecialFormat'],
+                   'save_units': ['ViewInIPunits'],  # Yes, the u is lower case!
+                   'save_hidden_classes': ['HideEmptyClasses']}
 
 
 class IDDError(Exception):

@@ -611,10 +611,27 @@ class UIMainWindow(object):
 
         dlg = PrefsDialog(self, self.prefs)
         if dlg.exec_():
-            result = dlg.prefs
+            # Refresh the table view to take into account any new prefs
             self.load_table_view(self.current_obj_class)
-        if self.prefs.get('clear_idd_cache', False) == True:
-            self.clear_idd_cache()
+
+            # Clear the idd cache if requested
+            if self.prefs.get('clear_idd_cache', False) == True:
+                self.clear_idd_cache()
+
+            # Update preferences if various flags apply
+            if not self.idf:
+                return
+            options_dict = dict()
+            if self.prefs.get('apply_default_save_behaviour', False) == True:
+                options_dict.update({'sort_order': self.prefs.get('sort_order'),
+                                     'special_formatting': self.prefs.get('special_formatting')})
+            # if self.prefs.get('apply_default_units_behaviour', False) == True:
+            #     options_dict.update({'save_units': self.prefs.get('save_units')})
+            # if self.prefs.get('apply_default_hidden_class_behaviour', False) == True:
+            #     options_dict.update({'save_hidden_classes': self.prefs.get('save_hidden_classes')})
+            if options_dict:
+                self.idf.set_options(options_dict)
+                self.set_dirty(True)
 
 
 class PrefsDialog(QtGui.QDialog):
@@ -734,7 +751,6 @@ class SaveTab(QtGui.QWidget):
 
         apply_defaults_button = QtGui.QPushButton("Apply defaults to current file")
         apply_defaults_button.setMaximumWidth(225)
-        apply_defaults_button.setEnabled(False)
         apply_defaults_button.clicked.connect(self.apply_defaults)
 
         save_group_box = QtGui.QGroupBox("Default Save Options")
@@ -782,11 +798,30 @@ class SaveTab(QtGui.QWidget):
         self.behaviour_button_group.button(self.prefs['format_behaviour']).setChecked(True)
         self.behaviour_button_group.buttonClicked.connect(self.set_behaviour)
 
+        # Save additional options code
+        self.save_units_check = QtGui.QCheckBox('Units to display by default (SI vs IP)', self)
+        checked_header = QtCore.Qt.Checked if self.prefs['save_units'] == 1 else QtCore.Qt.Unchecked
+        self.save_units_check.setCheckState(checked_header)
+        self.save_units_check.stateChanged.connect(self.update)
+        self.save_hidden_classes_check = QtGui.QCheckBox('Whether empty classes are hidden', self)
+        checked_cells = QtCore.Qt.Checked if self.prefs['save_hidden_classes'] == 1 else QtCore.Qt.Unchecked
+        self.save_hidden_classes_check.setCheckState(checked_cells)
+        self.save_hidden_classes_check.stateChanged.connect(self.update)
+
+        save_additional_group_box = QtGui.QGroupBox("Save Additional Options in IDF File")
+        save_additional_box = QtGui.QVBoxLayout()
+        save_additional_box.addWidget(self.save_units_check)
+        save_additional_box.addWidget(self.save_hidden_classes_check)
+        save_additional_box.addStretch(1)
+        save_additional_group_box.setLayout(save_additional_box)
+
         # Main layout code
         main_layout = QtGui.QVBoxLayout()
         main_layout.addWidget(save_group_box)
         main_layout.addSpacing(15)
         main_layout.addWidget(behaviour_group_box)
+        main_layout.addSpacing(15)
+        main_layout.addWidget(save_additional_group_box)
         main_layout.addStretch(1)
         self.setLayout(main_layout)
 
@@ -805,10 +840,15 @@ class SaveTab(QtGui.QWidget):
         self.prefs['format'] = to_save
 
     def apply_defaults(self):
-        pass
+        self.prefs['apply_default_save_behaviour'] = True
 
     def set_behaviour(self):
         self.prefs['format_behaviour'] = self.behaviour_button_group.checkedId()
+
+    def update(self):
+        self.prefs['save_units'] = 1 if self.save_units_check.checkState() else 0
+        self.prefs['save_hidden_classes'] = 1 if self.save_hidden_classes_check.checkState() else 0
+
 
 class AdvancedTab(QtGui.QWidget):
     def __init__(self, parent):

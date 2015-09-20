@@ -27,7 +27,7 @@ from persistent.list import PersistentList
 # Package imports
 from . import refmodel
 from . import config
-from eplusio.iddmodel import UNITS_REGISTRY, UNIT_TYPES
+from eplusio.iddmodel import UNITS_REGISTRY, UNIT_TYPES, ALLOWED_OPTIONS
 
 # Investigate as replacement for large lists
 # https://pypi.python.org/pypi/blist
@@ -453,6 +453,30 @@ class IDFFile(OrderedDict):
             data = field.value
 
         return data
+
+    def set_options(self, options):
+        """Sets the specified options in this idf's options field
+
+        :param options: Dictionary of options to set
+        :type options: dict
+        """
+
+        for option, value in options.iteritems():
+
+            if value in ALLOWED_OPTIONS[option] or value == '':
+                # Remove all options of this type
+                for opt in ALLOWED_OPTIONS[option]:
+                    try:
+                        self.options.pop(self.options.index(opt))
+                    except (TypeError, ValueError):
+                        continue
+
+                # Replace with only the one we want (or not if the value is empty)
+                if value:
+                    self.options.append(value)
+
+            else:
+                raise ValueError('Invalid option for {}!'.format(option))
 
 
 class IDFObject(list):
