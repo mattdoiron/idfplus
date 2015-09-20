@@ -19,7 +19,7 @@ along with IDF+. If not, see <http://www.gnu.org/licenses/>.
 
 # Package imports
 from odict.pyodict import _odict
-from persistent.list import PersistentList
+# from persistent.list import PersistentList
 from persistent.mapping import PersistentMapping
 
 # Unit Registry
@@ -266,7 +266,7 @@ class IDDFile(PODict):
         :param obj_class:
         """
 
-        return self.get(obj_class, PersistentList())
+        return self.get(obj_class, dict())
 
     def valid_class(self, obj_class):
         """Returns True if provided class is valid

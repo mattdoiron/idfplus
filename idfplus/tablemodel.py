@@ -417,7 +417,8 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
         obj_count = len(self.idf_objects)
         obj_id_labels = ['Obj{}'.format(i) for i in range(1, obj_count + 1)]
 
-        for field in self.idd_object.itervalues():
+        for key in self.idd_object._ordered_fields:
+            field = self.idd_object[key]
             field_desc = field.tags.get('field', '')
             if self.config['show_units_in_headers']:
                 units = self.idf.units(field)
