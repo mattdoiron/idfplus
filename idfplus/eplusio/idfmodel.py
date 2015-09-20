@@ -225,7 +225,7 @@ class IDFFile(OrderedDict):
 
         # Set insert point to 'position' or end of list
         if position is None:
-            position = -1
+            position = len(self[obj_class])
 
         # If there are no objects to add, make a new blank one
         if not new_objects or (len(new_objects) == 1 and new_objects[0] is None):
