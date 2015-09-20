@@ -860,17 +860,21 @@ class AdvancedTab(QtGui.QWidget):
         self.log_edit = QtGui.QComboBox(self)
         self.log_edit.addItems(['INFO', 'DEBUG', 'WARNING'])
         self.log_edit.setCurrentIndex(self.log_edit.findText(self.prefs['log_level']))
-        self.log_edit.currentIndexChanged.connect(self.update)
+        self.log_edit.currentIndexChanged.connect(self.log_level)
         self.log_edit.setMaximumWidth(100)
 
         clear_idd_label = QtGui.QLabel("Clear pre-processed IDD cache:")
         self.clear_idd_button = QtGui.QPushButton("Clear IDD cache")
         self.clear_idd_button.setMaximumWidth(200)
         self.clear_idd_button.clicked.connect(self.clear_idd_cache)
-        self.checked_clear_checkbox = QtGui.QCheckBox('Cache will be cleared', self)
-        self.checked_clear_checkbox.setDisabled(True)
-        self.checked_clear_checkbox.setCheckState(QtCore.Qt.Unchecked)
-        self.checked_clear_checkbox.setHidden(True)
+        clear_text = QtGui.QLabel("This will delete the pre-processed IDD files and force "
+                                  "IDF+ to reprocess them the next time they are required. "
+                                  "This should happen automatically when required, but if "
+                                  "there are problems after updating to a new version of "
+                                  "IDF+, it can sometimes help to force it here.")
+        clear_text.setWordWrap(True)
+        clear_text.setMaximumWidth(350)
+        clear_text.setMinimumHeight(40)
 
         main_layout = QtGui.QVBoxLayout()
         main_layout.addWidget(log_label)
@@ -878,13 +882,12 @@ class AdvancedTab(QtGui.QWidget):
         main_layout.addSpacing(15)
         main_layout.addWidget(clear_idd_label)
         main_layout.addWidget(self.clear_idd_button)
-        main_layout.addWidget(self.checked_clear_checkbox)
+        main_layout.addWidget(clear_text)
         main_layout.addStretch(1)
         self.setLayout(main_layout)
 
-    def update(self):
+    def log_level(self):
         self.prefs['log_level'] = self.log_edit.currentText()
 
     def clear_idd_cache(self):
-        self.checked_clear_checkbox.setCheckState(QtCore.Qt.Checked)
         self.prefs['clear_idd_cache'] = True
