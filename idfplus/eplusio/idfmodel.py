@@ -27,7 +27,7 @@ from persistent.list import PersistentList
 # Package imports
 from . import refmodel
 from . import config
-from eplusio.iddmodel import UNITS_REGISTRY, UNIT_TYPES, ALLOWED_OPTIONS
+from .iddmodel import UNITS_REGISTRY, UNIT_TYPES, ALLOWED_OPTIONS
 
 # Investigate as replacement for large lists
 # https://pypi.python.org/pypi/blist
