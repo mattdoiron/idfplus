@@ -22,7 +22,6 @@ import uuid
 import copy
 import networkx as nx
 from collections import OrderedDict
-from persistent.list import PersistentList
 
 # Package imports
 from . import refmodel
@@ -190,7 +189,7 @@ class IDFFile(OrderedDict):
         :param obj_class:
         """
 
-        return self.get(obj_class, PersistentList())
+        return self.get(obj_class, list())
 
     def get_objects(self, key, index, count=None):
         """Returns the specified object.
