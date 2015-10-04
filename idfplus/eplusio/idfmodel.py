@@ -477,6 +477,14 @@ class IDFFile(OrderedDict):
             else:
                 raise ValueError('Invalid option for {}!'.format(option))
 
+    def iter_ordered(self):
+
+        # TODO save order of object as they are being parsed then create a list of objects
+        # according to the sorted list of the objects. Then yield the items here in order.
+        # for obj_class in self._idd.iterkeys():
+        #     yield obj_class, self.idf_objects(obj_class)
+        pass
+
 
 class IDFObject(list):
     """Represents objects in idf files.

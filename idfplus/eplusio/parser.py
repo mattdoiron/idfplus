@@ -117,7 +117,12 @@ class Writer(object):
                 idf_file.write("!-      Use '!' comments if they need to be retained "
                                "when using the IDFEditor.{}".format(eol_char))
 
-                for obj_class, obj_list in idf.iteritems():
+                if 'OriginalOrderTop' in idf.options or 'OriginalOrderBottom' in idf.options:
+                    idf_items = idf.iteritems()
+                else:
+                    idf_items = idf.iteritems()  # idf.iter_ordered() (not implemented)
+
+                for obj_class, obj_list in idf_items:
 
                     for obj in obj_list:
                         # Write special comments if there are any
@@ -170,6 +175,7 @@ class Writer(object):
 
             log.info('File written!')
             return True
+
         except IOError as e:
             log.debug('File not written! Exception!' + str(e.strerror))
             return False

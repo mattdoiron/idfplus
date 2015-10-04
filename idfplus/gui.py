@@ -764,6 +764,7 @@ class SaveTab(QtGui.QWidget):
         save_box.addWidget(apply_defaults_button)
         save_box.addStretch(1)
         save_group_box.setLayout(save_box)
+        save_group_box.setEnabled(False)
 
         # Behaviour code
         button_force = QtGui.QRadioButton("Force Defaults:", self)
@@ -789,6 +790,7 @@ class SaveTab(QtGui.QWidget):
         behaviour_box.addWidget(obey_text)
         behaviour_box.addStretch(1)
         behaviour_group_box.setLayout(behaviour_box)
+        behaviour_group_box.setEnabled(False)
 
         self.behaviour_button_group = QtGui.QButtonGroup(self)
         self.behaviour_button_group.addButton(button_force)
