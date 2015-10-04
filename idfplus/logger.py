@@ -58,6 +58,7 @@ def setup_logging(_level, name, log_path):
     log.setLevel(level)
     log.addHandler(file_handler)
     log.addHandler(stream_handler)
+    log.addHandler(logging.NullHandler())
 
     return log
 
