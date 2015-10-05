@@ -104,7 +104,7 @@ class Settings(dict):
         settings.beginGroup("Global")
         self['log_level'] = settings.value("log_level", 'DEBUG')
         self['sort_order'] = settings.value("sort_order", "SortedOrder")
-        self['special_formatting'] = settings.value("special_formatting", "UseSpecialFormat)")
+        self['special_formatting'] = settings.value("special_formatting", "UseSpecialFormat")
         self['format_behaviour'] = int(settings.value("format_behaviour", 1))
         self['save_units'] = int(settings.value("save_units", 0))
         self['save_hidden_classes'] = int(settings.value("save_hidden_classes", 0))
