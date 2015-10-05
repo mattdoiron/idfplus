@@ -34,7 +34,7 @@ from . import delegates
 from . import tablemodel
 from . import commands
 from . import treemodel
-from . import gui
+from . import gui_main
 from . import setupwiz
 from . import config
 from . import logger
@@ -50,7 +50,7 @@ log.info('----==== Launching IDF+ ====----')
 from . import icons_rc
 
 
-class IDFPlus(QtGui.QMainWindow, gui.UIMainWindow):
+class IDFPlus(QtGui.QMainWindow, gui_main.UIMainWindow):
     """Main GUI window for IDFPlus program.
     """
 
