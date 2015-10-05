@@ -736,7 +736,7 @@ class IDFParser(Parser):
                         log.debug("IDD version loaded: {}".format(self.idd.version))
 
                 # If this is the end of an object save it
-                if end_object and empty_line:
+                if end_object:  # and empty_line:
 
                     # The first field is the object class name
                     obj_class = field_list.pop(0)
