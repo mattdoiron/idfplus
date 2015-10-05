@@ -35,7 +35,7 @@ from . import tablemodel
 from . import commands
 from . import treemodel
 from . import gui_main
-from . import setupwiz
+from . import gui_setupwiz
 from . import config
 from . import logger
 from eplusio import idfmodel
@@ -229,7 +229,7 @@ class IDFPlus(QtGui.QMainWindow, gui_main.UIMainWindow):
         :return: :bool:
         """
 
-        wizard = setupwiz.SetupWizard(self, version, message)
+        wizard = gui_setupwiz.SetupWizard(self, version, message)
         try:
             if wizard.exec_():
                 self.load_idf(file_path)
