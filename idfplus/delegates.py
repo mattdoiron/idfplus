@@ -331,7 +331,9 @@ class ChoiceDelegate(QtGui.QStyledItemDelegate):
         value = index.data(QtCore.Qt.EditRole)
         combo_index = editor.findText(value)
         if combo_index >= 0:
+            editor.blockSignals(True)
             editor.setCurrentIndex(combo_index)
+            editor.blockSignals(False)
 
     def setModelData(self, editor, model, index):
         """Create undo command and push it to the undo stack
