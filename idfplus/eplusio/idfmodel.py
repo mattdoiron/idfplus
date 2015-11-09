@@ -566,6 +566,13 @@ class IDFObject(list):
 
         return result
 
+    def __str__(self):
+        """String representation of the object.
+        """
+
+        fields = [field.value for field in self]
+        return self._obj_class + ',' + ','.join(fields) + ';'
+
     @property
     def obj_class(self):
         """Read-only property containing idf object's class type
