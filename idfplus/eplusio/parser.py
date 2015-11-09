@@ -681,6 +681,7 @@ class IDFParser(Parser):
         eol_char = os.linesep
         log.info('Parsing IDF file: {} ({} bytes)'.format(file_path,
                                                           total_size))
+        ix_writer = self.idf.index.writer()
 
         # Open the specified file in a safe way
         with codecs.open(file_path, 'r',
@@ -768,6 +769,9 @@ class IDFParser(Parser):
 
                         # Add the field to the object
                         idf_object.add_field(new_field, tags)
+                        ix_writer.add_document(uuid=unicode(new_field.uuid),
+                                               obj_class=unicode(obj_class),
+                                               value=unicode(field_value))
 
                     # Save the parsed variables in the idf_object
                     idf_object.set_class(obj_class)
@@ -801,4 +805,5 @@ class IDFParser(Parser):
         for progress in self.idf._references.connect_references():
             yield progress
 
+        ix_writer.commit()
         log.info('Parsing IDF complete!')
