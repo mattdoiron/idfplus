@@ -115,6 +115,9 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
                 else:
                     text_units = ''
                     spacing = ''
+                if not field.value:
+                    text_units = ''
+                    spacing = ''
                 if self.idf.si_units is True:
                     data = '{}{}{}'.format(field.value, spacing, text_units)
                 else:
