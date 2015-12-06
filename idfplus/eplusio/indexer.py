@@ -21,7 +21,7 @@ along with IDF+. If not, see <http://www.gnu.org/licenses/>.
 import sys
 import logging
 import multiprocessing as mp
-from whoosh.fields import Schema, TEXT, ID, KEYWORD
+from whoosh.fields import Schema, ID
 from whoosh import index
 from whoosh.writing import IndexingError
 from Queue import Empty

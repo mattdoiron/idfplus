@@ -151,7 +151,7 @@ class SearchReplaceDialog(QtGui.QDialog):
             ix = self.parent.idf.index.index
         else:
             return
-        user_query = self.search_text.text()
+        user_query = self.search_text.text().lower()
 
         if self.advanced_search_checkbox.isChecked():
             query = user_query

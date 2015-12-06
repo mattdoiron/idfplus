@@ -773,7 +773,8 @@ class IDFParser(Parser):
                         # Add the field to the index
                         document = {'uuid': unicode(new_field.uuid),
                                     'obj_class': unicode(obj_class),
-                                    'value': unicode(field_value)}
+                                    'value': unicode(field_value.lower()),
+                                    '_stored_value': unicode(field_value)}
                         index.add_document(document)
 
                     # Save the parsed variables in the idf_object
