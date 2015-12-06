@@ -589,6 +589,7 @@ class UIMainWindow(object):
         menu.addSeparator()
         menu.addAction(self.findSimilarAct)
         menu.popup(self.classTable.viewport().mapToGlobal(position))
+        self.mouse_position = position
 
     def create_progress_bar(self):
 
@@ -657,6 +658,8 @@ class UIMainWindow(object):
         """Searches for fields with similar content.
         """
 
-        dlg = SearchReplaceDialog(self, self.prefs, initial_query='RG01')
+        index = self.classTable.indexAt(self.mouse_position)
+        text = self.classTable.model().data(index, QtCore.Qt.EditRole)
+        dlg = SearchReplaceDialog(self, self.prefs, initial_query=text)
         if dlg.exec_():
             pass
