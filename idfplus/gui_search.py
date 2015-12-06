@@ -206,9 +206,11 @@ class SearchReplaceDialog(QtGui.QDialog):
         if self.advanced_search_checkbox.isChecked():
             self.replace_button.setEnabled(False)
             self.replace_with_text.setEnabled(False)
+            self.whole_field_checkbox.setEnabled(False)
         else:
             self.replace_button.setEnabled(True)
             self.replace_with_text.setEnabled(True)
+            self.whole_field_checkbox.setEnabled(True)
 
     def replace_button_clicked(self):
         if self.advanced_search_checkbox.isChecked():
