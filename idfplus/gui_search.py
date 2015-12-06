@@ -38,9 +38,9 @@ class SearchReplaceDialog(QtGui.QDialog):
 
         self.parent = parent
 
-        self.search_text = QtGui.QLineEdit()
-        self.search_text.setPlaceholderText("Enter search query here")
         self.search_button = QtGui.QPushButton('Search')
+        self.search_text = MySearchField(self.search_button)
+        self.search_text.setPlaceholderText("Enter search query here")
         self.search_button.clicked.connect(self.search_button_clicked)
         input_layout = QtGui.QHBoxLayout()
         input_layout.addWidget(self.search_text)
@@ -231,3 +231,22 @@ class SearchReplaceDialog(QtGui.QDialog):
             else:
                 field.value = field.value.replace(self.search_text.text(),
                                                   self.replace_with_text.text())
+
+
+class MySearchField(QtGui.QLineEdit):
+    """Subclass of QLineEdit used to allow submitting search with return/enter keys.
+    """
+
+    def __init__(self, search_button):
+        super(MySearchField, self).__init__()
+        self.search_button = search_button
+
+    def keyPressEvent(self, event):
+        """Overrides Qt key press method to filter return or enter keys.
+
+        :param event:
+        """
+        if event.key() == QtCore.Qt.Key_Return or event.key() == QtCore.Qt.Key_Enter:
+            self.search_button.click()
+        else:
+            super(MySearchField, self).keyPressEvent(event)
