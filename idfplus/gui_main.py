@@ -391,6 +391,7 @@ class UIMainWindow(object):
                 triggered=self.show_prefs_dialog)
 
         self.showSearchAction = QtGui.QAction("&Search && Replace", self,
+                shortcut=QtGui.QKeySequence('Ctrl+f'),
                 triggered=self.show_search_dialog)
 
         self.findSimilarAct = QtGui.QAction("Find Similar", self,
@@ -459,13 +460,13 @@ class UIMainWindow(object):
         self.editMenu.addSeparator().setText('Values')
         self.editMenu.addAction(self.copyAct)
         self.editMenu.addAction(self.pasteAct)
+        self.editMenu.addSeparator()
+        self.editMenu.addAction(self.showSearchAction)
 
         # Tools Menu
         self.toolsMenu = self.menuBar().addMenu("&Tools")
         self.toolsMenu.addAction(self.showInFolderAct)
         self.toolsMenu.addAction(self.openInEditorAct)
-        self.toolsMenu.addSeparator()
-        self.toolsMenu.addAction(self.showSearchAction)
         self.toolsMenu.addSeparator()
         self.toolsMenu.addAction(self.showPrefsAction)
 
