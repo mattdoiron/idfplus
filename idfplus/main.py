@@ -1048,3 +1048,8 @@ class IDFPlus(QtGui.QMainWindow, gui_main.UIMainWindow):
         except OSError as e:
             if e.errno != errno.ENOENT:
                 raise
+
+    def clean_up_at_exit(self):
+        log.info('Exiting and performing cleanup.')
+        if self.idf:
+            self.idf.index.stop_worker()

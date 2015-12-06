@@ -22,12 +22,11 @@ import uuid
 import copy
 import networkx as nx
 from collections import OrderedDict
-from whoosh.fields import Schema, TEXT, ID
-from whoosh.filedb.filestore import RamStorage
 
 # Package imports
 from . import refmodel
 from . import config
+from . import indexer
 from .iddmodel import UNITS_REGISTRY, UNIT_TYPES, ALLOWED_OPTIONS
 
 # Investigate as replacement for large lists
@@ -78,7 +77,8 @@ class IDFFile(OrderedDict):
         self.si_units = True
         self._uuid = str(uuid.uuid4())
         self._references = refmodel.ReferenceModel()
-        self._init_index()
+        self.index = indexer.IDFIndex('idf_index')
+        self.index.start_worker()
 
     def init_blank(self):
         """Sets up a blank idf file
@@ -96,15 +96,6 @@ class IDFFile(OrderedDict):
         version_field.value = config.DEFAULT_IDD_VERSION
         version_obj.append(version_field)
         self['Version'].append(version_obj)
-
-    def _init_index(self):
-        """Initializes the search index and its schema.
-        """
-
-        self.schema = Schema(uuid=ID(stored=True),
-                             obj_class=TEXT(stored=True),
-                             value=TEXT(stored=True))
-        self.index = RamStorage().create_index(self.schema)
 
     @property
     def version(self):
