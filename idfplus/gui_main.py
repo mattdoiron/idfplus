@@ -30,6 +30,7 @@ from . import tablemodel
 from . import treemodel
 from . import config
 from .gui_prefs import PrefsDialog
+from .gui_search import SearchReplaceDialog
 
 # Setup logging
 log = logging.getLogger(__name__)
@@ -389,6 +390,12 @@ class UIMainWindow(object):
         self.showPrefsAction = QtGui.QAction("&Preferences", self,
                 triggered=self.show_prefs_dialog)
 
+        self.showSearchAction = QtGui.QAction("&Search && Replace", self,
+                triggered=self.show_search_dialog)
+
+        self.findSimilarAct = QtGui.QAction("Find Similar", self,
+                triggered=self.find_similar)
+
         self.setIPUnitsAction = QtGui.QAction("&IP Units", self,
                 triggered=self.toggle_units, checkable=True)
 
@@ -457,6 +464,8 @@ class UIMainWindow(object):
         self.toolsMenu = self.menuBar().addMenu("&Tools")
         self.toolsMenu.addAction(self.showInFolderAct)
         self.toolsMenu.addAction(self.openInEditorAct)
+        self.toolsMenu.addSeparator()
+        self.toolsMenu.addAction(self.showSearchAction)
         self.toolsMenu.addSeparator()
         self.toolsMenu.addAction(self.showPrefsAction)
 
@@ -577,6 +586,8 @@ class UIMainWindow(object):
         menu.addAction(self.delObjAct)
         menu.addAction(self.newObjAct)
         menu.addAction(self.cutObjAct)
+        menu.addSeparator()
+        menu.addAction(self.findSimilarAct)
         menu.popup(self.classTable.viewport().mapToGlobal(position))
 
     def create_progress_bar(self):
@@ -633,3 +644,19 @@ class UIMainWindow(object):
             if options_dict:
                 self.idf.set_options(options_dict)
                 self.set_dirty(True)
+
+    def show_search_dialog(self):
+        """Opens the search dialog.
+        """
+
+        dlg = SearchReplaceDialog(self, self.prefs)
+        if dlg.exec_():
+            pass
+
+    def find_similar(self):
+        """Searches for fields with similar content.
+        """
+
+        dlg = SearchReplaceDialog(self, self.prefs, initial_query='RG01')
+        if dlg.exec_():
+            pass

@@ -488,6 +488,13 @@ class IDFFile(OrderedDict):
         #     yield obj_class, self.idf_objects(obj_class)
         pass
 
+    def field_by_uuid(self, field_uuid):
+
+        # print(field_uuid)
+        field = self._references._ref_graph.node[field_uuid]['data']
+        # print(field)
+        return field
+
 
 class IDFObject(list):
     """Represents objects in idf files.
