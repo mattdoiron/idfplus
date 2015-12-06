@@ -660,6 +660,7 @@ class UIMainWindow(object):
 
         index = self.classTable.indexAt(self.mouse_position)
         text = self.classTable.model().data(index, QtCore.Qt.EditRole)
-        dlg = SearchReplaceDialog(self, self.prefs, initial_query=text)
-        if dlg.exec_():
-            pass
+        if text:
+            dlg = SearchReplaceDialog(self, self.prefs, initial_query=text)
+            if dlg.exec_():
+                pass
