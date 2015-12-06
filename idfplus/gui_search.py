@@ -75,6 +75,7 @@ class SearchReplaceDialog(QtGui.QDialog):
         self.select_none_button.clicked.connect(self.select_none_clicked)
         self.select_invert_button.clicked.connect(self.select_invert_clicked)
         self.select_delete_button.clicked.connect(self.select_delete_clicked)
+        self.select_delete_button.setEnabled(False)
         selection_layout = QtGui.QHBoxLayout()
         selection_layout.addWidget(self.select_label)
         selection_layout.addWidget(self.select_all_button)
