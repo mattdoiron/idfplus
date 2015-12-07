@@ -221,6 +221,12 @@ class SearchReplaceDialog(QtGui.QDialog):
         model = self.results_tree.model()
         result_count = model.rowCount()
 
+        question = "Are you sure you want to perform this replacement?\n" \
+                   "Undo is currently NOT supported for this operation."
+        response = self.confirm_action(question)
+        if response is not True:
+            return
+
         for i in range(result_count):
             item_0 = model.itemFromIndex(model.index(i, 0))
             item_2 = model.itemFromIndex(model.index(i, 2))
@@ -235,6 +241,20 @@ class SearchReplaceDialog(QtGui.QDialog):
                 regex = re.compile(re.escape(search_text), re.IGNORECASE)
                 field.value = regex.sub(replace_with_text, field.value)
 
+    def confirm_action(self, question):
+        """Confirm user wants to perform action
+        """
+
+        flags = QtGui.QMessageBox.StandardButton.Yes
+        flags |= QtGui.QMessageBox.StandardButton.No
+        response = QtGui.QMessageBox.question(self, "Are you sure?", question, flags)
+
+        if response == QtGui.QMessageBox.Yes:
+            return True
+        elif QtGui.QMessageBox.No:
+            return False
+        else:
+            return False
 
 
 class MySearchField(QtGui.QLineEdit):
