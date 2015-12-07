@@ -147,12 +147,14 @@ class SearchReplaceDialog(QtGui.QDialog):
         return model
 
     def search_button_clicked(self):
+        user_query = self.search_text.text().lower()
+        if not user_query or len(user_query) < 2:
+            return
 
         if self.parent.idf:
             ix = self.parent.idf.index.index
         else:
             return
-        user_query = self.search_text.text().lower()
 
         if self.advanced_search_checkbox.isChecked():
             query = user_query
@@ -215,11 +217,11 @@ class SearchReplaceDialog(QtGui.QDialog):
             self.whole_field_checkbox.setEnabled(True)
 
     def replace_button_clicked(self):
-        if self.advanced_search_checkbox.isChecked():
+        advanced_mode = self.advanced_search_checkbox.isChecked()
+        search_text = self.search_text.text()
+        replace_with_text = self.replace_with_text.text()
+        if advanced_mode or not search_text or not replace_with_text:
             return
-
-        model = self.results_tree.model()
-        result_count = model.rowCount()
 
         question = "Are you sure you want to perform this replacement?\n" \
                    "Undo is currently NOT supported for this operation."
@@ -227,6 +229,8 @@ class SearchReplaceDialog(QtGui.QDialog):
         if response is not True:
             return
 
+        model = self.results_tree.model()
+        result_count = model.rowCount()
         for i in range(result_count):
             item_0 = model.itemFromIndex(model.index(i, 0))
             item_2 = model.itemFromIndex(model.index(i, 2))
@@ -234,10 +238,8 @@ class SearchReplaceDialog(QtGui.QDialog):
                 continue
             field = self.parent.idf.field_by_uuid(item_2.text())
             if self.whole_field_checkbox.isChecked():
-                field.value = self.replace_with_text.text()
+                field.value = replace_with_text
             else:
-                search_text = self.search_text.text()
-                replace_with_text = self.replace_with_text.text()
                 regex = re.compile(re.escape(search_text), re.IGNORECASE)
                 field.value = regex.sub(replace_with_text, field.value)
 
