@@ -19,6 +19,7 @@ along with IDF+. If not, see <http://www.gnu.org/licenses/>.
 
 # System imports
 import logging
+import re
 from whoosh.qparser import QueryParser
 
 # PySide imports
@@ -227,10 +228,13 @@ class SearchReplaceDialog(QtGui.QDialog):
                 continue
             field = self.parent.idf.field_by_uuid(item_2.text())
             if self.whole_field_checkbox.isChecked():
-                field.value = self.replace_with_text
+                field.value = self.replace_with_text.text()
             else:
-                field.value = field.value.replace(self.search_text.text(),
-                                                  self.replace_with_text.text())
+                search_text = self.search_text.text()
+                replace_with_text = self.replace_with_text.text()
+                regex = re.compile(re.escape(search_text), re.IGNORECASE)
+                field.value = regex.sub(replace_with_text, field.value)
+
 
 
 class MySearchField(QtGui.QLineEdit):
