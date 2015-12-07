@@ -62,8 +62,9 @@ class ReferenceModel(object):
         tag_set = set(idd_obj_tags)
         ref_set = {'object-list', 'reference'}
 
-        if (field and len(tag_set & ref_set) <= 0) or not field:
-            return
+        # We now want to add ALL fields
+        # if (field and len(tag_set & ref_set) <= 0) or not field:
+        #     return
 
         # print('add_field called for field: {}'.format(len(tag_set & ref_set)))
         # print('tag set: {}'.format(tag_set))
