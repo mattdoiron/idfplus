@@ -241,6 +241,8 @@ class SearchReplaceDialog(QtGui.QDialog):
                 regex = re.compile(re.escape(search_text), re.IGNORECASE)
                 field.value = regex.sub(replace_with_text, field.value)
 
+        QtGui.QMessageBox.information(self, "Replacement", "Replacement Complete!")
+
     def confirm_action(self, question):
         """Confirm user wants to perform action
         """
