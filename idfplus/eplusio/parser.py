@@ -430,6 +430,7 @@ class IDDParser(Parser):
             group_list = list()
             conversions = list()
             end_object = False
+            object_list_length = 0
             idd_object = iddmodel.IDDObject(idd)
 
             # Cycle through each line in the file (yes, use while!)
@@ -534,11 +535,13 @@ class IDDParser(Parser):
                                         object_lists[tag].add(obj_class)
                                     except KeyError:
                                         object_lists[tag] = {obj_class}
+                                    object_list_length += 1
                             else:
                                 try:
                                     object_lists[tags['reference']].add(obj_class)
                                 except KeyError:
                                     object_lists[tags['reference']] = {obj_class}
+                                object_list_length += 1
 
                         idd_object[field_key] = new_field
 
@@ -584,6 +587,7 @@ class IDDParser(Parser):
             idd._conversions = conversions
             idd._groups = group_list
             idd._tree_model = None
+            idd._object_list_length = object_list_length
 
         # Save changes
         file_name = config.IDD_FILE_NAME_ROOT.format(version)
@@ -676,12 +680,12 @@ class IDFParser(Parser):
         """
 
         self.idf.file_path = file_path
+        writer = self.idf.index.writer()
         total_size = os.path.getsize(file_path)
         total_read = 0
         eol_char = os.linesep
         log.info('Parsing IDF file: {} ({} bytes)'.format(file_path,
                                                           total_size))
-        index = self.idf.index
 
         # Open the specified file in a safe way
         with codecs.open(file_path, 'r',
@@ -771,11 +775,10 @@ class IDFParser(Parser):
                         idf_object.add_field(new_field, tags)
 
                         # Add the field to the index
-                        document = {'uuid': unicode(new_field.uuid),
-                                    'obj_class': unicode(obj_class),
-                                    'value': unicode(field_value.lower()),
-                                    '_stored_value': unicode(field_value)}
-                        index.add_document(document)
+                        writer.add_document(uuid=unicode(new_field.uuid),
+                                            obj_class=unicode(obj_class),
+                                            value=unicode(field_value.lower()),
+                                            _stored_value=unicode(field_value))
 
                     # Save the parsed variables in the idf_object
                     idf_object.set_class(obj_class)
@@ -805,9 +808,11 @@ class IDFParser(Parser):
                 # yield the current progress for progress bars
                 yield math.ceil(100 * 0.5 * total_read / total_size)
 
+        # Commit changes to the index
+        writer.commit()
+
         # Now that required nodes have been created, connect them as needed
         for progress in self.idf._references.connect_references():
             yield progress
 
-        index.commit()
         log.info('Parsing IDF complete!')

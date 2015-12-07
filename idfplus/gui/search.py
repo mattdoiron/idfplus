@@ -156,7 +156,7 @@ class SearchReplaceDialog(QtGui.QDialog):
             return
 
         if self.parent.idf:
-            ix = self.parent.idf.index.index
+            ix = self.parent.idf.index
         else:
             return
 

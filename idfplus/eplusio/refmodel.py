@@ -18,18 +18,22 @@ along with IDF+. If not, see <http://www.gnu.org/licenses/>.
 """
 
 # System imports
+import logging
 import networkx as nx
 import math
+from whoosh.qparser import QueryParser
+
+# Setup logging
+log = logging.getLogger(__name__)
 
 
 class ReferenceModel(object):
     """Wrapper around a dictionary and DiGraph that stores object references.
     """
 
-    def __init__(self):
+    def __init__(self, outer):
         self._ref_graph = nx.DiGraph()
-        self._ref_lists = dict()
-        # self._outer = None
+        self._idf = outer
         self._idd = None
 
     def set_idd(self, idd):
@@ -37,7 +41,6 @@ class ReferenceModel(object):
         """
 
         self._idd = idd
-        self._populate_ref_list()
 
     def _populate_ref_list(self):
         """Populates the reference list using the idf file
@@ -242,32 +245,42 @@ class ReferenceModel(object):
         # print('--------')
 
     def connect_references(self):
-        """Processes the reference graph to connect its nodes.
+        """Processes the entire reference graph to connect its nodes. Yield progress.
         """
 
-        node_count = self._ref_graph.number_of_nodes()
+        index = self._idf.index
+        parser = QueryParser("value", index.schema)
+        obj_list_length = self._idd.object_list_length
+        ref_set = {'object-list', 'reference'}
+        k = 0
 
-        # Cycle through only nodes to avoid cycling through all objects
-        for k, node in enumerate(self._ref_graph.nodes_iter(data=True)):
+        # Open the searcher
+        with index.searcher() as searcher:
 
-            try:
-                field = node[1]['data']
-                object_list_name = field.tags['object-list']
+            # Loop through all object classes in the object-lists
+            for object_list_name, object_list_set in self._idd.object_lists.iteritems():
+                object_list = list(object_list_set)
 
-                # Ensure we have a list to simplify later operations
-                if not isinstance(object_list_name, list):
-                    object_list_name = [field.tags['object-list']]
+                # Loop through all classes in this object-list
+                for object_class in object_list:
+                    idd_object = self._idd.get(object_class)
 
-                # Cycle through all class names in the object lists
-                for cls_list in object_list_name:
-                    ref_node = self._ref_lists[cls_list][field.value]
-                    for ref_uuid, ref in ref_node:
-                        self._ref_graph.add_edge(field._uuid,
-                                                 ref_uuid,
-                                                 obj_list=object_list_name)
-                    yield math.ceil(50 + (100 * 0.5 * (k+1) / node_count))
+                    # Loop through all objects in this class
+                    for obj in self._idf.get(object_class, []):
 
-            except (IndexError, KeyError) as e:
-                continue
+                        # Loop through all fields in this object
+                        for i, field in enumerate(obj):
+                            key = idd_object.key(i)
+                            idd_obj_tags = set(idd_object[key].tags)
 
-            yield math.ceil(50 + (100 * 0.5 * (k+1) / node_count))
+                            # If this field is a reference-type then connect nodes
+                            if field and len(idd_obj_tags & ref_set) > 0:
+                                my_query = parser.parse('"{}"'.format(field.value.lower()))
+                                results = searcher.search(my_query, limit=None)
+
+                                for hit in results:
+                                    self._ref_graph.add_edge(field.uuid, hit['uuid'],
+                                                             obj_list=object_list)
+
+                    yield math.ceil(50 + (100 * 0.5 * (k+1) / obj_list_length))
+                    k += 1

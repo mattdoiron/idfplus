@@ -218,6 +218,7 @@ class IDDFile(PODict):
         self.options = list()
         self.tags = dict()
         self.object_lists = dict()
+        self._object_list_length = 0
         self._ureg = UNITS_REGISTRY
 
         # Call the parent class' init method
@@ -263,6 +264,13 @@ class IDDFile(PODict):
         """
 
         return self._conversions
+
+    @property
+    def object_list_length(self):
+        """Read-only property containing length of the nested object_lists variable.
+        """
+
+        return self._object_list_length
 
     def idd_object(self, obj_class):
         """Returns the specified object class.

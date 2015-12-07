@@ -22,7 +22,6 @@ from __future__ import (print_function, division, absolute_import)
 
 # Standard library imports
 import sys
-from multiprocessing import freeze_support
 
 # PySide imports
 from PySide import QtGui
@@ -43,9 +42,7 @@ def main():
     # Create the main window and show it
     idf_plus_window = IDFPlus()
     idf_plus_window.show()
-    app.aboutToQuit.connect(idf_plus_window.clean_up_at_exit)
     sys.exit(app.exec_())
 
 if __name__ == '__main__':
-    freeze_support()
     main()
