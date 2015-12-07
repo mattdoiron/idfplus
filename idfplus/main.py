@@ -483,6 +483,9 @@ class IDFPlus(QtGui.QMainWindow, gui_main.UIMainWindow):
         if not index.isValid():
             return
         field = self.refView.model().get_field(index)
+        self.jump_to_field(field)
+
+    def jump_to_field(self, field):
         obj_class, obj_index, field_index = field.field_id
 
         # Get the tree selection model and model

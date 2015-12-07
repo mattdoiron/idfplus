@@ -53,6 +53,7 @@ class SearchReplaceDialog(QtGui.QDialog):
         self.results_tree.setAllColumnsShowFocus(True)
         self.results_tree.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
         self.results_tree.setSelectionMode(QtGui.QAbstractItemView.SingleSelection)
+        self.results_tree.doubleClicked.connect(self.results_double_clicked)
 
         self.whole_field_checkbox = QtGui.QCheckBox("Whole Field Only", self)
         self.advanced_search_checkbox = QtGui.QCheckBox("Advanced Search", self)
@@ -262,6 +263,14 @@ class SearchReplaceDialog(QtGui.QDialog):
             return False
         else:
             return False
+
+    def results_double_clicked(self, index):
+
+        model = self.results_tree.model()
+        item = model.itemFromIndex(model.index(index.row(), 2))
+        field = self.parent.idf.field_by_uuid(item.text())
+        self.parent.activateWindow()
+        self.parent.jump_to_field(field)
 
 
 class MySearchField(QtGui.QLineEdit):
