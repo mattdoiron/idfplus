@@ -50,6 +50,9 @@ class SearchReplaceDialog(QtGui.QDialog):
         self.results_tree = QtGui.QTreeView()
         self.results_tree.setRootIsDecorated(False)
         self.results_tree.setAlternatingRowColors(True)
+        self.results_tree.setAllColumnsShowFocus(True)
+        self.results_tree.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
+        self.results_tree.setSelectionMode(QtGui.QAbstractItemView.SingleSelection)
 
         self.whole_field_checkbox = QtGui.QCheckBox("Whole Field Only", self)
         self.advanced_search_checkbox = QtGui.QCheckBox("Advanced Search", self)
@@ -130,7 +133,7 @@ class SearchReplaceDialog(QtGui.QDialog):
 
             item_0 = model.itemFromIndex(model.index(0, 0))
             item_0.setCheckState(QtCore.Qt.Unchecked)
-            item_0.setFlags(QtCore.Qt.ItemIsUserCheckable | QtCore.Qt.ItemIsEnabled)
+            item_0.setFlags(item_0.flags() | QtCore.Qt.ItemIsUserCheckable)
             item_0.setEditable(False)
 
             item_1 = model.itemFromIndex(model.index(0, 1))
