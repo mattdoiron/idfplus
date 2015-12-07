@@ -49,11 +49,18 @@ class ReferenceModel(object):
         obj_lists = self._idd.object_lists
         self._ref_lists.update((k, dict()) for k in obj_lists.iterkeys())
 
-    def reference(self, node_id):
-        """Returns the node for the specified reference.
-
-        :param node_id:
-        """
+    def reference_count(self, field):
+        ref_graph = self._ref_graph
+        try:
+            ancestors = nx.ancestors(ref_graph, field.uuid)
+            descendants = nx.descendants(ref_graph, field.uuid)
+        except nx.exception.NetworkXError:
+            # Doesn't exist in the network
+            return -1
+        else:
+            if not ancestors or not descendants:
+                return -1
+        return len(ancestors) + len(descendants)
 
     def add_field(self, field, idd_obj_tags):
         """Adds a new field and takes care of the references
