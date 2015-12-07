@@ -136,6 +136,9 @@ class IDFPlus(QtGui.QMainWindow, gui_main.UIMainWindow):
 
         log.info('Trying to load file: {}'.format(file_path))
 
+        if self.idf:
+            self.idf.index.stop_worker()
+
         idf = idfmodel.IDFFile()
         # self.files.update({0:idf})
 
