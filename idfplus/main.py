@@ -18,12 +18,12 @@ along with IDF+. If not, see <http://www.gnu.org/licenses/>.
 """
 
 # System imports
+import errno
+import glob
 import os
 import platform
 import subprocess
 import sys
-import errno
-import glob
 
 # PySide imports
 from PySide import QtGui
@@ -34,23 +34,19 @@ from . import delegates
 from . import tablemodel
 from . import commands
 from . import treemodel
-from . import gui_main
-from . import gui_setupwiz
 from . import config
 from . import logger
 from eplusio import idfmodel
 from eplusio import iddmodel
 from eplusio import parser
+from gui import setupwiz, main, icons_rc
 
 # Setup logging
 log = logger.setup_logging(config.LOG_LEVEL, 'idfplus', config.LOG_PATH)
 log.info('----==== Launching IDF+ ====----')
 
-# Resource imports for icons
-from . import icons_rc
 
-
-class IDFPlus(QtGui.QMainWindow, gui_main.UIMainWindow):
+class IDFPlus(QtGui.QMainWindow, main.UIMainWindow):
     """Main GUI window for IDFPlus program.
     """
 
@@ -232,7 +228,7 @@ class IDFPlus(QtGui.QMainWindow, gui_main.UIMainWindow):
         :return: :bool:
         """
 
-        wizard = gui_setupwiz.SetupWizard(self, version, message)
+        wizard = setupwiz.SetupWizard(self, version, message)
         try:
             if wizard.exec_():
                 self.load_idf(file_path)

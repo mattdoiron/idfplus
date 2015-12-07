@@ -26,11 +26,11 @@ from PySide import QtGui
 from PySide import QtCore
 
 # Package imports
-from . import tablemodel
-from . import treemodel
-from . import config
-from .gui_prefs import PrefsDialog
-from .gui_search import SearchReplaceDialog
+from idfplus import tablemodel
+from idfplus import treemodel
+from idfplus import config
+from .prefs import PrefsDialog
+from .search import SearchReplaceDialog
 
 # Setup logging
 log = logging.getLogger(__name__)
