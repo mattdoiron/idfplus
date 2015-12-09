@@ -281,7 +281,7 @@ class ReferenceModel(object):
                             idd_obj_tags = set(idd_object[key].tags)
 
                             # If this field is a reference-type then connect nodes
-                            if field and len(idd_obj_tags & ref_set) > 0:
+                            if field and field.value and len(idd_obj_tags & ref_set) > 0:
                                 my_query = parser.parse('"{}"'.format(field.value.lower()))
                                 results = searcher.search(my_query, limit=None)
 
