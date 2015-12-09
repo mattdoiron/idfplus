@@ -792,7 +792,7 @@ class IDFParser(Parser):
                         idf_object.comments[-1] = last_comment.rstrip()
 
                     # Save the new object to the IDF
-                    self.idf.add_objects(obj_class, idf_object)
+                    self.idf.add_objects(obj_class, idf_object, update_index=False)
 
                     # Reset variables for next object
                     field_list = list()

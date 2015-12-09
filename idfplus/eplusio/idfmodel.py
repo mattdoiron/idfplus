@@ -206,9 +206,10 @@ class IDFFile(OrderedDict):
 
         return self[key][index:count]
 
-    def add_objects(self, obj_class, new_objects, position=None):
+    def add_objects(self, obj_class, new_objects, position=None, update_index=True):
         """Adds the specified object(s) to the IDFFile.
 
+        :param update_index:
         :param obj_class:
         :param position:
         :param new_objects: List of IDFObjects or single IDFObject
@@ -237,24 +238,31 @@ class IDFFile(OrderedDict):
         self[obj_class][position:position] = new_objects
         idd_obj = self.idd.idd_object(obj_class)
 
-        # Add nodes for each field.
-        for obj in new_objects:
-            for j, field in enumerate(obj):
-                key = idd_obj.key(j)
-                tags = idd_obj[key].tags
-                self._references.add_field(field, tags)
+        if update_index is True:
+            # Update the index
+            self._index_objects(new_objects)
+
+        # Update references
+        self._references.insert_references(new_objects)
 
         return len(new_objects)
 
-    # def update_object(self, obj_class, index, new_values):
-    #     """Updates the specified object.
-    #     :param obj_class:
-    #     :param index:
-    #     :param new_values:
-    #     """
-    #
-    #     self._references.update_reference(obj_class, index, new_values)
-    #     self[obj_class][index].update(new_values)
+    def _index_objects(self, new_objects):
+        with self.index.writer() as writer:
+            for obj in new_objects:
+                for field in obj:
+                    if field:
+                        writer.add_document(uuid=unicode(field.uuid),
+                                            obj_class=unicode(field.obj_class),
+                                            value=unicode(field.value.lower()),
+                                            _stored_value=unicode(field.value))
+
+    def _deindex_objects(self, objects_to_delete):
+        with self.index.writer() as writer:
+            for obj in objects_to_delete:
+                for field in obj:
+                    if field:
+                        writer.delete_by_term('uuid', unicode(field.uuid))
 
     def field(self, obj_class, index_obj, index_field):
         """Returns the specified field. Convenience function.
@@ -319,6 +327,7 @@ class IDFFile(OrderedDict):
         # log.debug('nodes before delete: {}'.format(ref_graph.number_of_nodes()))
 
         # Delete objects and update reference list
+        self._deindex_objects(objects_to_delete)
         self._references.remove_references(objects_to_delete)
         del self[obj_class][first_row:last_row]
 
