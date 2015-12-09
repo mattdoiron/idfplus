@@ -258,7 +258,7 @@ class ReferenceModel(object):
         index = self._idf.index
         parser = QueryParser("value", index.schema)
         obj_list_length = self._idd.object_list_length
-        ref_set = {'object-list', 'reference'}
+        ref_set = {'reference'}
         k = 0
 
         # Open the searcher
@@ -286,7 +286,7 @@ class ReferenceModel(object):
                                 results = searcher.search(my_query, limit=None)
 
                                 for hit in results:
-                                    self._ref_graph.add_edge(field.uuid, hit['uuid'],
+                                    self._ref_graph.add_edge(hit['uuid'], field.uuid,
                                                              obj_list=object_list)
 
                     yield math.ceil(50 + (100 * 0.5 * (k+1) / obj_list_length))
