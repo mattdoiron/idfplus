@@ -248,21 +248,51 @@ class IDFFile(OrderedDict):
         return len(new_objects)
 
     def _index_objects(self, new_objects):
+        """
+
+        :param new_objects:
+        :return:
+        """
+
         with self.index.writer() as writer:
             for obj in new_objects:
                 for field in obj:
-                    if field:
-                        writer.add_document(uuid=unicode(field.uuid),
-                                            obj_class=unicode(field.obj_class),
-                                            value=unicode(field.value.lower()),
-                                            _stored_value=unicode(field.value))
+                    if not field:
+                        continue
+                    writer.add_document(uuid=unicode(field.uuid),
+                                        obj_class=unicode(field.obj_class),
+                                        value=unicode(field.value.lower()),
+                                        _stored_value=unicode(field.value))
 
     def _deindex_objects(self, objects_to_delete):
+        """
+
+        :param objects_to_delete:
+        :return:
+        """
+
         with self.index.writer() as writer:
             for obj in objects_to_delete:
                 for field in obj:
-                    if field:
-                        writer.delete_by_term('uuid', unicode(field.uuid))
+                    if not field:
+                        continue
+                    writer.delete_by_term('uuid', unicode(field.uuid))
+
+    def _upsert_field_index(self, fields):
+        """
+
+        :param field:
+        :return:
+        """
+
+        with self.index.writer() as writer:
+            for field in fields:
+                if not field:
+                    continue
+                writer.update_document(uuid=unicode(field.uuid),
+                                       obj_class=unicode(field.obj_class),
+                                       value=unicode(field.value.lower()),
+                                       _stored_value=unicode(field.value))
 
     def field(self, obj_class, index_obj, index_field):
         """Returns the specified field. Convenience function.
@@ -523,12 +553,8 @@ class IDFObject(list):
 
         Also sets the idd file for use by this object.
 
-        :param str group:
-        :param str outer:
-        :param str args:
-        :param eplusio.iddmodel.IDDFile idd: idd file used by this idf file
+        :param eplusio.iddmodel.IDFFile outer:
         :param str obj_class: Class type of this idf object
-        :param \*args: arguments to pass to dictionary
         :param \*\*kwargs: keyword arguments to pass to dictionary
         """
 
@@ -624,19 +650,6 @@ class IDFObject(list):
                 else:
                     self.append(IDFField(self, idd_field.key, value=default))
 
-    def add_field(self, idf_field, tags):
-        """Adds a field to self and takes care of references.
-
-        :param idf_field:
-        :param tags:
-        """
-
-        # Add the new field to self (a list)
-        self.append(idf_field)
-
-        # Update the outer class' (IDF file) references
-        self._outer._references.add_field(idf_field, tags)
-
     def set_group(self, class_group):
         """Sets this IDFObject's class group
 
@@ -717,9 +730,9 @@ class IDFField(object):
         :param new_value:
         """
 
-        # Update the IDFFile's references graph then set the value
-        self._outer._outer._references.update_references(self)
+        # Update the value and then the IDFFile's index
         self._value = new_value
+        self._outer._outer._upsert_field_index([self])
 
     @property
     def name(self):

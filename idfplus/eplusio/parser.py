@@ -768,11 +768,11 @@ class IDFParser(Parser):
                             tags = dict()
                         new_field = idfmodel.IDFField(idf_object, key)
                         new_field.key = key
-                        new_field.value = field_value
+                        new_field._value = field_value
                         new_field.tags = tags
 
                         # Add the field to the object
-                        idf_object.add_field(new_field, tags)
+                        idf_object.append(new_field)
 
                         # Add the field to the index
                         writer.add_document(uuid=unicode(new_field.uuid),
