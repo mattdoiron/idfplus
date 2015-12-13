@@ -160,12 +160,6 @@ class IDFFile(OrderedDict):
         :param field:
         """
 
-        # Continue only if this field references an object-list
-        if not field:
-            return -1
-        object_list_name = field.tags.get('object-list', '')
-        if not object_list_name:
-            return -1
         return self._references.reference_count(field)
 
     def _populate_obj_classes(self):
