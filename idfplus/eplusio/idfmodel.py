@@ -24,6 +24,7 @@ import networkx as nx
 from collections import OrderedDict
 from whoosh.fields import Schema, ID
 from whoosh.filedb.filestore import RamStorage
+from whoosh.qparser import QueryParser
 
 # Package imports
 from . import refmodel
@@ -176,13 +177,29 @@ class IDFFile(OrderedDict):
 
         self.update((k, list()) for k in self._idd.iterkeys())
 
-    def find(self, contains=None):
-        """Searches within the file for objects having 'contains'
+    def search(self, search_query, whole_field=False, advanced=False):
+        """Performs search for a search_query
 
-        :param str contains:  (Default value = None)
+        :param search_query:
+        :param whole_field:
+        :param advanced:
+        :return:
         """
 
-        pass
+        if advanced:
+            query = search_query
+        elif whole_field:
+            query = '"{}"'.format(search_query)
+        else:
+            query = '*"{}"*'.format(search_query)
+
+        with self.index.searcher() as searcher:
+            parser = QueryParser("value", self.schema)
+            parsed_query = parser.parse(query)
+            hits = searcher.search(parsed_query, limit=None, scored=False, sortedby=None)
+            results = [hit.fields() for hit in hits]
+
+        return results, parsed_query
 
     def idf_objects(self, obj_class):
         """Returns all the objects in the specified class.

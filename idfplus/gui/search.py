@@ -20,7 +20,6 @@ along with IDF+. If not, see <http://www.gnu.org/licenses/>.
 # System imports
 import logging
 import re
-from whoosh.qparser import QueryParser
 
 # PySide imports
 from PySide import QtGui
@@ -151,32 +150,22 @@ class SearchReplaceDialog(QtGui.QDialog):
         return model
 
     def search_button_clicked(self):
+        """Submits a search based on the current query
+        """
+
         user_query = self.search_text.text().lower()
-        if not user_query or len(user_query) < 2:
+        idf = self.parent.idf
+        if not user_query or len(user_query) < 2 or not idf:
             return
-
-        if self.parent.idf:
-            ix = self.parent.idf.index
-        else:
-            return
-
-        if self.advanced_search_checkbox.isChecked():
-            query = user_query
-        elif self.whole_field_checkbox.isChecked():
-            query = '"{}"'.format(user_query)
-        else:
-            query = '*"{}"*'.format(user_query)
-
-        with ix.searcher() as searcher:
-            parser = QueryParser("value", ix.schema)
-            my_query = parser.parse(query)
-            results = searcher.search(my_query, limit=None)
-            self.query_text.setText(str(my_query))
-            self.results_tree.setModel(self.create_results_model(results))
-            self.results_tree.setColumnHidden(2, True)
-            self.results_tree.resizeColumnToContents(0)
-            self.results_tree.resizeColumnToContents(1)
-            self.results_tree.setSortingEnabled(True)
+        results, my_query = idf.search(user_query,
+                                       self.whole_field_checkbox.isChecked(),
+                                       self.advanced_search_checkbox.isChecked())
+        self.query_text.setText(str(my_query))
+        self.results_tree.setModel(self.create_results_model(results))
+        self.results_tree.setColumnHidden(2, True)
+        self.results_tree.resizeColumnToContents(0)
+        self.results_tree.resizeColumnToContents(1)
+        self.results_tree.setSortingEnabled(True)
 
     def select_all_clicked(self):
 
