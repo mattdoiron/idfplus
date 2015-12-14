@@ -497,6 +497,15 @@ class IDDField(object):
         return self._key
 
     @property
+    def index(self):
+        """Returns object's index
+
+        :return:
+        """
+
+        return self._outer._ordered_fields.index(self._key)
+
+    @property
     def obj_class(self):
         """Returns the object's class.
 

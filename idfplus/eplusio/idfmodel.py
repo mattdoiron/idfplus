@@ -394,14 +394,7 @@ class IDFFile(OrderedDict):
         # Check for special cases where units are based on another field
         if units:
             if units.startswith('BasedOnField'):
-                based_on_field_key = units.split()[-1]
-                based_on_field = self.idd.field(field.obj_class, based_on_field_key)
-
-                # Use these results to find the actual units to use
-                actual_units = UNIT_TYPES.get(based_on_field.value)
-
-                if actual_units:
-                    units = actual_units
+                units = self._based_on_units(units, field)
 
         # If SI units are requested, return now (SI is always the default)
         if self.si_units is True:
@@ -435,14 +428,7 @@ class IDFFile(OrderedDict):
         if units:
             # Check for the special case of units based on another field
             if units.startswith('BasedOnField'):
-                based_on_field_key = units.split()[-1]
-                based_on_field = idd_object[based_on_field_key]
-
-                # Use these results to find the actual units to use
-                actual_units = UNIT_TYPES.get(based_on_field.value)
-
-                if actual_units:
-                    units = actual_units
+                units = self._based_on_units(units, field)
 
             # Lookup the dict of unit conversions for this SI unit.
             conversion = UNITS_REGISTRY.get(units)
@@ -452,6 +438,25 @@ class IDFFile(OrderedDict):
                 return conversion.get(ip_units, conversion.get(conversion.keys()[0]))
 
         return None
+
+    def _based_on_units(self, units, field):
+        """Returns units if field's units are based on the content of another field.
+
+        :param units:
+        :param field:
+        :return:
+        """
+
+        based_on_field_key = units.split()[-1]
+        based_on_field_idd = self.idd.field(field.obj_class, based_on_field_key)
+        index = based_on_field_idd.index
+        try:
+            based_on_field = field._outer[index]
+            actual_units = UNIT_TYPES.get(based_on_field.value)
+        except IndexError:
+            actual_units = ''
+
+        return actual_units
 
     def to_si(self, field, override_value=None):
         """Accepts field, and returns the value in SI units.
