@@ -395,7 +395,7 @@ class IDDObject(dict):
         # Grab the object memo, if any
         memo = self.tags.get('memo')
         if memo:
-            info += '\n'
+            info += '\n\n'
             if isinstance(memo, list):
                 info += ' '.join(memo)
             else:
@@ -449,7 +449,7 @@ class IDDField(object):
         # Grab the field note, if any
         note = self.tags.get('note')
         if note:
-            info += '\n'
+            info += '\n\n'
             if isinstance(note, list):
                 info += ' '.join(note)
             else:
