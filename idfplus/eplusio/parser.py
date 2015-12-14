@@ -37,7 +37,7 @@ OPTIONS_LIST = ['OriginalOrderTop', 'UseSpecialFormat',
                 'ViewInIPunits', 'SortedOrder', 'HideEmptyClasses']
 COMMENT_DELIMITER_GENERAL = '!'
 COMMENT_DELIMITER_SPECIAL = '!-'
-TAG_LIST = ['\\field', '\\Field,'
+TAG_LIST = ['\\field', '\\Field',
             '\\note', '\\Note',
             '\\required-field', '\\Required-field',
             '\\units', '\\Units',
@@ -298,6 +298,10 @@ class Parser(object):
 
         # Create a list containing any tags found in line_in
         match = [x for x in TAG_LIST if x in line_in]
+
+        # Hack for note field. Why is this needed!?
+        if '\\note' in line_in:
+            match.append('\\note')
 
         # If there are any matches, save the first one
         if match:
