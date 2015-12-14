@@ -813,3 +813,16 @@ class IDFField(object):
         """
 
         return self._uuid
+
+    def has_tags(self, tags_to_check):
+        """Returns a list of tags which are contained in both this field and tags_to_check
+
+        :param tags_to_check:
+        :return:
+        """
+
+        idd_object = self._outer._outer._idd.get(self._outer.obj_class)
+        key = idd_object.key(self.index)
+        idd_obj_tags = set(idd_object[key].tags)
+
+        return idd_obj_tags & set(tags_to_check)
