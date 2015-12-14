@@ -109,7 +109,7 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
             if not field:
                 data = None
             else:
-                if role != QtCore.Qt.EditRole and field and self.config['show_units_in_cells']:
+                if role != QtCore.Qt.EditRole and self.config['show_units_in_cells']:
                     text_units = self.idf.units(field) or ''
                     spacing = ' ' if text_units else ''
                 else:
