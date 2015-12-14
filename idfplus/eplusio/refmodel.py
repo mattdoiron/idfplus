@@ -27,7 +27,7 @@ log = logging.getLogger(__name__)
 
 
 class ReferenceModel(object):
-    """Wrapper around a dictionary and DiGraph that stores object references.
+    """Wrapper around a NetworkX DiGraph that stores relationships between fields.
     """
 
     def __init__(self, outer):
@@ -36,13 +36,18 @@ class ReferenceModel(object):
         self._idd = None
 
     def set_idd(self, idd):
-        """Sets the IDD file and takes care of some setup operations
+        """Sets the IDD file because it might not have existed during init.
+
+        :param idd:
         """
 
         self._idd = idd
 
-    def _populate_ref_list(self):
-        """Populates the reference list using the idf file
+    def reference_count(self, field):
+        """Returns the sum of incoming and outgoing references.
+
+        :param field:
+        :return:
         """
 
         # Continue only if a valid field is present and the right type
@@ -51,6 +56,7 @@ class ReferenceModel(object):
         if field.ref_type != 'object-list' and field.ref_type != 'reference':
             return -1
 
+        # Find incoming and outgoing references
         try:
             ancestors = nx.ancestors(self._ref_graph, field.uuid)
             descendants = nx.descendants(self._ref_graph, field.uuid)
@@ -59,232 +65,108 @@ class ReferenceModel(object):
 
         return len(ancestors) + len(descendants)
 
-    def add_field(self, field, idd_obj_tags):
-        """Adds a new field and takes care of the references
+    def update_reference(self, field, old_value):
+        """Updates the specified references involving the given field.
 
-        :param field:
-        :param idd_obj_tags:
-        """
-
-        tag_set = set(idd_obj_tags)
-        ref_set = {'object-list', 'reference'}
-
-        # We now want to add ALL fields
-        # if (field and len(tag_set & ref_set) <= 0) or not field:
-        #     return
-
-        # print('add_field called for field: {}'.format(len(tag_set & ref_set)))
-        # print('tag set: {}'.format(tag_set))
-        # print('ref set: {}'.format(ref_set))
-
-        # Add a node to the graph for the new field
-        self._ref_graph.add_node(field.uuid, data=field)
-
-        # Add new entries to the reference list for the new field
-        if 'reference' in idd_obj_tags:
-
-            # Ensure we have a list of object classes
-            obj_list_names = idd_obj_tags['reference']
-            if not isinstance(obj_list_names, list):
-                obj_list_names = [idd_obj_tags['reference']]
-
-            # Save the node in the idf file's reference list
-            for object_list in obj_list_names:
-                id_tup = (field.uuid, field)
-                try:
-                    self._ref_lists[object_list][field.value].append(id_tup)
-                except (AttributeError, KeyError):
-                    self._ref_lists[object_list][field.value] = [id_tup]
-
-        # Connect the reference to other existing references
-        self.update_references(field)
-
-    # def add_reference(self, field, cls_list, object_list_name):
-    #     """Creates the specified reference.
-    #     :param field:
-    #     :param cls_list:
-    #     :param object_list_name:
-    #     """
-    #
-    #     ref_node = self._ref_lists[cls_list][field.value]
-    #     for ref_uuid, ref in ref_node:
-    #         self._ref_graph.add_edge(field._uuid,
-    #                                  ref_uuid,
-    #                                  obj_list=object_list_name)
-
-    def remove_references(self, objects_to_delete):
-
-        obj_class = objects_to_delete[0].obj_class
-        idd_obj = self._idd[obj_class]
-
-        # Delete objects and update reference list
-        for obj in objects_to_delete:
-            field_uuids = [field._uuid for field in obj]
-            self._ref_graph.remove_nodes_from(field_uuids)
-
-            # Also update reference list if required
-            for j, field in enumerate(obj):
-                tags = idd_obj[field.key].tags
-
-                if 'reference' in tags:
-                    object_list_names = tags['reference']
-                    if not isinstance(object_list_names, list):
-                        object_list_names = [tags['reference']]
-                    for object_list in object_list_names:
-                        tup_list = self._ref_lists[object_list][field.value]
-                        for id_tup in tup_list:
-                            if id_tup[0] == field._uuid:
-                                # Should only be one so it's ok to modify list here!
-                                tup_list.remove(id_tup)
-
-    def update_reference(self, obj_class, index, new_values):
-        """Updates the specified reference.
-        """
-
-        pass
-
-    def delete_reference(self):
-        """Deletes the specified reference.
-        """
-        print('del called')
-        # pass
-
-    def update_references(self, field):
-        """Updates the reference graph for the specified field
-
-        :param field:
-        """
-
-        # Continue only if this field references an object from an object-list
-        object_list_name = field.tags.get('object-list', '')
-        if not object_list_name:
-            return
-
-        graph = self._ref_graph
-        # node_count = graph.number_of_nodes()
-
-        # Cycle through only nodes to avoid cycling through all objects
-        for k, node in enumerate(graph.nodes_iter(data=True)):
-
-            try:
-                # Ensure we have a list to simplify later operations
-                if not isinstance(object_list_name, list):
-                    object_list_name = [field.tags['object-list']]
-
-                # Cycle through all class names in the object lists
-                for cls_list in object_list_name:
-                    ref_nodes = self._ref_lists[cls_list].get(field.value, None)
-                    if not ref_nodes:
-                        return
-                    for ref_uuid, ref in ref_nodes:
-                        # Add edges to the graph for the new reference
-                        graph.add_edge(field._uuid,
-                                       ref_uuid,
-                                       obj_list=object_list_name)
-
-                        # Remove old reference
-                        # print('removing old ref')
-
-            except (IndexError, KeyError):
-                continue
-
-    def update_reference_names(self, field, old_value):
-        """Update the list of names used for references
-
-        :param field:
         :param old_value:
-        :return: :rtype:
+        :param field:
         """
 
-        # Get the graph and the connections to this field
-        ref_graph = self._ref_graph
-        ref_lists = self._ref_lists
-        new_value = field.value
-        obj_list_set = set()
-
-        # print('--------')
-        # pprint.pprint(ref_lists['ScheduleTypeLimitsNames'])
-
-        # Continue only if there is a new value
-        if new_value == old_value:
+        # Continue only if there is a value and it's different
+        if not field.value:
+            return
+        if field.value == old_value:
             return
 
-        # Continue only if this field is a node in the ref_graph and has ancestors
-        try:
-            ancestors = nx.ancestors(ref_graph, field._uuid)
-        except nx.exception.NetworkXError:
+        parser = self._idf.parser
+
+        with self._idf.index.searcher() as searcher:
+
+            if field.ref_type == 'reference':
+
+                # Remove all current references to the old value
+                query = 'value:"{}" ref_type:object-list'.format(old_value.lower())
+                results = searcher.search(parser.parse(query), limit=None)
+                edge_list = [(hit['uuid'], field.uuid) for hit in results]
+                self._ref_graph.remove_edges_from(edge_list)
+
+                # Add new edges to node graph for references to the new value
+                query = 'value:"{}" ref_type:object-list'.format(field.value.lower())
+                results = searcher.search(parser.parse(query), limit=None)
+                edge_list = [(hit['uuid'], field.uuid) for hit in results]
+                self._ref_graph.add_edges_from(edge_list)
+
+            elif field.ref_type == 'object-list':
+
+                # Remove all current references to the old value
+                query = 'value:"{}" ref_type:reference'.format(old_value.lower())
+                results = searcher.search(parser.parse(query), limit=None)
+                edge_list = [(field.uuid, hit['uuid']) for hit in results]
+                self._ref_graph.remove_edges_from(edge_list)
+
+                # Add new edges to node graph for references to the new value
+                query = 'value:"{}" ref_type:reference'.format(field.value.lower())
+                results = searcher.search(parser.parse(query), limit=None)
+                edge_list = [(field.uuid, hit['uuid']) for hit in results]
+                self._ref_graph.add_edges_from(edge_list)
+
+    def insert_nodes(self, objects_to_insert, update_references=True):
+        """Inserts fields into the reference node graph and optionally update relationships.
+
+        :param update_references:
+        :param objects_to_insert:
+        """
+
+        # First, create nodes for all fields in these objects
+        for obj in objects_to_insert:
+            nodes = [(field.uuid, {'data': field}) for field in obj if field]
+            self._ref_graph.add_nodes_from(nodes)
+
+        # Continue only if we want to also update references
+        if update_references is False:
             return
-        else:
-            if not ancestors:
-                return
 
-        # Update ancestor values
-        for node in ancestors:
-            idf_field = ref_graph.node[node]['data']
-            idf_field.value = new_value
+        with self._idf.index.searcher() as searcher:
 
-            # make a list of object lists to use later
-            edge = ref_graph.edge[node][field._uuid]
-            obj_list_set.update(edge['obj_list'])
+            for obj in objects_to_insert:
 
-        # print('list of obj_lists: {}'.format(obj_list_set))
+                for i, field in enumerate(obj):
 
-        # Update the IDF's reference dictionary for each obj_list
-        for obj_list in obj_list_set:
-            if new_value not in ref_lists[obj_list]:
-                ref_lists[obj_list][new_value] = [(field._uuid, field)]
-            else:
-                try:
-                    ref_lists[obj_list][new_value].append((field._uuid, field))
-                except AttributeError:
-                    ref_lists[obj_list][new_value] = [(field._uuid, field)]
+                    # Continue only if there is a field and it's the right type
+                    if not field:
+                        continue
+                    if not field.value or field.ref_type != 'reference':
+                        continue
 
-            if len(ref_lists[obj_list][old_value]) <= 1:
-                del ref_lists[obj_list][old_value]
-            else:
-                ref_lists[obj_list][old_value].remove((field._uuid, field))
+                    query = 'value:"{}" ref_type:object-list'.format(field.value.lower())
+                    results = searcher.search(self._idf.parser.parse(query), limit=None)
+                    edge_list = [(hit['uuid'], field.uuid) for hit in results]
+                    self._ref_graph.add_edges_from(edge_list)
 
-        # print('--------')
-        # pprint.pprint(self._ref_lists['ScheduleTypeLimitsNames'])
-        # print('--------')
-
-    def connect_references(self):
+    def connect_nodes(self):
         """Processes the entire reference graph to connect its nodes. Yield progress.
         """
 
-        index = self._idf.index
-        parser = QueryParser("value", index.schema)
         obj_list_length = self._idd.object_list_length
-        ref_set = {'reference'}
         k = 0
 
-        # Open the searcher
-        with index.searcher() as searcher:
+        with self._idf.index.searcher() as searcher:
 
-            # Loop through all object classes in the object-lists
             for object_list_name, object_list_set in self._idd.object_lists.iteritems():
-                object_list = list(object_list_set)
+                object_lists = list(object_list_set)
 
-                # Loop through all classes in this object-list
-                for object_class in object_list:
-                    idd_object = self._idd.get(object_class)
+                for object_class in object_lists:
 
-                    # Loop through all objects in this class
                     for obj in self._idf.get(object_class, []):
 
-                        # Loop through all fields in this object
                         for i, field in enumerate(obj):
-                            key = idd_object.key(i)
-                            idd_obj_tags = set(idd_object[key].tags)
 
                             # If this field is a reference-type then connect nodes
-                            if field and field.value and len(idd_obj_tags & ref_set) > 0:
-                                my_query = parser.parse('"{}"'.format(field.value.lower()))
-                                results = searcher.search(my_query, limit=None)
-
-                                for hit in results:
-                                    self._ref_graph.add_edge(hit['uuid'], field.uuid,
-                                                             obj_list=object_list)
+                            if field and field.value and field.ref_type == 'reference':
+                                query = 'value:"{}" ref_type:object-list'.format(field.value.lower())
+                                results = searcher.search(self._idf.parser.parse(query), limit=None)
+                                edge_list = [(hit['uuid'], field.uuid) for hit in results]
+                                self._ref_graph.add_edges_from(edge_list)
 
                     yield math.ceil(50 + (100 * 0.5 * (k+1) / obj_list_length))
                     k += 1

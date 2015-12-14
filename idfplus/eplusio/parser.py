@@ -798,7 +798,7 @@ class IDFParser(Parser):
                         idf_object.comments[-1] = last_comment.rstrip()
 
                     # Save the new object to the IDF
-                    self.idf.add_objects(obj_class, idf_object, update_index=False)
+                    self.idf.add_objects(obj_class, idf_object, update=False)
 
                     # Reset variables for next object
                     field_list = list()
@@ -818,7 +818,7 @@ class IDFParser(Parser):
         writer.commit()
 
         # Now that required nodes have been created, connect them as needed
-        for progress in self.idf._references.connect_references():
+        for progress in self.idf._references.connect_nodes():
             yield progress
 
         log.info('Parsing IDF complete!')

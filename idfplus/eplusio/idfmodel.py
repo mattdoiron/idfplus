@@ -219,10 +219,10 @@ class IDFFile(OrderedDict):
 
         return self[key][index:count]
 
-    def add_objects(self, obj_class, new_objects, position=None, update_index=True):
+    def add_objects(self, obj_class, new_objects, position=None, update=True):
         """Adds the specified object(s) to the IDFFile.
 
-        :param update_index:
+        :param update:
         :param obj_class:
         :param position:
         :param new_objects: List of IDFObjects or single IDFObject
@@ -249,14 +249,13 @@ class IDFFile(OrderedDict):
 
         # Insert the new object(s)
         self[obj_class][position:position] = new_objects
-        idd_obj = self.idd.idd_object(obj_class)
 
-        if update_index is True:
-            # Update the index
+        # Conditionally update the index
+        if update is True:
             self._index_objects(new_objects)
 
-        # Update references
-        self._references.insert_references(new_objects)
+        # Insert nodes and optionally update the references
+        self._references.insert_nodes(new_objects, update_references=update)
 
         return len(new_objects)
 
@@ -373,7 +372,7 @@ class IDFFile(OrderedDict):
 
         # Delete objects and update reference list
         self._deindex_objects(objects_to_delete)
-        self._references.remove_references(objects_to_delete)
+        # self._references.remove_references(objects_to_delete)
         del self[obj_class][first_row:last_row]
 
     def units(self, field):
@@ -747,8 +746,10 @@ class IDFField(object):
         """
 
         # Update the value and then the IDFFile's index
+        old_value = self._value
         self._value = new_value
         self._outer._outer._upsert_field_index([self])
+        self._outer._outer._references.update_reference(self, old_value)
 
     @property
     def name(self):
