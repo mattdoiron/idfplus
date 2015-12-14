@@ -21,7 +21,6 @@ along with IDF+. If not, see <http://www.gnu.org/licenses/>.
 import logging
 import networkx as nx
 import math
-from whoosh.qparser import QueryParser
 
 # Setup logging
 log = logging.getLogger(__name__)

@@ -90,6 +90,7 @@ class IDFFile(OrderedDict):
                              value=ID(stored=True),
                              ref_type=ID())
         self.index = RamStorage().create_index(self.schema)
+        self.parser = QueryParser("value", self.index.schema)
 
     def init_blank(self):
         """Sets up a blank idf file
