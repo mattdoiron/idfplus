@@ -46,12 +46,10 @@ class ReferenceModel(object):
         """Populates the reference list using the idf file
         """
 
-        obj_lists = self._idd.object_lists
-        self._ref_lists.update((k, dict()) for k in obj_lists.iterkeys())
-
-        # Continue only if this field references an object-list
-        matched_tags = field.has_tags(['object-list', 'reference'])
-        if not matched_tags:
+        # Continue only if a valid field is present and the right type
+        if not field:
+            return -1
+        if field.ref_type != 'object-list' and field.ref_type != 'reference':
             return -1
 
         try:

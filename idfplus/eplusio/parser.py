@@ -771,6 +771,11 @@ class IDFParser(Parser):
                         new_field._value = field_value
                         new_field.tags = tags
 
+                        # Find reference type, if any
+                        ref_type_set = set(tags) & {'reference', 'object-list'}
+                        ref_type = unicode(list(ref_type_set)[0]) if ref_type_set else None
+                        new_field._ref_type = ref_type
+
                         # Add the field to the object
                         idf_object.append(new_field)
 
@@ -778,7 +783,8 @@ class IDFParser(Parser):
                         writer.add_document(uuid=unicode(new_field.uuid),
                                             obj_class=unicode(obj_class),
                                             value=unicode(field_value.lower()),
-                                            _stored_value=unicode(field_value))
+                                            _stored_value=unicode(field_value),
+                                            ref_type=ref_type)
 
                     # Save the parsed variables in the idf_object
                     idf_object.set_class(obj_class)

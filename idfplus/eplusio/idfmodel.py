@@ -87,7 +87,8 @@ class IDFFile(OrderedDict):
 
         self.schema = Schema(uuid=ID(unique=True, stored=True),
                              obj_class=ID(stored=True),
-                             value=ID(stored=True))
+                             value=ID(stored=True),
+                             ref_type=ID())
         self.index = RamStorage().create_index(self.schema)
 
     def init_blank(self):
@@ -273,7 +274,8 @@ class IDFFile(OrderedDict):
                     writer.add_document(uuid=unicode(field.uuid),
                                         obj_class=unicode(field.obj_class),
                                         value=unicode(field.value.lower()),
-                                        _stored_value=unicode(field.value))
+                                        _stored_value=unicode(field.value),
+                                        ref_type=unicode(field.ref_type))
 
     def _deindex_objects(self, objects_to_delete):
         """
@@ -303,7 +305,8 @@ class IDFFile(OrderedDict):
                 writer.update_document(uuid=unicode(field.uuid),
                                        obj_class=unicode(field.obj_class),
                                        value=unicode(field.value.lower()),
-                                       _stored_value=unicode(field.value))
+                                       _stored_value=unicode(field.value),
+                                       ref_type=unicode(field.ref_type))
 
     def field(self, obj_class, index_obj, index_field):
         """Returns the specified field. Convenience function.
@@ -701,6 +704,7 @@ class IDFField(object):
         self.key = key
         self.tags = dict()
         self._value = kwargs.pop('value', None)
+        self._ref_type = None
         self._ureg = None
         self._outer = outer
         self._uuid = str(uuid.uuid4())
@@ -790,6 +794,15 @@ class IDFField(object):
         except KeyError:
             my_id = None
         return my_id
+
+    @property
+    def ref_type(self):
+        """Read-only property containing reference type
+
+        :return:
+        """
+
+        return self._ref_type
 
     @property
     def uuid(self):
