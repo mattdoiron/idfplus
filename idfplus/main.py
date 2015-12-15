@@ -401,6 +401,65 @@ class IDFPlus(QtGui.QMainWindow, main.UIMainWindow):
             self.fileMenu.addSeparator()
         self.fileMenu.addAction(self.fileMenuActions[-1])
 
+    def update_jump_menu(self):
+        """Called to update the jump menu with list of references.
+        """
+
+        # Prepare menu
+        self.jumpToMenu.clear()
+        self.jumpToMenu.addAction(self.jumpFilterGeometry)
+
+        # Helper to insert a blank action
+        def insert_blank():
+            action = QtGui.QAction(QtGui.QIcon(":/images/icon.png"), 'No references', self)
+            self.jumpToMenu.addAction(action)
+
+        # Get selection and indexes
+        selection_model = self.classTable.selectionModel()
+        if not selection_model:
+            insert_blank()
+            return
+        selected = selection_model.selection()
+        if not selected:
+            insert_blank()
+            return
+        _index = selected.first().topLeft()
+        if not _index or not _index.isValid():
+            insert_blank()
+            return
+
+        # Map index to source model
+        partially_mapped = self.classTable.model().mapToSource(_index)
+        index = self.classTable.model().sourceModel().mapToSource(partially_mapped)
+        if not self.idf or not index:
+            insert_blank()
+            return
+        data = self.idf.reference_tree_data(self.current_obj_class, index)
+        if not data:
+            insert_blank()
+
+        # Add actions for incoming references
+        self.jumpToMenu.addSeparator().setText('Incoming References:')
+        for ref in data[0]:
+            action = QtGui.QAction(QtGui.QIcon(":/images/icon.png"),
+                                   '{}'.format(ref._outer[0].value), self)
+            action.triggered.connect(lambda: self.jump_to_field(ref))
+            self.jumpToMenu.addAction(action)
+
+        # Add actions for outgoing references
+        self.jumpToMenu.addSeparator().setText('Outgoing References:')
+        for ref in data[1]:
+            action = QtGui.QAction(QtGui.QIcon(":/images/icon.png"),
+                                   '{}'.format(ref._outer[0].value), self)
+            action.triggered.connect(lambda: self.jump_to_field(ref))
+            self.jumpToMenu.addAction(action)
+
+    def jump_to_filter_geometry(self):
+        """
+
+        :return:
+        """
+
     def clear_recent(self):
         """Clears recent files
         """

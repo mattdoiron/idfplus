@@ -397,6 +397,9 @@ class UIMainWindow(object):
         self.findThisAct = QtGui.QAction("Find This", self,
                                          triggered=self.find_this)
 
+        self.jumpFilterGeometry = QtGui.QAction("Include Geometry", self,
+               triggered=self.jump_to_filter_geometry, checkable=True)
+
         self.setIPUnitsAction = QtGui.QAction("&IP Units", self,
                 triggered=self.toggle_units, checkable=True)
 
@@ -490,6 +493,12 @@ class UIMainWindow(object):
         self.viewMenu.addAction(self.classWithObjsAction)
         self.viewMenu.addSeparator()
         self.viewMenu.addAction(self.transposeAct)
+
+        # Jump Menu
+        self.jumpToMenu = self.menuBar().addMenu("&Jump")
+        self.update_jump_menu()
+        self.jumpToMenu.aboutToShow.connect(self.update_jump_menu)
+        self.jumpFilterGeometry.setEnabled(False)
 
         # Help Menu
         self.helpMenu = self.menuBar().addMenu("&Help")
@@ -587,6 +596,8 @@ class UIMainWindow(object):
         menu.addAction(self.delObjAct)
         menu.addAction(self.newObjAct)
         menu.addAction(self.cutObjAct)
+        menu.addSeparator()
+        menu.addMenu(self.jumpToMenu)
         menu.addSeparator()
         menu.addAction(self.findThisAct)
         menu.popup(self.classTable.viewport().mapToGlobal(position))
