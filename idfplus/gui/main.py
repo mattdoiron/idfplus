@@ -409,7 +409,7 @@ class UIMainWindow(object):
         self.classWithObjsAction = QtGui.QAction("Show Only Classes With Objects", self,
                 shortcut=QtGui.QKeySequence('Ctrl+l'),
                 statusTip="Show Only Classes With Objects",
-                triggered=self.toggle_full_tree)
+                triggered=self.toggle_full_tree, checkable=True)
 
         self.logDockWidgetAct = self.logDockWidget.toggleViewAction()
         self.transposeAct.setEnabled(False)
