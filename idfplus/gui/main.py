@@ -131,7 +131,9 @@ class UIMainWindow(object):
         commentDockWidget = QtGui.QDockWidget("Comments", self)
         commentDockWidget.setObjectName("commentDockWidget")
         commentDockWidget.setAllowedAreas(QtCore.Qt.AllDockWidgetAreas)
-        commentView = QtGui.QPlainTextEdit(commentDockWidget)
+        commentView = QtGui.QTextEdit(commentDockWidget)
+        commentView.setLineWrapMode(QtGui.QTextEdit.FixedColumnWidth)
+        commentView.setLineWrapColumnOrWidth(499)
         commentView.setFrameShape(QtGui.QFrame.StyledPanel)
         comment_font = QtGui.QFont(self.prefs['comments_font'],
                                    self.prefs['comments_font_size'])
