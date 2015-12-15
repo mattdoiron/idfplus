@@ -70,6 +70,7 @@ class IDFPlus(QtGui.QMainWindow, main.UIMainWindow):
         self.obj_orientation = QtCore.Qt.Vertical
         self.current_obj_class = None
         self.obj_clipboard = []
+        self.file_watcher = None
 
         # Create main application elements
         self.create_actions()
@@ -144,6 +145,8 @@ class IDFPlus(QtGui.QMainWindow, main.UIMainWindow):
         log.info('IDF version detected as: {}'.format(idf.version))
         self.idf = idf
         self.idd = idf._idd
+        self.reset_file_watcher()
+        self.start_file_watcher()
 
     def load_file(self, file_path=None):
         """Loads a specified file or gets the file_path from the sender.
@@ -1106,3 +1109,41 @@ class IDFPlus(QtGui.QMainWindow, main.UIMainWindow):
         except OSError as e:
             if e.errno != errno.ENOENT:
                 raise
+
+    def reset_file_watcher(self):
+        """Clears file watcher list
+
+        :return:
+        """
+
+        if self.file_watcher:
+            self.file_watcher.removePaths(self.file_watcher.files())
+
+    def start_file_watcher(self):
+        """Watch specified file for changes and alert user.
+
+        :return:
+        """
+
+        self.file_watcher = QtCore.QFileSystemWatcher([self.idf.file_path])
+        self.file_watcher.fileChanged.connect(self.file_changed)
+
+    def file_changed(self):
+        """Responds to signal from filewatcher that a file has changed.
+
+        :return:
+        """
+
+        message = "This file has be changed by another program! Would you like" \
+                  "to reload it now? Changes made by the other program will be" \
+                  "overwritten by your current version!"
+        flags = QtGui.QMessageBox.StandardButton.Yes
+        flags |= QtGui.QMessageBox.StandardButton.No
+        response = QtGui.QMessageBox.question(self, "File Change detected!", message, flags)
+
+        if response == QtGui.QMessageBox.Yes:
+            self.load_file(self.idf.file_path)
+        elif QtGui.QMessageBox.No:
+            return False
+        else:
+            return False
