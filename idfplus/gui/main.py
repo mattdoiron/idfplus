@@ -394,8 +394,8 @@ class UIMainWindow(object):
                 shortcut=QtGui.QKeySequence('Ctrl+f'),
                 triggered=self.show_search_dialog)
 
-        self.findSimilarAct = QtGui.QAction("Find Similar", self,
-                triggered=self.find_similar)
+        self.findThisAct = QtGui.QAction("Find This", self,
+                                         triggered=self.find_this)
 
         self.setIPUnitsAction = QtGui.QAction("&IP Units", self,
                 triggered=self.toggle_units, checkable=True)
@@ -588,7 +588,7 @@ class UIMainWindow(object):
         menu.addAction(self.newObjAct)
         menu.addAction(self.cutObjAct)
         menu.addSeparator()
-        menu.addAction(self.findSimilarAct)
+        menu.addAction(self.findThisAct)
         menu.popup(self.classTable.viewport().mapToGlobal(position))
         self.mouse_position = position
 
@@ -653,7 +653,7 @@ class UIMainWindow(object):
 
         SearchReplaceDialog(self, self.prefs).show()
 
-    def find_similar(self):
+    def find_this(self):
         """Searches for fields with similar content.
         """
 
