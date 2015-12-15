@@ -325,11 +325,11 @@ class IDFFile(OrderedDict):
         except (IndexError, TypeError):
             field = None
 
-        if not field:
-            message = 'Field does not exist. ({}:{}:{})'.format(obj_class, index_obj, index_field)
-            raise IDFError(message)
-        else:
-            return field
+        # if not field:
+            # message = 'Field does not exist. ({}:{}:{})'.format(obj_class, index_obj, index_field)
+            # raise IDFError(message)
+        # else:
+        return field
 
     def allocate_fields(self, obj_class, index_obj, index_field):
         """Checks for max allowable fields and allocates more if necessary.
@@ -378,17 +378,14 @@ class IDFFile(OrderedDict):
     def units(self, field):
         """Returns the given field's current display units.
 
-        :param field:
+        :param eplusio.idfmodel.IDFField field:
         """
 
         if field is None:
             return None
 
         # Look-up the default units
-        if isinstance(field, IDFField):
-            idd_field = self.idd.field(field.obj_class, field.index)
-        else:
-            idd_field = field
+        idd_field = self.idd.field(field.obj_class, field.index)
         units = idd_field.tags.get('units')
 
         # Check for special cases where units are based on another field

@@ -208,9 +208,9 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
             index_obj = index.row()
             index_field = index.column()
 
-            try:
-                field = self.idf.field(self.obj_class, index_obj, index_field)
-            except IDFError:
+            field = self.idf.field(self.obj_class, index_obj, index_field)
+
+            if not field:
                 self.idf.allocate_fields(self.obj_class, index_obj, index_field)
                 field = self.idf.field(self.obj_class, index_obj, index_field)
 
