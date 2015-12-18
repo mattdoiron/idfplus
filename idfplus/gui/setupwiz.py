@@ -25,7 +25,7 @@ import logging
 from PySide import QtGui
 
 # Package imports
-from eplusio import parser
+from ..eplusio import parser
 
 # Setup logging
 log = logging.getLogger(__name__)

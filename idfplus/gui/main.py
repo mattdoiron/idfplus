@@ -26,9 +26,9 @@ from PySide import QtGui
 from PySide import QtCore
 
 # Package imports
-from idfplus import tablemodel
-from idfplus import treemodel
-from idfplus import config
+from .. import tablemodel
+from .. import treemodel
+from .. import config
 from .prefs import PrefsDialog
 from .search import SearchReplaceDialog
 
