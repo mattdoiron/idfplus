@@ -739,7 +739,11 @@ class IDFParser(Parser):
                         if not self.idd:
                             log.debug('No IDD currently selected!')
                             idd_parser = IDDParser()
-                            idd = idd_parser.load_idd(version)
+                            try:
+                                idd = idd_parser.load_idd(version)
+                            except IDDError as e:
+                                writer.cancel()
+                                raise IDDError(e.message, e.version)
                             self.idf.set_idd(idd)
                             self.idd = self.idf.idd
                         log.debug("IDD version loaded: {}".format(self.idd.version))
