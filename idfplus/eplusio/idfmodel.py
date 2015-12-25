@@ -190,8 +190,7 @@ class IDFFile(OrderedDict):
             query = '*"{}"*'.format(search_query)
 
         with self.index.searcher() as searcher:
-            parser = QueryParser("value", self.schema)
-            parsed_query = parser.parse(query)
+            parsed_query = self.parser.parse(query)
             hits = searcher.search(parsed_query, limit=None, scored=False, sortedby=None)
             results = [hit.fields() for hit in hits]
 

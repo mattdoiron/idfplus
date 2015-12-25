@@ -789,7 +789,8 @@ class IDFParser(Parser):
 
                         # Add the field to the index
                         writer.add_document(uuid=unicode(new_field.uuid),
-                                            obj_class=unicode(obj_class),
+                                            obj_class=unicode(obj_class.lower()),
+                                            _stored_obj_class=unicode(obj_class),
                                             value=unicode(field_value.lower()),
                                             _stored_value=unicode(field_value),
                                             ref_type=ref_type)

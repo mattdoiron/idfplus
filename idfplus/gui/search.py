@@ -41,7 +41,7 @@ class SearchReplaceDialog(QtGui.QDialog):
         self.search_button = QtGui.QPushButton('Search')
         self.search_text = MySearchField(self.search_button)
         self.search_text.setPlaceholderText("Enter search query here")
-        self.search_button.clicked.connect(self.search_button_clicked)
+        self.search_button.clicked.connect(self.submit_search)
         input_layout = QtGui.QHBoxLayout()
         input_layout.addWidget(self.search_text)
         input_layout.addWidget(self.search_button)
@@ -52,15 +52,20 @@ class SearchReplaceDialog(QtGui.QDialog):
         self.results_tree.setAllColumnsShowFocus(True)
         self.results_tree.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
         self.results_tree.setSelectionMode(QtGui.QAbstractItemView.SingleSelection)
-        self.results_tree.doubleClicked.connect(self.results_double_clicked)
+        self.results_tree.doubleClicked.connect(self.go_to_object)
 
         self.whole_field_checkbox = QtGui.QCheckBox("Whole Field Only", self)
         self.advanced_search_checkbox = QtGui.QCheckBox("Advanced Search", self)
         self.advanced_search_checkbox.stateChanged.connect(self.advanced_search_checked)
+        self.ignore_geometry_checkbox = QtGui.QCheckBox("Ignore Geometry", self)
+        self.go_button = QtGui.QPushButton('Go')
+        self.go_button.clicked.connect(self.go_to_object)
         checks_layout = QtGui.QHBoxLayout()
         checks_layout.addWidget(self.whole_field_checkbox)
         checks_layout.addWidget(self.advanced_search_checkbox)
+        checks_layout.addWidget(self.ignore_geometry_checkbox)
         checks_layout.addStretch()
+        checks_layout.addWidget(self.go_button)
 
         self.query_label = QtGui.QLabel("Query:")
         self.query_label.setEnabled(False)
@@ -149,14 +154,14 @@ class SearchReplaceDialog(QtGui.QDialog):
 
         return model
 
-    def search_button_clicked(self):
+    def submit_search(self):
         """Submits a search based on the current query
         """
 
         user_query = self.search_text.text().lower()
         idf = self.parent.idf
         if not user_query or len(user_query) < 2 or not idf:
-            return
+            return [], ""
         results, my_query = idf.search(user_query,
                                        self.whole_field_checkbox.isChecked(),
                                        self.advanced_search_checkbox.isChecked())
@@ -253,7 +258,13 @@ class SearchReplaceDialog(QtGui.QDialog):
         else:
             return False
 
-    def results_double_clicked(self, index):
+    def go_to_object(self, index=None):
+
+        if index is None:
+            selected = self.results_tree.selectedIndexes()
+            if not selected:
+                return
+            index = selected[0]
 
         model = self.results_tree.model()
         item = model.itemFromIndex(model.index(index.row(), 2))
