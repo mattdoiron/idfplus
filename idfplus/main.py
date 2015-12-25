@@ -1135,8 +1135,7 @@ class IDFPlus(QtGui.QMainWindow, main.UIMainWindow):
         """
 
         message = "This file has be changed by another program! Would you like" \
-                  "to reload it now? Changes made by the other program will be" \
-                  "overwritten by your current version!"
+                  "to reload it now? Any unsaved changes will be lost!"
         flags = QtGui.QMessageBox.StandardButton.Yes
         flags |= QtGui.QMessageBox.StandardButton.No
         response = QtGui.QMessageBox.question(self, "File Change detected!", message, flags)
