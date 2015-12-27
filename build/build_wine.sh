@@ -66,7 +66,8 @@ build () {
     echo "Building IDFPlus for windows..."
     wine python -m PyInstaller --clean --noconfirm --onedir --windowed \
         --distpath=${DISTDIR} --workpath=${BUILDDIR} \
-        --icon=./images/logo.ico --upx-dir=./upx/upx391w --additional-hooks-dir=. \
+        --icon=../resources/images/logo.ico --upx-dir=../resources/upx/upx391w \
+        --additional-hooks-dir=../resources \
         --win-no-prefer-redirects --win-private-assemblies \
         ../idfplus.py
 }
@@ -77,10 +78,11 @@ make_installer () {
 
     echo "Running candle..."
     export WINE_DISTDIR=$(winepath -w $DISTDIR)
-    wine ${BUILDDIR}/wix310/candle.exe -out ${WINE_DISTDIR}/idfplus.wixobj idfplus.wxs
+    wine ${BUILDDIR}/wix310/candle.exe -nologo -out ${WINE_DISTDIR}/idfplus.wixobj idfplus.wxs
 
     echo "Running light..."
-    wine ${BUILDDIR}/wix310/light.exe -sh -sval -b ${WINE_DISTDIR}/idfplus/ ${WINE_DISTDIR}/idfplus.wixobj
+    wine ${BUILDDIR}/wix310/light.exe -nologo -sh -sval -spdb -b ${WINE_DISTDIR}/idfplus/ -out ${WINE_DISTDIR}/idfplus.msi ${WINE_DISTDIR}/idfplus.wixobj
+#    wine ${BUILDDIR}/wix310/light.exe
 }
 
 # Check arguments
