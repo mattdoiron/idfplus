@@ -55,6 +55,7 @@ download_prerequisites () {
 install_prerequisites () {
     echo "Installing prerequisites..."
     winetricks win7
+    winetricks --unattended mfc42
     wine ${BUILD_DIR}/vcredist_x86.exe /q
     wine msiexec /i ${BUILD_DIR}/VCForPython27.msi /qn ALLUSERS=1
     wine msiexec /i ${BUILD_DIR}/python-2.7.11.msi /qn ALLUSERS=1 TARGETDIR=C:\Python27
@@ -68,7 +69,7 @@ install_prerequisites () {
     echo "Installing python dependencies..."
     wine python -m pip install persistent -q
     wine python -m pip install pyinstaller -q
-#    wine python -m pip install -r ../requirements.txt -q
+    wine python -m pip install -r ../requirements.txt -q
 }
 
 build () {
@@ -88,8 +89,12 @@ make_installer () {
     wine ${WIX_DIR}/candle -nologo -out ${WINE_DISTDIR}/idfplus.wixobj idfplus.wxs
 
     echo "Running light..."
-    wine ${WIX_DIR}/light -nologo -sh -sval -spdb -b ${WINE_DISTDIR}/idfplus/ \
-        -out ${WINE_DISTDIR}/idfplus.msi ${WINE_DISTDIR}/idfplus.wixobj
+    wine ${WIX_DIR}/light -nologo -sacl -sval -spdb -b ${WINE_DISTDIR}/idfplus/ \
+        -ext WixUIExtension -out ${WINE_DISTDIR}/idfplus-v0.0.5.msi \
+        ${WINE_DISTDIR}/idfplus.wixobj
+
+#    echo "Signing installer..."
+#    wine signtool
 }
 
 harvest () {
