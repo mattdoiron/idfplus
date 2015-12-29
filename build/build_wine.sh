@@ -2,6 +2,10 @@
 
 # This script provisions a WINE prefix and uses it to build the windows version of IDFPlus
 
+# The default versions of WINE will not be able to cross-compile 32bit versions of IDFPlus
+# on a 64bit Linux machine! See the following link for compiling a custom version of WINE
+# if you are on 64bit Linux: http://wiki.winehq.org/BuildingBiarchWineOnUbuntu
+
 # Define the necessary environment variables
 prepare_env () {
     export BUILD_DIR=$PWD
@@ -16,7 +20,6 @@ prepare_env () {
 
 # Check for and downloads the required installers
 download_prerequisites () {
-    # Check for some files and download them if necessary
     echo "Checking for required install files..."
     if [ ! -f ${BUILD_DIR}/python-2.7.11.msi ]; then
       echo "Downloading Python 2.7.11..."
@@ -41,18 +44,28 @@ download_prerequisites () {
     if [ ! -f ${BUILD_DIR}/mono-4.2.1.102-gtksharp-2.12.30-win32-0.msi ]; then
       echo "Downloading Mono..."
       wget --directory-prefix=${BUILD_DIR} --show-progress --quiet \
-        "http://download.mono-project.com/archive/4.2.1/windows-installer/mono-4.2.1.102-gtksharp-2.12.30-win32-0.msi"
+        http://download.mono-project.com/archive/4.2.1/windows-installer/mono-4.2.1.102-gtksharp-2.12.30-win32-0.msi
     fi
     if [ ! -f ${BUILD_DIR}/wix310-binaries.zip ]; then
       echo "Downloading WIX Toolset..."
       wget --directory-prefix=${BUILD_DIR} --show-progress --quiet \
-        "http://wixtoolset.org/downloads/v3.10.1.2213/wix310-binaries.zip"
+        http://wixtoolset.org/downloads/v3.10.1.2213/wix310-binaries.zip
     fi
-    if [ ! -f ${BUILD_DIR}/PSDK-x86.exe ]; then
-      echo "Downloading Windows Server 2003 SP1 Platform SDK..."
+#    if [ ! -f ${BUILD_DIR}/PSDK-x86.exe ]; then
+#      echo "Downloading Windows Server 2003 SP1 Platform SDK..."
+#      wget --directory-prefix=${BUILD_DIR} --show-progress --quiet \
+#        https://download.microsoft.com/download/a/5/f/a5f0d781-e201-4ab6-8c6a-9bb4efed1e1a/PSDK-x86.exe
+#    fi
+    if [ ! -f ${BUILD_DIR}/PySide-1.2.4-cp27-none-win32.whl ]; then
+      echo "Downloading PySide..."
       wget --directory-prefix=${BUILD_DIR} --show-progress --quiet \
-        "https://download.microsoft.com/download/a/5/f/a5f0d781-e201-4ab6-8c6a-9bb4efed1e1a/PSDK-x86.exe"
+        http://download.qt.io/official_releases/pyside/PySide-1.2.4-cp27-none-win32.whl
     fi
+#    if [ ! -f ${BUILD_DIR}/pywin32-219.win32-py2.7.exe ]; then
+#      echo "Downloading PyWin32..."
+#      wget --directory-prefix=${BUILD_DIR} --show-progress --quiet \
+#        http://skylineservers.dl.sourceforge.net/project/pywin32/pywin32/Build%20219/pywin32-219.win32-py2.7.exe
+#    fi
 }
 
 # Install necessary prerequisites
@@ -75,6 +88,9 @@ install_prerequisites () {
     echo "Installing Python v2.7.11..."
     wine msiexec /i ${BUILD_DIR}/python-2.7.11.msi /qn ALLUSERS=1 TARGETDIR="C:\\Python27"
 
+#    echo "Installing PyWin32 v219..."
+#    wine ${BUILD_DIR}/pywin32-219.win32-py2.7.exe /q
+
 #    echo "Installing Mono v4.2.1.102..."
 #    wine msiexec /i ${BUILDDIR}/mono-4.2.1.102-gtksharp-2.12.30-win32-0.msi /qn ALLUSERS=1
 
@@ -91,13 +107,12 @@ install_prerequisites () {
     wine python -m pip install -U pip -q
     wine python -m pip install persistent -q
     wine python -m pip install pyinstaller -q
-    wine python -m pip install pyside -q --use-wheel
+    wine python -m pip install ${BUILD_DIR}/PySide-1.2.4-cp27-none-win32.whl -q
     wine python -m pip install -q -r ../requirements.txt
 }
 
 # Build the exe using PyInstaller
 build () {
-
     echo "Checking for WINE prefix..."
     if [ ! -d ${WINEPREFIX} ]; then
         echo "Please provision a WINE prefix first!"
