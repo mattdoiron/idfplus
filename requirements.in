@@ -1,0 +1,7 @@
+# requirements.in
+PySide
+BTrees
+appdirs
+networkx
+whoosh
+odict
