@@ -32,7 +32,7 @@ along with IDF+. If not, see <http://www.gnu.org/licenses/>.
         <Property Id="ARPURLINFOABOUT" Value="https://mindfulmodeller.ca"/>
         <Property Id="ARPNOREPAIR" Value="1"/>
         <Property Id="WIXUI_INSTALLDIR" Value="INSTALLDIR" />
-        <WixVariable Id="WixUILicenseRtf" Value="..\LICENSE.txt" />
+        <WixVariable Id="WixUILicenseRtf" Value="..\LICENSE.rtf" />
 
         <Upgrade Id="$(var.ProductUpgradeCode)">
             <UpgradeVersion Minimum="$(var.ProductVersion)" OnlyDetect="yes" Property="NEWERVERSIONDETECTED"/>
