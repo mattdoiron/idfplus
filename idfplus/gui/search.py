@@ -159,6 +159,8 @@ class SearchReplaceDialog(QtGui.QDialog):
         """
 
         user_query = self.search_text.text().lower()
+        user_query = user_query.replace(' or ', ' OR ')
+        user_query = user_query.replace(' and ', ' AND ')
         idf = self.parent.idf
         if not user_query or len(user_query) < 2 or not idf:
             return [], ""
