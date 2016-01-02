@@ -44,193 +44,196 @@ along with IDF+. If not, see <http://www.gnu.org/licenses/>.
         <Directory Id="TARGETDIR" Name="SourceDir">
             <Directory Id="ProgramFilesFolder">
                 <Directory Id="INSTALLDIR" Name="IDFPlus">
-                    <Component Id="cmpF50AEB972CA406A07E1DDE34E607C8DE" Guid="A7A3BDE2-F9B1-4705-8FA8-90549F6CAE61">
+                    <Component Id="cmpF50AEB972CA406A07E1DDE34E607C8DE" Guid="54B87090-E673-4ACA-A957-26BA417A2356">
                         <File Id="fil1CEB04708109E45A0B2F2F06564D4D42" KeyPath="yes" Source="SourceDir\_hashlib.pyd" />
                     </Component>
-                    <Component Id="cmpE955512308792A9A77AF4D2BAD3CC96F" Guid="0A66A507-1F5A-4E74-85B1-EC85DEBEDF07">
+                    <Component Id="cmpE955512308792A9A77AF4D2BAD3CC96F" Guid="16BC0C06-34A6-4C9E-A78E-2C38A2168281">
                         <File Id="filA73F7E1A35367B1A5DE487BEA084F437" KeyPath="yes" Source="SourceDir\pywintypes27.dll" />
                     </Component>
-                    <Component Id="cmp25A795128D445F5A212151BC0AFB235E" Guid="78D02D9F-6B68-464E-AC92-FA0A72534D41">
+                    <Component Id="cmp25A795128D445F5A212151BC0AFB235E" Guid="235B3756-F1E0-4FDA-84E5-3967A698563E">
                         <File Id="fil357A92C64BF1D342143EB8F70FC06C48" KeyPath="yes" Source="SourceDir\unicodedata.pyd" />
                     </Component>
-                    <Component Id="cmp53A27F7DA7E45051158C62ED3506ABB8" Guid="C7647833-6CA3-41BE-A67A-241A3695AAAC">
+                    <Component Id="cmp53A27F7DA7E45051158C62ED3506ABB8" Guid="5DEDFCBE-9A2B-4BEE-A430-BABF31AD30F1">
                         <File Id="fil2631F11DBF660954F567D33287CBC2C0" KeyPath="yes" Source="SourceDir\msvcr90.dll" />
                     </Component>
-                    <Component Id="cmp77E046083F9EC296F21D798071A204A3" Guid="53D28B76-E85C-4C34-9DDC-BBF180892695">
+                    <Component Id="cmp77E046083F9EC296F21D798071A204A3" Guid="249B7A94-054B-4ADF-BDAB-9AB0821FD0E5">
                         <File Id="filFE453D8C488E3B4254D57BEE5CE46907" KeyPath="yes" Source="SourceDir\pyside-python2.7.dll" />
                     </Component>
-                    <Component Id="cmpAEBB1F42F0FACEA4065EFAE8F2CDB637" Guid="D0049902-BB8E-4357-843C-CB05EF2FA8F5">
+                    <Component Id="cmpAEBB1F42F0FACEA4065EFAE8F2CDB637" Guid="B37D3DC3-208D-47DF-90ED-AAF7B2EE3E40">
                         <File Id="fil3742DBA1FA4026C4808ED096B89456CA" KeyPath="yes" Source="SourceDir\idfplus.exe" />
                     </Component>
-                    <Component Id="cmp6D569DEB836C51C0B13CD8C5BF9E7FD6" Guid="E7910C7F-7AFC-493A-A705-6A9F5339345C">
+                    <Component Id="cmp6D569DEB836C51C0B13CD8C5BF9E7FD6" Guid="64560914-02FE-4CE7-B1CF-7044FBE152D1">
                         <File Id="fil0AC9AAF88333EAEC052396EEF77B4B17" KeyPath="yes" Source="SourceDir\_ssl.pyd" />
                     </Component>
-                    <Component Id="cmpC8FD0A15D59EFCBBCBE747DEB7CE9CF0" Guid="D90066A1-75D2-4C9E-AE36-E5E907009502">
+                    <Component Id="cmpC8FD0A15D59EFCBBCBE747DEB7CE9CF0" Guid="3CE80B25-10DA-49A9-A81C-9E2D529A7A9A">
                         <File Id="fil3690D1280828513625244B9223A2B3AF" KeyPath="yes" Source="SourceDir\qtsql4.dll" />
                     </Component>
-                    <Component Id="cmp72E400FE84DB1CCB8B4A542777F73809" Guid="C214430B-E1C0-4371-9C86-0B6EF7A8B186">
+                    <Component Id="cmp72E400FE84DB1CCB8B4A542777F73809" Guid="CD30165E-A938-48FB-8D45-F754B94A1B5C">
                         <File Id="filE9622C79D8F93F6D8BED780110DC74B8" KeyPath="yes" Source="SourceDir\msvcp90.dll" />
                     </Component>
-                    <Component Id="cmp884B4020976D80C07F870D95FE7DA9F7" Guid="A9D35847-3A2B-45C5-B95C-44E75FBDA2E5">
+                    <Component Id="cmp884B4020976D80C07F870D95FE7DA9F7" Guid="52FE1CC5-2B68-4E4A-AFA4-37BF62A56412">
                         <File Id="filE01F94E42D8FA721CD8C23FB068164F1" KeyPath="yes" Source="SourceDir\persistent.cPickleCache.pyd" />
                     </Component>
-                    <Component Id="cmpBF3B748F501D8F208BC89FEF2A274623" Guid="1FC4A28A-9D16-4E6E-8C89-0254C0C5C4EA">
+                    <Component Id="cmpBF3B748F501D8F208BC89FEF2A274623" Guid="D9ED92B9-1C39-48B6-A04B-57B6019DE0C7">
                         <File Id="fil9DA46AE40CF5DD9F10593A32ACB727FE" KeyPath="yes" Source="SourceDir\pyexpat.pyd" />
                     </Component>
-                    <Component Id="cmpEE6B0DC8B5C211F43E6B71F7A0328817" Guid="1DCB266F-0A07-4318-B677-58DECDC8D5C7">
+                    <Component Id="cmpEE6B0DC8B5C211F43E6B71F7A0328817" Guid="C9BEB368-C5B3-433C-90AA-18D73128ED5F">
                         <File Id="fil0CA1D286B0167E9368338B673BF88C82" KeyPath="yes" Source="SourceDir\PySide.QtNetwork.pyd" />
                     </Component>
-                    <Component Id="cmp44BAD151EA7CC6EE414D033F4F9F2759" Guid="04E292C3-FFA0-4AF9-97FA-CFFC6E009995">
+                    <Component Id="cmp44BAD151EA7CC6EE414D033F4F9F2759" Guid="BB2DC224-DF3D-42C3-A892-1EFF0335C154">
                         <File Id="fil379E2AE73EF4E775A0F74626DB26B3E0" KeyPath="yes" Source="SourceDir\win32wnet.pyd" />
                     </Component>
-                    <Component Id="cmp06AEABEFC30C83A21E6C1206C7322760" Guid="C13AB76E-D641-4126-AB51-617912F8E10F">
+                    <Component Id="cmp06AEABEFC30C83A21E6C1206C7322760" Guid="D85FFB71-016B-4C03-9E0F-1980E9F0FF9F">
                         <File Id="fil15E5F3C4A5491F6F3FB289B68CD1903A" KeyPath="yes" Source="SourceDir\qt3support4.dll" />
                     </Component>
-                    <Component Id="cmpAC4E2388A945A97786DA8C5E541C90AB" Guid="C712671D-8555-4595-9C3D-22120111B130">
+                    <Component Id="cmpAC4E2388A945A97786DA8C5E541C90AB" Guid="9D5C58AF-5162-43CF-A5A4-C62B9E387CF0">
                         <File Id="filB729D4DFB0B91B4D889DF8C0ACBC50D4" KeyPath="yes" Source="SourceDir\win32pipe.pyd" />
                     </Component>
-                    <Component Id="cmp9CCD81120E89D04B5A4426F2BF10BBB2" Guid="FCE94E18-918F-42DB-92FD-0EC2B840E190">
+                    <Component Id="cmp9CCD81120E89D04B5A4426F2BF10BBB2" Guid="B89E41D1-6D39-43AF-A1D9-54F29B3A9605">
                         <File Id="fil3D3B2DAADD03C3CF36F4FA61843725EF" KeyPath="yes" Source="SourceDir\_elementtree.pyd" />
                     </Component>
-                    <Component Id="cmpAC26165912C221F62B8FC8E369D3FAA4" Guid="07D0E1BA-1C4F-4725-9F20-A633B8BC6125">
+                    <Component Id="cmpAC26165912C221F62B8FC8E369D3FAA4" Guid="87F4B31F-40F2-425A-95D1-A1374134406F">
                         <File Id="fil1F9EAFF6E73B0A6DD3E32B7D20ADA00A" KeyPath="yes" Source="SourceDir\python27.dll" />
                     </Component>
-                    <Component Id="cmpD26E9DF2B464891FB9D066E2D6A5C67B" Guid="76FD9E25-5C0D-4B68-898F-8E3F90B132C8">
+                    <Component Id="cmpD26E9DF2B464891FB9D066E2D6A5C67B" Guid="D23AC089-ECE1-4DDB-9B32-C45649FA8A0E">
                         <File Id="fil487DF192CEBE3CCB462B4304A05EC907" KeyPath="yes" Source="SourceDir\bz2.pyd" />
                     </Component>
-                    <Component Id="cmp652C9446B178276C5A1A5FABD95D49BA" Guid="67859C98-77EB-471B-8372-ACFC02E3AE61">
+                    <Component Id="cmp652C9446B178276C5A1A5FABD95D49BA" Guid="EB5F8394-646C-4FD5-8B22-57D17D711706">
                         <File Id="fil595E31947B1C05B8BF21822B32EAD046" KeyPath="yes" Source="SourceDir\msvcm90.dll" />
                     </Component>
-                    <Component Id="cmpE009917E503338A7EC1B4289D48905C9" Guid="88480603-BF55-45AB-AB5F-15E1976DE11B">
+                    <Component Id="cmpE009917E503338A7EC1B4289D48905C9" Guid="3F0882B5-F2D2-4ED5-A7CE-63C11DCD3A2A">
                         <File Id="filEF033ADA545A77CE0A8C6ACB8152B211" KeyPath="yes" Source="SourceDir\PySide.QtGui.pyd" />
                     </Component>
-                    <Component Id="cmp997B896EF135E895E0328BAC28684A84" Guid="8EDDB377-1600-4163-A83E-5CFC482C4F34">
+                    <Component Id="cmp997B896EF135E895E0328BAC28684A84" Guid="22AF7BB1-1107-4F67-ACA6-6BBC5625B90D">
                         <File Id="fil98E23D593B3B4C4F6A527C1C1630F415" KeyPath="yes" Source="SourceDir\_ctypes.pyd" />
                     </Component>
-                    <Component Id="cmpBB1F4A83C05FD6933C1AC557BCED4CB9" Guid="0E445551-EBC3-4962-8704-9160B985A890">
+                    <Component Id="cmpBB1F4A83C05FD6933C1AC557BCED4CB9" Guid="0A20E2CE-841B-4048-9164-8AFDC3B9F3ED">
                         <File Id="filAA62266F8CA195DAB12BE530665CFFFE" KeyPath="yes" Source="SourceDir\qtsvg4.dll" />
                     </Component>
-                    <Component Id="cmp57B1107943DDB333EF41B19027A44F43" Guid="F68A07BF-E6DA-412C-8A0E-4AA3B8B9D938">
+                    <Component Id="cmp57B1107943DDB333EF41B19027A44F43" Guid="7EC013CE-BDB3-4F3D-BCB6-436CC64D5787">
                         <File Id="filC653248933DAACBB1D4A8AF109FD16C9" KeyPath="yes" Source="SourceDir\win32evtlog.pyd" />
                     </Component>
-                    <Component Id="cmpA79290ACF03E2E95FBE5A70F8B9D8A8F" Guid="87F3A7A2-7E16-40A4-8D1C-ED510D215D3B">
+                    <Component Id="cmpA79290ACF03E2E95FBE5A70F8B9D8A8F" Guid="3C301B42-6DAF-49D2-9D81-C240E2AEAAE4">
                         <File Id="filFD9FC672A4AC327B1E75F1446CCA025C" KeyPath="yes" Source="SourceDir\persistent._timestamp.pyd" />
                     </Component>
-                    <Component Id="cmp602551A065B8B655C3B0AC5D5BF3E3AB" Guid="44AF8160-ED32-4E13-9508-315DD4F5CBD2">
+                    <Component Id="cmp602551A065B8B655C3B0AC5D5BF3E3AB" Guid="F6DBE05E-B682-47D6-9774-AEFFFECC383B">
                         <File Id="fil05A8ED2AA9AE7DB01860C9E003542D9C" KeyPath="yes" Source="SourceDir\idfplus.exe.manifest" />
                     </Component>
-                    <Component Id="cmp6140A6D328061E31C7D0764687486D9B" Guid="6B29F0A4-F561-4D5D-A122-D3F94445CDE6">
+                    <Component Id="cmp6140A6D328061E31C7D0764687486D9B" Guid="D8779965-0F23-4B37-A2CA-FF7B70191FDE">
                         <File Id="filD7E133BA658C90B4B6AFB29A0CD41DF8" KeyPath="yes" Source="SourceDir\select.pyd" />
                     </Component>
-                    <Component Id="cmp9E9EC6C3158C5F0AA37268DB91915C53" Guid="1842B7B7-63AF-477E-A3A1-16C8C9978D3B">
+                    <Component Id="cmp9E9EC6C3158C5F0AA37268DB91915C53" Guid="BA036948-8F26-4927-A010-F8B74B3182AE">
                         <File Id="fil2A0B401ADAA2AF7C5CF79B9AE7EFBF34" KeyPath="yes" Source="SourceDir\microsoft.vc90.crt.manifest" />
                     </Component>
-                    <Component Id="cmpE1B6C263822BD069C72C94731C6086A5" Guid="52784670-EACA-4436-82A4-38BE06FC2DAA">
+                    <Component Id="cmpE1B6C263822BD069C72C94731C6086A5" Guid="BDF59B9D-A057-4C4D-A85C-9AAB5BF4316C">
                         <File Id="fil411C135B26A9321624F210325016AC53" KeyPath="yes" Source="SourceDir\PySide.QtCore.pyd" />
                     </Component>
-                    <Component Id="cmp8B43EFD97C0675FA4D49F01A4BAF9070" Guid="21295C0D-DB29-46F7-841C-4120A7AED637">
+                    <Component Id="cmp8B43EFD97C0675FA4D49F01A4BAF9070" Guid="214487E3-A344-41BA-AFD8-2582148804D0">
                         <File Id="fil46C728F0F573B962735061204A347F03" KeyPath="yes" Source="SourceDir\shiboken-python2.7.dll" />
                     </Component>
-                    <Component Id="cmpC938A495905E9AFC2A8289DC77B00674" Guid="0F5029B2-0C89-4EC0-96B5-0A10B059BCA3">
+                    <Component Id="cmpC938A495905E9AFC2A8289DC77B00674" Guid="75DBFA57-4E88-43F6-BD92-728699C2A62D">
                         <File Id="fil9E13A9E6A2A50EF465D052E6C0F9BA32" KeyPath="yes" Source="SourceDir\qtnetwork4.dll" />
                     </Component>
-                    <Component Id="cmp695B765388170B534EA5C60E692AD944" Guid="5D299CE6-2738-469F-815F-296C808E0133">
+                    <Component Id="cmp695B765388170B534EA5C60E692AD944" Guid="E670DED3-7C8A-4B30-BA8F-DFD49330B750">
                         <File Id="filC0CE26E2161DC4ACF3F8AE73BFA8B5E7" KeyPath="yes" Source="SourceDir\persistent.cPersistence.pyd" />
                     </Component>
-                    <Component Id="cmp987D4AE3F6133B5845326F0A85998503" Guid="ABFFB698-64AE-4E3F-B18A-9733103DABB6">
+                    <Component Id="cmp987D4AE3F6133B5845326F0A85998503" Guid="AC3DF791-B1C7-43D8-84BE-6C64F0CAC8A0">
                         <File Id="fil4D52145E40558AC991150B978A73C171" KeyPath="yes" Source="SourceDir\qtcore4.dll" />
                     </Component>
-                    <Component Id="cmpD2A1BF5D1891F4508EE9DF506EFC642E" Guid="CF987746-9A29-4127-BECB-54D57361034C">
+                    <Component Id="cmpC4E2A9724274929A818E7F2E8F3B1E5B" Guid="5612A512-23E8-4A05-BD51-E8BDD41788B2">
+                        <File Id="fil5EE66C8413BA2D559982D33EB0672004" KeyPath="yes" Source="SourceDir\_win32sysloader.pyd" />
+                    </Component>
+                    <Component Id="cmpD2A1BF5D1891F4508EE9DF506EFC642E" Guid="29485722-6B98-4FB1-B476-4F6223976D6B">
                         <File Id="filBCB1850EECAF28A3A918A01C9E6D951B" KeyPath="yes" Source="SourceDir\win32api.pyd" />
                     </Component>
-                    <Component Id="cmpBDBDE414F987440BF6125AE64914585A" Guid="A3A5B1B3-8DBA-495A-9AD3-CDC130A20EA5">
+                    <Component Id="cmpBDBDE414F987440BF6125AE64914585A" Guid="4254D285-EDAE-41FE-B384-8A85E8F60575">
                         <File Id="fil4859D4AA6DFAAC03CEE68BB9B9793947" KeyPath="yes" Source="SourceDir\zope.interface._zope_interface_coptimizations.pyd" />
                     </Component>
-                    <Component Id="cmpBDC23040FF324EA2C89641ACAA4575C0" Guid="0D7EFF8B-5AE9-48BF-9162-A88C6F1DE284">
+                    <Component Id="cmpBDC23040FF324EA2C89641ACAA4575C0" Guid="CAD4D764-1C58-4660-9C25-F5A3DB4B2E00">
                         <File Id="fil25D8A25535529D7431062DB94C47788D" KeyPath="yes" Source="SourceDir\_socket.pyd" />
                     </Component>
-                    <Component Id="cmp8C059173AB1067ACEA4FA2B227301A76" Guid="AB38F1A1-4FD3-4512-8630-FDFEB55667A0">
+                    <Component Id="cmp8C059173AB1067ACEA4FA2B227301A76" Guid="DA7D40E5-890F-4B0F-9075-4739477CDF98">
                         <File Id="filD3E49B5BFEFD8CEB38564D18B664EE04" KeyPath="yes" Source="SourceDir\qtgui4.dll" />
                     </Component>
-                    <Component Id="cmpCDE5565B160F538673D0A7431BE4C490" Guid="0C61540D-E49F-437E-AAE7-77882FD5AA37">
+                    <Component Id="cmpCDE5565B160F538673D0A7431BE4C490" Guid="F9E8C96B-2044-4B42-9D79-8FFC93E52376">
                         <File Id="fil1ABB818407F78670FD1F0303AC33273A" KeyPath="yes" Source="SourceDir\qtopengl4.dll" />
                     </Component>
-                    <Component Id="cmp9FCE5B0D26786FA199B777D9C83480CD" Guid="1C6FF5AA-76E2-4A9B-92EB-3353AE3DA145">
+                    <Component Id="cmp9FCE5B0D26786FA199B777D9C83480CD" Guid="F83E79D1-B720-448D-A3F0-5EFDCBBAB87B">
                         <File Id="fil58BE6B39989808C1AC2347A42BF4B033" KeyPath="yes" Source="SourceDir\_multiprocessing.pyd" />
                     </Component>
-                    <Component Id="cmp038299BFA380FA5D091BE3CAF65FE9D7" Guid="65B93C84-B964-4D95-9FED-CCC903EFF7F1">
+                    <Component Id="cmp038299BFA380FA5D091BE3CAF65FE9D7" Guid="34269B92-F3ED-4346-9086-476692B7F288">
                         <File Id="fil2477946B57BC72476EDDFC147B5F7573" KeyPath="yes" Source="SourceDir\qtxml4.dll" />
                     </Component>
                     <Directory Id="dir543625731A5BCBD21A2F4CE6B5D2E648" Name="qt4_plugins">
                         <Directory Id="dir5F6F34C4D8E44263AD4D434ECED4B7CE" Name="codecs">
-                            <Component Id="cmp17AF33873F325FFD1A3C5E8ACD6DD576" Guid="F03BBD9C-44CC-49A2-A93D-D00F647AC0AD">
+                            <Component Id="cmp17AF33873F325FFD1A3C5E8ACD6DD576" Guid="01C2C954-6CF5-4B2E-B0F8-45F56EBEFCF8">
                                 <File Id="fil6855B5CB3154C80693E0158352943060" KeyPath="yes" Source="SourceDir\qt4_plugins\codecs\qtwcodecs4.dll" />
                             </Component>
-                            <Component Id="cmp4BA7807801CFBE5F80D5D49B35EB4E06" Guid="1F5A1D8D-BD82-4D54-9C7C-7D4B516841C9">
+                            <Component Id="cmp4BA7807801CFBE5F80D5D49B35EB4E06" Guid="F70D9F82-9B0A-4C8D-A34C-24976C1525EB">
                                 <File Id="filE043264AE31B8FCB58B83C53D8659D7D" KeyPath="yes" Source="SourceDir\qt4_plugins\codecs\qkrcodecs4.dll" />
                             </Component>
-                            <Component Id="cmp4AD29D5EFA12AABEA799929A860205DA" Guid="BF6F5122-D788-4863-9828-DCC35E62D26E">
+                            <Component Id="cmp4AD29D5EFA12AABEA799929A860205DA" Guid="D60BC515-217F-42EE-B5C3-A8E9EB3E89E0">
                                 <File Id="filB0D3AAA5A14B26E15FFDC75D643414B7" KeyPath="yes" Source="SourceDir\qt4_plugins\codecs\qcncodecs4.dll" />
                             </Component>
-                            <Component Id="cmpABC0021E784CB234EB90623083869850" Guid="0DCDDA23-4133-41AA-B88D-C41601E25C68">
+                            <Component Id="cmpABC0021E784CB234EB90623083869850" Guid="6DFFE16C-19BB-4684-8CE8-3248891D207D">
                                 <File Id="fil41F368D9A29D928F9D79970D02D10347" KeyPath="yes" Source="SourceDir\qt4_plugins\codecs\qjpcodecs4.dll" />
                             </Component>
                         </Directory>
                         <Directory Id="dir830142B272F9AAC06F1AB483C99E137A" Name="accessible">
-                            <Component Id="cmpC8CA8674F34E18C165DB6E6DED249869" Guid="24291179-2551-4921-A794-13887B4CDA8D">
+                            <Component Id="cmpC8CA8674F34E18C165DB6E6DED249869" Guid="9A6EE409-2631-41CE-B313-9995C9017502">
                                 <File Id="fil156692DB3965BFBD7DE4671CB00F5C1C" KeyPath="yes" Source="SourceDir\qt4_plugins\accessible\qtaccessiblewidgets4.dll" />
                             </Component>
-                            <Component Id="cmpE38F78CB32FF8F60A8990FA4087D480F" Guid="AB30C677-0D60-405F-8810-408446247BEB">
+                            <Component Id="cmpE38F78CB32FF8F60A8990FA4087D480F" Guid="C053863A-270B-4215-8554-5A456699237C">
                                 <File Id="fil423EDEA10EC9D8B0BB83F301E896F07F" KeyPath="yes" Source="SourceDir\qt4_plugins\accessible\qtaccessiblecompatwidgets4.dll" />
                             </Component>
                         </Directory>
                         <Directory Id="dirF082773D4D37A4F550722FEF94CA1023" Name="iconengines">
-                            <Component Id="cmp2DEA3B26B1B18D68A18DC21F447151FE" Guid="4A9C087B-D33B-4121-A04C-C9D499C7794F">
+                            <Component Id="cmp2DEA3B26B1B18D68A18DC21F447151FE" Guid="215DBC54-E6B8-4799-9701-A0971824E04C">
                                 <File Id="fil614787465FC90DC6F030B5A34EBDDEA0" KeyPath="yes" Source="SourceDir\qt4_plugins\iconengines\qsvgicon4.dll" />
                             </Component>
                         </Directory>
                         <Directory Id="dir4E5B6A48475C73FFC0CA1F508A3846EE" Name="imageformats">
-                            <Component Id="cmp54A500B667DA1D9B3D00BBEBFB290768" Guid="79AF2EFE-F537-4B49-A11B-3DA07838AE8D">
+                            <Component Id="cmp54A500B667DA1D9B3D00BBEBFB290768" Guid="0AE85A69-2004-4974-A2EF-40142A0C9F41">
                                 <File Id="fil970C05842F46D97C89E9935DD44F7B25" KeyPath="yes" Source="SourceDir\qt4_plugins\imageformats\qsvg4.dll" />
                             </Component>
-                            <Component Id="cmp61F970E8C98188F010D32FFAE0BF09B5" Guid="4ECC9FA6-C39B-47D4-8030-4783B048246F">
+                            <Component Id="cmp61F970E8C98188F010D32FFAE0BF09B5" Guid="EC90E1F9-31BE-47CA-9469-3CA20DC83E81">
                                 <File Id="fil546B6B0A66D9D53B0FEE9E3CC3964B09" KeyPath="yes" Source="SourceDir\qt4_plugins\imageformats\qmng4.dll" />
                             </Component>
-                            <Component Id="cmp5DA608385E16B47D9E53AF2FAA2F1666" Guid="93132F0A-2395-40F4-B6EF-E4B0526C83E8">
+                            <Component Id="cmp5DA608385E16B47D9E53AF2FAA2F1666" Guid="7F3DBF0C-6774-40DA-A0FF-3DC087E717B5">
                                 <File Id="fil14CD831D714E6FAC4E4EFC0EAAFE2F16" KeyPath="yes" Source="SourceDir\qt4_plugins\imageformats\qtga4.dll" />
                             </Component>
-                            <Component Id="cmpC7789E29BB554B0D6AA21F4E1201D5BB" Guid="1A34B6AF-B1A1-45D7-A7C3-68E77D0DE823">
+                            <Component Id="cmpC7789E29BB554B0D6AA21F4E1201D5BB" Guid="B2D50A45-4607-4DD0-8EA8-554F7C34626F">
                                 <File Id="fil1AC98BDD2FBAD3F688662344FD9BE4B0" KeyPath="yes" Source="SourceDir\qt4_plugins\imageformats\qgif4.dll" />
                             </Component>
-                            <Component Id="cmp25DA3537DFB6BB6FCA030DA9796AD9FC" Guid="D6E5C043-C62B-4357-846B-16D14DD25C10">
+                            <Component Id="cmp25DA3537DFB6BB6FCA030DA9796AD9FC" Guid="7E1AFEEE-F175-4737-AEFD-477C31B857EB">
                                 <File Id="fil6E70FB344D639571DA6968A87257FE90" KeyPath="yes" Source="SourceDir\qt4_plugins\imageformats\qtiff4.dll" />
                             </Component>
-                            <Component Id="cmp32AD0A3BA4599217500B7C844BF44C9F" Guid="651F62A8-E704-494A-93BA-F5BE9ED0CB9D">
+                            <Component Id="cmp32AD0A3BA4599217500B7C844BF44C9F" Guid="FD9EF0AA-3CA3-40D5-8C2F-3E98C311E6C6">
                                 <File Id="fil8944F08F2907910D03EB80FF87A2030F" KeyPath="yes" Source="SourceDir\qt4_plugins\imageformats\qico4.dll" />
                             </Component>
-                            <Component Id="cmp022ACD3331FB4C79055D3B8A418227F9" Guid="15717804-BE24-4D88-BB11-CD76C6DED8A5">
+                            <Component Id="cmp022ACD3331FB4C79055D3B8A418227F9" Guid="6B2B064C-671F-4A27-89E4-8E6AC8F1EC7E">
                                 <File Id="fil982F530F4F5F7E245148973149C7E20D" KeyPath="yes" Source="SourceDir\qt4_plugins\imageformats\qjpeg4.dll" />
                             </Component>
                         </Directory>
                         <Directory Id="dirD9B07BC6FC69B5A42A933BCB6C856FF1" Name="graphicssystems">
-                            <Component Id="cmp6A309189A9EA5DDBFED8A767C0FB6BB5" Guid="5EEF87A0-9AB0-4BD4-B3A2-B5B3F4487242">
+                            <Component Id="cmp6A309189A9EA5DDBFED8A767C0FB6BB5" Guid="7325CD43-6C78-4437-8297-3141EA9ACAC6">
                                 <File Id="filD5E4C5CA602C3AB21A977BD3989504FB" KeyPath="yes" Source="SourceDir\qt4_plugins\graphicssystems\qtracegraphicssystem4.dll" />
                             </Component>
-                            <Component Id="cmpDBC3EE8E022506D82A6428BF0C0F04A3" Guid="594FA668-065B-404D-B483-CC419910A19F">
+                            <Component Id="cmpDBC3EE8E022506D82A6428BF0C0F04A3" Guid="136C1905-6FE5-4D79-B94B-7B8E31A2664D">
                                 <File Id="fil6E54361CC5460515C6653F8F6E6EC45B" KeyPath="yes" Source="SourceDir\qt4_plugins\graphicssystems\qglgraphicssystem4.dll" />
                             </Component>
                         </Directory>
                     </Directory>
                     <Directory Id="dir0FB23EFA2CF642E9C31A7A04DF1A76B2" Name="lib2to3">
-                        <Component Id="cmp6AA88EFB6E4B6BA608AA70381DE64ED4" Guid="1EB13D65-1226-429C-B629-F0D5501E5902">
-                            <File Id="filD19B264B7DB0D5ED2EB7C4AF59E1692C" KeyPath="yes" Source="SourceDir\lib2to3\patterngrammar.txt" />
-                        </Component>
-                        <Component Id="cmp68E9CDD6FF4876F067ABDB93BFB4783F" Guid="C18A79F7-BA44-4C55-AC72-EB3179A75BD3">
+                        <Component Id="cmp68E9CDD6FF4876F067ABDB93BFB4783F" Guid="16AF7FA8-1DE7-4ACD-90CF-8231A02D908D">
                             <File Id="fil509B364A31350E15655AA01200E2BD28" KeyPath="yes" Source="SourceDir\lib2to3\grammar.txt" />
+                        </Component>
+                        <Component Id="cmp6AA88EFB6E4B6BA608AA70381DE64ED4" Guid="FC017FAA-17B9-4D81-9B10-985704AEECD2">
+                            <File Id="filD19B264B7DB0D5ED2EB7C4AF59E1692C" KeyPath="yes" Source="SourceDir\lib2to3\patterngrammar.txt" />
                         </Component>
                     </Directory>
                     <Directory Id="dirE943AC7232806A4D114801E13C414E20" Name="include">
-                        <Component Id="cmpB66B0DFC2320372306555E558C2D75FC" Guid="75FB756B-455E-4DEE-B623-DD01226E6485">
+                        <Component Id="cmpB66B0DFC2320372306555E558C2D75FC" Guid="EFC416DF-F5FA-41A4-84A9-7A65C27D4CB4">
                             <File Id="fil27DCC6D6A82DE89F6901E13FBDCCE7D5" KeyPath="yes" Source="SourceDir\include\pyconfig.h" />
                         </Component>
                     </Directory>
@@ -308,6 +311,7 @@ along with IDF+. If not, see <http://www.gnu.org/licenses/>.
             <ComponentRef Id="cmpC938A495905E9AFC2A8289DC77B00674" />
             <ComponentRef Id="cmp695B765388170B534EA5C60E692AD944" />
             <ComponentRef Id="cmp987D4AE3F6133B5845326F0A85998503" />
+            <ComponentRef Id="cmpC4E2A9724274929A818E7F2E8F3B1E5B" />
             <ComponentRef Id="cmpD2A1BF5D1891F4508EE9DF506EFC642E" />
             <ComponentRef Id="cmpBDBDE414F987440BF6125AE64914585A" />
             <ComponentRef Id="cmpBDC23040FF324EA2C89641ACAA4575C0" />
@@ -331,8 +335,8 @@ along with IDF+. If not, see <http://www.gnu.org/licenses/>.
             <ComponentRef Id="cmp022ACD3331FB4C79055D3B8A418227F9" />
             <ComponentRef Id="cmp6A309189A9EA5DDBFED8A767C0FB6BB5" />
             <ComponentRef Id="cmpDBC3EE8E022506D82A6428BF0C0F04A3" />
-            <ComponentRef Id="cmp6AA88EFB6E4B6BA608AA70381DE64ED4" />
             <ComponentRef Id="cmp68E9CDD6FF4876F067ABDB93BFB4783F" />
+            <ComponentRef Id="cmp6AA88EFB6E4B6BA608AA70381DE64ED4" />
             <ComponentRef Id="cmpB66B0DFC2320372306555E558C2D75FC" />
         </ComponentGroup>
     </Fragment>
