@@ -22,9 +22,11 @@ from __future__ import (print_function, division, absolute_import)
 
 # Standard library imports
 import sys
+import multiprocessing
 
 # PySide imports
 from PySide import QtGui
+from PySide import QtCore
 
 # Local imports
 from idfplus.main import IDFPlus
@@ -45,4 +47,5 @@ def main():
     sys.exit(app.exec_())
 
 if __name__ == '__main__':
+    multiprocessing.freeze_support()
     main()
