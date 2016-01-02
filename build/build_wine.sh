@@ -167,7 +167,26 @@ make_installer () {
         -out ${WINE_DISTDIR}/idfplus-v0.0.5.msi ${WINE_DISTDIR}/idfplus.wixobj
 
 #    echo "Signing installer..."
-#    wine signtool
+#    export SIGN_TOOL=
+#    wine ${SIGN_TOOL} sign /f ../resources/8c96e8b6376996cb832a21930c2a199.pem \
+#        /p testpassword \
+#        /t http://timestamp.verisign.com/scripts/timstamp.dll \
+#        /d "IDFPlus Editor Installer" \
+#        ${WINE_DISTDIR}/idfplus-v0.0.5.msi
+
+#    echo "Verifying signature..."
+#    wine ${SIGN_TOOL} verify /pa ${WINE_DISTDIR}/idfplus-v0.0.5.msi
+
+# Can also use mono's signcode tool
+#signcode \
+# -spc authenticode.spc \
+# -v authenticode.pvk \
+# -a sha1 -$ commercial \
+# -n My\ Application \
+# -i http://www.example.com/ \
+# -t http://timestamp.verisign.com/scripts/timstamp.dll \
+# -tr 10 \
+# MyApp.exe
 }
 
 # Harvest file info for use by WIX
