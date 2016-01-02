@@ -167,6 +167,7 @@ make_installer () {
         -ext WixUIExtension \
         -out ${WINE_DISTDIR}/idfplus-v${VERSION}.msi ${WINE_DISTDIR}/idfplus.wixobj
 
+# http://stackoverflow.com/questions/18287960/signing-windows-application-on-linux-based-distros
 #    echo "Signing installer..."
 #    export SIGN_TOOL=
 #    wine ${SIGN_TOOL} sign /f ../resources/8c96e8b6376996cb832a21930c2a199.pem \
