@@ -39,11 +39,11 @@ prepare_env () {
     export WINEPREFIX=${BUILD_DIR}/idfplus_prefix
     export WINEARCH=win32
     export WINEDEBUG=-all,err+all
-    export WIX_DIR=${BUILD_DIR}/wix310
+    export DOWNLOAD_DIR=${BUILD_DIR}/Downloads
+    export WIX_DIR=${DOWNLOAD_DIR}/wix310
     export CFLAGS=-m32
     export LDFLAGS=-m32
     export VERSION=0.1.0
-    export DOWNLOAD_DIR=${BUILD_DIR}/Downloads
 }
 
 # Check for and downloads the required installers
@@ -129,7 +129,7 @@ install_prerequisites () {
 #    wineboot -ru
 
     echo "Extracting WIX..."
-    unzip -q -n ${DOWNLOAD_DIR}/wix310-binaries.zip -d wix310
+    unzip -q -n ${DOWNLOAD_DIR}/wix310-binaries.zip -d ${DOWNLOAD_DIR}/wix310
 
     echo "Installing Python dependencies..."
     wine python -m pip install -U pip -q
