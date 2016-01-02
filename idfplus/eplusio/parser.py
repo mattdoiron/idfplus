@@ -381,7 +381,7 @@ class IDDParser(Parser):
     :param idd:
     """
 
-    __parser_version__ = '0.0.4'
+    __parser_version__ = '0.1.0'
 
     def __init__(self, idd=None):
         """Initialize the parser
