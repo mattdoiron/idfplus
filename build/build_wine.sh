@@ -21,6 +21,16 @@
 # The default versions of WINE will not be able to cross-compile 32bit versions of IDFPlus
 # on a 64bit Linux machine! See the following link for compiling a custom version of WINE
 # if you are on 64bit Linux: http://wiki.winehq.org/BuildingBiarchWineOnUbuntu
+# Also see http://wiki.winehq.org/BuildingWine
+
+# The following prerequisites are required:
+# sudo add-apt-repository ppa:ubuntu-wine/ppa --yes
+# sudo apt-get update
+# sudo apt-get install wine1.8-i386 winbind libgnutls-dev:i386
+
+# PLEASE NOTE: This script appears to build an exe, but it is currently broken and the editor
+# will crash on startup! I'll leave this script here for now, but don't expect it to work! The
+# WIX functionality does appear to work.
 
 # Define the necessary environment variables
 prepare_env () {
@@ -89,7 +99,7 @@ install_prerequisites () {
     echo "Installing prerequisites..."
 
     echo "Setting WINE to Windows 7..."
-    winetricks win7
+    winetricks --unattended win7
 
 #    echo "Installing MFC42..."
 #    winetricks --unattended mfc42
@@ -119,12 +129,11 @@ install_prerequisites () {
     echo "Extracting WIX..."
     unzip -q -n ${BUILD_DIR}/wix310-binaries.zip -d wix310
 
-    echo "Installing python dependencies..."
+    echo "Installing Python dependencies..."
     wine python -m pip install -U pip -q
-    wine python -m pip install persistent -q
-    wine python -m pip install pyinstaller -q
     wine python -m pip install ${BUILD_DIR}/PySide-1.2.4-cp27-none-win32.whl -q
     wine python -m pip install -q -r ../requirements.txt
+    wine python -m pip install -q -r ../requirements-dev.txt
 }
 
 # Build the exe using PyInstaller
