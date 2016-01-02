@@ -42,6 +42,7 @@ prepare_env () {
     export WIX_DIR=${BUILD_DIR}/wix310
     export CFLAGS=-m32
     export LDFLAGS=-m32
+    export VERSION=0.1.0
 }
 
 # Check for and downloads the required installers
@@ -164,7 +165,7 @@ make_installer () {
     echo "Running light..."
     wine ${WIX_DIR}/light -nologo -sacl -sval -spdb -b ${WINE_DISTDIR}/idfplus/ \
         -ext WixUIExtension \
-        -out ${WINE_DISTDIR}/idfplus-v0.0.5.msi ${WINE_DISTDIR}/idfplus.wixobj
+        -out ${WINE_DISTDIR}/idfplus-v${VERSION}.msi ${WINE_DISTDIR}/idfplus.wixobj
 
 #    echo "Signing installer..."
 #    export SIGN_TOOL=
