@@ -19,15 +19,17 @@ along with IDF+. If not, see <http://www.gnu.org/licenses/>.
 
 block_cipher = None
 
-options = [ ('v', None, 'OPTION') ]
+# options = [ ('v', None, 'OPTION') ]
 a = Analysis(['..\\idfplus.py'],
              pathex=['.'],
              binaries=None,
              datas=None,
-             hiddenimports=['PySide.QtCore', 'PySide.QtGui', 'idfplus', 'idfplus.eplusio',
+             hiddenimports=['multiprocessing', 'pywintypes', 'lib2to3', 'PySide.QtCore',
+                            'PySide', 'PySide.QtGui', 'idfplus', 'idfplus.eplusio', 'win32api',
                             'idfplus.gui', 'PyInstaller', 'persistent', 'whoosh', 'odict',
-                            'decorator', 'odict.pyodict', 'appdirs', 'PySide', 'networkx',
-                            'lib2to3', 'pywintypes'],
+                            'persistent.mapping', 'whoosh.fields', 'whoosh.filedb',
+                            'whoosh.qparser', 'decorator', 'odict.pyodict', 'appdirs', 'PySide',
+                            'networkx'],
              hookspath=['../resources/hooks'],
              runtime_hooks=None,
              excludes=None,
@@ -38,10 +40,10 @@ pyz = PYZ(a.pure, a.zipped_data,
           cipher=block_cipher)
 exe = EXE(pyz,
           a.scripts,
-          options,
+#          options,
           exclude_binaries=True,
           name='idfplus',
-          debug=True,
+          debug=None,
           strip=None,
           upx=True,
           console=True,
