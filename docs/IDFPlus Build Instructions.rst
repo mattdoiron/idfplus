@@ -8,25 +8,15 @@ want to build a copy for yourself, here are the instructions.
 Windows Build:
 ==============
 
-    * Install python 2.7.x. Anaconda distribution is easiest (https://www.continuum.io/downloads).
+    * Install python 2.7.x 32bit. The official installer is easiest (https://www.python.org). Must be 32bit to ensure wide compatibility!
     * Install Visual C++ Compiler for Python 2.7 (http://aka.ms/vcpython27)
     * Install UPX for compression of built executable 
-      (http://upx.sourceforge.net/download/upx391w.zip). This is optional and can even break
-      things sometimes.
-    * Install pip. Anaconda comes with Pip preinstalled, but if you use another Python 
-      distribution you can try: https://bootstrap.pypa.io/get-pip.py. You may also want to 
-      upgrade pip to the newest version
+      (http://upx.sourceforge.net/download/upx391w.zip). This is optional, but reduces installer file size by about 25%.
+    * Use pip to install virtualenv and virtualenvwrapper-win, then make new virtualenv and activate it
 
         .. code-block:: bash
         
-           pip install -U pip
-
-    * Use pip to install virtualenvwrapper-win, then make new virtualenv and activate it
-
-        .. code-block:: bash
-        
-            pip install virtualenvwrapper-win
-            pip install -U virtualenv
+            pip install -U virtualenv virtualenvwrapper-win
             mkvirtualenv idfplus
             workon idfplus
 
@@ -38,26 +28,24 @@ Windows Build:
         .. code-block:: bash
         
             hg clone https://bitbucket.org/mattdoiron/idfplus/
+            cd idfplus
         
-        * Move to the root directory of the downloaded idfplus source
-    
     * Install PySide and other dependencies
     
         .. code-block:: bash
         
             pip install --use-wheel pyside
             pip install -r requirements.txt
+            pip install -r requirements-dev.txt
 
-    * Run pyinstaller to generate executable:
+    * Run the bat file from inside the build folder to make pyinstaller generate an executable. The executable will be found in the dist folder:
                 
         .. code-block:: bash
 
-            pyinstaller --clean --additional-hooks-dir=resources idfplus.py
-                
-        * Eventually use :code:`--noconsole` to prevent a console window from showing up
-        * Can use :code:`--onefile` to make an all-includive, stand-alone exe.
-        * Optionally use :code:`--upx-dir=/path/to/upx/dir` to enable UPX compression of executable
+            cd build
+            build_win.bat
        
+    * Use the WIX bat file (NOT YET IMPLEMENTED) to build and .msi file.
 
 Ubuntu/Debian Build:
 ====================
