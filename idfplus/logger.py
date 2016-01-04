@@ -20,6 +20,7 @@ along with IDF+. If not, see <http://www.gnu.org/licenses/>.
 # System imports
 import logging
 import logging.handlers
+import sys
 
 # PySide imports
 from PySide.QtCore import Signal
@@ -49,16 +50,19 @@ def setup_logging(_level, name, log_path):
     file_handler.setFormatter(formatter)
 
     # Setup handler for in-app log viewer
-    stream_handler = ConsoleLogHandler(level)
-    stream_handler.setLevel(level)
-    stream_handler.setFormatter(formatter)
+    console_handler = ConsoleLogHandler(sys.stdout)
+    console_handler.setLevel(level)
+    console_handler.setFormatter(formatter)
 
     # Setup logger
     log = logging.getLogger(name)
     log.setLevel(level)
     log.addHandler(file_handler)
-    log.addHandler(stream_handler)
+    log.addHandler(console_handler)
     log.addHandler(logging.NullHandler())
+
+    # Duplicate stderr to log file also
+    sys.stderr = StdErrToLogger(log)
 
     return log
 
@@ -90,3 +94,23 @@ class ConsoleLogHandler(logging.StreamHandler):
             raise
         except:
             self.handleError(record)
+
+
+class StdErrToLogger(object):
+    """File-like object that redirects a duplicate stderr message to logger.
+    """
+
+    def __init__(self, logger, log_level=logging.ERROR):
+        self.logger = logger
+        self.log_level = log_level
+        self.std_err = sys.stderr
+        sys.stderr = self
+
+    def write(self, buf):
+        for line in buf.rstrip().splitlines():
+            if line != "\n" and line:
+                self.logger.log(self.log_level, line.strip())
+                self.std_err.write(buf)
+
+    def flush(self):
+        self.std_err.flush()
