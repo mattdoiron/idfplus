@@ -153,7 +153,7 @@ build () {
     wine python -m PyInstaller --clean --noconfirm --onedir --log-level=INFO \
         --distpath=${DIST_DIR} --workpath=${BUILD_DIR} \
         --upx-dir=../resources/upx/upx391w \
-        idfplus_wine.spec
+        idfplus.spec
 }
 
 # Package the exe using WIX
