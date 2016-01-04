@@ -22,13 +22,16 @@ from __future__ import (print_function, division, absolute_import)
 
 # Standard library imports
 import sys
+import os
 import multiprocessing
+import faulthandler
 
 # PySide imports
 from PySide import QtGui
 from PySide import QtCore
 
 # Local imports
+from idfplus import config
 from idfplus.main import IDFPlus
 
 
@@ -48,4 +51,7 @@ def main():
 
 if __name__ == '__main__':
     multiprocessing.freeze_support()
-    main()
+
+    with open(os.path.join(config.LOG_DIR, 'idfplus_error_dump.txt'), 'w') as f:
+        faulthandler.enable(file=f)
+        main()
