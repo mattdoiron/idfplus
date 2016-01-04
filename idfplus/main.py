@@ -909,6 +909,10 @@ class IDFPlus(QtGui.QMainWindow, main.UIMainWindow):
         # Clear the table filter when changing classes
         self.clearFilterClicked()
 
+        # Block signals and clear any existing elements
+        self.classTable.blockSignals(True)
+        self.classTable.clearSpans()
+
         # Create the default table model
         table = self.classTable
         default_model = tablemodel.IDFObjectTableModel(obj_class, self.idf, table)
@@ -947,11 +951,15 @@ class IDFPlus(QtGui.QMainWindow, main.UIMainWindow):
             self.classTable.setCurrentIndex(self.classTable.model().index(0, 0))
             self.classTable.setFocus()
 
+        # Resize rows for text wrap
+        table.resizeRowsToContents()
+
         # Now that there is a class selected, enable some actions and set some vars
         self.newObjAct.setEnabled(True)
         self.delObjAct.setEnabled(True)
         self.transposeAct.setEnabled(True)
         self.unitsLabel.setText(None)
+        table.blockSignals(False)
 
     def load_tree_view(self):
         """Loads the tree of class type names.
