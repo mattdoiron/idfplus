@@ -40,7 +40,6 @@ LOG_FILE_NAME = "idfplus.log"
 LOG_PATH = os.path.join(LOG_DIR, LOG_FILE_NAME)
 MAX_OBJ_HISTORY = 100
 # DEFAULT_IDD_VERSION = '8.2'
-__version__ = '0.0.3'
 
 # Make sure necessary folders exist
 for directory in [LOG_DIR]:

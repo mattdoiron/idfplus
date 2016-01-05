@@ -36,6 +36,7 @@ from . import commands
 from . import treemodel
 from . import config
 from . import logger
+from . import __version__
 from eplusio import idfmodel
 from eplusio import iddmodel
 from eplusio import parser
@@ -290,7 +291,7 @@ class IDFPlus(QtGui.QMainWindow, main.UIMainWindow):
                 <a href="https://bitbucket.org/mattdoiron/idfplus/">
                 https://bitbucket.org/mattdoiron/idfplus/
                 </a></p>
-                <p>Copyright 2015 Matt Doiron (matt@mindfulmodeller.ca)<br/>
+                <p>Copyright 2014 Matt Doiron (matt@mindfulmodeller.ca)<br/>
                 All rights reserved.</p>
                 <p>IDF+ is free software: you can redistribute it and/or modify
                 it under the terms of the GNU General Public License as published by
@@ -302,7 +303,7 @@ class IDFPlus(QtGui.QMainWindow, main.UIMainWindow):
                 GNU General Public License at <a href="http://www.gnu.org/licenses/">
                 http://www.gnu.org/licenses/</a> for more details.</p>
                 <p>Built with: Python {1}, Qt {2} and PyQt {3} on {4}</p>""".format(
-                config.__version__, platform.python_version(),
+                __version__.version, platform.python_version(),
                 PySide.QtCore.qVersion(), PySide.__version__,
                 platform.system()))
 
