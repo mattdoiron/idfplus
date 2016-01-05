@@ -17,42 +17,57 @@ You should have received a copy of the GNU General Public License
 along with IDF+. If not, see <http://www.gnu.org/licenses/>.
 """
 
-try:
-    from setuptools import setup
-except ImportError:
-    from distutils.core import setup
+# Prepare for Python 3
+from __future__ import (print_function, division, absolute_import)
 
-import idfplus
+# System imports
+import os
+from setuptools import setup
+from setuptools import find_packages
+from codecs import open
+
+# Package importd
+from idfplus.__version__ import version
 
 
-def read(*filenames, **kwargs):
-    encoding = kwargs.get('encoding', 'utf-8')
-    sep = kwargs.get('sep', '\n')
+def read(*file_names):
     buf = []
-    for filename in filenames:
-        with io.open(filename, encoding=encoding) as f:
+    here = os.path.abspath(os.path.dirname(__file__))
+    for filename in file_names:
+        with open(os.path.join(here, filename), encoding='utf-8') as f:
             buf.append(f.read())
-    return sep.join(buf)
+    return '\n'.join(buf)
 
 setup(
     name='idfplus',
-    version=idfplus.__version__,
-    url='https://bitbucket.org/mattdoiron/idfplus/',
-    license='GPL v3.0',
+    version=version,
     author='Matt Doiron',
-    install_requires=['PySide>=1.2.1'],
-    cmdclass={'test': PyTest},
     author_email='matt@mindfulmodeller.ca',
+    url='https://bitbucket.org/mattdoiron/idfplus/',
     description='Advanced editor for EnergyPlus simulation input files.',
-    long_description=read('README.txt'),
-    packages=['idfplus'],
-    include_package_data=True,
+    long_description=read('README.rst'),
+    keywords='idd idf energyplus idfplus idf+ energy+',
+    packages=find_packages(exclude=['build', 'dist', 'docs', 'tests']),
     platforms='any',
-    license='LICENSE.txt',
-    test_suite='idfplus.test.test_idfplus',
-    classifiers = [
-        'Programming Language :: Python',
-        'Development Status :: 2 - Pre-Alpha',
+    license='GPLv3',
+    install_requires=[
+        "appdirs==1.4.0",
+        "networkx==1.10",
+        "odict==1.5.1",
+        "persistent==4.1.1",
+        "pyside==1.2.4",
+        "whoosh==2.7.0"
+    ],
+    extras_require={
+        'dev': ["pip-review==0.4",
+                "pip-tools==1.4.2",
+                "pyinstaller==3.0",
+                "sphinx==1.3.3"],
+        'test': ['nose==1.3.7'],
+    },
+    classifiers=[
+        'Programming Language :: Python :: 2.7',
+        'Development Status :: 4 - Beta',
         'Natural Language :: English',
         'Environment :: Win32 (MS Windows)',
         'Environment :: X11 Applications :: Qt',
