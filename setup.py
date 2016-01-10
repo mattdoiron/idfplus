@@ -23,13 +23,11 @@ from __future__ import (print_function, division, absolute_import)
 # System imports
 import os
 from setuptools import setup
-from setuptools import find_packages
 from codecs import open
-
-# Package importd
-from idfplus.__version__ import version
+from idfplus import __version__
 
 
+# Read the given file and return its contents
 def read(*file_names):
     buf = []
     here = os.path.abspath(os.path.dirname(__file__))
@@ -40,14 +38,14 @@ def read(*file_names):
 
 setup(
     name='idfplus',
-    version=version,
+    version=__version__,
     author='Matt Doiron',
     author_email='matt@mindfulmodeller.ca',
     url='https://bitbucket.org/mattdoiron/idfplus/',
     description='Advanced editor for EnergyPlus simulation input files.',
     long_description=read('README.rst'),
     keywords='idd idf energyplus idfplus idf+ energy+',
-    packages=find_packages(exclude=['build', 'dist', 'docs', 'tests']),
+    packages=['idfplus', 'idfplus.eplusio', 'idfplus.gui'],
     platforms='any',
     license='GPLv3',
     install_requires=[
@@ -76,5 +74,5 @@ setup(
         'License :: OSI Approved :: GNU General Public License v3 (GPLv3)',
         'Operating System :: OS Independent',
         'Topic :: Scientific/Engineering :: Information Analysis',
-        ]
+    ]
 )
