@@ -303,7 +303,7 @@ class IDFPlus(QtGui.QMainWindow, main.UIMainWindow):
                 GNU General Public License at <a href="http://www.gnu.org/licenses/">
                 http://www.gnu.org/licenses/</a> for more details.</p>
                 <p>Built with: Python {1}, Qt {2} and PyQt {3} on {4}</p>""".format(
-                __version__.version, platform.python_version(),
+                __version__, platform.python_version(),
                 PySide.QtCore.qVersion(), PySide.__version__,
                 platform.system()))
 

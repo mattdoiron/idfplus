@@ -110,7 +110,7 @@ class Writer(object):
                              encoding=config.FILE_ENCODING,
                              errors='backslashreplace') as idf_file:
 
-                idf_file.write("!-Generator IDFPlus v{}{}".format(__version__.version, eol_char))
+                idf_file.write("!-Generator IDFPlus v{}{}".format(version.version, eol_char))
                 idf_file.write("!-Option {}{}".format(options, eol_char))
                 idf_file.write("!-NOTE: All comments with '!-' are ignored by the "
                                "IDFEditor and are generated "
