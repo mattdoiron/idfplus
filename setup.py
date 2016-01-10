@@ -22,47 +22,65 @@ from __future__ import (print_function, division, absolute_import)
 
 # System imports
 import os
-from setuptools import setup
+import re
+
 from codecs import open
-from idfplus import __version__
 
+try:
+    from setuptools import setup
+except ImportError:
+    from distutils.core import setup
 
-# Read the given file and return its contents
-def read(*file_names):
-    buf = []
-    here = os.path.abspath(os.path.dirname(__file__))
-    for filename in file_names:
-        with open(os.path.join(here, filename), encoding='utf-8') as f:
-            buf.append(f.read())
-    return '\n'.join(buf)
+project = 'idfplus'
+packages = [
+    'idfplus',
+    'idfplus.gui',
+    'idfplus.eplusio',
+]
+requires = [
+    "appdirs==1.4.0",
+    "networkx==1.10",
+    "odict==1.5.1",
+    "persistent==4.1.1",
+    "pyside==1.2.4",
+    "whoosh==2.7.0",
+]
+requires_dev = [
+    "pip-review==0.4",
+    "pip-tools==1.4.2",
+    "pyinstaller==3.0",
+    "sphinx==1.3.3",
+]
+requires_setup = []
+
+with open(os.path.join(project, '__init__.py'), 'r') as fd:
+    version = re.search(r'^__version__\s*=\s*[\'"]([^\'"]*)[\'"]',
+                        fd.read(), re.MULTILINE).group(1)
+    if not version:
+        raise RuntimeError('Cannot find version information')
+with open('README.rst', 'r', 'utf-8') as f:
+    readme = f.read()
+with open('CHANGELOG.rst', 'r', 'utf-8') as f:
+    changelog = f.read()
+
 
 setup(
-    name='idfplus',
-    version=__version__,
+    name=project,
+    version=version,
     author='Matt Doiron',
     author_email='matt@mindfulmodeller.ca',
     url='https://bitbucket.org/mattdoiron/idfplus/',
     description='Advanced editor for EnergyPlus simulation input files.',
-    long_description=read('README.rst'),
+    long_description=readme + '\n\n' + changelog,
     keywords='idd idf energyplus idfplus idf+ energy+',
-    packages=['idfplus', 'idfplus.eplusio', 'idfplus.gui'],
+    packages=packages,
     platforms='any',
-    license='GPLv3',
-    install_requires=[
-        "appdirs==1.4.0",
-        "networkx==1.10",
-        "odict==1.5.1",
-        "persistent==4.1.1",
-        "pyside==1.2.4",
-        "whoosh==2.7.0"
-    ],
-    extras_require={
-        'dev': ["pip-review==0.4",
-                "pip-tools==1.4.2",
-                "pyinstaller==3.0",
-                "sphinx==1.3.3"],
-        'test': ['nose==1.3.7'],
-    },
+    license='GPL3',
+    zip_safe=False,
+    install_requires=requires,
+    setup_requires=requires_setup,
+    tests_require=requires_dev,
+    test_suite='idfplus.tests.idfplus_tests',
     classifiers=[
         'Programming Language :: Python :: 2.7',
         'Development Status :: 4 - Beta',
@@ -74,5 +92,10 @@ setup(
         'License :: OSI Approved :: GNU General Public License v3 (GPLv3)',
         'Operating System :: OS Independent',
         'Topic :: Scientific/Engineering :: Information Analysis',
-    ]
+    ],
+    entry_points={
+        'gui_scripts': [
+            'idfplus=idfplus',
+        ],
+    },
 )
