@@ -29,6 +29,7 @@ from codecs import open
 
 from setuptools import setup
 from setuptools import Command
+from setuptools.command.test import test as _test
 
 if sys.platform.startswith('win'):
     from distutils.command import bdist_msi as _bdist_msi
@@ -60,6 +61,7 @@ requires_dev = [
     "pyinstaller==3.0",
     "sphinx==1.3.3",
 ]
+requires_test = ['pytest==2.8.5']
 requires_setup = []
 
 with open(os.path.join(project, '__init__.py'), 'r') as fd:
@@ -71,6 +73,20 @@ with open('README.rst', 'r', 'utf-8') as f:
     readme = f.read()
 with open('CHANGELOG.rst', 'r', 'utf-8') as f:
     changelog = f.read()
+
+
+class PyTest(_test):
+    description = 'Used to run tests.'
+    user_options = [('pytest-args=', 'a', "Arguments to pass to py.test")]
+
+    def initialize_options(self):
+        _test.initialize_options(self)
+        self.pytest_args = []
+
+    def run_tests(self):
+        import pytest
+        errno = pytest.main(self.pytest_args)
+        sys.exit(errno)
 
 
 class bdist_msi(_bdist_msi):
@@ -123,8 +139,7 @@ setup(
     zip_safe=False,
     install_requires=requires,
     setup_requires=requires_setup,
-    tests_require=requires_dev,
-    test_suite='idfplus.tests.idfplus_tests',
+    tests_require=requires_test,
     classifiers=[
         'Programming Language :: Python :: 2.7',
         'Development Status :: 4 - Beta',
@@ -142,9 +157,9 @@ setup(
             'idfplus=idfplus',
         ],
     },
-    extra_requires=[],
     cmdclass={
         'freeze': Freeze,
         'bdist_msi': bdist_msi,
+        'test': PyTest,
     },
 )
