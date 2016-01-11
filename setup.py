@@ -114,7 +114,10 @@ class bdist_msi(_bdist_msi):
 
 class Freeze(Command):
     description = 'Use to freeze the Python app for portability.'
-    user_options = []
+    user_options = [
+        ('log-level=', 'l',
+         "Log level for PyInstaller"),
+    ]
 
     def _upx_version(self):
         if self.is_win:
@@ -129,8 +132,10 @@ class Freeze(Command):
         self.pyi_run = None
         self.is_win = False
         self.is_32bit = True
+        self.log_level = 'INFO'
 
     def finalize_options(self):
+        print('log level: {}'.format(self.log_level))
         try:
             from PyInstaller.__main__ import run
         except ImportError:
@@ -146,9 +151,12 @@ class Freeze(Command):
         dist_dir = os.path.join(root_path, 'dist')
         build_dir = os.path.join(root_path, 'build')
         upx_dir = os.path.join(root_path, 'resources', 'upx', self._upx_version())
-        self.pyi_run(['--clean', '--noconfirm', '--onedir', '--log-level=INFO',
-                      '--distpath=' + dist_dir, '--workpath=' + build_dir,
-                      '--upx-dir=' + upx_dir, spec_file])
+        self.pyi_run(['--clean', '--noconfirm', '--onedir',
+                      '--log-level=' + self.log_level,
+                      '--distpath=' + dist_dir,
+                      '--workpath=' + build_dir,
+                      '--upx-dir=' + upx_dir,
+                      spec_file])
 
 
 setup(
