@@ -23,13 +23,22 @@ from __future__ import (print_function, division, absolute_import)
 # System imports
 import os
 import re
+import sys
 
 from codecs import open
 
-try:
-    from setuptools import setup
-except ImportError:
-    from distutils.core import setup
+from setuptools import setup
+from setuptools import Command
+
+if sys.platform.startswith('win'):
+    from distutils.command import bdist_msi as _bdist_msi
+else:
+    from setuptools import Command as _bdist_msi
+
+if sys.version_info.major != 2 and sys.version_info.minor < 7:
+    print("Currently compatible with Python 2.7.x only!")
+    sys.exit(1)
+
 
 project = 'idfplus'
 packages = [
@@ -62,6 +71,41 @@ with open('README.rst', 'r', 'utf-8') as f:
     readme = f.read()
 with open('CHANGELOG.rst', 'r', 'utf-8') as f:
     changelog = f.read()
+
+
+class bdist_msi(_bdist_msi):
+    description = 'Used to build an msi installer. Windows only.'
+    user_options = []
+    all_versions = ['2.7']
+
+    def initialize_options(self):
+        print('initializing options')
+        if not sys.platform.startswith('win'):
+            print("This command is available on Windows only.")
+            sys.exit(1)
+
+    def finalize_options(self):
+        print('finalizing options')
+
+    def run(self):
+        print('executing bdist_msi...')
+
+    def test(self):
+        print('no tests available')
+
+
+class Freeze(Command):
+    description = 'Use to freeze the Python app for portability.'
+    user_options = []
+
+    def initialize_options(self):
+        print('initializing options')
+
+    def finalize_options(self):
+        print('finalizing options')
+
+    def run(self):
+        print('running freeze...')
 
 
 setup(
@@ -97,5 +141,10 @@ setup(
         'gui_scripts': [
             'idfplus=idfplus',
         ],
+    },
+    extra_requires=[],
+    cmdclass={
+        'freeze': Freeze,
+        'bdist_msi': bdist_msi,
     },
 )
