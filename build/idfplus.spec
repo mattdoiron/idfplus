@@ -17,11 +17,16 @@ You should have received a copy of the GNU General Public License
 along with IDF+. If not, see <http://www.gnu.org/licenses/>.
 """
 
+import os
+
 block_cipher = None
+project = 'idfplus'
+project_path = os.path.join('..', project + '.py')
+hooks_path = os.path.join('resources', 'hooks')
+icon_path = os.path.join('resources', 'images', 'logo.ico')
 
 # options = [ ('v', None, 'OPTION') ]
-a = Analysis(['..\\idfplus.py'],
-             pathex=['.'],
+a = Analysis([project_path],
              binaries=None,
              datas=None,
              hiddenimports=['multiprocessing', 'pywintypes', 'lib2to3', 'PySide.QtCore',
@@ -30,7 +35,7 @@ a = Analysis(['..\\idfplus.py'],
                             'persistent.mapping', 'whoosh.fields', 'whoosh.filedb',
                             'whoosh.qparser', 'decorator', 'odict.pyodict', 'appdirs', 'PySide',
                             'networkx', 'atexit', 'PySide.QtNetwork'],
-             hookspath=['../resources/hooks'],
+             hookspath=[hooks_path],
              runtime_hooks=None,
              excludes=None,
              win_no_prefer_redirects=None,
@@ -42,17 +47,17 @@ exe = EXE(pyz,
           a.scripts,
 #          options,
           exclude_binaries=True,
-          name='idfplus',
+          name=project,
           debug=None,
           strip=None,
           upx=True,
           console=None,
           version='version_info.txt',
-          icon='..\\resources\\images\\logo.ico')
+          icon=icon_path)
 coll = COLLECT(exe,
                a.binaries,
                a.zipfiles,
                a.datas,
                strip=None,
                upx=True,
-               name='idfplus')
+               name=project)
