@@ -1,6 +1,5 @@
 # requirements-dev.in
 Sphinx
-nose
 pyinstaller
 pip-tools
 pip-review
