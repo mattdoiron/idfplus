@@ -34,8 +34,9 @@
 
 # Define the necessary environment variables
 prepare_env () {
-    export BUILD_DIR=$PWD
-    export DIST_DIR=$PWD/../dist
+    export SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+    export BUILD_DIR=${SCRIPT_DIR}
+    export DIST_DIR=${BUILD_DIR}/../dist
     export WINEPREFIX=${BUILD_DIR}/idfplus_prefix
     export WINEARCH=win32
     export WINEDEBUG=-all,err+all
