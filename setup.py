@@ -24,12 +24,14 @@ from __future__ import (print_function, division, absolute_import)
 import os
 import re
 import sys
+import platform
 
 from codecs import open
 
 from setuptools import setup
 from setuptools import Command
 from setuptools.command.test import test as _test
+from setuptools.dist import DistutilsOptionError
 
 if sys.platform.startswith('win'):
     from distutils.command import bdist_msi as _bdist_msi
@@ -114,14 +116,39 @@ class Freeze(Command):
     description = 'Use to freeze the Python app for portability.'
     user_options = []
 
+    def _upx_version(self):
+        if self.is_win:
+            upx_version = 'upx391w'
+        elif self.is_32bit:
+            upx_version = 'upx-3.91-i386_linux'
+        else:
+            upx_version = 'upx-3.91-amd64_linux'
+        return upx_version
+
     def initialize_options(self):
-        print('initializing options')
+        self.pyi_run = None
+        self.is_win = False
+        self.is_32bit = True
 
     def finalize_options(self):
-        print('finalizing options')
+        try:
+            from PyInstaller.__main__ import run
+        except ImportError:
+            raise DistutilsOptionError('PyInstaller is not installed')
+        else:
+            self.pyi_run = run
+        self.is_win = platform.system().startswith('Windows')
+        self.is_32bit = platform.architecture()[0] == '32bit'
 
     def run(self):
-        print('running freeze...')
+        root_path = os.path.dirname(__file__)
+        spec_file = os.path.join(root_path, 'build', project + '.spec')
+        dist_dir = os.path.join(root_path, 'dist')
+        build_dir = os.path.join(root_path, 'build')
+        upx_dir = os.path.join(root_path, 'resources', 'upx', self._upx_version())
+        self.pyi_run(['--clean', '--noconfirm', '--onedir', '--log-level=INFO',
+                      '--distpath=' + dist_dir, '--workpath=' + build_dir,
+                      '--upx-dir=' + upx_dir, spec_file])
 
 
 setup(
