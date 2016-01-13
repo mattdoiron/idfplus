@@ -61,5 +61,5 @@ coll = COLLECT(exe,
                a.zipfiles,
                a.datas,
                strip=None,
-               upx=True,
+               upx=None,
                name=project)
