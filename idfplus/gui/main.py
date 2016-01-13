@@ -223,7 +223,7 @@ class UIMainWindow(object):
         self.center()
         self.setUnifiedTitleAndToolBarOnMac(True)
         self.setWindowTitle('IDFPlus Editor')
-        self.setWindowIcon(QtGui.QIcon(':/images/eplus_sm.png'))
+        self.setWindowIcon(QtGui.QIcon(':/images/logo.png'))
 
         # Status bar setup
         self.statusBar().showMessage('Status: Ready')
@@ -263,7 +263,7 @@ class UIMainWindow(object):
         # System tray itself
         self.trayIcon = QtGui.QSystemTrayIcon(self)
         self.trayIcon.setContextMenu(self.trayIconMenu)
-        self.trayIcon.setIcon(QtGui.QIcon(':/images/eplus_sm.png'))
+        self.trayIcon.setIcon(QtGui.QIcon(':/images/logo.png'))
         self.trayIcon.setToolTip('IDFPlus')
         self.trayIcon.show()
 
