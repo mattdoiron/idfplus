@@ -21,12 +21,14 @@ import os
 
 block_cipher = None
 project = 'idfplus'
-project_path = os.path.join('..', project + '.py')
-hooks_path = os.path.join('resources', 'hooks')
-icon_path = os.path.join('resources', 'images', 'logo.ico')
+spec_dir = os.path.realpath('.')
+up_one_dir = '..' if spec_dir.endswith('build') else ''
+main_module = os.path.join('..', project + '.py')
+hooks_path = os.path.join(up_one_dir, 'resources', 'hooks')
+icon_path = os.path.join(up_one_dir, 'resources', 'images', 'logo.ico')
 
 # options = [ ('v', None, 'OPTION') ]
-a = Analysis([project_path],
+a = Analysis([main_module],
              binaries=None,
              datas=None,
              hiddenimports=['multiprocessing', 'pywintypes', 'lib2to3', 'PySide.QtCore',
