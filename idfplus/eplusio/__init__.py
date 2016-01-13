@@ -20,4 +20,4 @@ along with IDF+. If not, see <http://www.gnu.org/licenses/>.
 # Prepare for Python 3
 from __future__ import (print_function, division, absolute_import)
 
-__version__ = '0.4.0'
+__version__ = '0.1.0'
