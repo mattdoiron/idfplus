@@ -56,11 +56,12 @@ requires = [
     "persistent==4.1.1",
     "pyside==1.2.4",
     "whoosh==2.7.0",
+    "faulthandler==2.4"
 ]
 requires_dev = [
     "pip-review==0.4",
     "pip-tools==1.4.2",
-    "pyinstaller==3.0",
+    "pyinstaller==3.1",
     "sphinx==1.3.3",
 ]
 requires_test = ['pytest==2.8.5']
@@ -163,8 +164,9 @@ setup(
     name=project,
     version=version,
     author='Matt Doiron',
-    author_email='matt@mindfulmodeller.ca',
+    author_email='mattdoiron@gmail.com',
     url='https://bitbucket.org/mattdoiron/idfplus/',
+    download_url='https://bitbucket.org/mattdoiron/idfplus/downloads/',
     description='Advanced editor for EnergyPlus simulation input files.',
     long_description=readme + '\n\n' + changelog,
     keywords='idd idf energyplus idfplus idf+ energy+',
@@ -185,7 +187,10 @@ setup(
         'Intended Audience :: Science/Research',
         'License :: OSI Approved :: GNU General Public License v3 (GPLv3)',
         'Operating System :: OS Independent',
+        'Topic :: Scientific/Engineering',
         'Topic :: Scientific/Engineering :: Information Analysis',
+        'Topic :: Scientific/Engineering :: Physics',
+        'Natural Language :: English',
     ],
     entry_points={
         'gui_scripts': [
