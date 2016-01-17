@@ -20,38 +20,6 @@ along with IDF+. If not, see <http://www.gnu.org/licenses/>.
 # Prepare for Python 3
 from __future__ import (print_function, division, absolute_import)
 
-# Standard library imports
-import sys
-import os
-import multiprocessing
-import faulthandler
-
-# PySide imports
-from PySide import QtGui
-from PySide import QtCore
-
-# Local imports
-from idfplus import config
-from idfplus.main import IDFPlus
-
-
-def main():
-    """Main function to start the program.
-    """
-
-    # Retrieve the currently running instance or make a new one
-    app = QtGui.QApplication.instance()
-    if app is None:
-        app = QtGui.QApplication(sys.argv)
-
-    # Create the main window and show it
-    idf_plus_window = IDFPlus()
-    idf_plus_window.show()
-    sys.exit(app.exec_())
-
+from idfplus import __main__
 if __name__ == '__main__':
-    multiprocessing.freeze_support()
-
-    with open(os.path.join(config.LOG_DIR, 'idfplus_error_dump.txt'), 'w') as f:
-        faulthandler.enable(file=f)
-        main()
+    __main__.main()
