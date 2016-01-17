@@ -328,8 +328,15 @@ class IDFPlus(QtGui.QMainWindow, main.UIMainWindow):
 
         if self.file_path:
             if current_platform.startswith('linux'):
-                dir_path = os.path.dirname(self.file_path)
-                result = subprocess.check_call(["xdg-open", dir_path])
+                try:
+                    result = subprocess.check_call(["nautilus", self.file_path])
+                except (subprocess.CalledProcessError, OSError):
+                    try:
+                        dir_path = os.path.dirname(self.file_path)
+                        result = subprocess.check_call(["xdg-open", dir_path])
+                    except (subprocess.CalledProcessError, OSError):
+                        log.debug('Not supported on this OS')
+                        result = 1
             elif current_platform.startswith('win'):
                 file_path = os.path.normpath(self.file_path)
                 result = subprocess.call(["explorer", "/select,", file_path])
