@@ -653,6 +653,9 @@ class IDFPlus(QtGui.QMainWindow, main.UIMainWindow):
         """Triggered when case sensitivity is changed
         """
 
+        if not self.classTable.model():
+            return
+
         if self.caseSensitivity.isChecked():
             sensitivity = QtCore.Qt.CaseSensitive
         else:
@@ -741,6 +744,10 @@ class IDFPlus(QtGui.QMainWindow, main.UIMainWindow):
     def newObject(self):
         """Creates a new, blank object.
         """
+
+        # If there is no selection, stop
+        if not self.classTable.selectedIndexes():
+            return False
 
         # Create undo command and push it to the undo stack
         cmd = commands.NewObjectCmd(self)
