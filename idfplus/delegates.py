@@ -36,7 +36,7 @@ class GenericDelegate(QtGui.QStyledItemDelegate):
     """
 
     def __init__(self, main_window, idd_objects, obj_orientation):
-        super(GenericDelegate, self).__init__(main_window.classTable)
+        super(GenericDelegate, self).__init__(main_window)
         self.delegates = dict()
         self.main_window = main_window
         self.obj_orientation = obj_orientation
@@ -161,16 +161,15 @@ class GenericDelegate(QtGui.QStyledItemDelegate):
 
             # If there are choices then use the choiceDelegate, otherwise check type
             if len(matches) > 0:
-                self.insertDelegate(i, ChoiceDelegate(self, self.main_window, field))
+                self.insertDelegate(i, ChoiceDelegate(self.main_window, field))
             else:
-                self.insertDelegate(i, AlphaNumericDelegate(self, self.main_window))
+                self.insertDelegate(i, AlphaNumericDelegate(self.main_window))
 
 
 class CustomStyledItemDelegate(QtGui.QStyledItemDelegate):
 
-    def __init__(self, parent, main_window):
+    def __init__(self, parent=None):
         super(CustomStyledItemDelegate, self).__init__(parent)
-        self.main_window = main_window
         self.padding = 2
 
     def sizeHint(self, option, index):
@@ -214,8 +213,8 @@ class AlphaNumericDelegate(CustomStyledItemDelegate):
     :type main_window:
     """
 
-    def __init__(self, parent, main_window):
-        super(AlphaNumericDelegate, self).__init__(parent, main_window)
+    def __init__(self, main_window, parent=None):
+        super(AlphaNumericDelegate, self).__init__(parent)
         self.main_window = main_window
 
     def createEditor(self, parent, option, index):
@@ -272,8 +271,8 @@ class ChoiceDelegate(CustomStyledItemDelegate):
     :type main_window:
     """
 
-    def __init__(self, parent, main_window, field):
-        super(ChoiceDelegate, self).__init__(parent, main_window)
+    def __init__(self, main_window, field, parent=None):
+        super(ChoiceDelegate, self).__init__(parent)
         self.field = field
         self.model = None
         self.main_window = main_window
