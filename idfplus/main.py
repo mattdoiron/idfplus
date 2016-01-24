@@ -35,12 +35,13 @@ from . import commands
 from . import config
 from . import logger
 from . import __version__
+from . import icons_rc
 from models import classtable
 from models import classtree
 from eplusio import idfmodel
 from eplusio import iddmodel
 from eplusio import parser
-from gui import setupwiz, main, icons_rc
+from gui import setupwiz, main
 
 # Setup logging
 log = logger.setup_logging(config.LOG_LEVEL, 'idfplus', config.LOG_PATH)
