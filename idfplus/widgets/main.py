@@ -27,7 +27,7 @@ from PySide import QtCore
 
 # Package imports
 from ..models import classtable
-from ..models import classtree
+from ..models import reftree
 from .. import config
 from .prefs import PrefsDialog
 from .search import SearchReplaceDialog
@@ -152,7 +152,7 @@ class UIMainWindow(object):
         refDockWidget = QtGui.QDockWidget("Field References", self)
         refDockWidget.setObjectName("refDockWidget")
         refDockWidget.setAllowedAreas(QtCore.Qt.AllDockWidgetAreas)
-        ref_model = classtree.ReferenceTreeModel(None, ("", ""), refDockWidget)
+        ref_model = reftree.ReferenceTreeModel(None, ("", ""), refDockWidget)
         refView = QtGui.QTreeView(refDockWidget)
         refView.setModel(ref_model)
         refView.setUniformRowHeights(True)

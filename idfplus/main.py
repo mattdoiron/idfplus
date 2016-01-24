@@ -38,6 +38,7 @@ from . import __version__
 from . import icons_rc
 from models import classtable
 from models import classtree
+from models import reftree
 from eplusio import idfmodel
 from eplusio import iddmodel
 from eplusio import parser
@@ -537,7 +538,7 @@ class IDFPlus(QtGui.QMainWindow, main.UIMainWindow):
         #     data = None
 
         # Create a new model for the tree view and assign it, then refresh view
-        new_model = classtree.ReferenceTreeModel(data, ("Field", "Class"), self.refView)
+        new_model = reftree.ReferenceTreeModel(data, ("Field", "Class"), self.refView)
         self.refView.setModel(new_model)
         self.refView.expandAll()
 
