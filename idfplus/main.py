@@ -904,7 +904,7 @@ class IDFPlus(QtGui.QMainWindow, main.UIMainWindow):
 
         if not self.idf:
             return
-
+        self.classTable.blockSignals(True)
         # Save the previous selection to potential re-apply. Save in terms of source
         selection_model = self.classTable.selectionModel()
         previous_model = self.classTable.model()
@@ -925,7 +925,7 @@ class IDFPlus(QtGui.QMainWindow, main.UIMainWindow):
         self.clearFilterClicked()
 
         # Block signals and clear any existing elements
-        self.classTable.blockSignals(True)
+
         self.classTable.clearSpans()
 
         # Create the default table model
