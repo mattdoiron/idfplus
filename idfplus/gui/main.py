@@ -26,8 +26,8 @@ from PySide import QtGui
 from PySide import QtCore
 
 # Package imports
-from .. import tablemodel
-from .. import treemodel
+from .. import classtable
+from .. import classtree
 from .. import config
 from .prefs import PrefsDialog
 from .search import SearchReplaceDialog
@@ -55,7 +55,7 @@ class UIMainWindow(object):
 
         # Object class table widget
         # classTable = QtGui.QTableView(self)
-        classTable = tablemodel.TableView(self)
+        classTable = classtable.TableView(self)
         classTable.setObjectName("classTable")
         classTable.setAlternatingRowColors(True)
         classTable.setFrameShape(QtGui.QFrame.StyledPanel)
@@ -152,7 +152,7 @@ class UIMainWindow(object):
         refDockWidget = QtGui.QDockWidget("Field References", self)
         refDockWidget.setObjectName("refDockWidget")
         refDockWidget.setAllowedAreas(QtCore.Qt.AllDockWidgetAreas)
-        ref_model = treemodel.ReferenceTreeModel(None, ("", ""), refDockWidget)
+        ref_model = classtree.ReferenceTreeModel(None, ("", ""), refDockWidget)
         refView = QtGui.QTreeView(refDockWidget)
         refView.setModel(ref_model)
         refView.setUniformRowHeights(True)

@@ -31,9 +31,9 @@ from PySide import QtCore
 
 # Package imports
 from . import delegates
-from . import tablemodel
+from . import classtable
 from . import commands
-from . import treemodel
+from . import classtree
 from . import config
 from . import logger
 from . import __version__
@@ -536,7 +536,7 @@ class IDFPlus(QtGui.QMainWindow, main.UIMainWindow):
         #     data = None
 
         # Create a new model for the tree view and assign it, then refresh view
-        new_model = treemodel.ReferenceTreeModel(data, ("Field", "Class"), self.refView)
+        new_model = classtree.ReferenceTreeModel(data, ("Field", "Class"), self.refView)
         self.refView.setModel(new_model)
         self.refView.expandAll()
 
@@ -930,17 +930,17 @@ class IDFPlus(QtGui.QMainWindow, main.UIMainWindow):
 
         # Create the default table model
         table = self.classTable
-        default_model = tablemodel.IDFObjectTableModel(obj_class, self.idf, table)
+        default_model = classtable.IDFObjectTableModel(obj_class, self.idf, table)
 
         # If objects are vertical, create transposed model
         if self.obj_orientation == QtCore.Qt.Vertical:
-            model = tablemodel.TransposeProxyModel(default_model)
+            model = classtable.TransposeProxyModel(default_model)
             model.setSourceModel(default_model)
         else:
             model = default_model
 
         # Create additional proxy for sorting and filtering
-        sortable = tablemodel.SortFilterProxyModel(self.obj_orientation, table, model)
+        sortable = classtable.SortFilterProxyModel(self.obj_orientation, table, model)
         sortable.setSourceModel(model)
 
         # Assign model to table (enable sorting FIRST)
@@ -981,12 +981,12 @@ class IDFPlus(QtGui.QMainWindow, main.UIMainWindow):
         """
 
         # Define the source model
-        source_model = treemodel.ObjectClassTreeModel(self.idf,
+        source_model = classtree.ObjectClassTreeModel(self.idf,
                                                       ("Object Class", "Count"),
                                                       self.classTree)
 
         # Create additional proxy model for sorting and filtering
-        proxy_model = treemodel.TreeSortFilterProxyModel()
+        proxy_model = classtree.TreeSortFilterProxyModel()
         proxy_model.setSourceModel(source_model)
 
         # Assign the model and modify some settings
