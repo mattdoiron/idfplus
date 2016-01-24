@@ -278,6 +278,23 @@ class IDFPlus(QtGui.QMainWindow, main.UIMainWindow):
         else:
             return False
 
+    def idfplus_help(self):
+        """"""
+        from gui import help
+        self.viewer = help.HelpWindow(self)
+        # viewer.setMinimumWidth(100)
+        # viewer.setMinimumHeight(100)
+
+        self.viewer.show()
+        # from PySide import QtWebKit
+        # view = QtWebKit.QWebView()
+        # view.load(QtCore.QUrl("http://qt.nokia.com/"))
+        # view.show()
+
+    def energyplus_help(self):
+        """"""
+        pass
+
     def about(self):
         """Called by the about action.
         """

@@ -370,6 +370,14 @@ class UIMainWindow(object):
                 statusTip="Open current file in default editor", iconVisibleInMenu=True,
                 triggered=self.open_in_text_editor)
 
+        self.helpAct = QtGui.QAction("&EnergyPlus Help", self,
+                statusTip="Show the EnergyPlus' help",
+                triggered=self.energyplus_help)
+
+        self.idfplusHelpAct = QtGui.QAction("&IDFPlus Help", self,
+                statusTip="Show the application's help",
+                triggered=self.idfplus_help)
+
         self.aboutAct = QtGui.QAction("&About", self,
                 statusTip="Show the application's About box",
                 triggered=self.about)
@@ -502,6 +510,8 @@ class UIMainWindow(object):
 
         # Help Menu
         self.helpMenu = self.menuBar().addMenu("&Help")
+        self.helpMenu.addAction(self.idfplusHelpAct)
+        self.helpMenu.addAction(self.helpAct)
         self.helpMenu.addAction(self.aboutAct)
 
     def create_tool_bars(self):
