@@ -41,7 +41,7 @@ from models import classtree
 from eplusio import idfmodel
 from eplusio import iddmodel
 from eplusio import parser
-from gui import setupwiz, main
+from widgets import setupwiz, main
 
 # Setup logging
 log = logger.setup_logging(config.LOG_LEVEL, 'idfplus', config.LOG_PATH)
