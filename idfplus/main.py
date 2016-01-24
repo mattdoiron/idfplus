@@ -31,12 +31,12 @@ from PySide import QtCore
 
 # Package imports
 from . import delegates
-from . import classtable
 from . import commands
-from . import classtree
 from . import config
 from . import logger
 from . import __version__
+from models import classtable
+from models import classtree
 from eplusio import idfmodel
 from eplusio import iddmodel
 from eplusio import parser

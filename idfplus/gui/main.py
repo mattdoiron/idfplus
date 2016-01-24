@@ -26,8 +26,8 @@ from PySide import QtGui
 from PySide import QtCore
 
 # Package imports
-from .. import classtable
-from .. import classtree
+from ..models import classtable
+from ..models import classtree
 from .. import config
 from .prefs import PrefsDialog
 from .search import SearchReplaceDialog

@@ -28,8 +28,8 @@ from PySide import QtGui
 from PySide import QtCore
 
 # Package imports
-from . import config
-from eplusio.idfmodel import IDFError
+from .. import config
+from ..eplusio.idfmodel import IDFError
 
 # Setup logging
 log = logging.getLogger(__name__)
