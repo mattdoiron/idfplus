@@ -18,8 +18,8 @@ along with IDF+. If not, see <http://www.gnu.org/licenses/>.
 """
 
 # Package imports
-from basetree import BaseTreeItem
-from basetree import CustomTreeModel
+from .basetree import BaseTreeItem
+from .basetree import CustomTreeModel
 
 
 class RefTreeItem(BaseTreeItem):

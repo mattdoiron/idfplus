@@ -22,8 +22,8 @@ from PySide import QtCore
 from PySide import QtGui
 
 # Package imports
-from basetree import TreeItem
-from basetree import CustomTreeModel
+from .basetree import TreeItem
+from .basetree import CustomTreeModel
 
 
 class ObjectClassTreeModel(CustomTreeModel):
