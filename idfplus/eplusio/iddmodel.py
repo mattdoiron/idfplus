@@ -217,6 +217,7 @@ class IDDFile(PODict):
         self._parser_version = kwargs.pop('parser_version', None)
         self.options = list()
         self.tags = dict()
+        self.file_path = None
         self.object_lists = dict()
         self._object_list_length = 0
         self._ureg = UNITS_REGISTRY

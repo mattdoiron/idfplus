@@ -411,6 +411,7 @@ class IDDParser(Parser):
         # TODO write parser for unit conversion comments!
         total_size = os.path.getsize(file_path)
         total_read = 0.0
+        self.idd.file_path = file_path
         idd = self.idd
         eol_char = os.linesep
         object_lists = self.idd.object_lists
