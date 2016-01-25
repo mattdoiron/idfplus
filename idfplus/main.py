@@ -938,7 +938,7 @@ class IDFPlus(QtGui.QMainWindow, main.UIMainWindow):
             selection_model.select(previous_sel, QtGui.QItemSelectionModel.SelectCurrent)
         else:
             self.classTable.setCurrentIndex(self.classTable.model().index(0, 0))
-            self.classTable.setFocus()
+            # self.classTable.setFocus()
 
         # Resize rows for text wrap
         self.classTable.resizeRowsToContents()
