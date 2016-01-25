@@ -39,7 +39,7 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
     """Qt table model object that links the table widget and its underlying data structure.
     """
 
-    def __init__(self, obj_class, idf, parent):
+    def __init__(self, parent, obj_orientation=None):
         """Initialises table model
 
         :param idf: idf model to use as the underlying data structure for this model
@@ -50,15 +50,30 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
         :type parent: QtGui.QTableView
         """
 
+        self.obj_class = ''
+        self.idf = None
+        self.idd = None
+        self.idf_objects = None
+        self.idd_object = None
+        self.obj_orientation = obj_orientation or QtCore.Qt.Vertical
+        self.config = config.Settings()
+        super(IDFObjectTableModel, self).__init__(parent)
+
+    def setObjectClass(self, obj_class, idf):
+        self.modelAboutToBeReset.emit()
+        self.beginResetModel()
         self.obj_class = obj_class
         self.idf = idf
         self.idd = idf.idd
         self.idf_objects = idf.idf_objects(obj_class)
         self.idd_object = idf.idd.idd_object(obj_class)
-        self.config = config.Settings()
         self._refresh_labels()
+        self.endResetModel()
 
-        super(IDFObjectTableModel, self).__init__(parent)
+    def reset_model(self):
+        self.modelAboutToBeReset.emit()
+        self.beginResetModel()
+        self.endResetModel()
 
     def flags(self, index):
         """Override Qt flags method for custom editing behaviour
@@ -143,29 +158,24 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
                 data = None
         return data
 
-    def headerData(self, section, orientation, role, old_orientation=None):
+    def headerData(self, section, orientation, role):
         """Overrides Qt method to provide header text for table model.
 
         :param section: Index of header being requested
         :param orientation: Vertical or Horizontal header requested
         :param role: QtCore.Qt.Role
-        :param old_orientation: (optional) Previous orientation
         :return: Data of various types depending on requested role
         """
 
         if role == QtCore.Qt.TextAlignmentRole:
-            if old_orientation is None:
-                if orientation == QtCore.Qt.Vertical:
-                    return int(QtCore.Qt.AlignRight | QtCore.Qt.AlignVCenter)
+            if orientation == QtCore.Qt.Horizontal:
                 return int(QtCore.Qt.AlignLeft | QtCore.Qt.AlignVCenter)
-            else:
-                if orientation == QtCore.Qt.Vertical:
-                    return int(QtCore.Qt.AlignLeft | QtCore.Qt.AlignVCenter)
+            elif orientation == QtCore.Qt.Vertical:
                 return int(QtCore.Qt.AlignRight | QtCore.Qt.AlignVCenter)
         elif role == QtCore.Qt.DisplayRole or role == QtCore.Qt.ToolTipRole:
             if orientation == QtCore.Qt.Horizontal:
                 return self.field_labels[section]
-            if orientation == QtCore.Qt.Vertical:
+            elif orientation == QtCore.Qt.Vertical:
                 return self.object_labels[section]
         elif role == QtCore.Qt.BackgroundRole:
             return QtGui.QColor(244, 244, 244)
@@ -178,7 +188,7 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
         :rtype int:
         """
 
-        return len(self.idf_objects)
+        return len(self.idf_objects or [])
 
     def columnCount(self, parent=None):
         """Overrides Qt method to provide the number of columns (idf fields).
@@ -187,7 +197,7 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
         :rtype int:
         """
 
-        return len(self.idd_object)
+        return len(self.idd_object or [])
 
     def setData(self, index, value, role):
         """Overrides Qt method for setting data.
@@ -229,57 +239,6 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
                 return True
 
         return False
-
-    def mapToSource(self, source_index):
-        """Dummy to ensure there is always a mapToSource method even when there is no proxy layer.
-
-        :param source_index:
-        """
-
-        if not source_index.isValid():
-            return QtCore.QModelIndex()
-        return self.index(source_index.row(), source_index.column())
-
-    def mapFromSource(self, source_index):
-        """Provide an index when this model is used as a source model.
-
-        :param source_index:
-        """
-
-        if not source_index.isValid():
-            return QtCore.QModelIndex()
-        return self.index(source_index.row(), source_index.column())
-
-    def mapSelectionFromSource(self, selection):
-        """
-
-        :param selection:
-        :return: :rtype:
-        """
-
-        return_selection = QtGui.QItemSelection()
-        for sel in selection:
-            top_left = self.mapFromSource(sel.topLeft())
-            bottom_right = self.mapFromSource(sel.bottomRight())
-            selection_range = QtGui.QItemSelectionRange(top_left, bottom_right)
-            return_selection.append(selection_range)
-        return return_selection
-
-    def mapSelectionToSource(self, selection):
-        """Dummy to ensure there is always a mapSelectionToSource method even when there
-        is no proxy layer.
-
-        :param selection:
-        """
-
-        return selection
-
-    def sourceModel(self):
-        """Dummy to ensure there is always a sourceModel method even when there is no
-        proxy layer.
-        """
-
-        return self
 
     def removeObjects(self, indexes, offset=None, delete_count=None):
         """Overrides Qt method to remove objects from the table
@@ -439,6 +398,31 @@ class TransposeProxyModel(QtGui.QAbstractProxyModel):
     """Translates columns to rows or vice versa
     """
 
+    def __init__(self, parent, **kwargs):
+        self._obj_orientation = kwargs.pop('obj_orientation', QtCore.Qt.Vertical)
+        super(TransposeProxyModel, self).__init__(parent, **kwargs)
+
+    @property
+    def obj_orientation(self):
+        return self._obj_orientation
+
+    @obj_orientation.setter
+    def obj_orientation(self, value):
+        self._obj_orientation = value
+        self.sourceModel().obj_orientation = value
+
+    def setObjectClass(self, *args, **kwargs):
+        self.modelAboutToBeReset.emit()
+        self.beginResetModel()
+        self.sourceModel().setObjectClass(*args, **kwargs)
+        self.endResetModel()
+
+    def reset_model(self):
+        self.modelAboutToBeReset.emit()
+        self.beginResetModel()
+        self.sourceModel().reset_model()
+        self.endResetModel()
+
     def setSourceModel(self, source):
         """Defines the source model to use and connects some signals.
 
@@ -448,14 +432,17 @@ class TransposeProxyModel(QtGui.QAbstractProxyModel):
         super(TransposeProxyModel, self).setSourceModel(source)
 
         # Connect signals in a transposed way as well
-        # self.sourceModel().columnsAboutToBeInserted.connect(self.rowsAboutToBeInserted.emit)
-        # self.sourceModel().columnsInserted.connect(self.rowsInserted.emit)
-        # self.sourceModel().columnsAboutToBeRemoved.connect(self.rowsAboutToBeRemoved.emit)
-        # self.sourceModel().columnsRemoved.connect(self.rowsRemoved.emit)
-        self.sourceModel().rowsAboutToBeInserted.connect(self.columnsAboutToBeInserted.emit)
-        self.sourceModel().rowsInserted.connect(self.columnsInserted.emit)
-        self.sourceModel().rowsAboutToBeRemoved.connect(self.columnsAboutToBeRemoved.emit)
-        self.sourceModel().rowsRemoved.connect(self.columnsRemoved.emit)
+        if self.obj_orientation == QtCore.Qt.Vertical:
+            self.sourceModel().rowsAboutToBeInserted.connect(self.columnsAboutToBeInserted.emit)
+            self.sourceModel().rowsInserted.connect(self.columnsInserted.emit)
+            self.sourceModel().rowsAboutToBeRemoved.connect(self.columnsAboutToBeRemoved.emit)
+            self.sourceModel().rowsRemoved.connect(self.columnsRemoved.emit)
+        else:
+            self.sourceModel().rowsAboutToBeInserted.connect(self.rowsAboutToBeInserted.emit)
+            self.sourceModel().rowsInserted.connect(self.rowsInserted.emit)
+            self.sourceModel().rowsAboutToBeRemoved.connect(self.rowsAboutToBeRemoved.emit)
+            self.sourceModel().rowsRemoved.connect(self.rowsRemoved.emit)
+
         self.sourceModel().dataChanged.connect(self.data_changed)
         self.sourceModel().headerDataChanged.connect(self.header_data_changed)
 
@@ -468,7 +455,11 @@ class TransposeProxyModel(QtGui.QAbstractProxyModel):
 
         if not source_index.isValid():
             return QtCore.QModelIndex()
-        return self.index(source_index.column(), source_index.row())
+
+        if self.obj_orientation == QtCore.Qt.Vertical:
+            return self.index(source_index.column(), source_index.row())
+        else:
+            return self.index(source_index.row(), source_index.column())
 
     def mapToSource(self, proxy_index):
         """
@@ -479,7 +470,11 @@ class TransposeProxyModel(QtGui.QAbstractProxyModel):
 
         if not proxy_index.isValid():
             return QtCore.QModelIndex()
-        return self.sourceModel().index(proxy_index.column(), proxy_index.row())
+
+        if self.obj_orientation == QtCore.Qt.Vertical:
+            return self.sourceModel().index(proxy_index.column(), proxy_index.row())
+        else:
+            return self.sourceModel().index(proxy_index.row(), proxy_index.column())
 
     def mapSelectionFromSource(self, selection):
         """
@@ -538,7 +533,10 @@ class TransposeProxyModel(QtGui.QAbstractProxyModel):
         :return: :rtype:
         """
 
-        return self.sourceModel().columnCount(parent)
+        if self.obj_orientation == QtCore.Qt.Vertical:
+            return self.sourceModel().columnCount(parent)
+        else:
+            return self.sourceModel().rowCount(parent)
 
     def columnCount(self, parent=None):
         """
@@ -546,7 +544,11 @@ class TransposeProxyModel(QtGui.QAbstractProxyModel):
         :param parent:
         :return: :rtype:
         """
-        return self.sourceModel().rowCount(parent)
+
+        if self.obj_orientation == QtCore.Qt.Vertical:
+            return self.sourceModel().rowCount(parent)
+        else:
+            return self.sourceModel().columnCount(parent)
 
     def data(self, index, role):
         """
@@ -567,11 +569,14 @@ class TransposeProxyModel(QtGui.QAbstractProxyModel):
         :return: :rtype:
         """
 
-        if orientation == QtCore.Qt.Horizontal:
-            new_orientation = QtCore.Qt.Vertical
-        else:
-            new_orientation = QtCore.Qt.Horizontal
-        return self.sourceModel().headerData(section, new_orientation, role, orientation)
+        new_orientation = orientation
+        if role == QtCore.Qt.DisplayRole or role == QtCore.Qt.ToolTipRole:
+            transposed = True if self.obj_orientation == QtCore.Qt.Vertical else False
+            if orientation == QtCore.Qt.Horizontal:
+                new_orientation = QtCore.Qt.Vertical if transposed else orientation
+            else:
+                new_orientation = QtCore.Qt.Horizontal if transposed else orientation
+        return self.sourceModel().headerData(section, new_orientation, role)
 
     def removeObjects(self, *args, **kwargs):
         """
@@ -635,10 +640,11 @@ class TransposeProxyModel(QtGui.QAbstractProxyModel):
         :param last:
         """
 
+        transposed = True if self.obj_orientation == QtCore.Qt.Vertical else False
         if orientation == QtCore.Qt.Horizontal:
-            new_orientation = QtCore.Qt.Vertical
+            new_orientation = QtCore.Qt.Vertical if transposed else orientation
         else:
-            new_orientation = QtCore.Qt.Horizontal
+            new_orientation = QtCore.Qt.Horizontal if transposed else orientation
         self.headerDataChanged.emit(new_orientation, first, last)
 
     @property
@@ -655,16 +661,36 @@ class SortFilterProxyModel(QtGui.QSortFilterProxyModel):
     """Proxy layer to sort and filter
     """
 
-    def __init__(self, obj_orientation, parent_view, parent):
+    def __init__(self, parent, obj_orientation=None):
         super(SortFilterProxyModel, self).__init__(parent)
 
-        self.obj_orientation = obj_orientation
-        self.parent_view = parent_view
+        self._obj_orientation = obj_orientation or QtCore.Qt.Vertical
         syntax = QtCore.QRegExp.PatternSyntax(QtCore.QRegExp.Wildcard)
         case_sensitivity = QtCore.Qt.CaseInsensitive
 
         self.setFilterRegExp(QtCore.QRegExp('', case_sensitivity, syntax))
         self.setFilterCaseSensitivity(case_sensitivity)
+
+    @property
+    def obj_orientation(self):
+        return self._obj_orientation
+
+    @obj_orientation.setter
+    def obj_orientation(self, value):
+        self._obj_orientation = value
+        self.sourceModel().obj_orientation = value
+
+    def setObjectClass(self, *args, **kwargs):
+        self.modelAboutToBeReset.emit()
+        self.beginResetModel()
+        self.sourceModel().setObjectClass(*args, **kwargs)
+        self.endResetModel()
+
+    def reset_model(self):
+        self.modelAboutToBeReset.emit()
+        self.beginResetModel()
+        self.sourceModel().reset_model()
+        self.endResetModel()
 
     def filterAcceptsColumn(self, col, parent):
         """

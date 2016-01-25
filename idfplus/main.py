@@ -210,8 +210,6 @@ class IDFPlus(QtGui.QMainWindow, main.UIMainWindow):
         log.debug('Loading tree view...')
         self.groups = self.idd.groups
         self.load_tree_view()
-        log.debug('Setting class table model...')
-        self.classTable.setModel(None)
         log.debug('Updating recent file list...')
         self.file_path = file_path
         self.add_recent_file(file_path)
@@ -480,6 +478,14 @@ class IDFPlus(QtGui.QMainWindow, main.UIMainWindow):
         self.prefs['recent_files'] = []
         self.update_file_menu()
 
+    def reset_comment_view(self):
+        """Clears the comment view without triggering signals
+        """
+
+        self.commentView.blockSignals(True)
+        self.commentView.setPlainText('')
+        self.commentView.blockSignals(False)
+
     def table_selection_changed(self, selected):
         """
 
@@ -488,9 +494,11 @@ class IDFPlus(QtGui.QMainWindow, main.UIMainWindow):
         """
 
         if not selected:
+            self.reset_comment_view()
             return
         _index = selected.first().topLeft()
         if not _index or not _index.isValid():
+            self.reset_comment_view()
             return
 
         # Map index to source model
@@ -524,20 +532,8 @@ class IDFPlus(QtGui.QMainWindow, main.UIMainWindow):
         :param index:
         """
 
-        data = self.idf.reference_tree_data(self.current_obj_class, index)
-
-        # # Retrieve the node (could be invalid so use try)
-        # try:
-        #     ref_graph = self.idf._ref_graph
-        #     field = self.idf[self.current_obj_class][index.row()][index.column()]
-        #     ancestors = nx.ancestors(ref_graph, field._uuid)
-        #     descendants = nx.descendants(ref_graph, field._uuid)
-        #     data = [[ref_graph.node[ancestor]['data'] for ancestor in ancestors],
-        #             [ref_graph.node[descendant]['data'] for descendant in descendants]]
-        # except (nx.exception.NetworkXError, IndexError) as e:
-        #     data = None
-
         # Create a new model for the tree view and assign it, then refresh view
+        data = self.idf.reference_tree_data(self.current_obj_class, index)
         new_model = reftree.ReferenceTreeModel(data, ("Field", "Class"), self.refView)
         self.refView.setModel(new_model)
         self.refView.expandAll()
@@ -635,7 +631,7 @@ class IDFPlus(QtGui.QMainWindow, main.UIMainWindow):
 
         # If the current class was hidden by the filter, clear the tableView
         if not current_class.isValid():
-            self.classTable.setModel(None)
+            self.classTable.model().reset_model()
 
     def clearFilterClicked(self):
         """Triggered when filter is cleared by button
@@ -902,11 +898,13 @@ class IDFPlus(QtGui.QMainWindow, main.UIMainWindow):
         :param obj_class:
         """
 
-        # TODO instantiate TransposeProxyModel and IDFObjectTableModel elsewhere?
-
         if not self.idf:
             return
-        self.classTable.blockSignals(True)
+
+        # Clear the comments and reference views safely
+        self.reset_comment_view()
+        self.update_reference_view(None)
+
         # Save the previous selection to potential re-apply. Save in terms of source
         selection_model = self.classTable.selectionModel()
         previous_model = self.classTable.model()
@@ -926,57 +924,30 @@ class IDFPlus(QtGui.QMainWindow, main.UIMainWindow):
         # Clear the table filter when changing classes
         self.clearFilterClicked()
 
-        # Block signals and clear any existing elements
+        # Tell the model about the new object class and idf file. This also resets the model.
+        self.classTable.model().setObjectClass(obj_class, self.idf)
 
-        self.classTable.clearSpans()
-
-        # Create the default table model
-        table = self.classTable
-        default_model = classtable.IDFObjectTableModel(obj_class, self.idf, table)
-
-        # If objects are vertical, create transposed model
-        if self.obj_orientation == QtCore.Qt.Vertical:
-            model = classtable.TransposeProxyModel(default_model)
-            model.setSourceModel(default_model)
-        else:
-            model = default_model
-
-        # Create additional proxy for sorting and filtering
-        sortable = classtable.SortFilterProxyModel(self.obj_orientation, table, model)
-        sortable.setSourceModel(model)
-
-        # Assign model to table (enable sorting FIRST)
-        # table.setSortingEnabled(True) # Disable for now, CRUD actions won't work!
-        table.setModel(sortable)
-
-        # Create generic delegates for table cells
-        item_delegates = delegates.GenericDelegate(self,
-                                                   self.idd[obj_class],
-                                                   self.obj_orientation)
-        table.setItemDelegate(item_delegates)
-
-        # Connect some signals
-        selection_model = table.selectionModel()
-        selection_model.selectionChanged.connect(self.table_selection_changed)
+        # Create generic delegates for table cells and assign them
+        item_delegates = delegates.GenericDelegate(self, self.idd[obj_class], self.obj_orientation)
+        self.classTable.setItemDelegate(item_delegates)
 
         # Restore previous selection after converting to current model's indexes
         if source_sel:
-            partial = sortable.sourceModel().mapSelectionFromSource(source_sel)
-            previous_sel = sortable.mapSelectionFromSource(partial)
+            partial = self.classTable.model().mapSelectionFromSource(source_sel)
+            previous_sel = self.classTable.model().mapSelectionFromSource(partial)
             selection_model.select(previous_sel, QtGui.QItemSelectionModel.SelectCurrent)
         else:
             self.classTable.setCurrentIndex(self.classTable.model().index(0, 0))
             self.classTable.setFocus()
 
         # Resize rows for text wrap
-        table.resizeRowsToContents()
+        self.classTable.resizeRowsToContents()
 
         # Now that there is a class selected, enable some actions and set some vars
         self.newObjAct.setEnabled(True)
         self.delObjAct.setEnabled(True)
         self.transposeAct.setEnabled(True)
         self.unitsLabel.setText(None)
-        table.blockSignals(False)
 
     def load_tree_view(self):
         """Loads the tree of class type names.

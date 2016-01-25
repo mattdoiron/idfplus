@@ -140,6 +140,9 @@ class IDFFile(OrderedDict):
         :param current_obj_class:
         """
 
+        if not index:
+            return None
+
         # Retrieve the node (could be invalid so use try)
         try:
             ref_graph = self._references._ref_graph

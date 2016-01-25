@@ -81,6 +81,21 @@ class UIMainWindow(object):
         classTable.customContextMenuRequested.connect(self.custom_table_context_menu)
         classTable.horizontalHeader().sectionResized.connect(classTable.resizeRowsToContents)
 
+        # Create table model and proxy layers for transposing and filtering
+        self.classTableModel = classtable.IDFObjectTableModel(classTable)
+        self.transposeableModel = classtable.TransposeProxyModel(self.classTableModel)
+        self.transposeableModel.setSourceModel(self.classTableModel)
+        self.sortableModel = classtable.SortFilterProxyModel(self.transposeableModel)
+        self.sortableModel.setSourceModel(self.transposeableModel)
+
+        # Assign model to table (enable sorting FIRST)
+        # table.setSortingEnabled(True) # Disable for now, CRUD actions won't work!
+        classTable.setModel(self.sortableModel)
+
+        # Connect some signals
+        selection_model = classTable.selectionModel()
+        selection_model.selectionChanged.connect(self.table_selection_changed)
+
         # These are currently broken
         # classTable.horizontalHeader().sectionMoved.connect(self.moveObject)
         # classTable.verticalHeader().sectionMoved.connect(self.moveObject)
