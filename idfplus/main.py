@@ -49,7 +49,7 @@ log.info('----==== Launching IDF+ ====----')
 
 
 class IDFPlus(QtGui.QMainWindow, main.UIMainWindow):
-    """Main GUI window for IDFPlus program.
+    """Main GUI window for IDF+ program.
     """
 
     def __init__(self):
@@ -111,7 +111,7 @@ class IDFPlus(QtGui.QMainWindow, main.UIMainWindow):
         if self.ok_to_continue():
             self.prefs.write_settings()
             self.prefs.save_state(self)
-            log.info('Shutting down IDFPlus')
+            log.info('Shutting down IDF+')
             event.accept()
         else:
             event.ignore()
@@ -297,8 +297,8 @@ class IDFPlus(QtGui.QMainWindow, main.UIMainWindow):
 
         import PySide
 
-        QtGui.QMessageBox.about(self, "About IDFPlus",
-                """<b>IDFPlus</b> v{0}
+        QtGui.QMessageBox.about(self, "About IDF+",
+                """<b>IDF+</b> v{0}
                 <p>This is an enhanced editor for EnergyPlus simulation input files.
                 For more information please see
                 <a href="https://bitbucket.org/mattdoiron/idfplus/">
@@ -689,7 +689,7 @@ class IDFPlus(QtGui.QMainWindow, main.UIMainWindow):
         else:
             shown_name = 'Untitled'
 
-        self.setWindowTitle('IDFPlus Editor - {}[*]'.format(shown_name))
+        self.setWindowTitle('IDF+ Editor - {}[*]'.format(shown_name))
 
         if self.idd:
             self.versionLabel.setText('EnergyPlus IDD v{}'.format(self.idd.version))
@@ -737,9 +737,9 @@ class IDFPlus(QtGui.QMainWindow, main.UIMainWindow):
         self.setWindowModified(self.file_dirty)
         if self.file_path is not None:
             basename = os.path.basename(self.file_path)
-            self.setWindowTitle('IDFPlus Editor - {}[*]'.format(basename))
+            self.setWindowTitle('IDF+ Editor - {}[*]'.format(basename))
         else:
-            self.setWindowTitle('IDFPlus Editor')
+            self.setWindowTitle('IDF+ Editor')
 
     def setVisible(self, visible):
         """Integrates system tray with minimize/maximize.

@@ -237,7 +237,7 @@ class UIMainWindow(object):
         # Perform other UI-related initialization tasks
         self.center()
         self.setUnifiedTitleAndToolBarOnMac(True)
-        self.setWindowTitle('IDFPlus Editor')
+        self.setWindowTitle('IDF+ Editor')
         self.setWindowIcon(QtGui.QIcon(':/images/logo.png'))
 
         # Status bar setup
@@ -279,7 +279,7 @@ class UIMainWindow(object):
         self.trayIcon = QtGui.QSystemTrayIcon(self)
         self.trayIcon.setContextMenu(self.trayIconMenu)
         self.trayIcon.setIcon(QtGui.QIcon(':/images/logo.png'))
-        self.trayIcon.setToolTip('IDFPlus')
+        self.trayIcon.setToolTip('IDF+')
         self.trayIcon.show()
 
     def create_actions(self):
@@ -443,7 +443,7 @@ class UIMainWindow(object):
                                              iconVisibleInMenu=True,
                                              triggered=self.open_in_text_editor)
 
-        self.aboutAct = QtGui.QAction("&About", self,
+        self.aboutAct = QtGui.QAction("&About IDF+", self,
                                       statusTip="Show the application's About box",
                                       triggered=self.about)
 

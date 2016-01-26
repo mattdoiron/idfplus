@@ -110,7 +110,7 @@ class Writer(object):
                              encoding=config.FILE_ENCODING,
                              errors='backslashreplace') as idf_file:
 
-                idf_file.write("!-Generator IDFPlus v{}{}".format(__version__, eol_char))
+                idf_file.write("!-Generator IDF+ v{}{}".format(__version__, eol_char))
                 idf_file.write("!-Option {}{}".format(options, eol_char))
                 idf_file.write("!-NOTE: All comments with '!-' are ignored by the "
                                "IDFEditor and are generated "
@@ -637,7 +637,7 @@ class IDDParser(Parser):
                     raise IDDError(message, version)
                 elif idd.parser_version != self.__parser_version__:
                     message = "This IDD fle was processed by an old " \
-                              "and/or incompatible version of IDFPlus " \
+                              "and/or incompatible version of IDF+ " \
                               "parser ({})! It must be reprocessed to be " \
                               "compatible with the current version ({}).". \
                               format(idd.parser_version,
