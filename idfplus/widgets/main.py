@@ -403,6 +403,39 @@ class UIMainWindow(object):
                                              iconVisibleInMenu=True,
                                              triggered=self.show_in_folder)
 
+        self.epDocGettingStartedAction = QtGui.QAction("EnergyPlus Getting Started", self,
+                                                       triggered=self.energy_plus_docs)
+
+        self.epDocIORefAction = QtGui.QAction("EnergyPlus I/O Reference", self,
+                                              triggered=self.energy_plus_docs)
+
+        self.epDocOutputDetailsAction = QtGui.QAction("EnergyPlus Output Details and Examples",
+                                                      self, triggered=self.energy_plus_docs)
+
+        self.epDocEngineeringRefAction = QtGui.QAction("EnergyPlus Engineering Reference", self,
+                                                       triggered=self.energy_plus_docs)
+
+        self.epDocAuxiliaryProgsAction = QtGui.QAction("EnergyPlus Auxiliary Programs", self,
+                                                       triggered=self.energy_plus_docs)
+
+        self.epDocEMSGuideAction = QtGui.QAction("EnergyPlus EMS Application Guide", self,
+                                                 triggered=self.energy_plus_docs)
+
+        self.epDocComplianceAction = QtGui.QAction("Using EnergyPlus for Compliance", self,
+                                                   triggered=self.energy_plus_docs)
+
+        self.epDocInterfaceAction = QtGui.QAction("External Interface Application Guide", self,
+                                                  triggered=self.energy_plus_docs)
+
+        self.epDocTipsTricksAction = QtGui.QAction("Tips and Tricks Using EnergyPlus", self,
+                                                   triggered=self.energy_plus_docs)
+
+        self.epDocPlantGuideAction = QtGui.QAction("EnergyPlus Plant Application Guide", self,
+                                                   triggered=self.energy_plus_docs)
+
+        self.epDocAcknowledgmentsAction = QtGui.QAction("EnergyPlus Acknowledgments", self,
+                                                        triggered=self.energy_plus_docs)
+
         self.openInEditorAct = QtGui.QAction(QtGui.QIcon(':/images/new.png'),
                                              "&Open in text editor", self,
                                              shortcut=QtGui.QKeySequence('Ctrl+e'),
@@ -547,6 +580,18 @@ class UIMainWindow(object):
         # Help Menu
         self.helpMenu = self.menuBar().addMenu("&Help")
         self.helpMenu.addAction(self.aboutAct)
+        self.helpMenu.addSeparator()
+        self.helpMenu.addAction(self.epDocGettingStartedAction)
+        self.helpMenu.addAction(self.epDocIORefAction)
+        self.helpMenu.addAction(self.epDocOutputDetailsAction)
+        self.helpMenu.addAction(self.epDocEngineeringRefAction)
+        self.helpMenu.addAction(self.epDocAuxiliaryProgsAction)
+        self.helpMenu.addAction(self.epDocEMSGuideAction)
+        self.helpMenu.addAction(self.epDocComplianceAction)
+        self.helpMenu.addAction(self.epDocInterfaceAction)
+        self.helpMenu.addAction(self.epDocTipsTricksAction)
+        self.helpMenu.addAction(self.epDocPlantGuideAction)
+        self.helpMenu.addAction(self.epDocAcknowledgmentsAction)
 
     def create_tool_bars(self):
         """Creates the necessary toolbars.

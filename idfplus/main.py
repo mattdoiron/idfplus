@@ -88,6 +88,20 @@ class IDFPlus(QtGui.QMainWindow, main.UIMainWindow):
         # self.files = self.db.dbroot.files
         # self.idd = OOBTree()
 
+        self.help_file_names = {
+            "EnergyPlus Acknowledgments": "Acknowledgements.pdf",
+            "EnergyPlus Auxiliary Programs": "AuxiliaryPrograms.pdf",
+            "EnergyPlus EMS Application Guide": "EMS_Application_Guide.pdf",
+            "EnergyPlus Engineering Reference": "EngineeringReference.pdf",
+            "External Interface Application Guide": "ExternalInterfaces_Application_Guide.pdf",
+            "EnergyPlus Getting Started": "GettingStarted.pdf",
+            "EnergyPlus I/O Reference": "InputOutputReference.pdf",
+            "EnergyPlus Output Details and Examples": "OutputDetailsAndExamples.pdf",
+            "EnergyPlus Plant Application Guide": "PlantApplicationGuide.pdf",
+            "Tips and Tricks Using EnergyPlus": "Tips_and_Tricks_Using_EnergyPlus.pdf",
+            "Using EnergyPlus for Compliance": "Using_EnergyPlus_for_Compliance.pdf"
+        }
+
     def closeEvent(self, event):
         """Called when the application is closed.
 
@@ -1122,6 +1136,38 @@ class IDFPlus(QtGui.QMainWindow, main.UIMainWindow):
 
         self.file_watcher = QtCore.QFileSystemWatcher([self.idf.file_path])
         self.file_watcher.fileChanged.connect(self.file_changed)
+
+    def energy_plus_docs(self):
+        if not self.idd:
+            return
+
+        if not self.idd.file_path:
+            return
+
+        calling_action = self.sender()
+        doc_to_load = self.help_file_names[calling_action.text()]
+        install_dir = os.path.dirname(self.idd.file_path)
+        doc_path = os.path.join(install_dir, 'Documentation', doc_to_load)
+        current_platform = sys.platform
+        result = 1
+
+        if current_platform.startswith('linux'):
+            try:
+                result = subprocess.check_call(["xdg-open", doc_path])
+            except (subprocess.CalledProcessError, OSError):
+                log.debug('Not supported on this OS')
+                result = 1
+        elif current_platform.startswith('win'):
+            win_doc_path = os.path.normpath(doc_path)
+            result = subprocess.call(['start', '""', win_doc_path])
+            result = 0  # windows returns 1 for some reason...
+        else:
+            dir_path = os.path.dirname(self.file_path)
+            result = subprocess.check_call(["open", dir_path])
+
+        if result != 0:
+            log.debug("Failed to show in folder: {} (on platform: {})"
+                      .format(doc_path, current_platform))
 
     def file_changed(self):
         """Responds to signal from filewatcher that a file has changed.
