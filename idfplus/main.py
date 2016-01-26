@@ -36,7 +36,6 @@ from . import config
 from . import logger
 from . import __version__
 from . import icons_rc
-from .models import classtable
 from .models import classtree
 from .models import reftree
 from .eplusio import idfmodel
