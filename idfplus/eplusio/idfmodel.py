@@ -304,10 +304,14 @@ class IDFFile(OrderedDict):
             for field in fields:
                 if not field:
                     continue
+                if field.value:
+                    field_lower = field.value.lower()
+                else:
+                    field_lower = ''
                 writer.update_document(uuid=unicode(field.uuid),
                                        obj_class=unicode(field.obj_class),
-                                       value=unicode(field.value.lower()),
-                                       _stored_value=unicode(field.value),
+                                       value=unicode(field_lower),
+                                       _stored_value=unicode(field.value or field_lower),
                                        ref_type=unicode(field.ref_type))
 
     def field(self, obj_class, index_obj, index_field):
