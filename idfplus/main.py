@@ -757,7 +757,7 @@ class IDFPlus(QtGui.QMainWindow, main.UIMainWindow):
         """
 
         # If there is no selection, stop
-        if not self.classTable.selectedIndexes():
+        if not self.classTable.selectedIndexes() or not self.idf:
             return False
 
         # Create undo command and push it to the undo stack
