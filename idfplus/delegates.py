@@ -187,7 +187,7 @@ class CustomStyledItemDelegate(QtGui.QStyledItemDelegate):
                                  QtCore.Qt.TextWrapAnywhere,
                                  text)
 
-        return QtCore.QSize(self.main_window.prefs['default_column_width'],
+        return QtCore.QSize(int(self.main_window.prefs['default_column_width']),
                             b_rect.height())
 
     def paint(self, painter, option, index):
