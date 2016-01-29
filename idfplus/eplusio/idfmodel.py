@@ -452,7 +452,7 @@ class IDFFile(OrderedDict):
         try:
             based_on_field = field._outer[index]
             actual_units = UNIT_TYPES.get(based_on_field.value)
-        except IndexError:
+        except (IndexError, KeyError):
             actual_units = ''
 
         return actual_units
