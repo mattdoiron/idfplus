@@ -33,10 +33,11 @@ class SearchReplaceDialog(QtGui.QDialog):
     """Search & Replace window
     """
 
-    def __init__(self, parent, prefs, initial_query=None):
+    def __init__(self, parent, initial_query=None):
         super(SearchReplaceDialog, self).__init__(parent)
 
         self.parent = parent
+        self.prefs = parent.prefs
 
         self.search_button = QtGui.QPushButton('Search')
         self.search_text = MySearchField(self.search_button)

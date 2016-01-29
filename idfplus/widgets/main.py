@@ -751,7 +751,7 @@ class UIMainWindow(object):
         """Opens the search dialog.
         """
 
-        SearchReplaceDialog(self, self.prefs).show()
+        SearchReplaceDialog(self).show()
 
     def find_this(self):
         """Searches for fields with similar content.
@@ -760,4 +760,4 @@ class UIMainWindow(object):
         index = self.classTable.indexAt(self.mouse_position)
         text = self.classTable.model().data(index, QtCore.Qt.EditRole)
         if text:
-            SearchReplaceDialog(self, self.prefs, initial_query=text).show()
+            SearchReplaceDialog(self, initial_query=text).show()

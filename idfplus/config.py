@@ -62,7 +62,6 @@ class Settings(dict):
         """
 
         super(Settings, self).__init__(*args, **kwargs)
-        self.prefs = dict()
         self.settings = QtCore.QSettings(QtCore.QSettings.IniFormat,
                                          QtCore.QSettings.UserScope,
                                          COMPANY_NAME,

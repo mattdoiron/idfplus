@@ -28,7 +28,6 @@ from PySide import QtGui
 from PySide import QtCore
 
 # Package imports
-from .. import config
 from ..eplusio.idfmodel import IDFError
 
 # Setup logging
@@ -56,7 +55,7 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
         self.idf_objects = None
         self.idd_object = None
         self.obj_orientation = obj_orientation or QtCore.Qt.Vertical
-        self.config = config.Settings()
+        self.prefs = parent.prefs
         super(IDFObjectTableModel, self).__init__(parent)
 
     def setObjectClass(self, obj_class, idf):
@@ -124,7 +123,7 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
             if not field:
                 data = None
             else:
-                if role != QtCore.Qt.EditRole and self.config['show_units_in_cells']:
+                if role != QtCore.Qt.EditRole and self.prefs['show_units_in_cells']:
                     text_units = self.idf.units(field) or ''
                     spacing = ' ' if text_units else ''
                 else:
@@ -382,7 +381,7 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
         for key in self.idd_object._ordered_fields:
             field = self.idd_object[key]
             field_desc = field.tags.get('field', '')
-            if self.config['show_units_in_headers']:
+            if self.prefs['show_units_in_headers']:
                 units = self.idf.units(field)
                 unit_tag = ' ({})'.format(units) if units else ''
                 label = field_desc + unit_tag
@@ -812,6 +811,10 @@ class SortFilterProxyModel(QtGui.QSortFilterProxyModel):
 class TableView(QtGui.QTableView):
     """Subclass of QTableView used to allow editing with return/enter keys.
     """
+
+    def __init__(self, parent, **kwargs):
+        super(TableView, self).__init__(parent, **kwargs)
+        self.prefs = parent.prefs
 
     def keyPressEvent(self, event):
         """Overrides Qt key press method to filter return or enter keys.

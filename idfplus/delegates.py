@@ -41,6 +41,7 @@ class GenericDelegate(QtGui.QStyledItemDelegate):
         self.main_window = main_window
         self.obj_orientation = obj_orientation
         self.assignDelegates(idd_objects)
+        self.prefs = main_window.prefs
 
     def insertDelegate(self, index, delegate):
         """
@@ -168,14 +169,15 @@ class GenericDelegate(QtGui.QStyledItemDelegate):
 
 class CustomStyledItemDelegate(QtGui.QStyledItemDelegate):
 
-    def __init__(self, parent=None):
+    def __init__(self, main_window, parent=None):
         super(CustomStyledItemDelegate, self).__init__(parent)
         self.padding = 2
+        self.prefs = main_window.prefs
 
     def sizeHint(self, option, index):
 
         if not index.isValid():
-            return QtCore.QSize(self.main_window.prefs['default_column_width'], 14)
+            return QtCore.QSize(self.prefs['default_column_width'], 14)
 
         rect = option.rect.adjusted(self.padding, 0, -self.padding, 0)
         text = index.data(QtCore.Qt.DisplayRole)
@@ -187,7 +189,7 @@ class CustomStyledItemDelegate(QtGui.QStyledItemDelegate):
                                  QtCore.Qt.TextWrapAnywhere,
                                  text)
 
-        return QtCore.QSize(int(self.main_window.prefs['default_column_width']),
+        return QtCore.QSize(int(self.prefs['default_column_width']),
                             b_rect.height())
 
     def paint(self, painter, option, index):
@@ -214,8 +216,9 @@ class AlphaNumericDelegate(CustomStyledItemDelegate):
     """
 
     def __init__(self, main_window, parent=None):
-        super(AlphaNumericDelegate, self).__init__(parent)
+        super(AlphaNumericDelegate, self).__init__(main_window, parent)
         self.main_window = main_window
+        self.prefs = main_window.prefs
 
     def createEditor(self, parent, option, index):
         text_edit = ExtendedPlainTextEditor(parent)
@@ -223,8 +226,8 @@ class AlphaNumericDelegate(CustomStyledItemDelegate):
         text_edit.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
         text_edit.setFrameStyle(QtGui.QFrame.NoFrame)
         text_edit.setWordWrapMode(QtGui.QTextOption.WrapAnywhere)
-        text_edit.setFont(QtGui.QFont(self.main_window.prefs['class_table_font'],
-                                      self.main_window.prefs['class_table_font_size']))
+        text_edit.setFont(QtGui.QFont(self.prefs['class_table_font'],
+                                      self.prefs['class_table_font_size']))
         # text_edit.setStyleSheet("""QPlainTextEdit { margin-left:0;
         #     margin-top:0; margin-bottom:0; margin-right:0;
         #     padding-left:-2; padding-top:-4; padding-bottom:0;
@@ -272,10 +275,11 @@ class ChoiceDelegate(CustomStyledItemDelegate):
     """
 
     def __init__(self, main_window, field, parent=None):
-        super(ChoiceDelegate, self).__init__(parent)
+        super(ChoiceDelegate, self).__init__(main_window, parent)
         self.field = field
         self.model = None
         self.main_window = main_window
+        self.prefs = main_window.prefs
         self.combo_fields = ['minimum>', 'minimum', 'maximum<', 'maximum', 'default',
                              'key', 'object-list']
 
@@ -348,8 +352,8 @@ class ChoiceDelegate(CustomStyledItemDelegate):
             auto_complete = True
         else:
             auto_complete = False
-        font = QtGui.QFont(self.main_window.prefs['class_table_font'],
-                           self.main_window.prefs['class_table_font_size'])
+        font = QtGui.QFont(self.prefs['class_table_font'],
+                           self.prefs['class_table_font_size'])
         self.comboBox = ExtendedComboBox(parent, auto_complete)
         self.tableView = QtGui.QTableView(self.comboBox)
         self.tableView.setModel(self.model)
