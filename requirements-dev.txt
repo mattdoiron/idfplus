@@ -12,15 +12,15 @@ first==2.0.1              # via pip-tools
 jinja2==2.8               # via sphinx
 markupsafe==0.23          # via jinja2
 pip-review==0.4
-pip-tools==1.4.3
-pygments==2.0.2           # via sphinx
+pip-tools==1.5
+pygments==2.1             # via sphinx
 pyinstaller==3.1
 pytz==2015.7              # via babel
 six==1.10.0               # via pip-tools, sphinx
 snowballstemmer==1.2.1    # via sphinx
 sphinx-rtd-theme==0.1.9   # via sphinx
-sphinx==1.3.3
+sphinx==1.3.5
 
 # The following packages are commented out because they are
 # considered to be unsafe in a requirements file:
-# setuptools==19.2          # via pyinstaller
+# setuptools==19.6.1        # via pyinstaller
