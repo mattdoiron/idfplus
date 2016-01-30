@@ -24,6 +24,7 @@ import os
 import platform
 import subprocess
 import sys
+import errno
 
 # PySide imports
 from PySide import QtGui
@@ -153,6 +154,8 @@ class IDFPlus(QtGui.QMainWindow, main.UIMainWindow):
         """
 
         log.info('Trying to load file: {}'.format(file_path))
+        if not os.path.isfile(file_path):
+            raise OSError(errno.ENOENT, os.strerror(errno.ENOENT), file_path)
         idf = idfmodel.IDFFile()
         # self.files.update({0:idf})
 
@@ -200,7 +203,6 @@ class IDFPlus(QtGui.QMainWindow, main.UIMainWindow):
         try:
             # Try to load the specified IDF file
             self.load_idf(file_path)
-
         except iddmodel.IDDError as e:
             # Required IDD file doesn't exist so launch IDD wizard
             if not self.launch_idd_wizard(file_path, e.version, e.message):
@@ -223,6 +225,14 @@ class IDFPlus(QtGui.QMainWindow, main.UIMainWindow):
             self.progressDialogIDF.cancel()
             self.update_status(message)
             return False
+        except OSError as e:
+            if e.errno == errno.ENOENT:
+                message = "Loading failed. No such IDF file found."
+                self.progressDialogIDF.cancel()
+                self.update_status(message)
+                return False
+            else:
+                raise OSError(e.errno, e.strerror, e.filename)
 
         # Everything worked, so set some variables and update status
         log.debug('Loading tree view...')
