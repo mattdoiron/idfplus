@@ -52,7 +52,7 @@ class IDFPlus(QtGui.QMainWindow, main.UIMainWindow):
     """Main GUI window for IDF+ program.
     """
 
-    def __init__(self):
+    def __init__(self, args=None):
         super(IDFPlus, self).__init__()
 
         # Load settings (call this first)
@@ -73,6 +73,7 @@ class IDFPlus(QtGui.QMainWindow, main.UIMainWindow):
         self.current_obj_class = None
         self.obj_clipboard = []
         self.file_watcher = None
+        self.args = args
 
         # Create main application elements
         self.create_actions()
@@ -101,6 +102,10 @@ class IDFPlus(QtGui.QMainWindow, main.UIMainWindow):
             "Tips and Tricks Using EnergyPlus": "Tips_and_Tricks_Using_EnergyPlus.pdf",
             "Using EnergyPlus for Compliance": "Using_EnergyPlus_for_Compliance.pdf"
         }
+
+        # Open a file immediately if specified by command-line. Timer allows UI to load fist.
+        if self.args.filename:
+            QtCore.QTimer.singleShot(0, lambda: self.load_file(file_path=self.args.filename))
 
     def closeEvent(self, event):
         """Called when the application is closed.

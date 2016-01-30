@@ -6,4 +6,5 @@ whoosh
 odict
 persistent
 faulthandler
+argparse
 

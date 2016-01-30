@@ -25,6 +25,7 @@ import sys
 import os
 import multiprocessing
 import faulthandler
+import argparse
 
 # PySide imports
 from PySide import QtGui
@@ -32,6 +33,12 @@ from PySide import QtGui
 # Local imports
 from . import config
 from .main import IDFPlus
+
+
+def process_args():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('filename', nargs='?', default=None)
+    return parser.parse_known_args()
 
 
 def main():
@@ -44,13 +51,17 @@ def main():
     with open(os.path.join(config.LOG_DIR, 'idfplus_error_dump.txt'), 'w') as f:
         faulthandler.enable(file=f)
 
+        # Parse command-line arguments
+        parsed_args, unparsed_args = process_args()
+        qt_args = sys.argv[:1] + unparsed_args
+
         # Retrieve the currently running instance or make a new one
         app = QtGui.QApplication.instance()
         if app is None:
-            app = QtGui.QApplication(sys.argv)
+            app = QtGui.QApplication(qt_args)
 
         # Create the main window and show it
-        idf_plus_window = IDFPlus()
+        idf_plus_window = IDFPlus(args=parsed_args)
         idf_plus_window.show()
         sys.exit(app.exec_())
 
