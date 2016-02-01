@@ -228,10 +228,10 @@ class AlphaNumericDelegate(CustomStyledItemDelegate):
         text_edit.setWordWrapMode(QtGui.QTextOption.WrapAnywhere)
         text_edit.setFont(QtGui.QFont(self.prefs['class_table_font'],
                                       self.prefs['class_table_font_size']))
-        # text_edit.setStyleSheet("""QPlainTextEdit { margin-left:0;
-        #     margin-top:0; margin-bottom:0; margin-right:0;
-        #     padding-left:-2; padding-top:-4; padding-bottom:0;
-        #     padding-right:-2; vertical-align: middle;}""")
+        text_edit.setStyleSheet("""QPlainTextEdit { margin-left:0;
+            margin-top:0; margin-bottom:0; margin-right:0;
+            padding-left:-2; padding-top:-4; padding-bottom:0;
+            padding-right:-2; vertical-align: middle;}""")
         return text_edit
 
     def setEditorData(self, editor, index):
