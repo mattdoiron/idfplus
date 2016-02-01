@@ -398,7 +398,7 @@ class UIMainWindow(object):
         #         triggered=self.navBack)
 
         self.showInFolderAct = QtGui.QAction(QtGui.QIcon(':/images/new.png'), "&Show in folder",
-                                             self, shortcut=QtGui.QKeySequence('Ctrl+t'),
+                                             self, shortcut=QtGui.QKeySequence('Ctrl+Shift+t'),
                                              statusTip="Open location of current file",
                                              iconVisibleInMenu=True,
                                              triggered=self.show_in_folder)
