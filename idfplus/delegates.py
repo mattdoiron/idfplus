@@ -515,13 +515,24 @@ class ExtendedComboBox(QtGui.QComboBox):
 
 class ExtendedPlainTextEditor(QtGui.QPlainTextEdit):
 
-    def __init__(self, parent):
-        super(ExtendedPlainTextEditor, self).__init__(parent)
+    def __init__(self, parent, **kwargs):
+        """Subclassed QPlainTextEdit to override keypress events.
+
+        :type parent: GenericDelegate
+        """
+
+        super(ExtendedPlainTextEditor, self).__init__(parent, kwargs)
+        self.editor = parent.parent()
 
     def keyPressEvent(self, event):
-        invalid_chars = [QtCore.Qt.Key_Comma, QtCore.Qt.Key_Exclam,
-                         QtCore.Qt.Key_NumberSign, QtCore.Qt.Key_Semicolon]
-        if event.key() in invalid_chars:
+        if event.key() in [QtCore.Qt.Key_Comma, QtCore.Qt.Key_Exclam,
+                           QtCore.Qt.Key_NumberSign, QtCore.Qt.Key_Semicolon]:
+            event.accept()
+            return
+        elif event.key() in [QtCore.Qt.Key_Return, QtCore.Qt.Key_Enter]:
+            event.accept()
+            self.editor.commitData(self)
+            self.editor.closeEditor(self, QtGui.QAbstractItemDelegate.NoHint)
             return
         else:
-            super(ExtendedPlainTextEditor, self).keyPressEvent(event)
+            return super(ExtendedPlainTextEditor, self).keyPressEvent(event)

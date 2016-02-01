@@ -817,12 +817,10 @@ class TableView(QtGui.QTableView):
         self.prefs = parent.prefs
 
     def keyPressEvent(self, event):
-        """Overrides Qt key press method to filter return or enter keys.
-
-        :param event:
-        """
-        if (event.key() == QtCore.Qt.Key_Return or event.key() == QtCore.Qt.Key_Enter) \
-                and (self.state() != QtGui.QAbstractItemView.EditingState):
-            self.edit(self.selectedIndexes()[0])
+        if event.key() == QtCore.Qt.Key_Return or event.key() == QtCore.Qt.Key_Enter:
+            if self.state() != QtGui.QAbstractItemView.EditingState:
+                event.accept()
+                self.edit(self.selectedIndexes()[0])
+                return
         else:
-            super(TableView, self).keyPressEvent(event)
+            return super(TableView, self).keyPressEvent(event)
