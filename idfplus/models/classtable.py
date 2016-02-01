@@ -809,7 +809,7 @@ class SortFilterProxyModel(QtGui.QSortFilterProxyModel):
 
 
 class TableView(QtGui.QTableView):
-    """Subclass of QTableView used to allow editing with return/enter keys.
+    """Subclass of QTableView to allow custom editing behaviour.
     """
 
     def __init__(self, parent, **kwargs):
@@ -822,5 +822,82 @@ class TableView(QtGui.QTableView):
                 event.accept()
                 self.edit(self.selectedIndexes()[0])
                 return
+        if event.modifiers() & QtCore.Qt.ControlModifier:
+            selection_keys = [QtCore.Qt.Key_PageUp, QtCore.Qt.Key_Up,
+                              QtCore.Qt.Key_PageDown, QtCore.Qt.Key_Down,
+                              QtCore.Qt.Key_Left, QtCore.Qt.Key_Right]
+            if event.key() in selection_keys:
+                if event.modifiers() & QtCore.Qt.ShiftModifier:
+                    event.accept()
+                    self.select_in_direction(event.key())
+                    return
+                else:
+                    event.accept()
+                    self.select_first_in_direction(event.key())
+                    return
+            else:
+                return super(TableView, self).keyPressEvent(event)
         else:
             return super(TableView, self).keyPressEvent(event)
+
+    def select_in_direction(self, key):
+        """Selects fields in one direction.
+
+        :param key:
+        :type key: QtCore.Qt.Key
+        """
+
+        model = self.model()
+        selection_model = self.selectionModel()
+        selection = selection_model.selection()[0]  # There should only ever be one
+        top_left_current = selection.topLeft()
+        bottom_right_current = selection.bottomRight()
+        top_left = top_left_current
+        bottom_right = bottom_right_current
+
+        if key in [QtCore.Qt.Key_PageUp, QtCore.Qt.Key_Up]:
+            top_left = model.index(0, top_left_current.column())
+            bottom_right = model.index(bottom_right_current.row(), bottom_right_current.column())
+        elif key in [QtCore.Qt.Key_PageDown, QtCore.Qt.Key_Down]:
+            top_left = model.index(top_left_current.row(), top_left_current.column())
+            bottom_right = model.index(model.rowCount()-1, bottom_right_current.column())
+        elif key in [QtCore.Qt.Key_Left]:
+            top_left = model.index(top_left_current.row(), 0)
+            bottom_right = model.index(bottom_right_current.row(), bottom_right_current.column())
+        elif key in [QtCore.Qt.Key_Right]:
+            top_left = model.index(top_left_current.row(), top_left_current.column())
+            bottom_right = model.index(bottom_right_current.row(), model.columnCount()-1)
+
+        selection = QtGui.QItemSelection()
+        sel_range = QtGui.QItemSelectionRange(top_left, bottom_right)
+        selection.append(sel_range)
+        selection_model.reset()
+        selection_model.select(selection, QtGui.QItemSelectionModel.SelectCurrent)
+
+    def select_first_in_direction(self, key):
+        """Selects the first field in one direction.
+
+        :param key:
+        :type key: QtCore.Qt.Key
+        """
+
+        selected = self.selectedIndexes()
+        model = self.model()
+
+        if len(selected) > 1:
+            return
+
+        to_select = selected[0]
+        row = selected[0].row()
+        column = selected[0].column()
+
+        if key in [QtCore.Qt.Key_PageUp, QtCore.Qt.Key_Up]:
+            to_select = model.index(0, column)
+        elif key in [QtCore.Qt.Key_PageDown, QtCore.Qt.Key_Down]:
+            to_select = model.index(model.rowCount()-1, column)
+        elif key in [QtCore.Qt.Key_Left]:
+            to_select = model.index(row, 0)
+        elif key in [QtCore.Qt.Key_Right]:
+            to_select = model.index(row, model.columnCount()-1)
+
+        self.setCurrentIndex(to_select)
