@@ -435,7 +435,7 @@ class ModifyObjectCmd(ObjectCmd):
 
         # Store the old value for use by undo (only once)
         if self.old_value is None:
-            self.old_value = self.model.data(indexes[0], QtCore.Qt.DisplayRole)
+            self.old_value = self.model.data(indexes[0], QtCore.Qt.DisplayRole) or ''
 
         # Call the setData method to change the values
         self.model.setData(indexes[0], self.value, QtCore.Qt.EditRole)
