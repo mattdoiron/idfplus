@@ -623,8 +623,12 @@ class IDFObject(list):
         """String representation of the object.
         """
 
-        fields = [field.value for field in self]
-        return self._obj_class + ',' + ','.join(fields) + ';'
+        field_str = self._obj_class + ','
+        for field in self:
+            field_str += str(field or '') + ','
+        field_str = field_str.rstrip(',')
+        field_str += ';'
+        return field_str
 
     @property
     def obj_class(self):
@@ -690,6 +694,8 @@ class IDFObject(list):
 
         self._obj_class = obj_class
 
+    __repr__ = __str__
+
 
 class IDFField(object):
     """Basic component of the idf object classes.
@@ -738,6 +744,12 @@ class IDFField(object):
                 setattr(result, key, copy.copy(val))
 
         return result
+
+    def __str__(self):
+        """String representation of the field.
+        """
+
+        return str(self._value)
 
     @property
     def value(self):
@@ -835,3 +847,5 @@ class IDFField(object):
         idd_obj_tags = set(idd_object[key].tags)
 
         return idd_obj_tags & set(tags_to_check)
+
+    __repr__ = __str__
