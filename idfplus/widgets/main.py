@@ -362,7 +362,7 @@ class UIMainWindow(object):
                                          iconText='Paste Obj')
 
         self.dupObjAct = QtGui.QAction(QtGui.QIcon(':/images/copy.png'), "Duplicate Object", self,
-                                       shortcut=QtGui.QKeySequence('Ctrl+d'),
+                                       shortcut=QtGui.QKeySequence('Shift+Ctrl+d'),
                                        statusTip="Duplicate the current Object(s)",
                                        iconVisibleInMenu=True,
                                        triggered=self.duplicateObject,
@@ -488,6 +488,11 @@ class UIMainWindow(object):
                                                  triggered=self.toggle_full_tree,
                                                  checkable=True)
 
+        self.fillRightAction = QtGui.QAction("Fill right", self,
+                                             shortcut=QtGui.QKeySequence('Ctrl+d'),
+                                             statusTip="Fill right",
+                                             triggered=self.fill_right)
+
         self.logDockWidgetAct = self.logDockWidget.toggleViewAction()
         self.transposeAct.setEnabled(False)
         self.setSIUnitsAction.setChecked(True)
@@ -540,6 +545,8 @@ class UIMainWindow(object):
         self.editMenu.addSeparator().setText('Values')
         self.editMenu.addAction(self.copyAct)
         self.editMenu.addAction(self.pasteAct)
+        self.editMenu.addSeparator()
+        self.editMenu.addAction(self.fillRightAction)
         self.editMenu.addSeparator()
         self.editMenu.addAction(self.showSearchAction)
 
@@ -653,7 +660,7 @@ class UIMainWindow(object):
         """
 
         # QtGui.QShortcut(QtGui.QKeySequence('Ctrl+l'), self).activated.connect(self.toggle_full_tree)
-        QtGui.QShortcut(QtGui.QKeySequence('Ctrl+d'), self).activated.connect(self.fill_right)
+        # QtGui.QShortcut(QtGui.QKeySequence('Ctrl+d'), self).activated.connect(self.fill_right)
         # QtGui.QShortcut(QtGui.QKeySequence('Ctrl+d'), self).activated.connect(self.fill_right)
 
 #    def createAction(self, text, slot=None, shortcut=None, icon=None,

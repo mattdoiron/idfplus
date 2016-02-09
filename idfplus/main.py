@@ -1074,11 +1074,43 @@ class IDFPlus(QtGui.QMainWindow, main.UIMainWindow):
         self.set_dirty(True)
 
     def fill_right(self):
-        """Fill right not yet implemented
+        """Fills cells to the right of selected cell with same value as selected cell.
         """
 
-        # selected_indexes = self.classTable.selectedIndexes()
-        pass
+        model = self.classTable.model()
+        selection_model = self.classTable.selectionModel()
+        selection = selection_model.selection()[0]  # There should only ever be one
+        top_left_current = selection.topLeft()
+        stored_values = []
+        to_paste = ''
+
+        # Store values of the selected fields of the first column/row in the selection
+        if self.obj_orientation == QtCore.Qt.Vertical:
+            sel_range = selection.height()
+            fill_range = selection.width()
+            for i in range(sel_range):
+                index = model.index(top_left_current.row() + i, top_left_current.column())
+                value = model.data(index, QtCore.Qt.EditRole) or ''
+                for j in range(fill_range):
+                    to_paste += value + ','
+                to_paste = to_paste[:-1]
+                to_paste += '\n'
+        else:
+            sel_range = selection.width()
+            fill_range = selection.height()
+            for i in range(sel_range):
+                index = model.index(top_left_current.row(), top_left_current.column() + i)
+                value = model.data(index, QtCore.Qt.EditRole) or ''
+                stored_values.append(value)
+            for j in range(fill_range):
+                values = [val for val in stored_values]
+                to_paste += ','.join(values)
+                to_paste += '\n'
+
+        # Send the stored values to the clipboard and call the paste command
+        self.clipboard.setText(to_paste)
+        cmd = commands.PasteSelectedCmd(self)
+        self.undo_stack.push(cmd)
 
     def update_log_viewer(self, log_text):
         """
