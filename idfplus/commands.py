@@ -335,7 +335,8 @@ class PasteSelectedCmd(ObjectCmd):
                 index = self.model.index(start_row + i, start_col + j)
 
                 # Save the data about to be replaced (for undo) as a tuple
-                self.old_objects.append((start_row + i, start_col + j, index.data()))
+                self.old_objects.append((start_row + i, start_col + j,
+                                         index.data(QtCore.Qt.EditRole) or ''))
 
                 # Replace the data
                 self.model.setData(index, value, QtCore.Qt.EditRole)
@@ -435,7 +436,7 @@ class ModifyObjectCmd(ObjectCmd):
 
         # Store the old value for use by undo (only once)
         if self.old_value is None:
-            self.old_value = self.model.data(indexes[0], QtCore.Qt.DisplayRole) or ''
+            self.old_value = self.model.data(indexes[0], QtCore.Qt.EditRole) or ''
 
         # Call the setData method to change the values
         self.model.setData(indexes[0], self.value, QtCore.Qt.EditRole)
