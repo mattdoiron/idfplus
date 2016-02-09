@@ -626,7 +626,7 @@ class IDFObject(list):
         field_str = self._obj_class + ','
         for field in self:
             field_str += str(field or '') + ','
-        field_str = field_str.rstrip(',')
+        field_str = field_str[:-1]
         field_str += ';'
         return field_str
 
