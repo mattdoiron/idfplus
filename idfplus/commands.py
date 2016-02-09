@@ -328,7 +328,7 @@ class PasteSelectedCmd(ObjectCmd):
         self.old_objects = []
         rows = raw_text.split('\n')
         for i, row in enumerate(rows[:-1]):
-            values = row.split('\t')
+            values = row.split(',')
             for j, value in enumerate(values):
 
                 # Make an index for the data to be affected

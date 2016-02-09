@@ -889,7 +889,7 @@ class IDFPlus(QtGui.QMainWindow, main.UIMainWindow):
         # Convert to text for clipboard
         text_copied = ''
         for row in range_copied:
-            text_copied += '\t'.join(row)
+            text_copied += ','.join(row)
             text_copied += '\n'
 
         # Save converted text to the clipboard
