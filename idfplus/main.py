@@ -858,10 +858,16 @@ class IDFPlus(QtGui.QMainWindow, main.UIMainWindow):
         indexes_source = [model.sourceModel().mapToSource(ind) for ind in indexes_part]
 
         # Get list of contiguous indexes and objects
-        groups, obj_list = model.get_contiguous(indexes_source, False)
+        groups, obj_lists = model.get_contiguous(indexes_source, False)
+
+        # Create a string containing the string representations of each obj
+        str_objects = ''
+        for obj_group in obj_lists:
+            str_objects += '\n'.join([str(obj) for obj in obj_group])
 
         # Save to the clipboard and return success
-        self.obj_clipboard = (groups, obj_list)
+        self.obj_clipboard = (groups, obj_lists)
+        self.clipboard.setText(str_objects)
         return True
 
     def copySelected(self):
@@ -893,8 +899,8 @@ class IDFPlus(QtGui.QMainWindow, main.UIMainWindow):
             text_copied += '\n'
 
         # Save converted text to the clipboard
-        mode = QtGui.QClipboard.Clipboard
-        self.clipboard.setText(text_copied, mode)
+        self.clipboard.setText(text_copied, QtGui.QClipboard.Clipboard)
+        self.obj_clipboard = None
         return True
 
     def toggle_full_tree(self):
