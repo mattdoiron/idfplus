@@ -76,6 +76,7 @@ class Settings(dict):
 
         # Retrieve settings and store them in the prefs dict
         settings.beginGroup("Appearance")
+        self['style'] = settings.value("style", default_style())
         self['base_font_size'] = int(settings.value("base_font_size", 9))
         self['base_font'] = settings.value("base_font", "Arial")
         self['comments_font_size'] = int(settings.value("comments_font_size", 10))
@@ -180,6 +181,9 @@ class Settings(dict):
         self['pos'] = settings.value("pos", QtCore.QPoint(200, 200))
         self['state'] = settings.value("state", QtCore.QByteArray())
         self['geometry'] = settings.value("geometry", QtCore.QByteArray())
+        settings.endGroup()
+
+        settings.beginGroup("Appearance")
         self['style'] = settings.value("style", default_style())
         settings.endGroup()
 
