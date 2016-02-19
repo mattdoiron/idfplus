@@ -550,7 +550,7 @@ class IDFPlus(QtGui.QMainWindow, main.UIMainWindow):
         self.infoView.setText(obj_info + "\n\n" + field_info)
 
         # Also update the units label
-        field = self.idf.field(self.current_obj_class, index.column(), index.row())
+        field = self.idf.field(self.current_obj_class, index.row(), index.column())
         units = self.idf.units(field)
         self.unitsLabel.setText('Display Units: {}'.format(units))
 
