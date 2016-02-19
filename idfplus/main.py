@@ -771,8 +771,8 @@ class IDFPlus(QtGui.QMainWindow, main.UIMainWindow):
         """Creates a new, blank object.
         """
 
-        # If there is no selection, stop
-        if not self.classTable.selectedIndexes() or not self.idf:
+        # If there is no idf file, stop
+        if not self.idf:
             return False
 
         # Create undo command and push it to the undo stack
