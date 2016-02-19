@@ -268,9 +268,16 @@ class IDFPlus(QtGui.QMainWindow, main.UIMainWindow):
         """Called by save action.
         """
 
+        # Disable file watcher during save
+        self.file_watcher.removePaths([self.idf.file_path])
+
         if self.file_path:
-            return self.save_file()
-        return self.save_as()
+            self.save_file()
+        else:
+            self.save_as()
+
+        # Restore file watcher
+        self.file_watcher.addPaths([self.idf.file_path])
 
     def save_as(self):
         """Called by the save as action.
