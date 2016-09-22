@@ -20,16 +20,13 @@ along with IDF+. If not, see <http://www.gnu.org/licenses/>.
 # System imports
 import uuid
 import copy
-import networkx as nx
+import math
+import sqlite3
 from collections import OrderedDict
-from whoosh.fields import Schema, ID
-from whoosh.filedb.filestore import RamStorage
-from whoosh.qparser import QueryParser
 
 # Package imports
-from . import refmodel
 from . import config
-from .iddmodel import UNITS_REGISTRY, UNIT_TYPES, ALLOWED_OPTIONS
+from .iddmodel import UNITS_REGISTRY, UNIT_TYPES, ALLOWED_OPTIONS, IDDObject
 
 # Investigate as replacement for large lists
 # https://pypi.python.org/pypi/blist
@@ -78,19 +75,22 @@ class IDFFile(OrderedDict):
         self._version = None
         self.si_units = True
         self._uuid = str(uuid.uuid4())
-        self._references = refmodel.ReferenceModel(self)
-        self._init_index()
+        self._init_db()
+        self.field_registry = dict()
 
-    def _init_index(self):
-        """Initializes the search index and its schema.
-        """
+    def _init_db(self):
 
-        self.schema = Schema(uuid=ID(unique=True, stored=True),
-                             obj_class=ID(stored=True),
-                             value=ID(stored=True),
-                             ref_type=ID())
-        self.index = RamStorage().create_index(self.schema)
-        self.parser = QueryParser("value", self.schema)
+        self.db = sqlite3.connect(':memory:')
+        self.db.row_factory = sqlite3.Row
+        cursor = self.db.cursor()
+
+        # Create table with uuid as primary key and case-insensitive value
+        cursor.execute("CREATE TABLE idf_objects"
+                       "(uuid TEXT PRIMARY KEY,"
+                       "obj_class TEXT,"
+                       "ref_type TEXT,"
+                       "value TEXT COLLATE NOCASE)")
+        self.db.commit()
 
     def init_blank(self):
         """Sets up a blank idf file
@@ -128,16 +128,18 @@ class IDFFile(OrderedDict):
         :param idd:
         """
 
+        if not idd:
+            raise
+
         self._idd = idd
         self._version = idd.version
-        self._references.set_idd(idd)
         self._populate_obj_classes()
 
-    def reference_tree_data(self, current_obj_class, index):
+    def reference_tree_data(self, obj_class, index):
         """Constructs a list of lists of nodes for the reference tree view.
 
         :param index:
-        :param current_obj_class:
+        :param obj_class:
         """
 
         if not index:
@@ -145,27 +147,35 @@ class IDFFile(OrderedDict):
 
         # Retrieve the node (could be invalid so use try)
         try:
-            ref_graph = self._references._ref_graph
-            field = self[current_obj_class][index.row()][index.column()]
+            field = self[obj_class][index.row()][index.column()]
             if not field:
                 data = None
             else:
-                ancestors = nx.ancestors(ref_graph, field._uuid)
-                descendants = nx.descendants(ref_graph, field._uuid)
-                data = [[ref_graph.node[ancestor]['data'] for ancestor in ancestors],
-                        [ref_graph.node[descendant]['data'] for descendant in descendants]]
-        except (nx.exception.NetworkXError, IndexError):
+                try:
+                    # references = self.references[field.uuid]
+                    data = [[fld for fld in field.refs_in],
+                            [fld for fld in field.refs_out]]
+                except KeyError:
+                    data = None
+        except IndexError:
             data = None
 
         return data
 
-    def reference_count(self, field):
+    @staticmethod
+    def reference_count(field):
         """Returns a count of references for the given field.
 
         :param field:
         """
 
-        return self._references.reference_count(field)
+        # Continue only if a valid field is present and the right type
+        if not field:
+            return -1
+        if field.ref_type != 'object-list' and field.ref_type != 'reference':
+            return -1
+
+        return len(field.refs_in) + len(field.refs_out)
 
     def _populate_obj_classes(self):
         """Pre-allocates the keys of the IDFFile.
@@ -256,8 +266,10 @@ class IDFFile(OrderedDict):
         if update is True:
             self._index_objects(new_objects)
 
-        # Insert nodes and optionally update the references
-        self._references.insert_nodes(new_objects, update_references=update)
+        # Update field registry (map of uuid's to python field objects)
+        for obj in new_objects:
+            for field in obj:
+                self.field_registry[field.uuid] = field
 
         return len(new_objects)
 
@@ -268,16 +280,9 @@ class IDFFile(OrderedDict):
         :return:
         """
 
-        with self.index.writer() as writer:
-            for obj in new_objects:
-                for field in obj:
-                    if not field:
-                        continue
-                    writer.add_document(uuid=unicode(field.uuid),
-                                        obj_class=unicode(field.obj_class),
-                                        value=unicode(field.value.lower()),
-                                        _stored_value=unicode(field.value),
-                                        ref_type=unicode(field.ref_type))
+        for obj in new_objects:
+            self._upsert_field_index(obj, commit=False)
+        self.db.commit()
 
     def _deindex_objects(self, objects_to_delete):
         """
@@ -286,33 +291,34 @@ class IDFFile(OrderedDict):
         :return:
         """
 
-        with self.index.writer() as writer:
-            for obj in objects_to_delete:
-                for field in obj:
-                    if not field:
-                        continue
-                    writer.delete_by_term('uuid', unicode(field.uuid))
+        # Create IDFField objects for all fields and add them to the IDFObject
+        field_objects = list()
+        append_new_field = field_objects.append
+        for obj in objects_to_delete:
+            for field in obj:
+                append_new_field((field.uuid,))
 
-    def _upsert_field_index(self, fields):
+        delete_operation = "DELETE FROM idf_objects WHERE uuid=(?)"
+        self.db.executemany(delete_operation, field_objects)
+        self.db.commit()
+
+    def _upsert_field_index(self, fields, commit=True):
         """
 
-        :param field:
+        :param fields:
         :return:
         """
 
-        with self.index.writer() as writer:
-            for field in fields:
-                if not field:
-                    continue
-                if field.value:
-                    field_lower = field.value.lower()
-                else:
-                    field_lower = ''
-                writer.update_document(uuid=unicode(field.uuid),
-                                       obj_class=unicode(field.obj_class),
-                                       value=unicode(field_lower),
-                                       _stored_value=unicode(field.value or field_lower),
-                                       ref_type=unicode(field.ref_type))
+        field_objects = list()
+        append_new_field = field_objects.append
+        for field in fields:
+            append_new_field((field.uuid, field.obj_class, field.ref_type, field.value))
+
+        upsert_operation = "INSERT OR REPLACE INTO idf_objects VALUES (?, ?, ?, ?)"
+        self.db.executemany(upsert_operation, field_objects)
+
+        if commit:
+            self.db.commit()
 
     def field(self, obj_class, index_obj, index_field):
         """Returns the specified field. Convenience function.
@@ -331,11 +337,29 @@ class IDFFile(OrderedDict):
         except (IndexError, TypeError):
             field = None
 
-        # if not field:
-            # message = 'Field does not exist. ({}:{}:{})'.format(obj_class, index_obj, index_field)
-            # raise IDFError(message)
-        # else:
         return field
+
+    def connect_references(self):
+        """Processes all linked fields and connect references. Yield progress.
+        """
+
+        query_records = "SELECT * from idf_objects WHERE ref_type='reference'"
+        records = self.db.execute(query_records).fetchall()
+        record_count = len(records)
+
+        for i, target in enumerate(records):
+            query_objects = "SELECT uuid FROM idf_objects " \
+                            "WHERE ref_type='object-list' AND value = (?)"
+            target_fields = self.db.execute(query_objects, (target['value'],)).fetchall()
+            field_uuids = (field['uuid'] for field in target_fields)
+
+            for field_uuid in field_uuids:
+                field = self.field_registry[field_uuid]
+                target_field = self.field_registry[target['uuid']]
+                target_field.refs_in.append(field)
+                field.refs_out.append(target_field)
+
+            yield math.ceil(50 + (100 * 0.5 * i / record_count))
 
     def allocate_fields(self, obj_class, index_obj, index_field):
         """Checks for max allowable fields and allocates more if necessary.
@@ -363,6 +387,51 @@ class IDFFile(OrderedDict):
             field = IDFField(idf_object, idd_object.key(index_field))
             self[obj_class][index_obj][index_field] = field
 
+    def update_references(self, field, old_value):
+        """Updates the specified references involving the given field.
+
+        :param old_value:
+        :param field:
+        """
+
+        if field.value == old_value:
+            return
+
+        # Remove all current references to the old value
+        for fld in field.refs_in:
+            fld.remove_reference(field)
+        for fld in field.refs_out:
+            fld.remove_reference(field)
+
+        if not field.value:
+            return
+
+        if field.ref_type == 'reference':
+
+            query_objects = "SELECT uuid FROM idf_objects " \
+                            "WHERE ref_type='object-list' AND value = (?)"
+            target_fields = self.db.execute(query_objects, (field.value,)).fetchall()
+            field_uuids = (field['uuid'] for field in target_fields)
+
+            for field_uuid in field_uuids:
+                field = self.field_registry[field_uuid]
+                target_field = self.field_registry[field.uuid]
+                target_field.refs_in.append(field)
+                field.refs_out.append(target_field)
+
+        elif field.ref_type == 'object-list':
+
+            query_objects = "SELECT uuid FROM idf_objects " \
+                            "WHERE ref_type='reference' AND value = (?)"
+            target_fields = self.db.execute(query_objects, (field.value,)).fetchall()
+            field_uuids = (field['uuid'] for field in target_fields)
+
+            for field_uuid in field_uuids:
+                field = self.field_registry[field_uuid]
+                target_field = self.field_registry[field.uuid]
+                target_field.refs_out.append(field)
+                field.refs_in.append(target_field)
+
     def remove_objects(self, obj_class, first_row, last_row):
         """Deletes specified object.
 
@@ -374,11 +443,9 @@ class IDFFile(OrderedDict):
         # Remove the fields from graph also
         objects_to_delete = self[obj_class][first_row:last_row]
         obj_class = objects_to_delete[0].obj_class
-        # log.debug('nodes before delete: {}'.format(ref_graph.number_of_nodes()))
 
         # Delete objects and update reference list
         self._deindex_objects(objects_to_delete)
-        # self._references.remove_references(objects_to_delete)
         del self[obj_class][first_row:last_row]
 
     def units(self, field):
@@ -545,14 +612,12 @@ class IDFFile(OrderedDict):
         # according to the sorted list of the objects. Then yield the items here in order.
         # for obj_class in self._idd.iterkeys():
         #     yield obj_class, self.idf_objects(obj_class)
+        # This will allow getting rid of the OrderedDict class which is slow!
         pass
 
     def field_by_uuid(self, field_uuid):
 
-        # print(field_uuid)
-        field = self._references._ref_graph.node[field_uuid]['data']
-        # print(field)
-        return field
+        return self.field_registry.get(field_uuid, None)
 
 
 class IDFObject(list):
@@ -570,23 +635,28 @@ class IDFObject(list):
 
     # TODO This class is almost the same as IDDObject. It should subclass it.
 
+    # Using slots simplifies the internal structure of the object and makes
+    # it more memory efficiency
+    __slots__ = ['comments', 'comments_special', '_outer', '_ref_graph', 'obj_class',
+                 '_group', '_uuid', 'obj_class', 'group', 'uuid']
+
     def __init__(self, outer, obj_class, **kwargs):
         """Use kwargs to pre-populate some values, then remove them from kwargs
 
         Also sets the idd file for use by this object.
 
-        :param eplusio.iddmodel.IDFFile outer:
+        :param IDFFile outer:
         :param str obj_class: Class type of this idf object
         :param \*\*kwargs: keyword arguments to pass to dictionary
         """
 
         # Set various attributes of the idf object
-        self.comments = kwargs.pop('comments', [])
+        self.comments = list()
+        self.comments_special = list()
+        self.obj_class = obj_class
         self._outer = outer
         self._ref_graph = None
-        self._obj_class = obj_class
-        self._group = kwargs.pop('group', None)
-        self._uuid = str(uuid.uuid4())
+        self._uuid = None
 
         # Call the parent class' init method
         super(IDFObject, self).__init__(**kwargs)
@@ -623,7 +693,7 @@ class IDFObject(list):
         """String representation of the object.
         """
 
-        field_str = self._obj_class + ','
+        field_str = self.obj_class + ','
         for field in self:
             field_str += str(field or '') + ','
         field_str = field_str[:-1]
@@ -631,36 +701,20 @@ class IDFObject(list):
         return field_str
 
     @property
-    def obj_class(self):
-        """Read-only property containing idf object's class type
-
-        :rtype : str
-        """
-
-        return self._obj_class
-
-    @property
-    def group(self):
-        """Read-only property containing idf object's group
-
-        :rtype : str
-        """
-
-        return self._group
-
-    @property
     def uuid(self):
         """Read-only property containing uuid
 
-        :return: :rtype:
+        :rtype: str
         """
 
+        if not self._uuid:
+            self._uuid = str(uuid.uuid4())
         return self._uuid
 
     def set_defaults(self, idd):
         """Populates the object's fields with their defaults
 
-        :param idd:
+        :param idd: IDDObject to use for sourcing defaults
         """
 
         idd_object = idd.idd_object(self.obj_class)
@@ -676,24 +730,6 @@ class IDFObject(list):
                 else:
                     self.append(IDFField(self, idd_field.key, value=default))
 
-    def set_group(self, class_group):
-        """Sets this IDFObject's class group
-
-        :param class_group:
-        :return:
-        """
-
-        self._group = class_group
-
-    def set_class(self, obj_class):
-        """Sets this IDFObject's object-class
-
-        :param obj_class:
-        :return:
-        """
-
-        self._obj_class = obj_class
-
     __repr__ = __str__
 
 
@@ -706,22 +742,33 @@ class IDFField(object):
     """
 
     # TODO This class is actually the same as IDDField. Merge them?
+    # Create a base class with common attributes and subclass it to add any
+    # differences. When creating a new field, simply copy the IDDField and add
+    # the appropriate attributes like value? Need to reset uuid on copy operations.
 
-    def __init__(self, outer, key, *args, **kwargs):
+    # Using slots simplifies the internal structure of the object and makes
+    # it more memory efficiency
+    __slots__ = ['key', 'tags', 'value', 'idd_object', 'ref_type', 'ureg', 'refs_out',
+                 'outer', 'uuid', '_key', '_tags', '_value', '_idd_object',
+                 '_ref_type', '_outer', '_uuid', 'index', '_index', 'refs_in']
+
+    def __init__(self, outer, value=None, **kwargs):
         """Initializes a new idf field
 
-        :param str key:
         :param value:
         :param IDFObject outer:
         """
 
-        self.key = key
-        self.tags = dict()
-        self._value = kwargs.pop('value', None)
+        self._key = kwargs.pop('key', None)
+        self._tags = kwargs.pop('tags', None)
+        self._index = kwargs.pop('index', None)
+        self._value = value
+        self._idd_object = None
         self._ref_type = None
-        self._ureg = None
         self._outer = outer
-        self._uuid = str(uuid.uuid4())
+        self._uuid = None
+        self.refs_in = list()
+        self.refs_out = list()
 
         # Call the parent class' init method
         super(IDFField, self).__init__()
@@ -729,6 +776,11 @@ class IDFField(object):
     def __deepcopy__(self, memo):
         """Reimplement deepcopy to avoid recursion issues with IDFFile/IDFObject
         """
+
+        # TODO This is totally broken! It will copy large parts of many other objects
+        # It could be part of why undo/redo is slow!
+        # Should simply create a blank IDFField object and then copy it's value!
+        # Also, the object won't have a __dict__ attribute if slots are used!
 
         # Create a new object, same class as this one, without triggering init
         cls = self.__class__
@@ -738,12 +790,21 @@ class IDFField(object):
         for key, val in self.__dict__.items():
             if isinstance(val, IDFObject):
                 setattr(result, key, val)
+            elif isinstance(val, IDDObject):
+                setattr(result, key, val)
             elif key == '_uuid':
                 setattr(result, key, str(uuid.uuid4()))
             else:
                 setattr(result, key, copy.copy(val))
 
         return result
+
+    def duplicate(self):
+        """Create a new IDFField object and copy this one's references and value.
+
+        :return:
+        """
+        pass
 
     def __str__(self):
         """String representation of the field.
@@ -752,15 +813,28 @@ class IDFField(object):
         return str(self._value)
 
     @property
+    def key(self):
+        """Returns the field's key
+
+        :rtype: str
+        """
+
+        if not self._key:
+            self._key = self.idd_object.key(self.index)
+        return self._key
+
+    @property
     def value(self):
         """Returns value of field
+
+        :rtype: str
         """
 
         return self._value
 
     @value.setter
     def value(self, new_value):
-        """Sets value of field
+        """Sets value of field and makes sure that index is also updated
 
         :param new_value:
         """
@@ -769,7 +843,19 @@ class IDFField(object):
         old_value = self._value
         self._value = new_value
         self._outer._outer._upsert_field_index([self])
-        self._outer._outer._references.update_reference(self, old_value)
+        # self._outer._outer._references.update_reference(self, old_value)
+        self._outer._outer.update_references(self, old_value)
+
+    @property
+    def tags(self):
+        """Returns this field's tags
+
+        :rtype: list
+        """
+
+        if not self._tags:
+            self._tags = self.idd_object[self.key].tags
+        return self._tags
 
     @property
     def name(self):
@@ -779,10 +865,7 @@ class IDFField(object):
         :return: The name of the field from the idd file
         """
 
-        if 'field' in self.tags:
-            return self.tags['field']
-        else:
-            return str()
+        return self.tags.get('field', str())
 
     @property
     def obj_class(self):
@@ -792,7 +875,7 @@ class IDFField(object):
         :return: The name of the class from the outer object
         """
 
-        return self._outer._obj_class
+        return self._outer.obj_class
 
     @property
     def index(self):
@@ -802,17 +885,21 @@ class IDFField(object):
         :return: The index of this field in its outer class
         """
 
-        return self._outer.index(self)
+        if not self._index:
+            self._index = self._outer.index(self)
+        return self._index
 
     @property
     def field_id(self):
         """Read-only property that returns the id of this field
+
+        :rtype: tuple
         """
 
         try:
-            my_id = (self._outer._obj_class,
-                     self._outer._outer[self._outer._obj_class].index(self._outer),
-                     self._outer.index(self))
+            my_id = (self.obj_class,
+                     self._outer._outer[self.obj_class].index(self._outer),
+                     self.index)
         except KeyError:
             my_id = None
         return my_id
@@ -821,31 +908,57 @@ class IDFField(object):
     def ref_type(self):
         """Read-only property containing reference type
 
-        :return:
+        :rtype: str
         """
 
+        if not self._ref_type:
+            ref_type_set = set(self.tags) & {'reference', 'object-list'}
+            self._ref_type = unicode(list(ref_type_set)[0]) if ref_type_set else None
         return self._ref_type
+
+    @property
+    def idd_object(self):
+        """Read-only property containing the object's IDD Class Object
+
+        :rtype: IDDObject
+        """
+
+        if not self._idd_object:
+            self._idd_object = self._outer._outer._idd.get(self.obj_class)
+        return self._idd_object
 
     @property
     def uuid(self):
         """Read-only property containing uuid
 
-        :return: :rtype:
+        :rtype: str
         """
 
+        if not self._uuid:
+            self._uuid = str(uuid.uuid4())
         return self._uuid
 
     def has_tags(self, tags_to_check):
         """Returns a list of tags which are contained in both this field and tags_to_check
 
+        :rtype: str
         :param tags_to_check:
-        :return:
         """
 
-        idd_object = self._outer._outer._idd.get(self._outer.obj_class)
-        key = idd_object.key(self.index)
-        idd_obj_tags = set(idd_object[key].tags)
+        return list(set(self.tags) & set(tags_to_check))
 
-        return idd_obj_tags & set(tags_to_check)
+    def remove_reference(self, field):
+        """Removes the specified field from this field's references
+        """
+
+        try:
+            self.refs_in.remove(field)
+        except ValueError:
+            pass
+
+        try:
+            self.refs_out.remove(field)
+        except ValueError:
+            pass
 
     __repr__ = __str__

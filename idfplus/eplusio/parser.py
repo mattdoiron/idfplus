@@ -23,6 +23,7 @@ import codecs
 import math
 import logging
 import cPickle as pickle
+from cStringIO import StringIO
 
 # Package imports
 from . import idfmodel
@@ -38,6 +39,7 @@ OPTIONS_LIST = ['OriginalOrderTop', 'UseSpecialFormat',
                 'ViewInIPunits', 'SortedOrder', 'HideEmptyClasses']
 COMMENT_DELIMITER_GENERAL = '!'
 COMMENT_DELIMITER_SPECIAL = '!-'
+OBJECT_END_DELIMITER = ';'
 TAG_LIST = ['\\field', '\\Field',
             '\\note', '\\Note',
             '\\required-field', '\\Required-field',
@@ -673,23 +675,21 @@ class IDFParser(Parser):
             self.idf = idf
         else:
             self.idf = idfmodel.IDFFile()
-        self.idd = None
+        self.idd = self.idf.idd
 
         # Call the parent class' init method
         super(IDFParser, self).__init__()
 
     def parse_idf(self, file_path):
-        """Parse the provided idf file and return an IDFObject.
+        """Parse the provided idf file and populate an IDFFile object with objects.
 
         :param file_path:
         :rtype : iterator
         """
 
         self.idf.file_path = file_path
-        writer = self.idf.index.writer()
         total_size = os.path.getsize(file_path)
         total_read = 0
-        eol_char = os.linesep
         log.info('Parsing IDF file: {} ({} bytes)'.format(file_path,
                                                           total_size))
 
@@ -699,10 +699,10 @@ class IDFParser(Parser):
                          errors='backslashreplace') as raw_idf:
 
             # Prepare some variables to store the results
-            field_list = list()
+            fields = StringIO()
+            field_objects = list()
             comment_list = list()
             comment_list_special = list()
-            end_object = False
 
             # Cycle through each line in the file (yes, use while!)
             while True:
@@ -710,126 +710,108 @@ class IDFParser(Parser):
                 # Parse this line using readline (so last one is a blank)
                 line = raw_idf.readline()
                 total_read += len(line)
-                line_parsed = self.parse_line(line)
 
-                # If previous line was not the end of an object check this one
-                if end_object is False:
-                    end_object = line_parsed['end_object']
-                empty_line = line_parsed['empty_line']
+                # Split out any comments and save them
+                part, sep, comment = line.partition(COMMENT_DELIMITER_GENERAL)
+                comment_cleaned = comment.strip()
+                if comment_cleaned.startswith('-'):
+                    if comment_cleaned.lower().startswith('-options'):
+                        self.idf.options.extend(self.options(comment_cleaned))
+                    else:
+                        comment_list_special.append(comment_cleaned)
+                else:
+                    comment_list.append(comment_cleaned)
 
-                # Check for special options
-                if line_parsed['options']:
-                    self.idf.options.extend(line_parsed['options'])
-
-                # If there are any comments save them
-                if line_parsed['comments'] is not None:
-                    comment_list.append(line_parsed['comments'].rstrip() + eol_char)
-
-                # Check for special comments and options
-                if line_parsed['comments_special'] is not None:
-                    comment_list_special.append(line_parsed['comments_special'].rstrip() + eol_char)
-
-                # If there are any fields save them
-                if line_parsed['fields']:
-                    field_list.extend(line_parsed['fields'])
-
-                    # Detect idf file version and use it to select idd file
-                    if field_list[0].lower() == 'version' and len(field_list) > 1:
-                        version = field_list[1]
-                        log.debug('IDF version detected: {}'.format(version))
-                        log.debug('Checking for IDD...')
-                        if not self.idd:
-                            log.debug('No IDD currently selected!')
-                            idd_parser = IDDParser()
-                            try:
-                                idd = idd_parser.load_idd(version)
-                            except IDDError as e:
-                                writer.cancel()
-                                raise IDDError(e.message, e.version)
-                            self.idf.set_idd(idd)
-                            self.idd = self.idf.idd
-                        log.debug("IDD version loaded: {}".format(self.idd.version))
-
-                # If this is the end of an object save it
-                if end_object:  # and empty_line:
-
-                    # The first field is the object class name
-                    obj_class = field_list.pop(0)
-                    idf_object = idfmodel.IDFObject(self.idf, obj_class)
-
-                    try:
-                        idd_object = self.idd[obj_class]
-                    except KeyError:
-                        if obj_class.lower() == 'version':
-                            obj_class = 'Version'
-                            idd_object = self.idd[obj_class]
-                        else:
-                            msg = "Invalid or unknown IDF object: {}".format(obj_class)
-                            log.debug(msg)
-                            raise InvalidIDFObject(msg)
-
-                    # Create IDFField objects for all fields
-                    for i, field_value in enumerate(field_list):
-                        if idd_object:
-                            key = idd_object.key(i)
-                            tags = idd_object[key].tags
-                        else:
-                            key = obj_class
-                            tags = dict()
-                        new_field = idfmodel.IDFField(idf_object, key)
-                        new_field.key = key
-                        new_field._value = field_value
-                        new_field.tags = tags
-
-                        # Find reference type, if any
-                        ref_type_set = set(tags) & {'reference', 'object-list'}
-                        ref_type = unicode(list(ref_type_set)[0]) if ref_type_set else None
-                        new_field._ref_type = ref_type
-
-                        # Add the field to the object
-                        idf_object.append(new_field)
-
-                        # Add the field to the index
-                        writer.add_document(uuid=unicode(new_field.uuid),
-                                            obj_class=unicode(obj_class.lower()),
-                                            _stored_obj_class=unicode(obj_class),
-                                            value=unicode(field_value.lower()),
-                                            _stored_value=unicode(field_value),
-                                            ref_type=ref_type)
-
-                    # Save the parsed variables in the idf_object
-                    idf_object.set_class(obj_class)
-                    idf_object.set_group(self.idd[obj_class]._group)
-                    idf_object.comments_special = comment_list_special
-                    idf_object.comments = comment_list
-
-                    # Strip white spaces, end of line chars from last comment
-                    if idf_object.comments:
-                        last_comment = idf_object.comments[-1]
-                        idf_object.comments[-1] = last_comment.rstrip()
-
-                    # Save the new object to the IDF
-                    self.idf.add_objects(obj_class, idf_object, update=False)
-
-                    # Reset variables for next object
-                    field_list = list()
-                    comment_list = list()
-                    comment_list_special = list()
-                    end_object = False
+                # Write new fields to string containing previous fields
+                fields.write(part)
 
                 # Detect end of file and break. Do it this way to be sure
-                # the last line can be processed AND identified as last!
+                # the last line can be identified as last AND still be processed!
                 if not line:
                     break
 
-                # yield the current progress for progress bars
+                # Check for end of an object and skip rest of loop unless we find one
+                if part.find(OBJECT_END_DELIMITER) == -1:
+                    continue
+
+                # ---- If we've gotten this far, we're at the end of an object ------
+
+                # Clean up the fields and strip spaces, end of line chars
+                fields = map(str.strip, fields.getvalue().split(','))
+                fields[-1] = fields[-1].replace(OBJECT_END_DELIMITER, '')
+
+                # The first field is the object class name
+                obj_class = fields.pop(0)
+
+                # Detect idf file version and use it to select idd file
+                if obj_class.lower() == 'version':
+                    self.assign_idd(fields[0])
+
+                # Create a new IDF Object to contain the fields
+                idf_object = idfmodel.IDFObject(self.idf, obj_class)
+
+                # Save the comment variables to the idf_object
+                idf_object.comments_special = comment_list_special
+                idf_object.comments = comment_list
+
+                # Strip white spaces, end of line chars from last comment
+                if idf_object.comments:
+                    last_comment = idf_object.comments[-1]
+                    idf_object.comments[-1] = last_comment.rstrip()
+
+                # Create local copies of some methods to speed lookups
+                append_idf_object = idf_object.append
+                create_field = idfmodel.IDFField
+                append_new_field = field_objects.append
+
+                # Create IDFField objects for all fields and add them to the IDFObject
+                for index, value in enumerate(fields):
+                    new_field = create_field(idf_object, value, index=index)
+                    append_idf_object(new_field)
+
+                    # Store the field in a list to be passed to SQL later
+                    append_new_field((new_field.uuid,
+                                      obj_class.lower(),
+                                      new_field.ref_type,
+                                      value))
+
+                # Save the new object to the IDF
+                self.idf.add_objects(obj_class, idf_object, update=False)
+
+                # Reset variables for next object
+                fields = StringIO()
+                comment_list = list()
+                comment_list_special = list()
+
+                # Yield the current progress for progress bars
                 yield math.ceil(100 * 0.5 * total_read / total_size)
 
-        # Commit changes to the index
-        writer.commit()
+        # Execute the SQL to insert the new objects
+        insert_operation = "INSERT INTO idf_objects VALUES (?,?,?,?)"
+        self.idf.db.executemany(insert_operation, field_objects)
+        self.idf.db.commit()
 
         # Now that required nodes have been created, connect them as needed
-        for progress in self.idf._references.connect_nodes():
+        for progress in self.idf.connect_references():
             yield progress
 
         log.info('Parsing IDF complete!')
+
+    def assign_idd(self, version):
+        """Verifies that an idd of the correct version is available
+
+        :param version:
+        """
+
+        log.debug('IDF version detected: {}'.format(version))
+        log.debug('Checking for IDD...')
+        if not self.idd:
+            log.debug('No IDD currently selected!')
+            idd_parser = IDDParser()
+            try:
+                idd = idd_parser.load_idd(version)
+            except IDDError as e:
+                raise IDDError(e.message, e.version)
+            self.idf.set_idd(idd)
+            self.idd = idd
+        log.debug("IDD version loaded: {}".format(self.idd.version))

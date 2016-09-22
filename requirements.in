@@ -1,8 +1,6 @@
 # requirements.in
 PySide
 appdirs
-networkx
-whoosh
 odict
 persistent
 faulthandler
