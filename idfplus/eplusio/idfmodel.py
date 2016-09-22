@@ -458,8 +458,7 @@ class IDFFile(OrderedDict):
             return None
 
         # Look-up the default units
-        idd_field = self.idd.field(field.obj_class, field.index)
-        units = idd_field.tags.get('units')
+        units = field.tags.get('units')
 
         # Check for special cases where units are based on another field
         if units:
@@ -471,7 +470,7 @@ class IDFFile(OrderedDict):
             return units
         else:
             # Otherwise check for special ip-units exceptions
-            ip_units = idd_field.tags.get('ip-units')
+            ip_units = field.tags.get('ip-units')
             if ip_units:
                 return ip_units
             else:
@@ -850,7 +849,7 @@ class IDFField(object):
     def tags(self):
         """Returns this field's tags
 
-        :rtype: list
+        :rtype: dict
         """
 
         if not self._tags:
