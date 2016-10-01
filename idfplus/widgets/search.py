@@ -125,6 +125,9 @@ class SearchReplaceDialog(QtGui.QDialog):
         self.setTabOrder(self.replace_with_text, self.replace_button)
         self.setTabOrder(self.replace_button, self.search_text)
 
+        self.results_tree.setModel(self.create_results_model([]))
+        self.results_tree.setColumnHidden(2, True)
+
         if initial_query is not None:
             self.search_text.setText(initial_query)
             self.search_button.click()
@@ -169,7 +172,7 @@ class SearchReplaceDialog(QtGui.QDialog):
                                        self.ignore_geometry_checkbox.isChecked())
         self.query_text.setText(str(my_query))
         self.results_tree.setModel(self.create_results_model(results))
-        self.results_tree.setColumnHidden(2, True)
+        # self.results_tree.setColumnHidden(2, True)
         self.results_tree.resizeColumnToContents(0)
         self.results_tree.resizeColumnToContents(1)
         self.results_tree.setSortingEnabled(True)
