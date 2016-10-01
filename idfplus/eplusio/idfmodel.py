@@ -198,16 +198,21 @@ class IDFFile(OrderedDict):
         if advanced:
             query = search_query
         elif whole_field:
-            query = '"{}"'.format(search_query)
+            query = "value='{}'".format(search_query)
         else:
-            query = '*"{}"*'.format(search_query)
+            query = "value LIKE '%{}%'".format(search_query)
 
-        with self.index.searcher() as searcher:
-            parsed_query = self.parser.parse(query)
-            hits = searcher.search(parsed_query, limit=None, scored=False, sortedby=None)
-            results = [hit.fields() for hit in hits]
+        query_records = "SELECT * from idf_objects WHERE {}".format(query)
+        print(query_records)
 
-        return results, parsed_query
+        try:
+            records = self.db.execute(query_records).fetchall()
+            result_query = query_records
+        except sqlite3.OperationalError as e:
+            records = []
+            result_query = "Invalid SQLite query! ('{}')".format(query_records)
+
+        return records, result_query
 
     def idf_objects(self, obj_class):
         """Returns all the objects in the specified class.
