@@ -396,7 +396,7 @@ class IDFFile(OrderedDict):
             field = IDFField(idf_object, idd_object.key(index_field))
             self[obj_class][index_obj][index_field] = field
 
-    def update_references(self, field, old_value):
+    def update_field_references(self, field, old_value):
         """Updates the specified references involving the given field.
 
         :param old_value:
@@ -851,8 +851,7 @@ class IDFField(object):
         old_value = self._value
         self._value = new_value
         self._outer._outer._upsert_field_index([self])
-        # self._outer._outer._references.update_reference(self, old_value)
-        self._outer._outer.update_references(self, old_value)
+        self._outer._outer.update_field_references(self, old_value)
 
     @property
     def tags(self):
