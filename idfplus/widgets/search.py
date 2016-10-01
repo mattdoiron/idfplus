@@ -165,7 +165,8 @@ class SearchReplaceDialog(QtGui.QDialog):
             return [], ""
         results, my_query = idf.search(user_query,
                                        self.whole_field_checkbox.isChecked(),
-                                       self.advanced_search_checkbox.isChecked())
+                                       self.advanced_search_checkbox.isChecked(),
+                                       self.ignore_geometry_checkbox.isChecked())
         self.query_text.setText(str(my_query))
         self.results_tree.setModel(self.create_results_model(results))
         self.results_tree.setColumnHidden(2, True)
@@ -210,10 +211,12 @@ class SearchReplaceDialog(QtGui.QDialog):
             self.replace_button.setEnabled(False)
             self.replace_with_text.setEnabled(False)
             self.whole_field_checkbox.setEnabled(False)
+            self.ignore_geometry_checkbox.setEnabled(False)
         else:
             self.replace_button.setEnabled(True)
             self.replace_with_text.setEnabled(True)
             self.whole_field_checkbox.setEnabled(True)
+            self.ignore_geometry_checkbox.setEnabled(True)
 
     def replace_button_clicked(self):
         advanced_mode = self.advanced_search_checkbox.isChecked()

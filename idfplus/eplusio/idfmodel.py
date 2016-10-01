@@ -186,7 +186,7 @@ class IDFFile(OrderedDict):
 
         self.update((k, list()) for k in self._idd.iterkeys())
 
-    def search(self, search_query, whole_field=False, advanced=False):
+    def search(self, search_query, whole_field=False, advanced=False, ignore_geometry=False):
         """Performs search for a search_query
 
         :param search_query:
@@ -201,6 +201,10 @@ class IDFFile(OrderedDict):
             query = "value='{}'".format(search_query)
         else:
             query = "value LIKE '%{}%'".format(search_query)
+
+        if ignore_geometry and not advanced:
+            query += " AND NOT obj_class='buildingsurface:detailed'"
+            query += " AND NOT obj_class='fenestrationsurface:detailed'"
 
         query_records = "SELECT * from idf_objects WHERE {}".format(query)
         print(query_records)
