@@ -357,9 +357,13 @@ class IDFFile(OrderedDict):
         record_count = len(records)
 
         for i, target in enumerate(records):
+            target_value = target['value']
+            if not target_value:
+                continue
+
             query_objects = "SELECT uuid FROM idf_objects " \
                             "WHERE ref_type='object-list' AND value = (?)"
-            target_fields = self.db.execute(query_objects, (target['value'],)).fetchall()
+            target_fields = self.db.execute(query_objects, (target_value,)).fetchall()
             field_uuids = (field['uuid'] for field in target_fields)
 
             for field_uuid in field_uuids:
