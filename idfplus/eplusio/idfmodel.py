@@ -279,6 +279,7 @@ class IDFFile(OrderedDict):
         for obj in new_objects:
             for field in obj:
                 self.field_registry[field.uuid] = field
+            self.update_references([obj])
 
         return len(new_objects)
 
@@ -373,6 +374,17 @@ class IDFFile(OrderedDict):
                 field.refs_out.append(target_field)
 
             yield math.ceil(50 + (100 * 0.5 * i / record_count))
+
+    def update_references(self, idf_objects):
+        """Update all references for all fields in specified objects
+
+        :param list idf_objects:
+        :return:
+        """
+
+        for idf_obj in idf_objects:
+            for field in idf_obj:
+                self.update_field_references(field, None)
 
     def allocate_fields(self, obj_class, index_obj, index_field):
         """Checks for max allowable fields and allocates more if necessary.
