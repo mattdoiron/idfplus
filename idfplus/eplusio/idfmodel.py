@@ -459,6 +459,7 @@ class IDFFile(OrderedDict):
 
         # Delete objects and update reference list
         self._deindex_objects(objects_to_delete)
+        self._clear_references(objects_to_delete)
         del self[obj_class][first_row:last_row]
 
     def units(self, field):
@@ -492,6 +493,17 @@ class IDFFile(OrderedDict):
                     return unit_dict.keys()[0]
                 else:
                     return units
+
+    @staticmethod
+    def _clear_references(idf_objects):
+        """
+
+        :param idf_objects:
+        :return:
+        """
+
+        for idf_object in idf_objects:
+            idf_object.clear_references()
 
     def _unit_conversion(self, field):
         """Gets the appropriate unit conversion value(s)
@@ -741,6 +753,32 @@ class IDFObject(list):
                     self.append(default)
                 else:
                     self.append(IDFField(self, idd_field.key, value=default))
+
+    def clear_references(self, fields=None):
+        """Clears all references from specified fields.
+
+        Affects fields in this object as well as fields referencing this objects's fields
+        :type fields: list
+        """
+
+        if fields is None:
+            field_list = self
+        else:
+            field_list = fields
+
+        for field in field_list:
+            try:
+                # Clear references in other objects that point here
+                for ref in field.refs_in:
+                    ref.remove_reference(field)
+                for ref in field.refs_out:
+                    ref.remove_references(field)
+
+                # Clear this object's references
+                field.refs_in = []
+                field.refs_out = []
+            except AttributeError:
+                pass
 
     __repr__ = __str__
 
