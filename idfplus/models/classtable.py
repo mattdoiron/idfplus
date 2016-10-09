@@ -251,7 +251,7 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
         # Detect groups and and offset and ensure there is a value for offset
         if offset is None:
             offset = 0
-            groups = self._get_contiguous_rows(indexes, True)
+            groups = self.contiguous_rows(indexes, True)
         else:
             groups = indexes
 
@@ -330,7 +330,7 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
         return True
 
     @staticmethod
-    def _get_contiguous_rows(indexes, reverse):
+    def contiguous_rows(indexes, reverse):
         """Creates groups of contiguous rows from the provided indexes.
 
         :param indexes: List of indexes
@@ -348,16 +348,17 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
         groups.sort(reverse=reverse)
         return groups
 
-    def get_contiguous(self, indexes, reverse):
+    def contiguous(self, indexes, reverse, duplicates=False):
         """Gets contiguous groups of rows and objects.
 
+        :param duplicates:
         :param indexes:
         :param reverse:
         :return: :rtype:
         """
 
         # Get contiguous, groups of unique indexes
-        groups = self._get_contiguous_rows(indexes, reverse)
+        groups = self.contiguous_rows(indexes, reverse)
 
         # Cycle through each group of row indexes
         sub_list = []
@@ -365,7 +366,9 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
         for group in groups:
             # Cycle through each index in the group
             for ind in group:
-                sub_list.append(deepcopy(self.idf_objects[ind]))
+                idf_obj = self.idf_objects[ind]
+                idf_obj.clear_references()
+                sub_list.append(idf_obj.duplicate() if duplicates else idf_obj)
             obj_list.append(sub_list)
             sub_list = []
         return groups, obj_list
@@ -599,7 +602,7 @@ class TransposeProxyModel(QtGui.QAbstractProxyModel):
         # Do NOT map to source. Pass through only.
         return self.sourceModel().insertObjects(*args, **kwargs)
 
-    def get_contiguous(self, *args, **kwargs):
+    def contiguous(self, *args, **kwargs):
         """
 
         :param args:
@@ -608,7 +611,7 @@ class TransposeProxyModel(QtGui.QAbstractProxyModel):
         """
 
         # Do NOT map to source. Pass through only.
-        return self.sourceModel().get_contiguous(*args, **kwargs)
+        return self.sourceModel().contiguous(*args, **kwargs)
 
     def setData(self, index, value, role):
         """
@@ -787,7 +790,7 @@ class SortFilterProxyModel(QtGui.QSortFilterProxyModel):
         # Do NOT map to source. Pass through only.
         return self.sourceModel().insertObjects(*args, **kwargs)
 
-    def get_contiguous(self, *args, **kwargs):
+    def contiguous(self, *args, **kwargs):
         """
 
         :param args:
@@ -796,7 +799,7 @@ class SortFilterProxyModel(QtGui.QSortFilterProxyModel):
         """
 
         # Do NOT map to source. Pass through only.
-        return self.sourceModel().get_contiguous(*args, **kwargs)
+        return self.sourceModel().contiguous(*args, **kwargs)
 
     @property
     def obj_class(self):

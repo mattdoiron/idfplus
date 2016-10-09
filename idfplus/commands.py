@@ -376,7 +376,8 @@ class DeleteObjectCmd(ObjectCmd):
         # Make a copy of the object(s) about to be deleted (only once)
         if not self.old_objects:
             (self.index_groups,
-             self.old_objects) = self.model.get_contiguous(self.indexes_source, False)
+             self.old_objects) = self.model.contiguous(self.indexes_source, False,
+                                                       duplicates=False)
 
         # Delete the objects. Note that these indexes are source indexes only
         # They must have been converted already!

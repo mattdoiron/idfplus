@@ -865,7 +865,7 @@ class IDFPlus(QtGui.QMainWindow, main.UIMainWindow):
         indexes_source = [model.sourceModel().mapToSource(ind) for ind in indexes_part]
 
         # Get list of contiguous indexes and objects
-        groups, obj_lists = model.get_contiguous(indexes_source, False)
+        groups, obj_lists = model.contiguous(indexes_source, False, duplicates=True)
 
         # Create a string containing the string representations of each obj
         str_objects = ''
