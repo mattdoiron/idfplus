@@ -661,7 +661,7 @@ class IDFObject(list):
 
     # Using slots simplifies the internal structure of the object and makes
     # it more memory efficiency
-    __slots__ = ['comments', 'comments_special', '_outer', '_ref_graph', 'obj_class',
+    __slots__ = ['comments', 'comments_special', '_outer', 'obj_class',
                  '_group', '_uuid', 'obj_class', 'group', 'uuid']
 
     def __init__(self, outer, obj_class, **kwargs):
@@ -679,7 +679,6 @@ class IDFObject(list):
         self.comments_special = list()
         self.obj_class = obj_class
         self._outer = outer
-        self._ref_graph = None
         self._uuid = None
 
         # Call the parent class' init method
