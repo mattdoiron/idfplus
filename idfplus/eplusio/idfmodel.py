@@ -684,34 +684,6 @@ class IDFObject(list):
         # Call the parent class' init method
         super(IDFObject, self).__init__(**kwargs)
 
-    def __deepcopy__(self, memo):
-        """Reimplement deepcopy to avoid recursion issues with IDFFile/IDFObject
-        """
-
-        # Create a new object, same class as this one, without triggering init
-        cls = self.__class__
-        result = cls.__new__(cls)
-
-        # Populate the new object with deep copies of all this object's fields
-        result[:] = [copy.deepcopy(field) for field in self]
-
-        # Copy all this objects attributes except IDFFile (leave as a reference)
-        for key, val in self.__dict__.items():
-            if isinstance(val, IDFFile):
-                setattr(result, key, val)
-            elif key == '_uuid':
-                setattr(result, key, str(uuid.uuid4()))
-            else:
-                setattr(result, key, copy.copy(val))
-
-        # The copied objects will use references to the old object, update them
-        if result:
-            for field in result:
-                if field:
-                    field._outer = result
-
-        return result
-
     def __str__(self):
         """String representation of the object.
         """
@@ -733,6 +705,28 @@ class IDFObject(list):
         if not self._uuid:
             self._uuid = str(uuid.uuid4())
         return self._uuid
+
+    def duplicate(self):
+        """Create a new IDFField object and copy this one's references and value.
+
+        :return:
+        """
+
+        def new_field(field):
+            if field:
+                new = IDFField(self, value=field._value, key=field._key,
+                               tags=field._tags, index=field._index)
+            else:
+                new = None
+            return new
+
+        # Create a new object
+        result = IDFObject(self._outer, self.obj_class)
+
+        # Populate the new object with deep copies of all this object's fields
+        result[:] = [new_field(_field) for _field in self]
+
+        return result
 
     def set_defaults(self, idd):
         """Populates the object's fields with their defaults
@@ -821,39 +815,6 @@ class IDFField(object):
 
         # Call the parent class' init method
         super(IDFField, self).__init__()
-
-    def __deepcopy__(self, memo):
-        """Reimplement deepcopy to avoid recursion issues with IDFFile/IDFObject
-        """
-
-        # TODO This is totally broken! It will copy large parts of many other objects
-        # It could be part of why undo/redo is slow!
-        # Should simply create a blank IDFField object and then copy it's value!
-        # Also, the object won't have a __dict__ attribute if slots are used!
-
-        # Create a new object, same class as this one, without triggering init
-        cls = self.__class__
-        result = cls.__new__(cls)
-
-        # Copy all this objects attributes except IDFObject (leave as a reference)
-        for key, val in self.__dict__.items():
-            if isinstance(val, IDFObject):
-                setattr(result, key, val)
-            elif isinstance(val, IDDObject):
-                setattr(result, key, val)
-            elif key == '_uuid':
-                setattr(result, key, str(uuid.uuid4()))
-            else:
-                setattr(result, key, copy.copy(val))
-
-        return result
-
-    def duplicate(self):
-        """Create a new IDFField object and copy this one's references and value.
-
-        :return:
-        """
-        pass
 
     def __str__(self):
         """String representation of the field.
