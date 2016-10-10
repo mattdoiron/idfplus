@@ -364,14 +364,14 @@ class IDFFile(OrderedDict):
 
             query_objects = "SELECT uuid FROM idf_objects " \
                             "WHERE ref_type='object-list' AND value = (?)"
-            target_fields = self.db.execute(query_objects, (target_value,)).fetchall()
-            field_uuids = (field['uuid'] for field in target_fields)
+            results = self.db.execute(query_objects, (target_value,)).fetchall()
+            target_uuids = (result['uuid'] for result in results)
+            field = self.field_registry[target['uuid']]
 
-            for field_uuid in field_uuids:
-                field = self.field_registry[field_uuid]
-                target_field = self.field_registry[target['uuid']]
-                target_field.refs_in.append(field)
-                field.refs_out.append(target_field)
+            for target_uuid in target_uuids:
+                target_field = self.field_registry[target_uuid]
+                target_field.refs_out.append(field)
+                field.refs_in.append(target_field)
 
             yield math.ceil(50 + (100 * 0.5 * i / record_count))
 
@@ -384,7 +384,7 @@ class IDFFile(OrderedDict):
 
         for idf_obj in idf_objects:
             for field in idf_obj:
-                self.update_field_references(field, None)
+                self._update_field_references(field, None)
 
     def allocate_fields(self, obj_class, index_obj, index_field):
         """Checks for max allowable fields and allocates more if necessary.
@@ -412,7 +412,7 @@ class IDFFile(OrderedDict):
             field = IDFField(idf_object, idd_object.key(index_field))
             self[obj_class][index_obj][index_field] = field
 
-    def update_field_references(self, field, old_value):
+    def _update_field_references(self, field, old_value):
         """Updates the specified references involving the given field.
 
         :param old_value:
@@ -432,30 +432,24 @@ class IDFFile(OrderedDict):
             return
 
         if field.ref_type == 'reference':
-
             query_objects = "SELECT uuid FROM idf_objects " \
                             "WHERE ref_type='object-list' AND value = (?)"
-            target_fields = self.db.execute(query_objects, (field.value,)).fetchall()
-            field_uuids = (field['uuid'] for field in target_fields)
-
-            for field_uuid in field_uuids:
-                field = self.field_registry[field_uuid]
-                target_field = self.field_registry[field.uuid]
-                target_field.refs_in.append(field)
-                field.refs_out.append(target_field)
-
-        elif field.ref_type == 'object-list':
-
-            query_objects = "SELECT uuid FROM idf_objects " \
-                            "WHERE ref_type='reference' AND value = (?)"
-            target_fields = self.db.execute(query_objects, (field.value,)).fetchall()
-            field_uuids = (field['uuid'] for field in target_fields)
-
-            for field_uuid in field_uuids:
-                field = self.field_registry[field_uuid]
-                target_field = self.field_registry[field.uuid]
+            results = self.db.execute(query_objects, (field.value,)).fetchall()
+            target_uuids = (result['uuid'] for result in results)
+            for target_uuid in target_uuids:
+                target_field = self.field_registry[target_uuid]
                 target_field.refs_out.append(field)
                 field.refs_in.append(target_field)
+
+        elif field.ref_type == 'object-list':
+            query_objects = "SELECT uuid FROM idf_objects " \
+                            "WHERE ref_type='reference' AND value = (?)"
+            results = self.db.execute(query_objects, (field.value,)).fetchall()
+            target_uuids = (result['uuid'] for result in results)
+            for target_uuid in target_uuids:
+                target_field = self.field_registry[target_uuid]
+                target_field.refs_in.append(field)
+                field.refs_out.append(target_field)
 
     def remove_objects(self, obj_class, first_row, last_row):
         """Deletes specified object.
@@ -865,7 +859,7 @@ class IDFField(object):
         old_value = self._value
         self._value = new_value
         self._outer._outer._upsert_field_index([self])
-        self._outer._outer.update_field_references(self, old_value)
+        self._outer._outer._update_field_references(self, old_value)
 
     @property
     def tags(self):
