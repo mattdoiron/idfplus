@@ -489,7 +489,7 @@ class IDFPlus(QtGui.QMainWindow, main.UIMainWindow):
         # Add actions for references
         for field in refs:
             action = QtGui.QAction(QtGui.QIcon(":/images/icon.png"),
-                                   '{}'.format(field._outer[0].value), self)
+                                   '{} ({})'.format(field._outer[0].value, field.obj_class), self)
             action.triggered.connect(lambda: self.jump_to_field(field))
             self.jumpToMenu.addAction(action)
 
