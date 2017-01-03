@@ -102,8 +102,7 @@ class IDFFile(OrderedDict):
 
         # Create the only mandatory object (version)
         version_obj = IDFObject(self, 'Version')
-        version_field = IDFField(version_obj, 'A1')
-        version_field.value = config.DEFAULT_IDD_VERSION
+        version_field = IDFField(version_obj, config.DEFAULT_IDD_VERSION, key='A1')
         version_obj.append(version_field)
         self['Version'].append(version_obj)
 
@@ -407,7 +406,7 @@ class IDFFile(OrderedDict):
             idf_object.extend(extra_fields)
 
             # Create a new field object, give it a value and save it
-            field = IDFField(idf_object, idd_object.key(index_field))
+            field = IDFField(idf_object, key=idd_object.key(index_field))
             self[obj_class][index_obj][index_field] = field
 
     def remove_objects(self, obj_class, first_row, last_row):
@@ -667,7 +666,7 @@ class IDFObject(list):
 
         def new_field(field):
             if field:
-                new = IDFField(self, value=field._value, key=field._key,
+                new = IDFField(self, field._value, key=field._key,
                                tags=field._tags, index=field._index)
             else:
                 new = None
@@ -698,7 +697,7 @@ class IDFObject(list):
                 if default is None:
                     self.append(default)
                 else:
-                    self.append(IDFField(self, idd_field.key, value=default))
+                    self.append(IDFField(self, default, key=idd_field.key))
 
     __repr__ = __str__
 
