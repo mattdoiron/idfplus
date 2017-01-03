@@ -882,5 +882,3 @@ class IDFField(object):
         """
 
         return list(set(self.tags) & set(tags_to_check))
-
-    __repr__ = __str__
