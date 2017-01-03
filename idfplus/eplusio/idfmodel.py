@@ -313,7 +313,8 @@ class IDFFile(OrderedDict):
         # Update field registry (map of uuid's to python field objects)
         for obj in new_objects:
             for field in obj:
-                self.field_registry[field.uuid] = field
+                if field:
+                    self.field_registry[field.uuid] = field
 
         return len(new_objects)
 
@@ -353,10 +354,14 @@ class IDFFile(OrderedDict):
         :return:
         """
 
+        if not fields:
+            return
+
         field_objects = list()
         append_new_field = field_objects.append
         for field in fields:
-            append_new_field((field.uuid, field.obj_class, field.ref_type, field.value))
+            if field:
+                append_new_field((field.uuid, field.obj_class, field.ref_type, field.value))
 
         upsert_operation = "INSERT OR REPLACE INTO idf_objects VALUES (?, ?, ?, ?)"
         self.db.executemany(upsert_operation, field_objects)
