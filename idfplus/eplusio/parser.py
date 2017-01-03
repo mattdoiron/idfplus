@@ -689,7 +689,7 @@ class IDFParser(Parser):
 
         self.idf.file_path = file_path
         total_size = os.path.getsize(file_path)
-        total_read = 0
+        total_read = 1
         log.info('Parsing IDF file: {} ({} bytes)'.format(file_path,
                                                           total_size))
 
@@ -784,16 +784,12 @@ class IDFParser(Parser):
                 comment_list_special = list()
 
                 # Yield the current progress for progress bars
-                yield math.ceil(100 * 0.5 * total_read / total_size)
+                yield math.ceil(100 * total_read / total_size)
 
         # Execute the SQL to insert the new objects
         insert_operation = "INSERT INTO idf_objects VALUES (?,?,?,?)"
         self.idf.db.executemany(insert_operation, field_objects)
         self.idf.db.commit()
-
-        # Now that required nodes have been created, connect them as needed
-        for progress in self.idf.connect_references():
-            yield progress
 
         log.info('Parsing IDF complete!')
 

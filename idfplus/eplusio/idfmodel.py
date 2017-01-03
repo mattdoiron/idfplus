@@ -19,8 +19,6 @@ along with IDF+. If not, see <http://www.gnu.org/licenses/>.
 
 # System imports
 import uuid
-import copy
-import math
 import sqlite3
 from collections import OrderedDict
 
@@ -152,9 +150,7 @@ class IDFFile(OrderedDict):
                 data = None
             else:
                 try:
-                    # references = self.references[field.uuid]
-                    data = [[fld for fld in field.refs_in],
-                            [fld for fld in field.refs_out]]
+                    data = self.references(field)
                 except KeyError:
                     data = None
         except IndexError:
@@ -162,8 +158,7 @@ class IDFFile(OrderedDict):
 
         return data
 
-    @staticmethod
-    def reference_count(field):
+    def reference_count(self, field):
         """Returns a count of references for the given field.
 
         :param field:
@@ -172,10 +167,51 @@ class IDFFile(OrderedDict):
         # Continue only if a valid field is present and the right type
         if not field:
             return -1
-        if field.ref_type != 'object-list' and field.ref_type != 'reference':
+        if field.ref_type not in ['object-list', 'reference']:
             return -1
 
-        return len(field.refs_in) + len(field.refs_out)
+        return len(self.references(field))
+
+    def references(self, field, ignore_geometry=False):
+        """Performs search for all references
+
+        :return:
+        """
+
+        if not field.value:
+            return None
+
+        if field.ref_type == 'object-list':
+            refs = self._query_refs(field, 'reference', ignore_geometry=ignore_geometry)
+        else:
+            refs = self._query_refs(field, 'object-list', ignore_geometry=ignore_geometry)
+
+        return refs
+
+    def _query_refs(self, field, ref_type, ignore_geometry):
+        """Performs search for incoming or outgoing references
+
+        :return:
+        """
+
+        query = "value='{}' AND ref_type='{}'".format(field.value, ref_type)
+        query += " AND NOT obj_class ='{}'".format(field.obj_class.lower())
+
+        if ignore_geometry:
+            query += " AND NOT obj_class='buildingsurface:detailed'"
+            query += " AND NOT obj_class='fenestrationsurface:detailed'"
+
+        query_records = "SELECT * from idf_objects WHERE {}".format(query)
+
+        try:
+            records = self.db.execute(query_records).fetchall()
+        except sqlite3.OperationalError as e:
+            records = []
+            print("Invalid SQLite query! ('{}')".format(query_records))
+
+        results = [self.field_by_uuid(row['uuid']) for row in records]
+
+        return results
 
     def _populate_obj_classes(self):
         """Pre-allocates the keys of the IDFFile.
@@ -279,7 +315,6 @@ class IDFFile(OrderedDict):
         for obj in new_objects:
             for field in obj:
                 self.field_registry[field.uuid] = field
-            self.update_references([obj])
 
         return len(new_objects)
 
@@ -349,43 +384,6 @@ class IDFFile(OrderedDict):
 
         return field
 
-    def connect_references(self):
-        """Processes all linked fields and connect references. Yield progress.
-        """
-
-        query_records = "SELECT * from idf_objects WHERE ref_type='reference'"
-        records = self.db.execute(query_records).fetchall()
-        record_count = len(records)
-
-        for i, target in enumerate(records):
-            target_value = target['value']
-            if not target_value:
-                continue
-
-            query_objects = "SELECT uuid FROM idf_objects " \
-                            "WHERE ref_type='object-list' AND value = (?)"
-            results = self.db.execute(query_objects, (target_value,)).fetchall()
-            target_uuids = (result['uuid'] for result in results)
-            field = self.field_registry[target['uuid']]
-
-            for target_uuid in target_uuids:
-                target_field = self.field_registry[target_uuid]
-                target_field.refs_out.append(field)
-                field.refs_in.append(target_field)
-
-            yield math.ceil(50 + (100 * 0.5 * i / record_count))
-
-    def update_references(self, idf_objects):
-        """Update all references for all fields in specified objects
-
-        :param list idf_objects:
-        :return:
-        """
-
-        for idf_obj in idf_objects:
-            for field in idf_obj:
-                self._update_field_references(field, None)
-
     def allocate_fields(self, obj_class, index_obj, index_field):
         """Checks for max allowable fields and allocates more if necessary.
 
@@ -412,45 +410,6 @@ class IDFFile(OrderedDict):
             field = IDFField(idf_object, idd_object.key(index_field))
             self[obj_class][index_obj][index_field] = field
 
-    def _update_field_references(self, field, old_value):
-        """Updates the specified references involving the given field.
-
-        :param old_value:
-        :param field:
-        """
-
-        if field.value == old_value:
-            return
-
-        # Remove all current references to the old value
-        for fld in field.refs_in:
-            fld.remove_reference(field)
-        for fld in field.refs_out:
-            fld.remove_reference(field)
-
-        if not field.value:
-            return
-
-        if field.ref_type == 'reference':
-            query_objects = "SELECT uuid FROM idf_objects " \
-                            "WHERE ref_type='object-list' AND value = (?)"
-            results = self.db.execute(query_objects, (field.value,)).fetchall()
-            target_uuids = (result['uuid'] for result in results)
-            for target_uuid in target_uuids:
-                target_field = self.field_registry[target_uuid]
-                target_field.refs_out.append(field)
-                field.refs_in.append(target_field)
-
-        elif field.ref_type == 'object-list':
-            query_objects = "SELECT uuid FROM idf_objects " \
-                            "WHERE ref_type='reference' AND value = (?)"
-            results = self.db.execute(query_objects, (field.value,)).fetchall()
-            target_uuids = (result['uuid'] for result in results)
-            for target_uuid in target_uuids:
-                target_field = self.field_registry[target_uuid]
-                target_field.refs_in.append(field)
-                field.refs_out.append(target_field)
-
     def remove_objects(self, obj_class, first_row, last_row):
         """Deletes specified object.
 
@@ -463,9 +422,8 @@ class IDFFile(OrderedDict):
         objects_to_delete = self[obj_class][first_row:last_row]
         obj_class = objects_to_delete[0].obj_class
 
-        # Delete objects and update reference list
+        # Deindex and delete objects
         self._deindex_objects(objects_to_delete)
-        self._clear_references(objects_to_delete)
         del self[obj_class][first_row:last_row]
 
     def units(self, field):
@@ -499,17 +457,6 @@ class IDFFile(OrderedDict):
                     return unit_dict.keys()[0]
                 else:
                     return units
-
-    @staticmethod
-    def _clear_references(idf_objects):
-        """
-
-        :param idf_objects:
-        :return:
-        """
-
-        for idf_object in idf_objects:
-            idf_object.clear_references()
 
     def _unit_conversion(self, field):
         """Gets the appropriate unit conversion value(s)
@@ -753,32 +700,6 @@ class IDFObject(list):
                 else:
                     self.append(IDFField(self, idd_field.key, value=default))
 
-    def clear_references(self, fields=None):
-        """Clears all references from specified fields.
-
-        Affects fields in this object as well as fields referencing this objects's fields
-        :type fields: list
-        """
-
-        if fields is None:
-            field_list = self
-        else:
-            field_list = fields
-
-        for field in field_list:
-            try:
-                # Clear references in other objects that point here
-                for ref in field.refs_in:
-                    ref.remove_reference(field)
-                for ref in field.refs_out:
-                    ref.remove_references(field)
-
-                # Clear this object's references
-                field.refs_in = []
-                field.refs_out = []
-            except AttributeError:
-                pass
-
     __repr__ = __str__
 
 
@@ -797,9 +718,9 @@ class IDFField(object):
 
     # Using slots simplifies the internal structure of the object and makes
     # it more memory efficiency
-    __slots__ = ['key', 'tags', 'value', 'idd_object', 'ref_type', 'ureg', 'refs_out',
+    __slots__ = ['key', 'tags', 'value', 'idd_object', 'ref_type', 'ureg',
                  'outer', 'uuid', '_key', '_tags', '_value', '_idd_object',
-                 '_ref_type', '_outer', '_uuid', 'index', '_index', 'refs_in']
+                 '_ref_type', '_outer', '_uuid', 'index', '_index']
 
     def __init__(self, outer, value=None, **kwargs):
         """Initializes a new idf field
@@ -816,8 +737,6 @@ class IDFField(object):
         self._ref_type = None
         self._outer = outer
         self._uuid = None
-        self.refs_in = list()
-        self.refs_out = list()
 
         # Call the parent class' init method
         super(IDFField, self).__init__()
@@ -856,10 +775,8 @@ class IDFField(object):
         """
 
         # Update the value and then the IDFFile's index
-        old_value = self._value
         self._value = new_value
         self._outer._outer._upsert_field_index([self])
-        self._outer._outer._update_field_references(self, old_value)
 
     @property
     def tags(self):
@@ -961,19 +878,5 @@ class IDFField(object):
         """
 
         return list(set(self.tags) & set(tags_to_check))
-
-    def remove_reference(self, field):
-        """Removes the specified field from this field's references
-        """
-
-        try:
-            self.refs_in.remove(field)
-        except ValueError:
-            pass
-
-        try:
-            self.refs_out.remove(field)
-        except ValueError:
-            pass
 
     __repr__ = __str__

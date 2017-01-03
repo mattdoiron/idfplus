@@ -477,27 +477,20 @@ class IDFPlus(QtGui.QMainWindow, main.UIMainWindow):
         # Map index to source model
         partially_mapped = self.classTable.model().mapToSource(_index)
         index = self.classTable.model().sourceModel().mapToSource(partially_mapped)
+
+        # Get reference data
         if not self.idf or not index:
             insert_blank()
             return
-        data = self.idf.reference_tree_data(self.current_obj_class, index)
-        if not data:
+        refs = self.idf.reference_tree_data(self.current_obj_class, index)
+        if not refs:
             insert_blank()
 
-        # Add actions for incoming references
-        self.jumpToMenu.addSeparator().setText('Incoming References:')
-        for ref in data[0]:
+        # Add actions for references
+        for field in refs:
             action = QtGui.QAction(QtGui.QIcon(":/images/icon.png"),
-                                   '{}'.format(ref._outer[0].value), self)
-            action.triggered.connect(lambda: self.jump_to_field(ref))
-            self.jumpToMenu.addAction(action)
-
-        # Add actions for outgoing references
-        self.jumpToMenu.addSeparator().setText('Outgoing References:')
-        for ref in data[1]:
-            action = QtGui.QAction(QtGui.QIcon(":/images/icon.png"),
-                                   '{}'.format(ref._outer[0].value), self)
-            action.triggered.connect(lambda: self.jump_to_field(ref))
+                                   '{}'.format(field._outer[0].value), self)
+            action.triggered.connect(lambda: self.jump_to_field(field))
             self.jumpToMenu.addAction(action)
 
     def jump_to_filter_geometry(self):
@@ -569,7 +562,7 @@ class IDFPlus(QtGui.QMainWindow, main.UIMainWindow):
 
         # Create a new model for the tree view and assign it, then refresh view
         data = self.idf.reference_tree_data(self.current_obj_class, index)
-        new_model = reftree.ReferenceTreeModel(data, ("Field", "Class"), self.refView)
+        new_model = reftree.ReferenceTreeModel(data, self.refView)
         self.refView.setModel(new_model)
         self.refView.expandAll()
 
@@ -581,10 +574,17 @@ class IDFPlus(QtGui.QMainWindow, main.UIMainWindow):
 
         if not index.isValid():
             return
-        field = self.refView.model().get_field(index)
+        field_uuid = self.refView.model().field_uuid(index)
+        field = self.idf.field_by_uuid(field_uuid)
         self.jump_to_field(field)
 
     def jump_to_field(self, field):
+        """Jump to the specified field, updating views as required.
+
+        :param field:
+        :return:
+        """
+
         obj_class, obj_index, field_index = field.field_id
 
         # Get the tree selection model and model

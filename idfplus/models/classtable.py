@@ -367,7 +367,6 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
             # Cycle through each index in the group
             for ind in group:
                 idf_obj = self.idf_objects[ind]
-                idf_obj.clear_references()
                 sub_list.append(idf_obj.duplicate() if duplicates else idf_obj)
             obj_list.append(sub_list)
             sub_list = []

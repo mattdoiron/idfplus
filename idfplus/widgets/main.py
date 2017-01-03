@@ -167,7 +167,7 @@ class UIMainWindow(object):
         refDockWidget = QtGui.QDockWidget("Field References", self)
         refDockWidget.setObjectName("refDockWidget")
         refDockWidget.setAllowedAreas(QtCore.Qt.AllDockWidgetAreas)
-        ref_model = reftree.ReferenceTreeModel(None, ("", ""), refDockWidget)
+        ref_model = reftree.ReferenceTreeModel(None, refDockWidget)
         refView = QtGui.QTreeView(refDockWidget)
         refView.setModel(ref_model)
         refView.setUniformRowHeights(True)

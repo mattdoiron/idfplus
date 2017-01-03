@@ -35,12 +35,12 @@ class RefTreeItem(BaseTreeItem):
 
         data = self.itemData[column]
         try:
-            if data in ['Class', 'Field', 'Outgoing:', 'Incoming:', '']:
+            if data in ['Object', 'Class', '']:
                 return data
             if column == 1:
                 return self.itemData[column].obj_class
             else:
-                return self.itemData[column].value
+                return self.itemData[1]._outer[0].value or self.itemData[1].value
         except IndexError:
             return None
 
@@ -50,29 +50,20 @@ class ReferenceTreeModel(CustomTreeModel):
     displayed in the tree view.
     """
 
-    def __init__(self, data, root, parent=None):
+    def __init__(self, data, parent=None):
         super(ReferenceTreeModel, self).__init__(parent)
-        self.rootItem = RefTreeItem(root)
+        self.rootItem = RefTreeItem(("Object", "Class"))
         self.setupModelData(data, self.rootItem)
 
     def setupModelData(self, data, parent):
         if data:
-            if data[0]:
-                ancestor_root = RefTreeItem(('Incoming:',''), parent)
-                parent.appendChild(ancestor_root)
-                for item in data[0]:
-                    tree_data = (item._outer[0], item)
-                    ancestor_root.appendChild(RefTreeItem(tree_data, ancestor_root))
-            if data[1]:
-                descendant_root = RefTreeItem(('Outgoing:',''), parent)
-                parent.appendChild(descendant_root)
-                for item in data[1]:
-                    # tree_data = (str(item._outer[0].value), item.obj_class)
-                    tree_data = (item._outer[0], item)
-                    descendant_root.appendChild(RefTreeItem(tree_data, descendant_root))
+            for item in data:
+                tree_item = RefTreeItem((item.uuid, item))
+                parent.appendChild(tree_item)
 
-    def get_field(self, index):
+    @staticmethod
+    def field_uuid(index):
         if index.isValid():
-            return index.internalPointer().item()[1]
+            return index.internalPointer().item()[0]
         else:
             return None
