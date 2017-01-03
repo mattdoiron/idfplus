@@ -21,7 +21,7 @@ Windows Build:
             workon idfplus
 
     * Download idfplus source:
-        * Download from https://bitbucket.org/mattdoiron/idfplus/get/v0.0.3.zip for latest 
+        * Download from https://bitbucket.org/mattdoiron/idfplus/get/v0.1.0-beta.zip for latest 
           stable release
         * Or use mercurial to download the lasted development release: 
         
@@ -45,12 +45,12 @@ Windows Build:
             cd build
             build_win.bat
        
-    * Use the WIX bat file (NOT YET IMPLEMENTED) to build and .msi file.
+    * Use the WIX bat file (NOT YET IMPLEMENTED) to build a .msi file.
 
 Ubuntu/Debian Build:
 ====================
 
-    * Install python 2.7x (probably already installed)
+    * Install python 2.7.x (probably already installed)
     * Install some necessary dependencies
         
         .. code-block:: bash
@@ -73,7 +73,7 @@ Ubuntu/Debian Build:
             workon idfplus
     
     * Download idfplus source:
-        * Download from https://bitbucket.org/mattdoiron/idfplus/get/v0.0.3.zip for latest 
+        * Download from https://bitbucket.org/mattdoiron/idfplus/get/v0.1.0-beta.zip for latest 
           stable release
         * Or use mercurial to download the lasted development release: 
         
@@ -88,7 +88,7 @@ Ubuntu/Debian Build:
     
         .. code-block:: bash
             
-            pip install PySide-1.2.2-cp27-none-linux_x86_64.whl
+            pip install PySide-1.2.4-cp27-none-linux_x86_64.whl
             pip install -r requirements.txt
 
     * Run pyinstaller to generate executable:

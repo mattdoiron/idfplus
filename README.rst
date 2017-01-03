@@ -19,7 +19,7 @@ a bit more original as development progresses (suggestions are welcome!).
 See the Downloads_ section for zip files containing the editor. There are not currently
 any installers so simply extract the files and run idfplus.exe (on windows) or idfplus
 on Ubuntu. You can run the editor in its uncompiled form on any machine that has
-Python v2.7.8 and the appropriate dependencies. See the Doc folder for more info.
+Python v2.7.x and the appropriate dependencies. See the Doc folder for more info.
 
 .. image:: https://bitbucket.org/mattdoiron/idfplus/raw/default/resources/idfplusscreenshot.png
    :width: 300
@@ -31,9 +31,9 @@ Python v2.7.8 and the appropriate dependencies. See the Doc folder for more info
 Open Source and Cross Platform
 ==============================
 
-The tool is written in Python_ (v2.7.8) using PySide_ 1.2.2 for a graphical library, and
+The tool is written in Python_ (v2.7.12) using PySide_ 1.2.4 for a graphical library, and
 the source code is available under the GPLv3 open source licence. It is currently
-working on both Ubuntu 14.04 and Windows 7/8, but will eventually work on Mac OSX
+working on both Ubuntu 16.10 and Windows 7/8/10, but will eventually work on Mac OSX
 as well.
 
 .. _Python: https://www.python.org/
