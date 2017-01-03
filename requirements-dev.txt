@@ -4,23 +4,25 @@
 #
 #    pip-compile --output-file requirements-dev.txt requirements-dev.in
 #
-alabaster==0.7.7          # via sphinx
-babel==2.2.0              # via sphinx
-click==6.2                # via pip-tools
-docutils==0.12            # via sphinx
+alabaster==0.7.9          # via sphinx
+babel==2.3.4              # via sphinx
+click==6.6                # via pip-tools
+docutils==0.13.1          # via sphinx
 first==2.0.1              # via pip-tools
-jinja2==2.8               # via sphinx
-markupsafe==0.23          # via jinja2
-pip-review==0.4
-pip-tools==1.5
-pygments==2.1             # via sphinx
-pyinstaller==3.1
-pytz==2015.7              # via babel
-six==1.10.0               # via pip-tools, sphinx
+imagesize==0.7.1          # via sphinx
+Jinja2==2.8.1             # via sphinx
+MarkupSafe==0.23          # via jinja2
+packaging==16.8           # via pip-review
+pip-review==0.5
+pip-tools==1.8.0
+Pygments==2.1.3           # via sphinx
+pyinstaller==3.2
+pyparsing==2.1.10         # via packaging
+pytz==2016.10             # via babel
+requests==2.12.4          # via sphinx
+six==1.10.0               # via packaging, pip-tools, sphinx
 snowballstemmer==1.2.1    # via sphinx
-sphinx-rtd-theme==0.1.9   # via sphinx
-sphinx==1.3.5
+Sphinx==1.5.1
 
-# The following packages are commented out because they are
-# considered to be unsafe in a requirements file:
+# The following packages are considered to be unsafe in a requirements file:
 # setuptools                # via pyinstaller
