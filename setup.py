@@ -34,7 +34,7 @@ from setuptools.command.test import test as _test
 from setuptools.dist import DistutilsOptionError
 
 if sys.platform.startswith('win'):
-    from distutils.command import bdist_msi as _bdist_msi
+    from distutils.command.bdist_msi import bdist_msi as _bdist_msi
 else:
     from setuptools import Command as _bdist_msi
 
