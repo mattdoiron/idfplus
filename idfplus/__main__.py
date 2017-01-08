@@ -23,7 +23,6 @@ from __future__ import (print_function, division, absolute_import)
 # Standard library imports
 import sys
 import os
-import multiprocessing
 import faulthandler
 import argparse
 
@@ -44,9 +43,6 @@ def process_args():
 def main():
     """Main function to start the program.
     """
-
-    # Enable multiprocessing's (used by whoosh) support for being frozen
-    multiprocessing.freeze_support()
 
     with open(os.path.join(config.LOG_DIR, 'idfplus_error_dump.txt'), 'w') as f:
         faulthandler.enable(file=f)
