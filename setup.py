@@ -51,20 +51,18 @@ packages = [
 ]
 requires = [
     "appdirs==1.4.0",
-    "networkx==1.10",
-    "odict==1.5.1",
-    "persistent==4.1.1",
+    "odict==1.5.2",
+    "persistent==4.2.2",
     "pyside==1.2.4",
-    "whoosh==2.7.0",
     "faulthandler==2.4"
 ]
 requires_dev = [
-    "pip-review==0.4",
-    "pip-tools==1.4.2",
-    "pyinstaller==3.1",
-    "sphinx==1.3.3",
+    "pip-review==0.5",
+    "pip-tools==1.8.0",
+    "pyinstaller==3.1.1",
+    "sphinx==1.5.1",
 ]
-requires_test = ['pytest==2.8.5']
+requires_test = ['pytest==3.0.5']
 requires_setup = []
 
 with open(os.path.join(project, '__init__.py'), 'r') as fd:
