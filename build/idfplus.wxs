@@ -22,9 +22,10 @@ along with IDF+. If not, see <http://www.gnu.org/licenses/>.
 <Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
     <Product Id="*" UpgradeCode="$(var.ProductUpgradeCode)"
              Name="$(var.ProductName)" Version="$(var.ProductVersion)"
-             Manufacturer="$(var.CompanyName)" Language="1033">
+             Manufacturer="$(var.CompanyName)" Language="1033" Codepage="1252">
 
-        <Package Id="*" InstallerVersion="200" Compressed="yes" Comments="Windows Installer Package"/>
+        <Package Id="*" InstallerVersion="200" Compressed="yes" SummaryCodepage="1252"
+                 Comments="$(var.ProductName) Installer Package" Platform="x64"/>
         <Media Id="1" Cabinet="product.cab" EmbedCab="yes"/>
         <Icon Id="idfplus.exe" SourceFile="idfplus.exe"/>
         <Property Id="ARPPRODUCTICON" Value="idfplus.exe"/>
@@ -40,7 +41,7 @@ along with IDF+. If not, see <http://www.gnu.org/licenses/>.
         <Condition Message="A newer version of this software is already installed.">NOT NEWERVERSIONDETECTED</Condition>
 
         <Directory Id="TARGETDIR" Name="SourceDir">
-            <Directory Id="ProgramFilesFolder">
+            <Directory Id="ProgramFiles64Folder">
                 <Directory Id="INSTALLDIR" Name="IDFPlus">
                     <Component Id="cmp665B011215EE152C839B9E89FFFDEA84" Guid="9F120E6B-45C2-4E95-8F2A-6AEFD6153836">
                         <File Id="fil97A8BB7079FFE483DA421296C7897EB4" KeyPath="yes" Source="SourceDir\sqlite3.dll" />
