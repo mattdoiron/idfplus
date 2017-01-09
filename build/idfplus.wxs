@@ -17,27 +17,25 @@ along with IDF+. If not, see <http://www.gnu.org/licenses/>.
 -->
 <?define ProductVersion = "0.1.0"?>
 <?define ProductUpgradeCode = "10CA1CAE-5653-4EA9-A405-194625843278"?>
-<?define ProductId = "CD284206-67B9-4B4B-962B-BEA971ABB19A"?>
 <?define ProductName = "IDFPlus"?>
 <?define CompanyName = "Mindful Modeller"?>
 <Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
-    <Product Id="$(var.ProductId)" UpgradeCode="$(var.ProductUpgradeCode)"
+    <Product Id="*" UpgradeCode="$(var.ProductUpgradeCode)"
              Name="$(var.ProductName)" Version="$(var.ProductVersion)"
              Manufacturer="$(var.CompanyName)" Language="1033">
 
         <Package Id="*" InstallerVersion="200" Compressed="yes" Comments="Windows Installer Package"/>
         <Media Id="1" Cabinet="product.cab" EmbedCab="yes"/>
         <Icon Id="idfplus.exe" SourceFile="idfplus.exe"/>
-        <Property Id="ARPPRODUCTICON" Value="ProductIcon"/>
+        <Property Id="ARPPRODUCTICON" Value="idfplus.exe"/>
         <Property Id="ARPURLINFOABOUT" Value="https://mindfulmodeller.ca"/>
-        <Property Id="ARPNOREPAIR" Value="1"/>
-        <Property Id="WIXUI_INSTALLDIR" Value="INSTALLDIR" />
-        <WixVariable Id="WixUILicenseRtf" Value="..\LICENSE.rtf" />
+        <Property Id="WIXUI_INSTALLDIR" Value="INSTALLDIR"/>
+        <WixVariable Id="WixUILicenseRtf" Value="..\LICENSE.rtf"/>
 
         <Upgrade Id="$(var.ProductUpgradeCode)">
-            <UpgradeVersion Minimum="$(var.ProductVersion)" OnlyDetect="yes" Property="NEWERVERSIONDETECTED"/>
+            <UpgradeVersion Minimum="$(var.ProductVersion)" OnlyDetect="no" Property="NEWERVERSIONDETECTED"/>
             <UpgradeVersion Minimum="0.0.0" Maximum="$(var.ProductVersion)" IncludeMinimum="yes"
-                            IncludeMaximum="no" Property="OLDERVERSIONBEINGUPGRADED"/>
+                            IncludeMaximum="yes" Property="OLDERVERSIONBEINGUPGRADED"/>
         </Upgrade>
         <Condition Message="A newer version of this software is already installed.">NOT NEWERVERSIONDETECTED</Condition>
 
@@ -285,7 +283,7 @@ along with IDF+. If not, see <http://www.gnu.org/licenses/>.
         </Directory>
 
         <InstallExecuteSequence>
-            <RemoveExistingProducts After="InstallValidate"/>
+            <RemoveExistingProducts After="InstallInitialize"/>
         </InstallExecuteSequence>
 
         <Feature Id="Complete" Level="1" Title="Complete package">
