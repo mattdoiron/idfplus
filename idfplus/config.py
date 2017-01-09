@@ -231,7 +231,7 @@ def default_style():
 
     system = get_os()
     if system == 'Windows':
-        style = 'WindowsXP'
+        style = 'Cleanlooks'
     elif system == 'Macintosh':
         style = 'Macintosh'
     else:
