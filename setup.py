@@ -25,9 +25,8 @@ import os
 import re
 import sys
 import platform
-
+import subprocess
 from codecs import open
-
 from setuptools import setup
 from setuptools import Command
 from setuptools.command.test import test as _test
@@ -96,19 +95,70 @@ class bdist_msi(_bdist_msi):
     all_versions = ['2.7']
 
     def initialize_options(self):
-        print('initializing options')
         if not sys.platform.startswith('win'):
             print("This command is available on Windows only.")
             sys.exit(1)
 
     def finalize_options(self):
-        print('finalizing options')
+        pass
 
     def run(self):
-        print('executing bdist_msi...')
+        root_path = os.path.dirname(__file__)
+        dist_dir = os.path.join(root_path, 'dist')
+        build_dir = os.path.join(root_path, 'build')
+        bind_dir = os.path.join(dist_dir, project)
+        wix_obj = os.path.join(build_dir, '{}.wixobj'.format(project))
+        wxs_file = os.path.join(build_dir, '{}.wxs'.format(project))
+        msi_file = os.path.join(dist_dir, '{}-v{}.msi'.format(project, version))
+
+        print('Running candle...')
+        try:
+            subprocess.call(['candle', '-nologo', '-out', wix_obj, wxs_file])
+        except OSError as e:
+            if e.errno == os.errno.ENOENT:
+                print('Cannot find "candle" command. Please be sure WiX is installed.')
+                sys.exit(1)
+
+        print('Running light...')
+        try:
+            subprocess.call(['light', '-nologo', '-sacl', '-sval', '-spdb', '-b', bind_dir,
+                             '-ext', 'WixUIExtension', '-out', msi_file, wix_obj])
+        except OSError as e:
+            if e.errno == os.errno.ENOENT:
+                print('Cannot find "light" command. Please be sure WiX is installed.')
+                sys.exit(1)
 
     def test(self):
-        print('no tests available')
+        print('No tests available')
+
+
+class Harvest(Command):
+    description = 'Use to harvest files and uuids for use by WiX.'
+    user_options = []
+
+    def initialize_options(self):
+        if not sys.platform.startswith('win'):
+            print("This command is available on Windows only.")
+            sys.exit(1)
+
+    def finalize_options(self):
+        pass
+
+    def run(self):
+        root_path = os.path.dirname(__file__)
+        dist_dir = os.path.join(root_path, 'dist')
+        build_dir = os.path.join(root_path, 'build')
+        source_dir = os.path.join(dist_dir, project)
+        harvest_file = os.path.join(build_dir, '{}_harvest.wxs'.format(project))
+
+        try:
+            subprocess.call(['heat', 'dir', source_dir, '-nologo', '-g1', '-gg', '-sfrag',
+                             '-srd', '-cg', 'IDFPlusComponents', '-template', 'product',
+                             '-sw5150', '-sw5151', '-out', harvest_file])
+        except OSError as e:
+            if e.errno == os.errno.ENOENT:
+                print('Cannot find "heat" command. Please be sure WiX is installed.')
+                sys.exit(1)
 
 
 class Freeze(Command):
@@ -198,6 +248,7 @@ setup(
     cmdclass={
         'freeze': Freeze,
         'bdist_msi': bdist_msi,
+        'harvest': Harvest,
         'test': PyTest,
     },
 )
