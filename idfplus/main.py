@@ -1218,16 +1218,19 @@ class IDFPlus(QtGui.QMainWindow, main.UIMainWindow):
                 log.debug('Not supported on this OS')
                 result = 1
         elif current_platform.startswith('win'):
-            win_doc_path = os.path.normpath(doc_path)
-            result = subprocess.call(['start', '""', win_doc_path])
-            result = 0  # windows returns 1 for some reason...
+            try:
+                win_doc_path = os.path.normpath(doc_path)
+                result = subprocess.call(["start", win_doc_path], shell=True)
+                result = 0  # windows returns 1 for some reason...
+            except WindowsError as e:
+                result = 1
         else:
             dir_path = os.path.dirname(self.file_path)
             result = subprocess.check_call(["open", dir_path])
 
         if result != 0:
-            log.debug("Failed to show in folder: {} (on platform: {})"
-                      .format(doc_path, current_platform))
+            log.debug("Failed to open the specified help file: {} (on platform: {})"
+                      .format(win_doc_path, current_platform))
 
     def file_changed(self):
         """Responds to signal from filewatcher that a file has changed.
