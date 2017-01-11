@@ -42,7 +42,7 @@ from .models import reftree
 from .eplusio import idfmodel
 from .eplusio import iddmodel
 from .eplusio import parser
-from .widgets import setupwiz, main
+from .widgets import setupwiz, main, help
 
 # Setup logging
 log = logger.setup_logging(config.LOG_LEVEL, 'idfplus', config.LOG_PATH)
@@ -315,20 +315,13 @@ class IDFPlus(QtGui.QMainWindow, main.UIMainWindow):
 
     def idfplus_help(self):
         """"""
-        from gui import help
-        self.viewer = help.HelpWindow(self)
-        # viewer.setMinimumWidth(100)
-        # viewer.setMinimumHeight(100)
-
-        self.viewer.show()
-        # from PySide import QtWebKit
-        # view = QtWebKit.QWebView()
-        # view.load(QtCore.QUrl("http://qt.nokia.com/"))
-        # view.show()
+        pass
 
     def energyplus_help(self):
         """"""
-        pass
+
+        self.viewer = help.HelpWindow(self)
+        self.viewer.show()
 
     def about(self):
         """Called by the about action.

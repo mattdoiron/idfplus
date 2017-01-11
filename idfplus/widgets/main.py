@@ -443,6 +443,10 @@ class UIMainWindow(object):
                                              iconVisibleInMenu=True,
                                              triggered=self.open_in_text_editor)
 
+        self.helpAct = QtGui.QAction("&EnergyPlus Help", self,
+                                     statusTip="Show the EnergyPlus' help",
+                                     triggered=self.energyplus_help)
+
         self.aboutAct = QtGui.QAction("&About IDF+", self,
                                       statusTip="Show the application's About box",
                                       triggered=self.about)
@@ -586,6 +590,7 @@ class UIMainWindow(object):
 
         # Help Menu
         self.helpMenu = self.menuBar().addMenu("&Help")
+        self.helpMenu.addAction(self.helpAct)
         self.helpMenu.addAction(self.aboutAct)
         self.helpMenu.addSeparator()
         self.helpMenu.addAction(self.epDocGettingStartedAction)
