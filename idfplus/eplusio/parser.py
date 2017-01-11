@@ -605,7 +605,7 @@ class IDDParser(Parser):
         log.info('Parsing IDD complete!')
 
         # Yield the final progress for progress bars
-        yield math.ceil(100 * total_read / total_size)
+        yield math.ceil(100.0 * total_read / total_size)
 
     def load_idd(self, version):
         """Loads an idd file into the object instance variable.
@@ -689,7 +689,7 @@ class IDFParser(Parser):
 
         self.idf.file_path = file_path
         total_size = os.path.getsize(file_path)
-        total_read = 1
+        total_read = 0.0
         log.info('Parsing IDF file: {} ({} bytes)'.format(file_path,
                                                           total_size))
 
@@ -784,7 +784,7 @@ class IDFParser(Parser):
                 comment_list_special = list()
 
                 # Yield the current progress for progress bars
-                yield math.ceil(100 * total_read / total_size)
+                yield math.ceil(100.0 * total_read / total_size)
 
         # Execute the SQL to insert the new objects
         insert_operation = "INSERT INTO idf_objects VALUES (?,?,?,?)"
