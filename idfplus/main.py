@@ -320,8 +320,20 @@ class IDFPlus(QtGui.QMainWindow, main.UIMainWindow):
     def energyplus_help(self):
         """"""
 
-        self.viewer = help.HelpWindow(self)
-        self.viewer.show()
+        # self.viewer = help.HelpWindow(self)
+        # self.viewer.show()
+
+        help_url = "http://bigladdersoftware.com/epx/docs/"
+        current_platform = sys.platform
+        if current_platform.startswith('linux'):
+            result = subprocess.check_call(["xdg-open", help_url])
+        elif current_platform.startswith('win'):
+            # result = subprocess.check_call(["start", help_url])
+            os.startfile(help_url)
+        else:
+            result = subprocess.check_call(["open", "-R", help_url])
+
+        pass
 
     def about(self):
         """Called by the about action.
