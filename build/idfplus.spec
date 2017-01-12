@@ -27,7 +27,7 @@ main_module = os.path.join('..', project + '.py')
 hooks_path = os.path.join(up_one_dir, 'resources', 'hooks')
 icon_path = os.path.join(up_one_dir, 'resources', 'images', 'logo.ico')
 
-# options = [ ('v', None, 'OPTION') ]
+options = [ ('v', None, 'OPTION') ]
 a = Analysis([main_module],
              binaries=None,
              datas=None,
@@ -42,13 +42,13 @@ pyz = PYZ(a.pure, a.zipped_data,
           cipher=block_cipher)
 exe = EXE(pyz,
           a.scripts,
-#          options,
+          options,
           exclude_binaries=True,
           name=project,
-          debug=None,
+          debug=True,
           strip=None,
           upx=True,
-          console=None,
+          console=True,
           version='version_info.txt',
           icon=icon_path)
 coll = COLLECT(exe,
