@@ -97,6 +97,9 @@ along with IDF+. If not, see <http://www.gnu.org/licenses/>.
                     <Component Id="cmp884B4020976D80C07F870D95FE7DA9F7" Guid="71C0004D-206F-4873-96F6-3C5D11CAC0F8">
                         <File Id="filE01F94E42D8FA721CD8C23FB068164F1" KeyPath="yes" Source="SourceDir\persistent.cPickleCache.pyd" />
                     </Component>
+                    <Component Id="cmpE1B6B883327F4A7629323A6BE47F0BC7" Guid="57385817-4395-44B1-8698-C241623FAB00">
+                       <File Id="filE41FB2E10F9EC9448057B33F8C09BBB4" KeyPath="yes" Source="SourceDir\PySide.QtWebKit.pyd" />
+                   </Component>
                     <Component Id="cmpE955512308792A9A77AF4D2BAD3CC96F" Guid="2AA6DE9A-3D30-48BD-9464-ABA3C99D6565">
                         <File Id="filA73F7E1A35367B1A5DE487BEA084F437" KeyPath="yes" Source="SourceDir\pywintypes27.dll" />
                     </Component>
@@ -177,6 +180,9 @@ along with IDF+. If not, see <http://www.gnu.org/licenses/>.
                     </Component>
                     <Component Id="cmp6140A6D328061E31C7D0764687486D9B" Guid="F6352145-3D63-4F6B-AD29-B197C2CCF158">
                         <File Id="filD7E133BA658C90B4B6AFB29A0CD41DF8" KeyPath="yes" Source="SourceDir\select.pyd" />
+                    </Component>
+                    <Component Id="cmp6CBC4AF3A21AA201950462334E81D8AA" Guid="64E51929-C247-4584-9754-28DCF21E873B">
+                        <File Id="filB5144D43FE3E07478E5D2E255F74F4AF" KeyPath="yes" Source="SourceDir\QtWebKit4.dll" />
                     </Component>
                     <Component Id="cmp103643E262DEC17EB3327D4A93FE27C6" Guid="79B1A30C-F7CA-4BAC-B048-4DB125E4CC66">
                         <File Id="filFEA184D098F284318910344D73CD2A67" KeyPath="yes" Source="SourceDir\Microsoft.VC90.MFC.manifest" />
@@ -318,6 +324,7 @@ along with IDF+. If not, see <http://www.gnu.org/licenses/>.
             <ComponentRef Id="cmp602551A065B8B655C3B0AC5D5BF3E3AB" />
             <ComponentRef Id="cmp72E400FE84DB1CCB8B4A542777F73809" />
             <ComponentRef Id="cmp884B4020976D80C07F870D95FE7DA9F7" />
+            <ComponentRef Id="cmpE1B6B883327F4A7629323A6BE47F0BC7" />
             <ComponentRef Id="cmpE955512308792A9A77AF4D2BAD3CC96F" />
             <ComponentRef Id="cmpEE6B0DC8B5C211F43E6B71F7A0328817" />
             <ComponentRef Id="cmpDA9BBAEE81E4DB8EF727BA092F52C87B" />
@@ -345,6 +352,7 @@ along with IDF+. If not, see <http://www.gnu.org/licenses/>.
             <ComponentRef Id="cmpA79290ACF03E2E95FBE5A70F8B9D8A8F" />
             <ComponentRef Id="cmp695B765388170B534EA5C60E692AD944" />
             <ComponentRef Id="cmp6140A6D328061E31C7D0764687486D9B" />
+            <ComponentRef Id="cmp6CBC4AF3A21AA201950462334E81D8AA" />
             <ComponentRef Id="cmp103643E262DEC17EB3327D4A93FE27C6" />
             <ComponentRef Id="cmpAC26165912C221F62B8FC8E369D3FAA4" />
             <ComponentRef Id="cmp44ABDFCD0A5E5F3362CF395E497C0FB6" />
