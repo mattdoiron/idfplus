@@ -720,7 +720,7 @@ class IDFParser(Parser):
                     else:
                         comment_list_special.append(comment_cleaned)
                 else:
-                    comment_list.append(comment_cleaned)
+                    comment_list.append(comment)
 
                 # Write new fields to string containing previous fields
                 fields.write(part)
