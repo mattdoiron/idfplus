@@ -1260,6 +1260,9 @@ class IDFPlus(QtGui.QMainWindow, main.UIMainWindow):
         :return:
         """
 
+        # Immediately reset watcher so we don't get more messages.
+        self.reset_file_watcher()
+
         message = "This file has be changed by another program! Would you like" \
                   "to reload it now? Any unsaved changes will be lost!"
         flags = QtGui.QMessageBox.StandardButton.Yes
