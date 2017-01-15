@@ -535,6 +535,11 @@ class IDDParser(Parser):
                             new_field.tags = dict()
                         tags = new_field.tags
 
+                        # Check for extensible objects
+                        if 'extensible:' in obj_tag_dict:
+                            set_length = int(obj_tag_dict['extensible:'][0])
+                            idd_object._extensible = set_length
+
                         # Check for reference tag to construct ref-lists
                         if 'reference' in tags:
                             if isinstance(tags['reference'], list):

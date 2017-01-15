@@ -338,6 +338,7 @@ class IDDObject(dict):
         self._group = kwargs.pop('group', None)
         self._ordered_fields = list()
         self._idd = outer
+        self._extensible = None
         self.tags = dict()
         self.comments = kwargs.pop('comments', None)
         self.comments_special = kwargs.pop('comments_special', None)
@@ -374,10 +375,25 @@ class IDDObject(dict):
 
     def key(self, index):
         """Finds the key from the given index.
-        :param index:
+
+        :param int index:
+        :rtype: str
+        :return: The object's key, eg. A1, N3
         """
 
-        return self._ordered_fields[index]
+        try:
+            result = self._ordered_fields[index]
+        except IndexError:
+            # Test for extensible field set:
+            if self._extensible > 0:
+                field_count = len(self._ordered_fields)
+                extensible_start = field_count - self._extensible - 1
+                extensible_index = extensible_start + (index % self._extensible)
+                result = self._ordered_fields[extensible_index]
+            else:
+                raise IndexError
+
+        return result
 
     def ordered_fields(self):
         """Read-only version of the list of field keys.
