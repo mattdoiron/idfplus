@@ -173,9 +173,15 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
                 return int(QtCore.Qt.AlignRight | QtCore.Qt.AlignVCenter)
         elif role == QtCore.Qt.DisplayRole or role == QtCore.Qt.ToolTipRole:
             if orientation == QtCore.Qt.Horizontal:
-                return self.field_labels[section]
+                try:
+                    return self.field_labels[section]
+                except IndexError:
+                    return None
             elif orientation == QtCore.Qt.Vertical:
-                return self.object_labels[section]
+                try:
+                    return self.object_labels[section]
+                except IndexError:
+                    return None
         elif role == QtCore.Qt.BackgroundRole:
             return QtGui.QColor(244, 244, 244)
         return None
@@ -196,7 +202,11 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
         :rtype int:
         """
 
-        return len(self.idd_object or [])
+        if self.idf_objects:
+            idf_max_length = max([len(obj) for obj in self.idf_objects])
+            return max(idf_max_length, len(self.idd_object))
+        else:
+            return 0
 
     def setData(self, index, value, role):
         """Overrides Qt method for setting data.
