@@ -182,8 +182,10 @@ class IDFFile(OrderedDict):
 
         if field.ref_type == 'object-list':
             refs = self._query_refs(field, 'reference', ignore_geometry=ignore_geometry)
-        else:
+        elif field.ref_type == 'reference':
             refs = self._query_refs(field, 'object-list', ignore_geometry=ignore_geometry)
+        else:
+            refs = self._query_refs(field, 'node', ignore_geometry=ignore_geometry)
 
         return refs
 
@@ -848,8 +850,13 @@ class IDFField(object):
         """
 
         if not self._ref_type:
-            ref_type_set = set(self.tags) & {'reference', 'object-list'}
-            self._ref_type = unicode(list(ref_type_set)[0]) if ref_type_set else None
+            ref_type_set = set(self.tags.keys()) & {'reference', 'object-list'}
+            type_tag = self.tags.get('type', None)
+
+            if type_tag == 'node':
+                self._ref_type = 'node'
+            else:
+                self._ref_type = unicode(list(ref_type_set)[0]) if ref_type_set else None
         return self._ref_type
 
     @property
