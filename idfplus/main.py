@@ -556,16 +556,28 @@ class IDFPlus(QtGui.QMainWindow, main.UIMainWindow):
         partially_mapped = self.classTable.model().mapToSource(_index)
         index = self.classTable.model().sourceModel().mapToSource(partially_mapped)
 
-        # Update the refView and infoView
+        # Update various views and labels
         self.update_reference_view(index)
         self.update_info_view(index)
+        self.update_units_label(index)
+        self.update_comments(index)
 
-        # Also update the units label
+    def update_units_label(self, index):
+        """Updates the units label
+
+        :param QtCore.QModelIndex index:
+        """
+
         field = self.idf.field(self.current_obj_class, index.row(), index.column())
         units = self.idf.units(field)
         self.unitsLabel.setText('Units: {}'.format(units))
 
-        # Update the comments view
+    def update_comments(self, index):
+        """Updates the comments view widget
+
+        :param QtCore.QModelIndex index:
+        """
+
         current_obj = self.idf[self.current_obj_class][index.row()]
         comments = ''.join(current_obj.comments)
         self.commentView.blockSignals(True)
@@ -573,6 +585,10 @@ class IDFPlus(QtGui.QMainWindow, main.UIMainWindow):
         self.commentView.blockSignals(False)
 
     def update_info_view(self, index):
+        """Updates the info view widget
+
+        :param QtCore.QModelIndex index:
+        """
 
         obj_info = self.idd[self.current_obj_class].get_info()
         idd_field = self.idd.field(self.current_obj_class, index.column())
@@ -601,7 +617,7 @@ class IDFPlus(QtGui.QMainWindow, main.UIMainWindow):
     def update_reference_view(self, index):
         """Updates the reference tree view widget
 
-        :param index:
+        :param QtCore.QModelIndex index:
         """
 
         # Create a new model for the tree view and assign it, then refresh view
