@@ -730,8 +730,7 @@ class IDFPlus(QtGui.QMainWindow, main.UIMainWindow):
         self.setWindowModified(False)
 
         if self.file_path:
-            file_name = QtCore.QFileInfo(self.file_path).fileName()
-            shown_name = file_name
+            shown_name = self.file_path
         else:
             shown_name = 'Untitled'
 
