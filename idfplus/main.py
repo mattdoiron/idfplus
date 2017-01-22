@@ -534,9 +534,8 @@ class IDFPlus(QtGui.QMainWindow, main.UIMainWindow):
         """Clears the comment view without triggering signals
         """
 
-        self.commentView.blockSignals(True)
+        self.commentView.clearFocus()
         self.commentView.setPlainText('')
-        self.commentView.blockSignals(False)
 
     def table_selection_changed(self, selected):
         """
@@ -798,6 +797,13 @@ class IDFPlus(QtGui.QMainWindow, main.UIMainWindow):
         self.maximizeAction.setEnabled(not self.isMaximized())
         self.restoreAction.setEnabled(self.isMaximized() or not visible)
         super(IDFPlus, self).setVisible(visible)
+
+    def editComments(self, init_text, init_cursor):
+        """Creates commands for undo stack when comments are modified
+        """
+
+        cmd = commands.EditCommentCmd(self, self.commentView, init_text, init_cursor)
+        self.undo_stack.push(cmd)
 
     def newObject(self):
         """Creates a new, blank object.
@@ -1084,26 +1090,6 @@ class IDFPlus(QtGui.QMainWindow, main.UIMainWindow):
 
         # Load the corresponding class in the tableView
         self.load_table_view(data)
-
-    def comment_view_changed(self):
-        """
-
-        :return: :rtype:
-        """
-
-        sel = self.classTable.selectionModel().selection()
-        if not sel:
-            return
-        first = sel.first().topLeft()
-        if self.obj_orientation == QtCore.Qt.Horizontal:
-            ind = first.row()
-        else:
-            ind = first.column()
-
-        comment_text = self.commentView.toPlainText()
-        comments = comment_text.splitlines(True)
-        self.idf[self.current_obj_class][ind].comments = comments
-        self.set_dirty(True)
 
     def fill_right(self):
         """Fills cells to the right of selected cell with same value as selected cell.

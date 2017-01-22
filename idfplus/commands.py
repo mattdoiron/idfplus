@@ -450,3 +450,78 @@ class ModifyObjectCmd(ObjectCmd):
         self.main_window.classTable.setCurrentIndex(indexes[0])
         self.main_window.classTable.setFocus()
         self.main_window.set_dirty(True)
+
+
+class EditCommentCmd(ObjectCmd):
+
+    def __init__(self, main_window, text_editor, init_text, init_cursor, *args, **kwargs):
+        super(EditCommentCmd, self).__init__(main_window, *args, **kwargs)
+        self.text_editor = text_editor
+        self.current_text = text_editor.toPlainText()
+        self.current_cursor_pos = text_editor.textCursor().position()
+        self.init_text = init_text
+        self.init_cursor_pos = init_cursor
+
+    def undo(self):
+        """Undo action for editing a comment.
+        """
+
+        self.update_class_table()
+
+        # Set the text for the editor and the underlying idf file
+        self.set_comments(self.init_text)
+        self.text_editor.setText(self.init_text)
+        self.text_editor.init_text = self.text_editor.toPlainText()
+        self.text_editor.setFocus(QtCore.Qt.OtherFocusReason)
+        cursor = self.text_editor.textCursor()
+        cursor.setPosition(self.init_cursor_pos)
+        self.text_editor.setTextCursor(cursor)
+        self.text_editor.ensureCursorVisible()
+
+    def redo(self):
+        """Redo action for editing a comment.
+        """
+
+        self.setText('Edit Comments')
+        self.update_class_table()
+        self.main_window.set_dirty(True)
+
+        # Set the text for the editor and the underlying idf file
+        self.set_comments(self.current_text)
+        self.text_editor.setText(self.current_text)
+        self.text_editor.init_text = self.text_editor.toPlainText()
+        self.text_editor.setFocus(QtCore.Qt.OtherFocusReason)
+        cursor = self.text_editor.textCursor()
+        cursor.setPosition(self.current_cursor_pos)
+        self.text_editor.setTextCursor(cursor)
+        self.text_editor.ensureCursorVisible()
+
+    def update_class_table(self):
+
+        # Ensure that we have the right model available
+        self.update_model()
+
+        # Use stored source indexes to reconstruct indexes for the current model.
+        # Must do this on-the-fly due to the possibility that any layer of model
+        # has changed significantly.
+        indexes_partial = [self.model.sourceModel().mapFromSource(ind)
+                           for ind in self.indexes_source]
+        indexes = [self.model.mapFromSource(ind)
+                   for ind in indexes_partial]
+
+        # Clear any current selection and select the next item
+        self.main_window.classTable.clearSelection()
+        self.main_window.classTable.setCurrentIndex(indexes[0])
+
+    def set_comments(self, comments):
+
+        sel = self.main_window.classTable.selectionModel().selection()
+        if not sel:
+            return
+        first = sel.first().topLeft()
+        if self.obj_orientation == QtCore.Qt.Horizontal:
+            ind = first.row()
+        else:
+            ind = first.column()
+
+        self.main_window.idf[self.obj_class][ind].comments = comments

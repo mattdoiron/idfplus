@@ -144,7 +144,7 @@ class UIMainWindow(object):
         commentDockWidget = QtGui.QDockWidget("Comments", self)
         commentDockWidget.setObjectName("commentDockWidget")
         commentDockWidget.setAllowedAreas(QtCore.Qt.AllDockWidgetAreas)
-        commentView = QtGui.QTextEdit(commentDockWidget)
+        commentView = UndoRedoTextEdit(commentDockWidget, self)
         commentView.setLineWrapMode(QtGui.QTextEdit.FixedColumnWidth)
         commentView.setLineWrapColumnOrWidth(499)
         commentView.setFrameShape(QtGui.QFrame.StyledPanel)
@@ -152,7 +152,6 @@ class UIMainWindow(object):
                                    self.prefs['comments_font_size'])
         commentView.setFont(comment_font)
         commentDockWidget.setWidget(commentView)
-        commentView.textChanged.connect(self.comment_view_changed)
 
         # Info and help widget
         infoDockWidget = QtGui.QDockWidget("Info", self)
@@ -778,3 +777,29 @@ class UIMainWindow(object):
         text = self.classTable.model().data(index, QtCore.Qt.EditRole)
         if text:
             SearchReplaceDialog(self, initial_query=text).show()
+
+
+class UndoRedoTextEdit(QtGui.QTextEdit):
+
+    def __init__(self, parent, main_window):
+        super(UndoRedoTextEdit, self).__init__(parent)
+        self.main_window = main_window
+        self.init_text = ""
+        self.init_cursor = 0
+        self.first_key_press = True
+
+    def keyPressEvent(self, event):
+        if self.first_key_press:
+            self.init_cursor = self.textCursor().position()
+            self.first_key_press = False
+        QtGui.QTextEdit.keyPressEvent(self, event)
+
+    def focusInEvent(self, event):
+        self.init_text = self.toPlainText()
+        QtGui.QTextEdit.focusInEvent(self, event)
+
+    def focusOutEvent(self, event):
+        if self.toPlainText() != self.init_text:
+            self.main_window.editComments(self.init_text, self.init_cursor)
+        self.first_key_press = True
+        QtGui.QTextEdit.focusOutEvent(self, event)
