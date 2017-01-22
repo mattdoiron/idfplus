@@ -406,13 +406,12 @@ class IDDObject(dict):
         """
 
         # Prepare the info variable and add the object class
-        info = '--[ Object Class ]----------------------'
-        info += '\nClass: {}'.format(self._obj_class)
+        info = 'Class: {}'.format(self._obj_class)
 
         # Grab the object memo, if any
         memo = self.tags.get('memo')
         if memo:
-            info += '\n\n'
+            info += '<br/><br/>'
             if isinstance(memo, list):
                 info += ' '.join(memo)
             else:
@@ -425,11 +424,11 @@ class IDDObject(dict):
         min_fields = self.tags.get('min-fields')
 
         # Add nicely formatted versions of the above field tags
-        info += '\n'
-        info += '\nUnique: {}'.format(unique or 'No')
-        info += '\nRequired: {}'.format(required or 'No')
-        info += '\nMinimum Fields: {}'.format(min_fields) if min_fields else ''
-        info += '\nObject Obsolete: {}'.format(obsolete) if obsolete else ''
+        info += '<br/>'
+        info += '<br/>Unique: {}'.format(unique or 'No')
+        info += '<br/>Required: {}'.format(required or 'No')
+        info += '<br/>Minimum Fields: {}'.format(min_fields) if min_fields else ''
+        info += '<br/>Object Obsolete: {}'.format(obsolete) if obsolete else ''
 
         return info
 
@@ -459,14 +458,13 @@ class IDDField(object):
         """
 
         # Prepare the info variable and add the field name
-        info = '--[ Field ]----------------------------------'
         field = self.tags.get('field', 'Un-named')
-        info += '\nField: {} ({})'.format(self.key, field)
+        info = 'Field: {} ({})'.format(self.key, field)
 
         # Grab the field note, if any
         note = self.tags.get('note')
         if note:
-            info += '\n\n'
+            info += '<br/><br/>'
             if isinstance(note, list):
                 info += ' '.join(note)
             else:
@@ -486,20 +484,20 @@ class IDDField(object):
         autocalculatable = self.tags.get('autocalculatable')
 
         # Add nicely formatted versions of the above field tags
-        info += '\n'
-        info += '\nDefault: {}'.format(default or 'n/a')
-        info += '\nRequired: {}'.format(required or 'No')
+        info += '<br/>'
+        info += '<br/>Default: {}'.format(default or 'n/a')
+        info += '<br/>Required: {}'.format(required or 'No')
         if units:
-            info += '\nDefault Units: {}'.format(units)
+            info += '<br/>Default Units: {}'.format(units)
             if ip_units:
-                info += ' ({})'.format(ip_units)
-        info += '\nMinimum: {}'.format(minimum) if minimum else ''
-        info += '\nMinimum>: {}'.format(minimum_gt) if minimum_gt else ''
-        info += '\nMaximum: {}'.format(maximum) if maximum else ''
-        info += '\nMaximum<: {}'.format(maximum_lt) if maximum_lt else ''
-        info += '\nDeprecated: Yes' if deprecated else ''
-        info += '\nAutosizable: Yes' if autosizable else ''
-        info += '\nAutocalculatable: Yes' if autocalculatable else ''
+                info += '<br/> ({})'.format(ip_units)
+        info += '<br/>Minimum: {}'.format(minimum) if minimum else ''
+        info += '<br/>Minimum>: {}'.format(minimum_gt) if minimum_gt else ''
+        info += '<br/>Maximum: {}'.format(maximum) if maximum else ''
+        info += '<br/>Maximum<: {}'.format(maximum_lt) if maximum_lt else ''
+        info += '<br/>Deprecated: Yes' if deprecated else ''
+        info += '<br/>Autosizable: Yes' if autosizable else ''
+        info += '<br/>Autocalculatable: Yes' if autocalculatable else ''
 
         return info
 

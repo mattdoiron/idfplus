@@ -556,14 +556,9 @@ class IDFPlus(QtGui.QMainWindow, main.UIMainWindow):
         partially_mapped = self.classTable.model().mapToSource(_index)
         index = self.classTable.model().sourceModel().mapToSource(partially_mapped)
 
-        # Update the refView
+        # Update the refView and infoView
         self.update_reference_view(index)
-
-        # Also update the infoview
-        obj_info = self.idd[self.current_obj_class].get_info()
-        idd_field = self.idd.field(self.current_obj_class, index.column())
-        field_info = idd_field.get_info()
-        self.infoView.setText(obj_info + "\n\n" + field_info)
+        self.update_info_view(index)
 
         # Also update the units label
         field = self.idf.field(self.current_obj_class, index.row(), index.column())
@@ -576,6 +571,32 @@ class IDFPlus(QtGui.QMainWindow, main.UIMainWindow):
         self.commentView.blockSignals(True)
         self.commentView.setPlainText(comments)
         self.commentView.blockSignals(False)
+
+    def update_info_view(self, index):
+
+        obj_info = self.idd[self.current_obj_class].get_info()
+        idd_field = self.idd.field(self.current_obj_class, index.column())
+        field_info = idd_field.get_info()
+
+        html = """
+            <html>
+                <head>
+                    <style>
+                        h2 {
+                            background-color: silver;
+                        }
+                    </style>
+                </head>
+                <h2>Class Info</h2>
+                <p>CLASS_INFO</p>
+                <h2>Field Info</h2>
+                <p>FIELD_INFO</p>
+            </html>
+        """
+
+        html = html.replace('CLASS_INFO', obj_info)
+        html = html.replace('FIELD_INFO', field_info)
+        self.infoView.setText(html)
 
     def update_reference_view(self, index):
         """Updates the reference tree view widget
