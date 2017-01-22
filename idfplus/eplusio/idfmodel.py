@@ -449,6 +449,17 @@ class IDFFile(OrderedDict):
             if units.startswith('BasedOnField'):
                 units = self._based_on_units(units, field)
 
+        # Check for another special case where there is no direct indicator of units
+        if field.value and not units and field.index > 1:
+            if field.obj_class.lower() == 'schedule:compact':
+                field_type = field.value.split(":")
+                if not field_type[0].lower() in ["through", "for", "interpolate", "until"]:
+                    units = self._units_based_on_type_limits(field)
+
+        # Return None if there are no units by this point
+        if not units:
+            return None
+
         # If SI units are requested, return now (SI is always the default)
         if self.si_units is True:
             return units
@@ -467,7 +478,7 @@ class IDFFile(OrderedDict):
     def _unit_conversion(self, field):
         """Gets the appropriate unit conversion value(s)
 
-        :param field:
+        :param eplusio.idfmodel.IDFField field:
         """
 
         # Get the idd field corresponding to this idf field
@@ -477,6 +488,12 @@ class IDFFile(OrderedDict):
         # Look-up the default units and any ip-unit exceptions
         units = idd_field.tags.get('units')
         ip_units = idd_field.tags.get('ip-units')
+
+        # Check for another special case where there is no direct indicator of units
+        if field.obj_class.lower() == 'schedule:compact' and not units and field.index > 1:
+            field_type = field.value.split(":")
+            if not field_type[0].lower() in ["through", "for", "interpolate", "until"]:
+                units = self._units_based_on_type_limits(field)
 
         if units:
             # Check for the special case of units based on another field
@@ -492,11 +509,36 @@ class IDFFile(OrderedDict):
 
         return None
 
+    def _units_based_on_type_limits(self, field):
+        """Returns the given field's current display units when based on a 'type limit'.
+
+        :param eplusio.idfmodel.IDFField field:
+        """
+
+        type_limits_field = field._outer[1]
+        type_limits_objects = self.idf_objects('ScheduleTypeLimits')
+        type_limit = None
+
+        if not type_limits_objects:
+            return
+
+        for obj in type_limits_objects:
+            try:
+                if obj[0].value == type_limits_field.value:
+                    type_limit = obj[4]
+            except IndexError as error:
+                type_limit = None
+
+        if not type_limit:
+            return None
+
+        return UNIT_TYPES.get(type_limit.value)
+
     def _based_on_units(self, units, field):
         """Returns units if field's units are based on the content of another field.
 
-        :param units:
-        :param field:
+        :param str units:
+        :param eplusio.idfmodel.IDFField field:
         :return:
         """
 
@@ -525,7 +567,7 @@ class IDFFile(OrderedDict):
         conversion = self._unit_conversion(field)
         value = override_value or field.value
         if not conversion:
-            return override_value or field.value
+            return value
 
         try:
             # Convert units and force it back to a string
