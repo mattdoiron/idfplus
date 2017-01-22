@@ -245,6 +245,7 @@ class IDFPlus(QtGui.QMainWindow, main.UIMainWindow):
         self.set_current_file(file_path)
         self.set_dirty(False)
         self.update_idf_options()
+        self.update_status('File Loaded Successfully!')
         log.debug('File Loaded Successfully! ({})'.format(file_path or "New File"))
         return True
 
@@ -568,7 +569,7 @@ class IDFPlus(QtGui.QMainWindow, main.UIMainWindow):
         # Also update the units label
         field = self.idf.field(self.current_obj_class, index.row(), index.column())
         units = self.idf.units(field)
-        self.unitsLabel.setText('Display Units: {}'.format(units))
+        self.unitsLabel.setText('Units: {}'.format(units))
 
         # Update the comments view
         current_obj = self.idf[self.current_obj_class][index.row()]
@@ -783,9 +784,10 @@ class IDFPlus(QtGui.QMainWindow, main.UIMainWindow):
         self.setWindowModified(self.file_dirty)
         if self.file_path is not None:
             basename = os.path.basename(self.file_path)
-            self.setWindowTitle('IDF+ Editor - {}[*]'.format(basename))
+            window_title = 'IDF+ Editor - {}[*]'.format(basename)
         else:
-            self.setWindowTitle('IDF+ Editor')
+            window_title = 'IDF+ Editor'
+        self.setWindowTitle(window_title)
 
     def setVisible(self, visible):
         """Integrates system tray with minimize/maximize.
