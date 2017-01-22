@@ -196,6 +196,7 @@ class IDFPlus(QtGui.QMainWindow, main.UIMainWindow):
         # Update status
         message = "Loading {}...".format(file_path or 'New File')
         self.statusBar().showMessage(message, 5000)
+        self.pathLabel.setText("")
         if file_path:
             self.progressDialogIDF.setLabelText(message)
             self.progressDialogIDF.show()
@@ -734,6 +735,7 @@ class IDFPlus(QtGui.QMainWindow, main.UIMainWindow):
             shown_name = 'Untitled'
 
         self.setWindowTitle('IDF+ Editor - {}[*]'.format(shown_name))
+        self.pathLabel.setText(shown_name)
 
         if self.idd:
             self.versionLabel.setText('EnergyPlus IDD v{}'.format(self.idd.version))
