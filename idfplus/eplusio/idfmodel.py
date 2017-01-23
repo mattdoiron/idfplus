@@ -343,7 +343,8 @@ class IDFFile(OrderedDict):
         append_new_field = field_objects.append
         for obj in objects_to_delete:
             for field in obj:
-                append_new_field((field.uuid,))
+                if field:
+                    append_new_field((field.uuid,))
 
         delete_operation = "DELETE FROM idf_objects WHERE uuid=(?)"
         self.db.executemany(delete_operation, field_objects)
