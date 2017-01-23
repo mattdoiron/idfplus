@@ -71,7 +71,13 @@ class SearchReplaceDialog(QtGui.QDialog):
         self.query_label = QtGui.QLabel("Query:")
         self.query_label.setEnabled(False)
         self.query_text = QtGui.QLineEdit()
-        self.query_text.setEnabled(False)
+        self.query_text.setEnabled(True)
+        self.query_text.setReadOnly(True)
+        self.query_text.setFrame(False)
+        self.query_text.setStyleSheet("""QLineEdit {
+                                   background-color: LightGray;
+                                   color: white;
+                                   } """)
         query_layout = QtGui.QHBoxLayout()
         query_layout.addWidget(self.query_label)
         query_layout.addWidget(self.query_text)
