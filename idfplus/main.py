@@ -1133,7 +1133,12 @@ class IDFPlus(QtGui.QMainWindow, main.UIMainWindow):
 
         model = self.classTable.model()
         selection_model = self.classTable.selectionModel()
-        selection = selection_model.selection()[0]  # There should only ever be one
+        if not selection_model:
+            return
+        selections = selection_model.selection()
+        if not selections:
+            return
+        selection = selections[0]  # There should only ever be one
         top_left_current = selection.topLeft()
         stored_values = []
         to_paste = ''
