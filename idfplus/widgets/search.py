@@ -218,16 +218,20 @@ class SearchReplaceDialog(QtGui.QDialog):
     def advanced_search_checked(self):
         if self.advanced_search_checkbox.isChecked():
             self.whole_field_checkbox.setEnabled(False)
+            self.whole_field_checkbox.setChecked(True)
             self.ignore_geometry_checkbox.setEnabled(False)
+            self.ignore_geometry_checkbox.setChecked(False)
         else:
             self.whole_field_checkbox.setEnabled(True)
+            self.whole_field_checkbox.setChecked(False)
             self.ignore_geometry_checkbox.setEnabled(True)
+            self.ignore_geometry_checkbox.setChecked(False)
 
     def replace_button_clicked(self):
         advanced_mode = self.advanced_search_checkbox.isChecked()
         search_text = self.search_text.text()
         replace_with_text = self.replace_with_text.text()
-        if advanced_mode or not search_text or not replace_with_text:
+        if not search_text or not replace_with_text:
             return
 
         question = "Are you sure you want to perform this replacement?\n" \
@@ -244,7 +248,7 @@ class SearchReplaceDialog(QtGui.QDialog):
             if item_0.checkState() != QtCore.Qt.Checked:
                 continue
             field = self.parent.idf.field_by_uuid(item_2.text())
-            if self.whole_field_checkbox.isChecked():
+            if self.whole_field_checkbox.isChecked() or self.advanced_search_checkbox.isChecked():
                 field.value = replace_with_text
             else:
                 regex = re.compile(re.escape(search_text), re.IGNORECASE)
