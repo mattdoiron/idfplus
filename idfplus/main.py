@@ -936,9 +936,8 @@ class IDFPlus(QtGui.QMainWindow, main.UIMainWindow):
         groups, obj_lists = model.contiguous(indexes_source, False, duplicates=True)
 
         # Create a string containing the string representations of each obj
-        str_objects = ''
-        for obj_group in obj_lists:
-            str_objects += '\n'.join([str(obj) for obj in obj_group])
+        objects = [str(item) for sublist in obj_lists for item in sublist]
+        str_objects = '\n'.join(objects)
 
         # Save to the clipboard and return success
         self.obj_clipboard = (groups, obj_lists)
