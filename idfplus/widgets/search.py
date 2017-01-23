@@ -38,6 +38,7 @@ class SearchReplaceDialog(QtGui.QDialog):
 
         self.parent = parent
         self.prefs = parent.prefs
+        self.items_checked = 0
 
         self.search_button = QtGui.QPushButton('Search')
         self.search_text = MySearchField(self.search_button)
@@ -86,24 +87,25 @@ class SearchReplaceDialog(QtGui.QDialog):
         self.select_all_button = QtGui.QPushButton("All")
         self.select_none_button = QtGui.QPushButton("None")
         self.select_invert_button = QtGui.QPushButton("Invert")
-        self.select_delete_button = QtGui.QPushButton("Delete Objects")
+        self.delete_button = QtGui.QPushButton("Delete Objects")
         self.select_all_button.clicked.connect(self.select_all_clicked)
         self.select_none_button.clicked.connect(self.select_none_clicked)
         self.select_invert_button.clicked.connect(self.select_invert_clicked)
-        self.select_delete_button.clicked.connect(self.select_delete_clicked)
-        self.select_delete_button.setEnabled(False)
+        self.delete_button.clicked.connect(self.delete_button_clicked)
+        self.delete_button.setEnabled(False)
         selection_layout = QtGui.QHBoxLayout()
         selection_layout.addWidget(self.select_label)
         selection_layout.addWidget(self.select_all_button)
         selection_layout.addWidget(self.select_none_button)
         selection_layout.addWidget(self.select_invert_button)
         selection_layout.addStretch()
-        selection_layout.addWidget(self.select_delete_button)
+        selection_layout.addWidget(self.delete_button)
 
         self.replace_with_text = QtGui.QLineEdit()
         self.replace_with_label = QtGui.QLabel("Replace With:")
         self.replace_button = QtGui.QPushButton("Replace")
         self.replace_button.clicked.connect(self.replace_button_clicked)
+        self.replace_button.setEnabled(False)
         replace_layout = QtGui.QHBoxLayout()
         replace_layout.addWidget(self.replace_with_label)
         replace_layout.addWidget(self.replace_with_text)
@@ -178,10 +180,25 @@ class SearchReplaceDialog(QtGui.QDialog):
                                        self.ignore_geometry_checkbox.isChecked())
         self.query_text.setText(str(my_query))
         self.results_tree.setModel(self.create_results_model(results))
+        self.results_tree.model().itemChanged.connect(self.item_checked)
         # self.results_tree.setColumnHidden(2, True)
         self.results_tree.resizeColumnToContents(0)
         self.results_tree.resizeColumnToContents(1)
         self.results_tree.setSortingEnabled(True)
+
+    def item_checked(self, item):
+
+        if item.checkState() == QtCore.Qt.Checked:
+            self.items_checked += 1
+        else:
+            self.items_checked -= 1
+
+        if self.items_checked > 0:
+            self.delete_button.setEnabled(True)
+            self.replace_button.setEnabled(True)
+        else:
+            self.delete_button.setEnabled(False)
+            self.replace_button.setEnabled(False)
 
     def select_all_clicked(self):
 
@@ -212,8 +229,36 @@ class SearchReplaceDialog(QtGui.QDialog):
                 new_state = QtCore.Qt.Checked
             item.setCheckState(new_state)
 
-    def select_delete_clicked(self):
-        pass
+    def delete_button_clicked(self):
+        model = self.results_tree.model()
+        result_count = model.rowCount()
+        if result_count <= 0 or self.items_checked <= 0:
+            return
+
+        question = "Are you sure you want to perform this deletion?\n" \
+                   "Undo is currently NOT supported for this operation."
+        response = self.confirm_action(question)
+        if response is not True:
+            return
+
+        for i in range(result_count):
+            item_0 = model.itemFromIndex(model.index(i, 0))
+            item_2 = model.itemFromIndex(model.index(i, 2))
+            if item_0.checkState() != QtCore.Qt.Checked:
+                continue
+            field = self.parent.idf.field_by_uuid(item_2.text())
+            obj = field._outer
+            obj_class = self.parent.idf.idf_objects(obj.obj_class)
+            try:
+                index = obj_class.index(obj)
+                self.parent.idf.remove_objects(obj.obj_class, index, index + 1)
+            except ValueError:
+                pass  # already deleted
+
+        self.parent.set_dirty(True)
+        self.submit_search()
+        self.parent.load_table_view(self.parent.current_obj_class)
+        QtGui.QMessageBox.information(self, "Delete Action", "Deletion Complete!")
 
     def advanced_search_checked(self):
         if self.advanced_search_checkbox.isChecked():
@@ -228,10 +273,14 @@ class SearchReplaceDialog(QtGui.QDialog):
             self.ignore_geometry_checkbox.setChecked(False)
 
     def replace_button_clicked(self):
-        advanced_mode = self.advanced_search_checkbox.isChecked()
         search_text = self.search_text.text()
         replace_with_text = self.replace_with_text.text()
-        if not search_text or not replace_with_text:
+        if not search_text:
+            return
+
+        model = self.results_tree.model()
+        result_count = model.rowCount()
+        if result_count <= 0 or self.items_checked <= 0:
             return
 
         question = "Are you sure you want to perform this replacement?\n" \
@@ -240,8 +289,6 @@ class SearchReplaceDialog(QtGui.QDialog):
         if response is not True:
             return
 
-        model = self.results_tree.model()
-        result_count = model.rowCount()
         for i in range(result_count):
             item_0 = model.itemFromIndex(model.index(i, 0))
             item_2 = model.itemFromIndex(model.index(i, 2))
@@ -254,6 +301,9 @@ class SearchReplaceDialog(QtGui.QDialog):
                 regex = re.compile(re.escape(search_text), re.IGNORECASE)
                 field.value = regex.sub(replace_with_text, field.value)
 
+        self.parent.set_dirty(True)
+        self.submit_search()
+        self.parent.load_table_view(self.parent.current_obj_class)
         QtGui.QMessageBox.information(self, "Replacement", "Replacement Complete!")
 
     def confirm_action(self, question):
