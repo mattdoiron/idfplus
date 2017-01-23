@@ -206,7 +206,7 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
             idf_max_length = max([len(obj) for obj in self.idf_objects])
             return max(idf_max_length, len(self.idd_object))
         else:
-            return 0
+            return len(self.idd_object or [])
 
     def setData(self, index, value, role):
         """Overrides Qt method for setting data.
