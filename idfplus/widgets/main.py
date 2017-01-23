@@ -76,7 +76,7 @@ class UIMainWindow(object):
         classTable.verticalHeader().setDefaultSectionSize(fm.height() + 0)
         classTable.horizontalHeader().setCascadingSectionResizes(True)
         classTable.verticalHeader().setCascadingSectionResizes(True)
-        classTable.setSelectionMode(QtGui.QAbstractItemView.ContiguousSelection)
+        classTable.setSelectionMode(QtGui.QAbstractItemView.ExtendedSelection)
         classTable.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
         classTable.customContextMenuRequested.connect(self.custom_table_context_menu)
         classTable.horizontalHeader().sectionResized.connect(classTable.resizeRowsToContents)
