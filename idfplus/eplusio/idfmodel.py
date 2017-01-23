@@ -451,8 +451,8 @@ class IDFFile(OrderedDict):
                 units = self._based_on_units(units, field)
 
         # Check for another special case where there is no direct indicator of units
-        if field.value and not units and field.index > 1:
-            if field.obj_class.lower() == 'schedule:compact':
+        if field.value and not units:
+            if field.obj_class.lower() == 'schedule:compact' and field.index > 1:
                 field_type = field.value.split(":")
                 if not field_type[0].lower() in ["through", "for", "interpolate", "until"]:
                     units = self._units_based_on_type_limits(field)
