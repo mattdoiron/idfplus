@@ -748,8 +748,6 @@ class IDFObject(list):
                 else:
                     self.append(IDFField(self, default, key=idd_field.key))
 
-    __repr__ = __str__
-
 
 class IDFField(object):
     """Basic component of the idf object classes.
