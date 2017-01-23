@@ -244,7 +244,6 @@ class IDFFile(OrderedDict):
             query += " AND NOT obj_class='fenestrationsurface:detailed'"
 
         query_records = "SELECT * from idf_objects WHERE {}".format(query)
-        print(query_records)
 
         try:
             records = self.db.execute(query_records).fetchall()
