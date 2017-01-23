@@ -958,7 +958,7 @@ class IDFPlus(QtGui.QMainWindow, main.UIMainWindow):
         range_to_copy = []
         col = []
         for i in indexes:
-            col.append(i.data() or '')
+            col.append(i.data(QtCore.Qt.EditRole) or '')
             if i.row() == last:
                 range_to_copy.append(col)
                 col = []
