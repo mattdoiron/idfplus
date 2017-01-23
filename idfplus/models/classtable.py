@@ -237,7 +237,7 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
                 return False
 
             # Convert the value only if required
-            if self.idf.si_units is True:
+            if self.idf.si_units is True or value == '':
                 converted_value = value
             else:
                 converted_value = self.idf.to_si(field, override_value=value)
