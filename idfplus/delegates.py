@@ -179,7 +179,7 @@ class CustomStyledItemDelegate(QtGui.QStyledItemDelegate):
         if not index.isValid():
             return QtCore.QSize(self.prefs['default_column_width'], 14)
 
-        rect = option.rect.adjusted(self.padding, 0, -self.padding, 0)
+        rect = option.rect.adjusted(self.padding, self.padding, -self.padding, 0)
         text = index.data(QtCore.Qt.DisplayRole)
 
         fm = QtGui.QFontMetrics(option.font)
@@ -197,7 +197,7 @@ class CustomStyledItemDelegate(QtGui.QStyledItemDelegate):
         if not index.isValid():
             return
 
-        rect = option.rect.adjusted(self.padding, 0, -self.padding, 0)
+        rect = option.rect.adjusted(self.padding, self.padding, -self.padding, 0)
         text = index.data(QtCore.Qt.DisplayRole)
 
         painter.save()
@@ -230,7 +230,7 @@ class AlphaNumericDelegate(CustomStyledItemDelegate):
                                       self.prefs['class_table_font_size']))
         text_edit.setStyleSheet("""QPlainTextEdit { margin-left:0;
             margin-top:0; margin-bottom:0; margin-right:0;
-            padding-left:-2; padding-top:-4; padding-bottom:0;
+            padding-left:-2; padding-top:0; padding-bottom:0;
             padding-right:-2; vertical-align: middle;}""")
         return text_edit
 
@@ -447,7 +447,8 @@ class ExtendedComboBox(QtGui.QComboBox):
         # Set some properties
         # self.setFocusPolicy(QtCore.Qt.StrongFocus)
         self.setEditable(True)
-        self.setStyleSheet("QComboBox { border: 0px; }")
+        self.setStyleSheet("QComboBox { border:0px; } "
+                           "QComboBox QAbstractItemView { margin:0px; padding:0px; border:0px; }")
         self.setInsertPolicy(QtGui.QComboBox.NoInsert)
         self.setValidator(CustomValidator(self))
         self.setMaxVisibleItems(15)
