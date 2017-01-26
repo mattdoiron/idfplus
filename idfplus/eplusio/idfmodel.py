@@ -178,7 +178,7 @@ class IDFFile(OrderedDict):
         """
 
         if not field.value:
-            return None
+            return []
 
         if field.ref_type == 'object-list':
             refs = self._query_refs(field, 'reference', ignore_geometry=ignore_geometry)
