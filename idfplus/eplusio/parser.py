@@ -720,8 +720,9 @@ class IDFParser(Parser):
                 part, sep, comment = line.partition(COMMENT_DELIMITER_GENERAL)
                 comment_cleaned = comment.strip()
                 if comment_cleaned.startswith('-'):
-                    if comment_cleaned.lower().startswith('-options'):
-                        self.idf.options.extend(self.options(comment_cleaned))
+                    if comment_cleaned.lower().startswith('-option'):
+                        options = [x for x in OPTIONS_LIST if x in comment_cleaned]
+                        self.idf.options.extend(options)
                     else:
                         comment_list_special.append(comment_cleaned)
                 else:
