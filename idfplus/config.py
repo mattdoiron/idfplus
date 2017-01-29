@@ -29,7 +29,7 @@ from PySide import QtCore
 # Constants
 LOG_LEVEL = 'DEBUG'
 DEFAULT_COLUMN_WIDTH = 120
-# FILE_ENCODING = 'latin_1'
+FILE_ENCODING = 'latin_1'
 IDD_FILE_NAME_ROOT = 'EnergyPlus_IDD_v{}.dat'
 COMPANY_NAME_FULL = "Mindful Modeller"
 COMPANY_NAME = 'mindfulmodeller'

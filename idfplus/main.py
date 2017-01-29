@@ -25,6 +25,7 @@ import platform
 import subprocess
 import sys
 import errno
+import codecs
 
 # PySide imports
 from PySide import QtGui
@@ -159,13 +160,17 @@ class IDFPlus(QtGui.QMainWindow, main.UIMainWindow):
         idf = idfmodel.IDFFile()
         # self.files.update({0:idf})
 
-        if file_path:
-            idf_parser = parser.IDFParser(idf)
-            for progress in idf_parser.parse_idf(file_path):
-                self.progressDialogIDF.setValue(progress)
-        else:
-            log.info('Loading blank IDF file...')
-            idf.init_blank()
+        # Open the specified file in a safe way
+        with codecs.open(file_path, 'r',
+                         encoding=config.FILE_ENCODING,
+                         errors='backslashreplace') as raw_idf:
+            if file_path:
+                idf_parser = parser.IDFParser(idf)
+                for progress in idf_parser.parse_idf(raw_idf, file_path):
+                    self.progressDialogIDF.setValue(progress)
+            else:
+                log.info('Loading blank IDF file...')
+                idf.init_blank()
         log.info('IDF version detected as: {}'.format(idf.version))
         self.idf = idf
         self.idd = idf._idd

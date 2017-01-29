@@ -685,7 +685,7 @@ class IDFParser(Parser):
         # Call the parent class' init method
         super(IDFParser, self).__init__()
 
-    def parse_idf(self, file_path):
+    def parse_idf(self, raw_idf, file_path=None):
         """Parse the provided idf file and populate an IDFFile object with objects.
 
         :param file_path:
@@ -693,109 +693,107 @@ class IDFParser(Parser):
         """
 
         self.idf.file_path = file_path
-        total_size = os.path.getsize(file_path)
+        if file_path:
+            total_size = os.path.getsize(file_path)
+        else:
+            total_size = len(raw_idf)
         total_read = 0.0
-        log.info('Parsing IDF file: {} ({} bytes)'.format(file_path,
-                                                          total_size))
+        log.info('Parsing IDF file: {} ({} bytes)'.format(file_path, total_size))
 
-        # Open the specified file in a safe way
-        with codecs.open(file_path, 'r',
-                         encoding=config.FILE_ENCODING,
-                         errors='backslashreplace') as raw_idf:
+        # Prepare some variables to store the results
+        fields = StringIO()
+        field_objects = list()
+        comment_list = list()
+        comment_list_special = list()
 
-            # Prepare some variables to store the results
+        # Cycle through each line in the file (yes, use while!)
+        while True:
+
+            # Parse this line using readline (so last one is a blank)
+            line = raw_idf.readline()
+            total_read += len(line)
+
+            # Split out any comments and save them
+            part, sep, comment = line.partition(COMMENT_DELIMITER_GENERAL)
+            comment_cleaned = comment.strip()
+            if comment_cleaned.startswith('-'):
+                if comment_cleaned.lower().startswith('-option'):
+                    options = [x for x in OPTIONS_LIST if x in comment_cleaned]
+                    self.idf.options.extend(options)
+                else:
+                    comment_list_special.append(comment_cleaned)
+            else:
+                comment_list.append(comment)
+
+            # Write new fields to string containing previous fields
+            fields.write(part)
+
+            # Detect end of file and break. Do it this way to be sure
+            # the last line can be identified as last AND still be processed!
+            if not line:
+                break
+
+            # Check for end of an object and skip rest of loop unless we find one
+            if part.find(OBJECT_END_DELIMITER) == -1:
+                continue
+
+            # ---- If we've gotten this far, we're at the end of an object ------
+
+            # Clean up the fields and strip spaces, end of line chars
+            fields = map(str.strip, fields.getvalue().split(','))
+            fields[-1] = fields[-1].replace(OBJECT_END_DELIMITER, '')
+
+            # The first field is the object class name
+            obj_class = fields.pop(0)
+
+            # Detect idf file version and use it to select idd file
+            if obj_class.lower() == 'version':
+                self.assign_idd(fields[0])
+
+            # Create a new IDF Object to contain the fields
+            idf_object = idfmodel.IDFObject(self.idf, obj_class)
+
+            # Save the comment variables to the idf_object
+            idf_object.comments_special = comment_list_special
+            idf_object.comments = comment_list
+
+            # Strip white spaces, end of line chars from last comment
+            if idf_object.comments:
+                last_comment = idf_object.comments[-1]
+                idf_object.comments[-1] = last_comment.rstrip()
+
+            # Create local copies of some methods to speed lookups
+            append_idf_object = idf_object.append
+            create_field = idfmodel.IDFField
+            append_new_field = field_objects.append
+
+            # Create IDFField objects for all fields and add them to the IDFObject
+            for index, value in enumerate(fields):
+                new_field = create_field(idf_object, value, index=index)
+                append_idf_object(new_field)
+
+                # Store the field in a list to be passed to SQL later
+                append_new_field((new_field.uuid,
+                                  obj_class.lower(),
+                                  new_field.ref_type,
+                                  value))
+
+            # Save the new object to the IDF
+            self.idf.add_objects(obj_class, idf_object, update=False)
+
+            # Reset variables for next object
             fields = StringIO()
-            field_objects = list()
             comment_list = list()
             comment_list_special = list()
 
-            # Cycle through each line in the file (yes, use while!)
-            while True:
-
-                # Parse this line using readline (so last one is a blank)
-                line = raw_idf.readline()
-                total_read += len(line)
-
-                # Split out any comments and save them
-                part, sep, comment = line.partition(COMMENT_DELIMITER_GENERAL)
-                comment_cleaned = comment.strip()
-                if comment_cleaned.startswith('-'):
-                    if comment_cleaned.lower().startswith('-option'):
-                        options = [x for x in OPTIONS_LIST if x in comment_cleaned]
-                        self.idf.options.extend(options)
-                    else:
-                        comment_list_special.append(comment_cleaned)
-                else:
-                    comment_list.append(comment)
-
-                # Write new fields to string containing previous fields
-                fields.write(part)
-
-                # Detect end of file and break. Do it this way to be sure
-                # the last line can be identified as last AND still be processed!
-                if not line:
-                    break
-
-                # Check for end of an object and skip rest of loop unless we find one
-                if part.find(OBJECT_END_DELIMITER) == -1:
-                    continue
-
-                # ---- If we've gotten this far, we're at the end of an object ------
-
-                # Clean up the fields and strip spaces, end of line chars
-                fields = map(str.strip, fields.getvalue().split(','))
-                fields[-1] = fields[-1].replace(OBJECT_END_DELIMITER, '')
-
-                # The first field is the object class name
-                obj_class = fields.pop(0)
-
-                # Detect idf file version and use it to select idd file
-                if obj_class.lower() == 'version':
-                    self.assign_idd(fields[0])
-
-                # Create a new IDF Object to contain the fields
-                idf_object = idfmodel.IDFObject(self.idf, obj_class)
-
-                # Save the comment variables to the idf_object
-                idf_object.comments_special = comment_list_special
-                idf_object.comments = comment_list
-
-                # Strip white spaces, end of line chars from last comment
-                if idf_object.comments:
-                    last_comment = idf_object.comments[-1]
-                    idf_object.comments[-1] = last_comment.rstrip()
-
-                # Create local copies of some methods to speed lookups
-                append_idf_object = idf_object.append
-                create_field = idfmodel.IDFField
-                append_new_field = field_objects.append
-
-                # Create IDFField objects for all fields and add them to the IDFObject
-                for index, value in enumerate(fields):
-                    new_field = create_field(idf_object, value, index=index)
-                    append_idf_object(new_field)
-
-                    # Store the field in a list to be passed to SQL later
-                    append_new_field((new_field.uuid,
-                                      obj_class.lower(),
-                                      new_field.ref_type,
-                                      value))
-
-                # Save the new object to the IDF
-                self.idf.add_objects(obj_class, idf_object, update=False)
-
-                # Reset variables for next object
-                fields = StringIO()
-                comment_list = list()
-                comment_list_special = list()
-
-                # Yield the current progress for progress bars
-                yield math.ceil(100.0 * total_read / total_size)
+            # Yield the current progress for progress bars
+            yield math.ceil(100.0 * total_read / total_size)
 
         # Execute the SQL to insert the new objects
-        insert_operation = "INSERT INTO idf_objects VALUES (?,?,?,?)"
-        self.idf.db.executemany(insert_operation, field_objects)
-        self.idf.db.commit()
+        if file_path is not None:
+            insert_operation = "INSERT INTO idf_objects VALUES (?,?,?,?)"
+            self.idf.db.executemany(insert_operation, field_objects)
+            self.idf.db.commit()
 
         log.info('Parsing IDF complete!')
 
