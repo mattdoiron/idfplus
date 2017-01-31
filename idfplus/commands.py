@@ -524,4 +524,5 @@ class EditCommentCmd(ObjectCmd):
         else:
             ind = first.column()
 
-        self.main_window.idf[self.obj_class][ind].comments = comments
+        comment_list = comments.splitlines(True)
+        self.main_window.idf[self.obj_class][ind].comments = comment_list
