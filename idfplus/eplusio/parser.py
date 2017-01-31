@@ -722,7 +722,7 @@ class IDFParser(Parser):
                     self.idf.options.extend(options)
                 else:
                     comment_list_special.append(comment_cleaned)
-            else:
+            elif sep:
                 comment_list.append(comment)
 
             # Write new fields to string containing previous fields
