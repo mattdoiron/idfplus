@@ -800,6 +800,9 @@ class IDFParser(Parser):
             # Yield the current progress for progress bars
             yield math.ceil(100.0 * total_read / total_size)
 
+        # Be sure we're finished at this point (bytes read is not always accurate!)
+        yield 100.0
+
         # Execute the SQL to insert the new objects
         if file_path is not None:
             insert_operation = "INSERT INTO idf_objects VALUES (?,?,?,?)"
