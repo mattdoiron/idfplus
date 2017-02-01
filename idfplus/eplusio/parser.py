@@ -669,7 +669,7 @@ class IDFParser(Parser):
     """IDF file parser that handles opening, parsing and returning.
     """
 
-    def __init__(self, idf=None, idd=None, default_idd_version=None):
+    def __init__(self, idf=None, idd=None, default_version=None):
         """Initializes the IDFParser class with an option idf file.
 
         :param idf:
@@ -687,7 +687,7 @@ class IDFParser(Parser):
         else:
             self.idd = self.idf.idd
 
-        self.default_idd_version = default_idd_version
+        self.default_version = default_version
 
         # Call the parent class' init method
         super(IDFParser, self).__init__()
@@ -822,8 +822,8 @@ class IDFParser(Parser):
             log.debug('IDF version detected: {}'.format(_version))
             version = _version
         else:
-            log.debug('Using default IDF version: {}'.format(self.default_idd_version))
-            version = self.default_idd_version
+            log.debug('Using default IDF version: {}'.format(self.default_version))
+            version = self.default_version
 
         log.debug('Checking for IDD...')
         if not self.idd:
