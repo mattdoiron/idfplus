@@ -669,7 +669,7 @@ class IDFParser(Parser):
     """IDF file parser that handles opening, parsing and returning.
     """
 
-    def __init__(self, idf=None):
+    def __init__(self, idf=None, idd=None, default_idd_version=None):
         """Initializes the IDFParser class with an option idf file.
 
         :param idf:
@@ -680,7 +680,14 @@ class IDFParser(Parser):
             self.idf = idf
         else:
             self.idf = idfmodel.IDFFile()
-        self.idd = self.idf.idd
+
+        # Set the idd if it's given
+        if idd:
+            self.idd = idd
+        else:
+            self.idd = self.idf.idd
+
+        self.default_idd_version = default_idd_version
 
         # Call the parent class' init method
         super(IDFParser, self).__init__()
@@ -767,16 +774,20 @@ class IDFParser(Parser):
             create_field = idfmodel.IDFField
             append_new_field = field_objects.append
 
-            # Create IDFField objects for all fields and add them to the IDFObject
-            for index, value in enumerate(fields):
-                new_field = create_field(idf_object, value, index=index)
-                append_idf_object(new_field)
+            try:
+                # Create IDFField objects for all fields and add them to the IDFObject
+                for index, value in enumerate(fields):
+                    new_field = create_field(idf_object, value, index=index)
+                    append_idf_object(new_field)
 
-                # Store the field in a list to be passed to SQL later
-                append_new_field((new_field.uuid,
-                                  obj_class.lower(),
-                                  new_field.ref_type,
-                                  value))
+                    # Store the field in a list to be passed to SQL later
+                    if file_path is not None:
+                        append_new_field((new_field.uuid,
+                                          obj_class.lower(),
+                                          new_field.ref_type,
+                                          value))
+            except IDDError:
+                self.assign_idd()
 
             # Save the new object to the IDF
             self.idf.add_objects(obj_class, idf_object, update=False)
@@ -797,13 +808,20 @@ class IDFParser(Parser):
 
         log.info('Parsing IDF complete!')
 
-    def assign_idd(self, version):
+    def assign_idd(self, _version=None):
         """Verifies that an idd of the correct version is available
 
-        :param version:
+        :param _version:
         """
 
-        log.debug('IDF version detected: {}'.format(version))
+        # Detect appropriate version
+        if _version:
+            log.debug('IDF version detected: {}'.format(_version))
+            version = _version
+        else:
+            log.debug('Using default IDF version: {}'.format(self.default_idd_version))
+            version = self.default_idd_version
+
         log.debug('Checking for IDD...')
         if not self.idd:
             log.debug('No IDD currently selected!')
