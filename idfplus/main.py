@@ -165,7 +165,8 @@ class IDFPlus(QtGui.QMainWindow, main.UIMainWindow):
                          encoding=config.FILE_ENCODING,
                          errors='backslashreplace') as raw_idf:
             if file_path:
-                idf_parser = parser.IDFParser(idf, self.prefs['default_idd_version'])
+                idf_parser = parser.IDFParser(idf,
+                                              default_version=self.prefs['default_idd_version'])
                 for progress in idf_parser.parse_idf(raw_idf, file_path):
                     self.progressDialogIDF.setValue(progress)
             else:
