@@ -39,7 +39,7 @@ LOG_DIR = appdirs.user_log_dir(APP_NAME, COMPANY_NAME)
 LOG_FILE_NAME = "idfplus.log"
 LOG_PATH = os.path.join(LOG_DIR, LOG_FILE_NAME)
 MAX_OBJ_HISTORY = 100
-# DEFAULT_IDD_VERSION = '8.2'
+DEFAULT_IDD_VERSION = "8.6"
 
 # Make sure necessary folders exist
 for directory in [LOG_DIR]:
@@ -107,6 +107,7 @@ class Settings(dict):
         self['format_behaviour'] = int(settings.value("format_behaviour", 1))
         self['save_units'] = int(settings.value("save_units", 0))
         self['save_hidden_classes'] = int(settings.value("save_hidden_classes", 0))
+        self['default_idd_version'] = settings.value("default_idd_version", DEFAULT_IDD_VERSION)
         settings.endGroup()
         self.update_log_level()
 
@@ -150,6 +151,7 @@ class Settings(dict):
         settings.setValue("format_behaviour", self['format_behaviour'])
         settings.setValue("save_units", self['save_units'])
         settings.setValue("save_hidden_classes", self['save_hidden_classes'])
+        settings.setValue("default_idd_version", self['default_idd_version'])
         settings.endGroup()
         self.update_log_level()
 
@@ -248,3 +250,19 @@ def get_os():
     import platform
     system = platform.system()
     return system
+
+
+def idd_versions():
+
+    data_dir = QtCore.QDir(DATA_DIR)
+    data_dir.setFilter(QtCore.QDir.Files | QtCore.QDir.Hidden | QtCore.QDir.Readable |
+                       QtCore.QDir.NoSymLinks | QtCore.QDir.NoDotAndDotDot)
+    prefix, sep, postfix = IDD_FILE_NAME_ROOT.partition("{}")
+    versions = []
+
+    for file_name in data_dir.entryList():
+        name = file_name.replace(prefix, '')
+        name = name.replace(postfix, '')
+        versions.append(name)
+
+    return versions

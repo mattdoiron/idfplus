@@ -24,6 +24,9 @@ import logging
 from PySide import QtGui
 from PySide import QtCore
 
+# Package imports
+from .. import config
+
 # Setup logging
 log = logging.getLogger(__name__)
 
@@ -272,7 +275,18 @@ class AdvancedTab(QtGui.QWidget):
         clear_text.setMaximumWidth(350)
         clear_text.setMinimumHeight(40)
 
+        idd_label = QtGui.QLabel("Default IDF File Version:")
+        idd_label.setToolTip('Default version to use if none is detected.')
+        self.idd_edit = QtGui.QComboBox(self)
+        self.idd_edit.addItems(config.idd_versions())
+        self.idd_edit.setMaximumWidth(100)
+        self.idd_edit.setCurrentIndex(self.idd_edit.findText(self.prefs['default_idd_version']))
+        self.idd_edit.currentIndexChanged.connect(self.update_idd_version)
+
         main_layout = QtGui.QVBoxLayout()
+        main_layout.addWidget(idd_label)
+        main_layout.addWidget(self.idd_edit)
+        main_layout.addSpacing(15)
         main_layout.addWidget(log_label)
         main_layout.addWidget(self.log_edit)
         main_layout.addSpacing(15)
@@ -287,3 +301,6 @@ class AdvancedTab(QtGui.QWidget):
 
     def clear_idd_cache(self):
         self.prefs['clear_idd_cache'] = True
+
+    def update_idd_version(self):
+        self.prefs['default_idd_version'] = self.idd_edit.currentText()
