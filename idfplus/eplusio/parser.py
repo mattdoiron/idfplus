@@ -682,7 +682,7 @@ class IDFParser(Parser):
             self.idf = idfmodel.IDFFile()
 
         # Set the idd if it's given
-        if idd:
+        if idd and isinstance(idd, iddmodel.IDDFile):
             self.idd = idd
         else:
             self.idd = self.idf.idd
