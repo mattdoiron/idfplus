@@ -817,6 +817,9 @@ class IDFParser(Parser):
         :param _version:
         """
 
+        if self.idd:
+            return
+
         # Detect appropriate version
         if _version:
             log.debug('IDF version detected: {}'.format(_version))
@@ -825,14 +828,12 @@ class IDFParser(Parser):
             log.debug('Using default IDF version: {}'.format(self.default_version))
             version = self.default_version
 
-        log.debug('Checking for IDD...')
-        if not self.idd:
-            log.debug('No IDD currently selected!')
+        # Attempt to load the idd file
+        try:
             idd_parser = IDDParser()
-            try:
-                idd = idd_parser.load_idd(version)
-            except IDDError as e:
-                raise IDDError(e.message, e.version)
-            self.idf.set_idd(idd)
-            self.idd = idd
+            idd = idd_parser.load_idd(version)
+        except IDDError as e:
+            raise IDDError(e.message, e.version)
+        self.idf.set_idd(idd)
+        self.idd = idd
         log.debug("IDD version loaded: {}".format(self.idd.version))
