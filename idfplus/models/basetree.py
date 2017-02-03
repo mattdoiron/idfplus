@@ -72,7 +72,7 @@ class TreeItem(BaseTreeItem):
         data = self.itemData[column]
         try:
             if column == 1:
-                if data == 'Count':
+                if data == '#':
                     return data
                 if data:
                     count = len(data)
@@ -81,7 +81,7 @@ class TreeItem(BaseTreeItem):
                 if count <= 0:
                     return ''
                 else:
-                    return len(data)
+                    return count
             else:
                 return data
         except IndexError:

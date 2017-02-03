@@ -1068,9 +1068,8 @@ class IDFPlus(QtGui.QMainWindow, main.UIMainWindow):
         """
 
         # Define the source model
-        source_model = classtree.ObjectClassTreeModel(self.idf,
-                                                      ("Object Class", "Count"),
-                                                      self.classTree)
+        source_model = classtree.ObjectClassTreeModel(self.idf, self.classTree,
+                                                      show_groups=self.show_groups)
 
         # Create additional proxy model for sorting and filtering
         proxy_model = classtree.TreeSortFilterProxyModel()
@@ -1078,10 +1077,17 @@ class IDFPlus(QtGui.QMainWindow, main.UIMainWindow):
 
         # Assign the model and modify some settings
         self.classTree.setModel(proxy_model)
-        self.classTree.setRootIsDecorated(False)
         self.classTree.expandAll()
-        self.classTree.setColumnWidth(0, 280)
-        self.classTree.setColumnWidth(1, 10)
+        widget_width = self.classTree.parent().width()
+        scrollbar_width = self.classTree.verticalScrollBar().sizeHint().width()
+        min_count_width = 20
+        padding = 10
+        class_width = widget_width - scrollbar_width - min_count_width - padding
+        header = self.classTree.header()
+        header.setResizeMode(QtGui.QHeaderView.Interactive)
+        header.setMinimumSectionSize(min_count_width)
+        self.classTree.resizeColumnToContents(1)
+        self.classTree.setColumnWidth(0, class_width)
 
         # Connect some signals
         selection_model = self.classTree.selectionModel()

@@ -107,7 +107,9 @@ class UIMainWindow(object):
 
         classTree = QtGui.QTreeView(classTreeDockWidget)
         classTree.setUniformRowHeights(True)
-        classTree.setExpandsOnDoubleClick(False)
+        classTree.setAllColumnsShowFocus(True)
+        classTree.setRootIsDecorated(False)
+        classTree.setExpandsOnDoubleClick(True)
         tree_font = QtGui.QFont(self.prefs['class_tree_font'],
                                 self.prefs['class_tree_font_size'])
         classTree.setFont(tree_font)
