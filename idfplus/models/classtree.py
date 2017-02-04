@@ -31,10 +31,11 @@ class ObjectClassTreeModel(CustomTreeModel):
     displayed in the tree view.
     """
 
-    def __init__(self, data, root, parent=None):
+    def __init__(self, idf, parent=None, show_groups=True):
         super(ObjectClassTreeModel, self).__init__(parent)
-        self.rootItem = TreeItem(root)
-        self.setupModelData(data, self.rootItem)
+        self.rootItem = TreeItem(("Object Class", "#"))
+        self.show_groups = show_groups
+        self.setupModelData(idf, self.rootItem)
 
     def flags(self, index):
         if not index.isValid():
@@ -59,32 +60,29 @@ class ObjectClassTreeModel(CustomTreeModel):
             data = index.internalPointer().data(index.column())
         elif role == QtCore.Qt.BackgroundRole:
             item = index.internalPointer()
-            if item.parent().data(0) == 'Object Class' and item.data(0) != '':
-                data = QtGui.QColor(205, 192, 176)  # light grey
+            if item.parent().data(0) == 'Object Class' and item.data(0) != '' and self.show_groups:
+                data = QtGui.QColor(205, 192, 176)  # light grey for group headers
         elif role == QtCore.Qt.TextAlignmentRole and index.column() == 1:
             data = QtCore.Qt.AlignRight
 
         return data
 
     def setupModelData(self, idf, parent):
-        if idf:
+        if self.show_groups:
             group = ''
-            group_root = None
-
             for obj_class, obj in idf._idd.iteritems():
                 if group != obj.group:
-
                     group = obj.group
                     group_root = TreeItem((group, ''), parent)
                     parent.appendChild(group_root)
-
-                    blank = TreeItem(('', ''), parent)
-                    parent.appendChild(blank)
-
                 objs = idf.get(obj_class, None)
-
                 child = TreeItem((obj_class, objs), group_root)
                 group_root.appendChild(child)
+        else:
+            for obj_class, obj in idf._idd.iteritems():
+                objs = idf.get(obj_class, None)
+                child = TreeItem((obj_class, objs), parent)
+                parent.appendChild(child)
 
     def setData(self, index, value, role=QtCore.Qt.EditRole):
         if role != QtCore.Qt.EditRole:
@@ -104,6 +102,8 @@ class TreeSortFilterProxyModel(QtGui.QSortFilterProxyModel):
     """
 
     def __init__(self, *args, **kwargs):
+        self.hide_empty_classes = kwargs.pop('hide_empty_classes', False)
+        self.show_groups = kwargs.pop('show_groups', True)
         super(TreeSortFilterProxyModel, self).__init__(*args, **kwargs)
 
         syntax = QtCore.QRegExp.PatternSyntax(QtCore.QRegExp.Wildcard)
@@ -112,21 +112,25 @@ class TreeSortFilterProxyModel(QtGui.QSortFilterProxyModel):
         self.setFilterRegExp(QtCore.QRegExp('', case_sensitivity, syntax))
         self.setFilterCaseSensitivity(case_sensitivity)
 
-        self.filter_empty = False
-
     def filterAcceptsRow(self, row, parent):
         """Filters rows
         http://gaganpreet.in/blog/2013/07/04/qtreeview-and-custom-filter-models/
         https://qt-project.org/forums/viewthread/7782/#45740
         """
 
-        # Filter out classes without and objects in them
-        if self.filter_empty and parent.data():
+        # Filter out classes without objects in them
+        if self.hide_empty_classes:
             model = self.sourceModel()
             index = model.index(row, 1, parent)
             data = model.data(index)
-            if data == '':
-                return False
+
+            if not self.show_groups and not parent.data():
+                if data == '':
+                    return False
+
+            if parent.data():
+                if data == '':
+                    return False
 
         # Check if the current row matches
         if self.filter_accepts_row_itself(row, parent):

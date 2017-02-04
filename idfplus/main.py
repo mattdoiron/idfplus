@@ -69,13 +69,14 @@ class IDFPlus(QtGui.QMainWindow, main.UIMainWindow):
         self.idd = None
         self.idf = None
         self.groups = None
-        self.fullTree = True
+        self.hide_empty_classes = True
         self.file_dirty = False
         self.obj_orientation = QtCore.Qt.Vertical
         self.current_obj_class = None
         self.obj_clipboard = []
         self.file_watcher = None
         self.args = args
+        self.show_groups = True
 
         # Create main application elements
         self.create_actions()
@@ -983,22 +984,30 @@ class IDFPlus(QtGui.QMainWindow, main.UIMainWindow):
         self.obj_clipboard = None
         return True
 
+    def toggle_groups(self):
+        """Called to toggle the display of group headers in the tree view
+        """
+
+        self.show_groups = not self.show_groups
+
+        self.load_tree_view()
+
     def toggle_full_tree(self):
         """Called to toggle the full class tree or a partial tree.
         """
 
-        self.fullTree = not self.fullTree
+        self.hide_empty_classes = not self.hide_empty_classes
         tree = self.classTree
         current = tree.currentIndex()
         current_persistent = QtCore.QPersistentModelIndex(current)
 
         if self.prefs['save_hidden_classes'] == 1:
-            save_hidden = 'HideEmptyClasses' if self.fullTree is False else ''
+            save_hidden = 'HideEmptyClasses' if self.hide_empty_classes is False else ''
             self.idf.set_options({'save_hidden_classes': save_hidden})
 
         tree_model = self.classTree.model()
         if tree_model:
-            tree_model.filter_empty = not self.classTree.model().filter_empty
+            tree_model.hide_empty_classes = not self.classTree.model().hide_empty_classes
             self.treeFilterRegExpChanged()
 
         # TODO need to find a way to handle what happens when 'currentIndex' disappears
@@ -1072,7 +1081,8 @@ class IDFPlus(QtGui.QMainWindow, main.UIMainWindow):
                                                       show_groups=self.show_groups)
 
         # Create additional proxy model for sorting and filtering
-        proxy_model = classtree.TreeSortFilterProxyModel()
+        proxy_model = classtree.TreeSortFilterProxyModel(show_groups=self.show_groups,
+                                                         hide_empty_classes=self.hide_empty_classes)
         proxy_model.setSourceModel(source_model)
 
         # Assign the model and modify some settings
@@ -1225,7 +1235,7 @@ class IDFPlus(QtGui.QMainWindow, main.UIMainWindow):
             self.idf.si_units = False
             self.setIPUnitsAction.setChecked(True)
         if 'HideEmptyClasses' in self.idf.options:
-            self.fullTree = False
+            self.hide_empty_classes = False
             self.toggle_full_tree()
 
     def clear_idd_cache(self):

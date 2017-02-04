@@ -395,6 +395,11 @@ class UIMainWindow(object):
                                      iconVisibleInMenu=True,
                                      triggered=self.undo_stack.redo)
 
+        self.groupAct = QtGui.QAction("Hide Groups in Class Tree", self,
+                                      shortcut=QtGui.QKeySequence('Ctrl+g'),
+                                      triggered=self.toggle_groups,
+                                      checkable=True)
+
         # self.navForwardAct = QtGui.QAction("Forward", self,
         #         shortcut=QtGui.QKeySequence('Ctrl+Plus'),
         #         statusTip="Go forward to the next object",
@@ -587,6 +592,7 @@ class UIMainWindow(object):
         self.viewMenu.addAction(self.filterToolBar.toggleViewAction())
         self.viewMenu.addSeparator()
         self.viewMenu.addAction(self.classWithObjsAction)
+        self.viewMenu.addAction(self.groupAct)
         self.viewMenu.addSeparator()
         self.viewMenu.addAction(self.transposeAct)
 
