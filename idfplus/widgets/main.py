@@ -110,6 +110,8 @@ class UIMainWindow(object):
         classTree.setAllColumnsShowFocus(True)
         classTree.setRootIsDecorated(False)
         classTree.setExpandsOnDoubleClick(True)
+        classTree.setIndentation(15)
+        classTree.setAnimated(True)
         tree_font = QtGui.QFont(self.prefs['class_tree_font'],
                                 self.prefs['class_tree_font_size'])
         classTree.setFont(tree_font)
