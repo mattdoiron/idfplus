@@ -990,6 +990,10 @@ class IDFPlus(QtGui.QMainWindow, main.UIMainWindow):
 
         self.show_groups = not self.show_groups
 
+        if self.prefs['save_hide_groups'] == 1:
+            hide_groups = 'HideGroups' if self.show_groups is False else ''
+            self.idf.set_options({'save_hide_groups': hide_groups})
+
         self.load_tree_view()
 
     def toggle_full_tree(self):

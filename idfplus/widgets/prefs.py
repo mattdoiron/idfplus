@@ -206,11 +206,16 @@ class SaveTab(QtGui.QWidget):
         checked_cells = QtCore.Qt.Checked if self.prefs['save_hidden_classes'] == 1 else QtCore.Qt.Unchecked
         self.save_hidden_classes_check.setCheckState(checked_cells)
         self.save_hidden_classes_check.stateChanged.connect(self.update)
+        self.save_groups_check = QtGui.QCheckBox('Whether to hide group headers', self)
+        checked_groups = QtCore.Qt.Checked if self.prefs['save_hide_groups'] == 1 else QtCore.Qt.Unchecked
+        self.save_groups_check.setCheckState(checked_groups)
+        self.save_groups_check.stateChanged.connect(self.update)
 
         save_additional_group_box = QtGui.QGroupBox("Save Additional Options in IDF File")
         save_additional_box = QtGui.QVBoxLayout()
         save_additional_box.addWidget(self.save_units_check)
         save_additional_box.addWidget(self.save_hidden_classes_check)
+        save_additional_box.addWidget(self.save_groups_check)
         save_additional_box.addStretch(1)
         save_additional_group_box.setLayout(save_additional_box)
 
@@ -247,6 +252,7 @@ class SaveTab(QtGui.QWidget):
     def update(self):
         self.prefs['save_units'] = 1 if self.save_units_check.checkState() else 0
         self.prefs['save_hidden_classes'] = 1 if self.save_hidden_classes_check.checkState() else 0
+        self.prefs['save_hide_groups'] = 1 if self.save_groups_check.checkState() else 0
 
 
 class AdvancedTab(QtGui.QWidget):
