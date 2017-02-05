@@ -44,7 +44,7 @@ class ObjectClassTreeModel(CustomTreeModel):
         item = index.internalPointer()
         if item.data(0) == '' and item.data(1) == '':
             data = QtCore.Qt.NoItemFlags
-        elif item.parent().data(0) == 'Object Class' and item.data(0) != '':
+        elif item.parent().data(0) == 'Object Class' and item.data(0) != '' and self.show_groups:
             data = QtCore.Qt.ItemIsEnabled
         else:
             data = int(QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable)
