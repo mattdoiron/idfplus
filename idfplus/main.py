@@ -108,7 +108,7 @@ class IDFPlus(QtGui.QMainWindow, main.UIMainWindow):
 
         # Open a file immediately if specified by command-line. Timer allows UI to load fist.
         if self.args.filename:
-            QtCore.QTimer.singleShot(0, lambda: self.load_file(file_path=self.args.filename))
+            QtCore.QTimer.singleShot(0, self.load_file)
 
     def closeEvent(self, event):
         """Called when the application is closed.
@@ -185,6 +185,9 @@ class IDFPlus(QtGui.QMainWindow, main.UIMainWindow):
         :rtype : bool
         :param file_path:
         """
+
+        if self.args.filename and not file_path:
+            file_path = self.args.filename
 
         # Detect how/if to proceed
         if file_path:
