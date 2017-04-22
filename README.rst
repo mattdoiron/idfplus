@@ -93,3 +93,16 @@ and suggestions on how the editor can be improved. Please submit `an issue`_ if 
 find any bugs.
 
 .. _an issue: https://bitbucket.org/mattdoiron/idfplus/issues
+
+Special Thanks
+==============
+
+Thanks to `JetBrains`_ for their gracious `OpenSource Licensing Program`_. IDFPlus is built using
+PyCharm!
+
+.. image:: https://bitbucket.org/mattdoiron/idfplus/raw/default/resources/pycharmlogo.png
+   :target: PyCharm_
+
+.. _OpenSource Licensing Program: https://www.jetbrains.com/buy/opensource/?product=pycharm
+.. _JetBrains: https://www.jetbrains.com/
+.. _PyCharm: https://www.jetbrains.com/pycharm/
