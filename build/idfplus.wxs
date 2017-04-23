@@ -85,9 +85,6 @@ along with IDF+. If not, see <http://www.gnu.org/licenses/>.
                     <Component Id="cmp84006F38F0DE29102E651D8216886A4A" Guid="0BD4F207-40EC-4985-8AB8-83475518A186">
                         <File Id="fil5C9BD7BA3065FA5F0011AC1C5CA6255E" KeyPath="yes" Source="SourceDir\Microsoft.VC90.CRT.manifest" />
                     </Component>
-                    <Component Id="cmpBDBDE414F987440BF6125AE64914585A" Guid="3EC59173-91B8-42C1-B0F7-C6446E1868C1">
-                        <File Id="fil4859D4AA6DFAAC03CEE68BB9B9793947" KeyPath="yes" Source="SourceDir\zope.interface._zope_interface_coptimizations.pyd" />
-                    </Component>
                     <Component Id="cmp602551A065B8B655C3B0AC5D5BF3E3AB" Guid="4BA36674-1FBF-48B0-A9E6-C18994A2EACB">
                         <File Id="fil05A8ED2AA9AE7DB01860C9E003542D9C" KeyPath="yes" Source="SourceDir\idfplus.exe.manifest" />
                     </Component>
@@ -320,7 +317,6 @@ along with IDF+. If not, see <http://www.gnu.org/licenses/>.
             <ComponentRef Id="cmpD2A1BF5D1891F4508EE9DF506EFC642E" />
             <ComponentRef Id="cmpD26E9DF2B464891FB9D066E2D6A5C67B" />
             <ComponentRef Id="cmp84006F38F0DE29102E651D8216886A4A" />
-            <ComponentRef Id="cmpBDBDE414F987440BF6125AE64914585A" />
             <ComponentRef Id="cmp602551A065B8B655C3B0AC5D5BF3E3AB" />
             <ComponentRef Id="cmp72E400FE84DB1CCB8B4A542777F73809" />
             <ComponentRef Id="cmp884B4020976D80C07F870D95FE7DA9F7" />
