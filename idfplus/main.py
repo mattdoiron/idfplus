@@ -248,13 +248,13 @@ class IDFPlus(QtGui.QMainWindow, main.UIMainWindow):
         # Everything worked, so set some variables and update status
         log.debug('Loading tree view...')
         self.groups = self.idd.groups
+        self.update_idf_options()
         self.load_tree_view()
         log.debug('Updating recent file list...')
         self.file_path = file_path
         self.add_recent_file(file_path)
         self.set_current_file(file_path)
         self.set_dirty(False)
-        self.update_idf_options()
         self.update_status('File Loaded Successfully!')
         log.debug('File Loaded Successfully! ({})'.format(file_path or "New File"))
         return True
