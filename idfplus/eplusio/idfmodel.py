@@ -608,7 +608,7 @@ class IDFFile(OrderedDict):
         return data
 
     def set_options(self, options):
-        """Sets the specified options in this idf's options field
+        """Sets or unsets the specified options in this idf's options field
 
         :param options: Dictionary of options to set
         :type options: dict
@@ -616,16 +616,17 @@ class IDFFile(OrderedDict):
 
         for option, value in options.iteritems():
 
-            if value in ALLOWED_OPTIONS[option] or value == '':
-                # Remove all options of this type
-                for opt in ALLOWED_OPTIONS[option]:
-                    try:
-                        self.options.pop(self.options.index(opt))
-                    except (TypeError, ValueError):
-                        continue
+            if option in ALLOWED_OPTIONS.keys():
+                if value == '':
+                    # Remove all options of this type
+                    for opt in ALLOWED_OPTIONS[option]:
+                        try:
+                            self.options.pop(self.options.index(opt))
+                        except (TypeError, ValueError):
+                            continue
 
-                # Replace with only the one we want (or not if the value is empty)
-                if value:
+                # Replace with only the one we want
+                if value and value in ALLOWED_OPTIONS[option]:
                     self.options.append(value)
 
             else:

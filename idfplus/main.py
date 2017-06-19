@@ -448,9 +448,11 @@ class IDFPlus(QtGui.QMainWindow, main.UIMainWindow):
 
         self.idf.si_units = not self.idf.si_units
 
-        if self.prefs['save_units'] == 1:
-            save_units = 'ViewInIPunits' if self.idf.si_units is False else ''
-            self.idf.set_options({'save_units': save_units})
+        if self.prefs['save_units'] == 1 and self.idf.si_units is False:
+            save_units = 'ViewInIPunits'
+        else:
+            save_units = ''
+        self.idf.set_options({'save_units': save_units})
 
         # Refresh the view
         self.load_table_view(self.current_obj_class)
@@ -993,9 +995,11 @@ class IDFPlus(QtGui.QMainWindow, main.UIMainWindow):
 
         self.show_groups = not self.show_groups
 
-        if self.prefs['save_hide_groups'] == 1:
-            hide_groups = 'HideGroups' if self.show_groups is False else ''
-            self.idf.set_options({'save_hide_groups': hide_groups})
+        if self.prefs['save_hide_groups'] == 1 and self.show_groups is False:
+            hide_groups = 'HideGroups'
+        else:
+            hide_groups = ''
+        self.idf.set_options({'save_hide_groups': hide_groups})
 
         self.load_tree_view()
 
@@ -1008,9 +1012,11 @@ class IDFPlus(QtGui.QMainWindow, main.UIMainWindow):
         current = tree.currentIndex()
         current_persistent = QtCore.QPersistentModelIndex(current)
 
-        if self.prefs['save_hidden_classes'] == 1:
-            save_hidden = 'HideEmptyClasses' if self.hide_empty_classes is False else ''
-            self.idf.set_options({'save_hidden_classes': save_hidden})
+        if self.prefs['save_hidden_classes'] == 1 and self.hide_empty_classes is True:
+            save_hidden = 'HideEmptyClasses'
+        else:
+            save_hidden = ''
+        self.idf.set_options({'save_hidden_classes': save_hidden})
 
         tree_model = self.classTree.model()
         if tree_model:
