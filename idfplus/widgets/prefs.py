@@ -38,8 +38,7 @@ class PrefsDialog(QtGui.QDialog):
     def __init__(self, parent, prefs):
         super(PrefsDialog, self).__init__(parent)
         self.prefs = prefs
-        button_box = QtGui.QDialogButtonBox(QtGui.QDialogButtonBox.Ok |
-                                            QtGui.QDialogButtonBox.Cancel)
+        button_box = QtGui.QDialogButtonBox(QtGui.QDialogButtonBox.Ok)
 
         # Create the tab widget and assign its tabs
         tab_widget = QtGui.QTabWidget()
@@ -57,7 +56,6 @@ class PrefsDialog(QtGui.QDialog):
 
         # Connect gui elements to events
         button_box.accepted.connect(self.accept)
-        button_box.rejected.connect(self.reject)
 
     def accept(self):
         """Override default accept method to save settings
@@ -109,7 +107,7 @@ class AppearanceTab(QtGui.QWidget):
         force_text.setMaximumWidth(450)
         force_text.setMinimumHeight(30)
         force_text.setIndent(25)
-        self.button_obey = QtGui.QRadioButton("Obey IDF Settings if Present:", self)
+        self.button_obey = QtGui.QRadioButton("Obey IDF Options if Present:", self)
         obey_text = QtGui.QLabel("Obey options saved in the IDF file. If none are "
                                  "present, use the current session's options.")
         obey_text.setWordWrap(True)
