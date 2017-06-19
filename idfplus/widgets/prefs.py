@@ -137,7 +137,6 @@ class AppearanceTab(QtGui.QWidget):
         self.behaviour_button_group.setId(self.button_force, 0)
         self.behaviour_button_group.setId(self.button_obey, 1)
         self.behaviour_button_group.button(self.prefs['format_behaviour']).setChecked(True)
-        self.behaviour_button_group.buttonClicked.connect(self.set_behaviour)
 
         # Main layout code
         mainLayout = QtGui.QVBoxLayout()
@@ -156,17 +155,16 @@ class AppearanceTab(QtGui.QWidget):
         self.setLayout(mainLayout)
 
         # Update settings
+        self.behaviour_button_group.buttonClicked.connect(self.update)
         self.col_width_edit.textChanged.connect(self.update)
         self.style_edit.currentIndexChanged.connect(self.update)
         self.header_units_check.stateChanged.connect(self.update)
         self.cells_units_check.stateChanged.connect(self.update)
 
-    def set_behaviour(self):
-        self.prefs['format_behaviour'] = self.behaviour_button_group.checkedId()
-
     def update(self):
         self.prefs['default_column_width'] = self.col_width_edit.text()
         self.prefs['style'] = self.style_edit.currentText()
+        self.prefs['obey_idf_options'] = self.behaviour_button_group.checkedId()
         self.prefs['show_units_in_headers'] = 1 if self.header_units_check.checkState() else 0
         self.prefs['show_units_in_cells'] = 1 if self.cells_units_check.checkState() else 0
 
