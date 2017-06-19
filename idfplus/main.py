@@ -1238,12 +1238,16 @@ class IDFPlus(QtGui.QMainWindow, main.UIMainWindow):
         """Update options associated with the idf file
         """
 
-        if 'ViewInIPunits' in self.idf.options:
-            self.idf.si_units = False
-            self.setIPUnitsAction.setChecked(True)
-        if 'HideEmptyClasses' in self.idf.options:
-            self.hide_empty_classes = False
-            self.toggle_full_tree()
+        if self.prefs['obey_idf_options']:
+            if 'ViewInIPunits' in self.idf.options:
+                self.idf.si_units = False
+                self.setIPUnitsAction.setChecked(True)
+            if 'HideEmptyClasses' in self.idf.options:
+                self.hide_empty_classes = True
+                self.classWithObjsAction.setChecked(True)
+            if 'HideGroups' in self.idf.options:
+                self.show_groups = False
+                self.groupAct.setChecked(True)
 
     def clear_idd_cache(self):
         """Clears the idd cache by deleting pre-processed idd files.
