@@ -134,7 +134,7 @@ class AppearanceTab(QtGui.QWidget):
         self.behaviour_button_group.addButton(self.button_obey)
         self.behaviour_button_group.setId(self.button_force, 0)
         self.behaviour_button_group.setId(self.button_obey, 1)
-        self.behaviour_button_group.button(self.prefs['format_behaviour']).setChecked(True)
+        self.behaviour_button_group.button(self.prefs['obey_idf_options']).setChecked(True)
 
         # Main layout code
         mainLayout = QtGui.QVBoxLayout()
