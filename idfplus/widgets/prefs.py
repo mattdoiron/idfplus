@@ -72,6 +72,7 @@ class AppearanceTab(QtGui.QWidget):
 
         self.prefs = parent.prefs
 
+        # Default column width code
         col_width_label = QtGui.QLabel("Default Column Width:")
         self.col_width_edit = QtGui.QLineEdit(str(self.prefs['default_column_width']))
         self.col_width_edit.setMinimumWidth(40)
@@ -79,12 +80,14 @@ class AppearanceTab(QtGui.QWidget):
         validator = QtGui.QIntValidator(10, 200, self)
         self.col_width_edit.setValidator(validator)
 
+        # Visual style code
         style_label = QtGui.QLabel("Visual Style of Application:")
         self.style_edit = QtGui.QComboBox(self)
         self.style_edit.addItems(QtGui.QStyleFactory.keys())
         self.style_edit.setMaximumWidth(200)
         self.style_edit.setCurrentIndex(self.style_edit.findText(self.prefs['style']))
 
+        # Units display code
         units_header_label = QtGui.QLabel("Units Display:")
         self.header_units_check = QtGui.QCheckBox('Show Units in Table Headers', self)
         checked_header = QtCore.Qt.Checked if self.prefs['show_units_in_headers'] == 1 else QtCore.Qt.Unchecked
@@ -93,23 +96,73 @@ class AppearanceTab(QtGui.QWidget):
         checked_cells = QtCore.Qt.Checked if self.prefs['show_units_in_cells'] == 1 else QtCore.Qt.Unchecked
         self.cells_units_check.setCheckState(checked_cells)
 
+        # Handling of file options code
+        default_handling_text = QtGui.QLabel("Select how options saved directly within an IDF "
+                                             "file are treated. See \"Save Options\" tab "
+                                             "for the options in question.")
+        default_handling_text.setWordWrap(True)
+        default_handling_text.setMaximumWidth(450)
+        self.button_force = QtGui.QRadioButton("Force Session Options:", self)
+        force_text = QtGui.QLabel("Options from the current session will be used for all "
+                                  "files, ignoring any options saved in the IDF file.")
+        force_text.setWordWrap(True)
+        force_text.setMaximumWidth(450)
+        force_text.setMinimumHeight(30)
+        force_text.setIndent(25)
+        self.button_obey = QtGui.QRadioButton("Obey IDF Settings if Present:", self)
+        obey_text = QtGui.QLabel("Obey options saved in the IDF file. If none are "
+                                 "present, use the current session's options.")
+        obey_text.setWordWrap(True)
+        obey_text.setMaximumWidth(450)
+        obey_text.setMinimumHeight(30)
+        obey_text.setIndent(25)
+
+        # Handling of file options group box
+        self.behaviour_group_box = QtGui.QGroupBox("Handling of File-based Options")
+        self.behaviour_group_box.setMinimumHeight(220)
+        self.behaviour_group_box.setMinimumWidth(450)
+        behaviour_box = QtGui.QVBoxLayout()
+        behaviour_box.addWidget(default_handling_text)
+        behaviour_box.addWidget(self.button_force)
+        behaviour_box.addWidget(force_text)
+        behaviour_box.addSpacing(5)
+        behaviour_box.addWidget(self.button_obey)
+        behaviour_box.addWidget(obey_text)
+        behaviour_box.addStretch(1)
+        self.behaviour_group_box.setLayout(behaviour_box)
+
+        self.behaviour_button_group = QtGui.QButtonGroup(self)
+        self.behaviour_button_group.addButton(self.button_force)
+        self.behaviour_button_group.addButton(self.button_obey)
+        self.behaviour_button_group.setId(self.button_force, 0)
+        self.behaviour_button_group.setId(self.button_obey, 1)
+        self.behaviour_button_group.button(self.prefs['format_behaviour']).setChecked(True)
+        self.behaviour_button_group.buttonClicked.connect(self.set_behaviour)
+
+        # Main layout code
         mainLayout = QtGui.QVBoxLayout()
         mainLayout.addWidget(col_width_label)
         mainLayout.addWidget(self.col_width_edit)
-        mainLayout.addSpacing(15)
+        mainLayout.addSpacing(10)
         mainLayout.addWidget(style_label)
         mainLayout.addWidget(self.style_edit)
-        mainLayout.addSpacing(15)
+        mainLayout.addSpacing(10)
+        mainLayout.addWidget(self.behaviour_group_box)
+        mainLayout.addSpacing(10)
         mainLayout.addWidget(units_header_label)
         mainLayout.addWidget(self.header_units_check)
         mainLayout.addWidget(self.cells_units_check)
         mainLayout.addStretch(1)
         self.setLayout(mainLayout)
 
+        # Update settings
         self.col_width_edit.textChanged.connect(self.update)
         self.style_edit.currentIndexChanged.connect(self.update)
         self.header_units_check.stateChanged.connect(self.update)
         self.cells_units_check.stateChanged.connect(self.update)
+
+    def set_behaviour(self):
+        self.prefs['format_behaviour'] = self.behaviour_button_group.checkedId()
 
     def update(self):
         self.prefs['default_column_width'] = self.col_width_edit.text()
@@ -146,56 +199,16 @@ class SaveTab(QtGui.QWidget):
         self.format_edit.setCurrentIndex(self.format_edit.findText(format_setting))
         self.order_edit.currentIndexChanged.connect(self.update_format)
 
-        apply_defaults_button = QtGui.QPushButton("Apply defaults to current file")
-        apply_defaults_button.setMaximumWidth(225)
-        apply_defaults_button.clicked.connect(self.apply_defaults)
-
-        save_group_box = QtGui.QGroupBox("Default Save Options")
+        self.save_group_box = QtGui.QGroupBox("Default Save Options")
         save_box = QtGui.QVBoxLayout()
         save_box.addWidget(order_label)
         save_box.addWidget(self.order_edit)
-        save_box.addSpacing(15)
+        save_box.addSpacing(10)
         save_box.addWidget(format_label)
         save_box.addWidget(self.format_edit)
-        save_box.addSpacing(15)
-        save_box.addWidget(apply_defaults_button)
         save_box.addStretch(1)
-        save_group_box.setLayout(save_box)
-        save_group_box.setEnabled(False)
-
-        # Behaviour code
-        button_force = QtGui.QRadioButton("Force Defaults:", self)
-        force_text = QtGui.QLabel("The above defaults will be used for all files, ignoring any "
-                                  "settings saved in the IDF file.")
-        force_text.setWordWrap(True)
-        force_text.setMaximumWidth(350)
-        force_text.setMinimumHeight(40)
-        force_text.setIndent(25)
-        button_obey = QtGui.QRadioButton("Obey IDF Setting:", self)
-        obey_text = QtGui.QLabel("Obey any settings saved in the IDF file. If no settings are "
-                                 "present, use the defaults.")
-        obey_text.setWordWrap(True)
-        obey_text.setMaximumWidth(350)
-        obey_text.setMinimumHeight(40)
-        obey_text.setIndent(25)
-
-        behaviour_group_box = QtGui.QGroupBox("Default Handling Behaviour")
-        behaviour_box = QtGui.QVBoxLayout()
-        behaviour_box.addWidget(button_force)
-        behaviour_box.addWidget(force_text)
-        behaviour_box.addWidget(button_obey)
-        behaviour_box.addWidget(obey_text)
-        behaviour_box.addStretch(1)
-        behaviour_group_box.setLayout(behaviour_box)
-        behaviour_group_box.setEnabled(False)
-
-        self.behaviour_button_group = QtGui.QButtonGroup(self)
-        self.behaviour_button_group.addButton(button_force)
-        self.behaviour_button_group.addButton(button_obey)
-        self.behaviour_button_group.setId(button_force, 0)
-        self.behaviour_button_group.setId(button_obey, 1)
-        self.behaviour_button_group.button(self.prefs['format_behaviour']).setChecked(True)
-        self.behaviour_button_group.buttonClicked.connect(self.set_behaviour)
+        self.save_group_box.setLayout(save_box)
+        self.save_group_box.setEnabled(False)
 
         # Save additional options code
         self.save_units_check = QtGui.QCheckBox('Units to display by default (SI vs IP)', self)
@@ -211,21 +224,20 @@ class SaveTab(QtGui.QWidget):
         self.save_groups_check.setCheckState(checked_groups)
         self.save_groups_check.stateChanged.connect(self.update)
 
-        save_additional_group_box = QtGui.QGroupBox("Save Additional Options in IDF File")
+        # Save additional options group box code
+        self.save_additional_group_box = QtGui.QGroupBox("Save Additional Options in IDF File")
         save_additional_box = QtGui.QVBoxLayout()
         save_additional_box.addWidget(self.save_units_check)
         save_additional_box.addWidget(self.save_hidden_classes_check)
         save_additional_box.addWidget(self.save_groups_check)
         save_additional_box.addStretch(1)
-        save_additional_group_box.setLayout(save_additional_box)
+        self.save_additional_group_box.setLayout(save_additional_box)
 
         # Main layout code
         main_layout = QtGui.QVBoxLayout()
-        main_layout.addWidget(save_group_box)
-        main_layout.addSpacing(15)
-        main_layout.addWidget(behaviour_group_box)
-        main_layout.addSpacing(15)
-        main_layout.addWidget(save_additional_group_box)
+        main_layout.addWidget(self.save_additional_group_box)
+        main_layout.addSpacing(10)
+        main_layout.addWidget(self.save_group_box)
         main_layout.addStretch(1)
         self.setLayout(main_layout)
 
@@ -243,12 +255,6 @@ class SaveTab(QtGui.QWidget):
                 to_save = key
         self.prefs['format'] = to_save
 
-    def apply_defaults(self):
-        self.prefs['apply_default_save_behaviour'] = True
-
-    def set_behaviour(self):
-        self.prefs['format_behaviour'] = self.behaviour_button_group.checkedId()
-
     def update(self):
         self.prefs['save_units'] = 1 if self.save_units_check.checkState() else 0
         self.prefs['save_hidden_classes'] = 1 if self.save_hidden_classes_check.checkState() else 0
@@ -261,6 +267,7 @@ class AdvancedTab(QtGui.QWidget):
 
         self.prefs = parent.prefs
 
+        # Log Details
         log_label = QtGui.QLabel("Log Detail Level:")
         self.log_edit = QtGui.QComboBox(self)
         self.log_edit.addItems(['INFO', 'DEBUG', 'WARNING'])
@@ -268,19 +275,29 @@ class AdvancedTab(QtGui.QWidget):
         self.log_edit.currentIndexChanged.connect(self.log_level)
         self.log_edit.setMaximumWidth(100)
 
-        clear_idd_label = QtGui.QLabel("Clear pre-processed IDD cache:")
-        self.clear_idd_button = QtGui.QPushButton("Clear IDD cache")
+        # Clear IDD cache
+        self.clear_idd_button = QtGui.QPushButton("Clear IDD Cache")
         self.clear_idd_button.setMaximumWidth(200)
         self.clear_idd_button.clicked.connect(self.clear_idd_cache)
         clear_text = QtGui.QLabel("This will delete the pre-processed IDD files and force "
                                   "IDF+ to reprocess them the next time they are required. "
-                                  "This should happen automatically when required, but if "
+                                  "This should happen automatically when necessary, but if "
                                   "there are problems after updating to a new version of "
                                   "IDF+, it can sometimes help to force it here.")
         clear_text.setWordWrap(True)
-        clear_text.setMaximumWidth(350)
+        clear_text.setMaximumWidth(450)
         clear_text.setMinimumHeight(40)
 
+        # Clear IDD cache group box code
+        self.clear_idd_group_box = QtGui.QGroupBox("Clear Pre-processed IDD Cache:")
+        clear_group_box = QtGui.QVBoxLayout()
+        clear_group_box.addWidget(clear_text)
+        clear_group_box.addSpacing(10)
+        clear_group_box.addWidget(self.clear_idd_button)
+        clear_group_box.addStretch(1)
+        self.clear_idd_group_box.setLayout(clear_group_box)
+
+        # Default IDF file version code
         idd_label = QtGui.QLabel("Default IDF File Version:")
         idd_label.setToolTip('Default version to use if none is detected.')
         self.idd_edit = QtGui.QComboBox(self)
@@ -289,16 +306,15 @@ class AdvancedTab(QtGui.QWidget):
         self.idd_edit.setCurrentIndex(self.idd_edit.findText(self.prefs['default_idd_version']))
         self.idd_edit.currentIndexChanged.connect(self.update_idd_version)
 
+        # Main layout code
         main_layout = QtGui.QVBoxLayout()
         main_layout.addWidget(idd_label)
         main_layout.addWidget(self.idd_edit)
-        main_layout.addSpacing(15)
+        main_layout.addSpacing(10)
         main_layout.addWidget(log_label)
         main_layout.addWidget(self.log_edit)
-        main_layout.addSpacing(15)
-        main_layout.addWidget(clear_idd_label)
-        main_layout.addWidget(self.clear_idd_button)
-        main_layout.addWidget(clear_text)
+        main_layout.addSpacing(10)
+        main_layout.addWidget(self.clear_idd_group_box)
         main_layout.addStretch(1)
         self.setLayout(main_layout)
 
