@@ -50,10 +50,10 @@ prepare_env () {
 # Check for and downloads the required installers
 download_prerequisites () {
     echo "Checking for required install files..."
-    if [ ! -f ${DOWNLOAD_DIR}/python-2.7.11.msi ]; then
-      echo "Downloading Python 2.7.11..."
+    if [ ! -f ${DOWNLOAD_DIR}/python-2.7.12.msi ]; then
+      echo "Downloading Python 2.7.12..."
       wget --directory-prefix=${DOWNLOAD_DIR} --show-progress --quiet \
-        https://www.python.org/ftp/python/2.7.11/python-2.7.11.msi
+        https://www.python.org/ftp/python/2.7.12/python-2.7.12.msi
     fi
     if [ ! -f ${DOWNLOAD_DIR}/VCForPython27.msi ]; then
       echo "Downloading Visual C++ for Python..."
@@ -104,6 +104,9 @@ install_prerequisites () {
     echo "Setting WINE to Windows 7..."
     winetricks --unattended win7
 
+#    echo "Installing .NET..."
+#    winetricks --unattended dotnet30 dotnet30sp1
+
 #    echo "Installing MFC42..."
 #    winetricks --unattended mfc42
 
@@ -115,7 +118,7 @@ install_prerequisites () {
     wine msiexec /i ${DOWNLOAD_DIR}/VCForPython27.msi /qn ALLUSERS=1
 
     echo "Installing Python v2.7.11..."
-    wine msiexec /i ${DOWNLOAD_DIR}/python-2.7.11.msi /qn ALLUSERS=1 TARGETDIR="C:\\Python27"
+    wine msiexec /i ${DOWNLOAD_DIR}/python-2.7.12.msi /qn ALLUSERS=1 TARGETDIR="C:\\Python27"
 
 #    echo "Installing PyWin32 v219..."
 #    wine ${DOWNLOAD_DIR}/pywin32-219.win32-py2.7.exe /q
