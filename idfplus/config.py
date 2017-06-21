@@ -81,6 +81,9 @@ class Settings(dict):
         self['base_font'] = settings.value("base_font", "Arial")
         self['comments_font_size'] = int(settings.value("comments_font_size", 10))
         self['comments_font'] = settings.value("comments_font", "Courier")
+        self['hide_groups'] = int(settings.value("hide_groups", 1))
+        self['hide_empty_classes'] = int(settings.value("hide_empty_classes", 1))
+        self['show_ip_units'] = int(settings.value("show_ip_units", 0))
         settings.endGroup()
 
         settings.beginGroup("Files")
@@ -129,6 +132,9 @@ class Settings(dict):
         settings.setValue("base_font", self['base_font'])
         settings.setValue("comments_font_size", self['comments_font_size'])
         settings.setValue("comments_font", self['comments_font'])
+        settings.setValue("hide_groups", self['hide_groups'])
+        settings.setValue("hide_empty_classes", self['hide_empty_classes'])
+        settings.setValue("show_ip_units", self['show_ip_units'])
         settings.endGroup()
 
         settings.beginGroup("ClassTree")

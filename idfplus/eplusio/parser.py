@@ -35,7 +35,7 @@ from .iddmodel import IDDError
 # Setup logging
 log = logging.getLogger(__name__)
 
-OPTIONS_LIST = ['OriginalOrderTop', 'UseSpecialFormat',
+OPTIONS_LIST = ['OriginalOrderTop', 'UseSpecialFormat', 'HideGroups',
                 'ViewInIPunits', 'SortedOrder', 'HideEmptyClasses']
 COMMENT_DELIMITER_GENERAL = '!'
 COMMENT_DELIMITER_SPECIAL = '!-'

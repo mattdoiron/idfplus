@@ -69,14 +69,12 @@ class IDFPlus(QtGui.QMainWindow, main.UIMainWindow):
         self.idd = None
         self.idf = None
         self.groups = None
-        self.hide_empty_classes = True
         self.file_dirty = False
         self.obj_orientation = QtCore.Qt.Vertical
         self.current_obj_class = None
         self.obj_clipboard = []
         self.file_watcher = None
         self.args = args
-        self.show_groups = True
 
         # Create main application elements
         self.create_actions()
@@ -86,6 +84,13 @@ class IDFPlus(QtGui.QMainWindow, main.UIMainWindow):
         self.create_tray_menu()
         self.create_progress_bar()
 
+        # Restore preferences
+        self.hide_empty_classes = True if self.prefs['hide_empty_classes'] == 1 else False
+        self.classWithObjsAction.setChecked(self.hide_empty_classes)
+        self.hide_groups = True if self.prefs['hide_groups'] == 1 else False
+        self.groupAct.setChecked(self.hide_groups)
+        self.si_units = True if not self.prefs['show_ip_units'] == 1 else False
+        self.setIPUnitsAction.setChecked(self.si_units)
         self.prefs.restore_state(self)
         # Create a place to store all open files
         # self.db.dbroot.files = OOBTree()
@@ -445,6 +450,13 @@ class IDFPlus(QtGui.QMainWindow, main.UIMainWindow):
     def toggle_units(self):
         """Toggles units
         """
+
+        self.si_units = not self.si_units
+        self.prefs['show_ip_units'] = 1 if not self.si_units else 0
+        self.prefs.write_settings()
+
+        if not self.idf:
+            return
 
         self.idf.si_units = not self.idf.si_units
 
@@ -993,14 +1005,18 @@ class IDFPlus(QtGui.QMainWindow, main.UIMainWindow):
         """Called to toggle the display of group headers in the tree view
         """
 
-        self.show_groups = not self.show_groups
+        self.hide_groups = not self.hide_groups
+        self.prefs['hide_groups'] = 1 if self.hide_groups else 0
+        self.prefs.write_settings()
 
-        if self.prefs['save_hide_groups'] == 1 and self.show_groups is False:
+        if not self.idf:
+            return
+
+        if self.prefs['save_hide_groups'] == 1 and self.hide_groups is True:
             hide_groups = 'HideGroups'
         else:
             hide_groups = ''
         self.idf.set_options({'save_hide_groups': hide_groups})
-
         self.load_tree_view()
 
     def toggle_full_tree(self):
@@ -1008,15 +1024,18 @@ class IDFPlus(QtGui.QMainWindow, main.UIMainWindow):
         """
 
         self.hide_empty_classes = not self.hide_empty_classes
+        self.prefs['hide_empty_classes'] = 1 if self.hide_empty_classes else 0
+        self.prefs.write_settings()
         tree = self.classTree
         current = tree.currentIndex()
         current_persistent = QtCore.QPersistentModelIndex(current)
 
-        if self.prefs['save_hidden_classes'] == 1 and self.hide_empty_classes is True:
-            save_hidden = 'HideEmptyClasses'
-        else:
-            save_hidden = ''
-        self.idf.set_options({'save_hidden_classes': save_hidden})
+        if self.idf:
+            if self.prefs['save_hidden_classes'] == 1 and self.hide_empty_classes is True:
+                save_hidden = 'HideEmptyClasses'
+            else:
+                save_hidden = ''
+            self.idf.set_options({'save_hidden_classes': save_hidden})
 
         tree_model = self.classTree.model()
         if tree_model:
@@ -1091,10 +1110,10 @@ class IDFPlus(QtGui.QMainWindow, main.UIMainWindow):
 
         # Define the source model
         source_model = classtree.ObjectClassTreeModel(self.idf, self.classTree,
-                                                      show_groups=self.show_groups)
+                                                      hide_groups=self.hide_groups)
 
         # Create additional proxy model for sorting and filtering
-        proxy_model = classtree.TreeSortFilterProxyModel(show_groups=self.show_groups,
+        proxy_model = classtree.TreeSortFilterProxyModel(hide_groups=self.hide_groups,
                                                          hide_empty_classes=self.hide_empty_classes)
         proxy_model.setSourceModel(source_model)
 
@@ -1252,7 +1271,7 @@ class IDFPlus(QtGui.QMainWindow, main.UIMainWindow):
                 self.hide_empty_classes = True
                 self.classWithObjsAction.setChecked(True)
             if 'HideGroups' in self.idf.options:
-                self.show_groups = False
+                self.hide_groups = False
                 self.groupAct.setChecked(True)
 
     def clear_idd_cache(self):

@@ -31,10 +31,10 @@ class ObjectClassTreeModel(CustomTreeModel):
     displayed in the tree view.
     """
 
-    def __init__(self, idf, parent=None, show_groups=True):
+    def __init__(self, idf, parent=None, hide_groups=True):
         super(ObjectClassTreeModel, self).__init__(parent)
         self.rootItem = TreeItem(("Object Class", "#"))
-        self.show_groups = show_groups
+        self.show_groups = not hide_groups
         self.setupModelData(idf, self.rootItem)
 
     def flags(self, index):
@@ -103,7 +103,7 @@ class TreeSortFilterProxyModel(QtGui.QSortFilterProxyModel):
 
     def __init__(self, *args, **kwargs):
         self.hide_empty_classes = kwargs.pop('hide_empty_classes', False)
-        self.show_groups = kwargs.pop('show_groups', True)
+        self.show_groups = not kwargs.pop('hide_groups', True)
         super(TreeSortFilterProxyModel, self).__init__(*args, **kwargs)
 
         syntax = QtCore.QRegExp.PatternSyntax(QtCore.QRegExp.Wildcard)
