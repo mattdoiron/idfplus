@@ -89,8 +89,8 @@ class IDFPlus(QtGui.QMainWindow, main.UIMainWindow):
         self.classWithObjsAction.setChecked(self.hide_empty_classes)
         self.hide_groups = True if self.prefs['hide_groups'] == 1 else False
         self.groupAct.setChecked(self.hide_groups)
-        self.si_units = True if not self.prefs['show_ip_units'] == 1 else False
-        self.setIPUnitsAction.setChecked(self.si_units)
+        self.si_units = True if self.prefs['show_ip_units'] == 0 else False
+        self.setIPUnitsAction.setChecked(0 if self.si_units else 1)
         self.prefs.restore_state(self)
         # Create a place to store all open files
         # self.db.dbroot.files = OOBTree()
@@ -1263,15 +1263,18 @@ class IDFPlus(QtGui.QMainWindow, main.UIMainWindow):
         """Update options associated with the idf file
         """
 
+        self.idf.si_units = self.si_units
+
         if self.prefs['obey_idf_options']:
             if 'ViewInIPunits' in self.idf.options:
+                self.si_units = False
                 self.idf.si_units = False
                 self.setIPUnitsAction.setChecked(True)
             if 'HideEmptyClasses' in self.idf.options:
                 self.hide_empty_classes = True
                 self.classWithObjsAction.setChecked(True)
             if 'HideGroups' in self.idf.options:
-                self.hide_groups = False
+                self.hide_groups = True
                 self.groupAct.setChecked(True)
 
     def clear_idd_cache(self):
