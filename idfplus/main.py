@@ -533,6 +533,7 @@ class IDFPlus(QtGui.QMainWindow, main.UIMainWindow):
         refs = self.idf.reference_tree_data(self.current_obj_class, index)
         if not refs:
             insert_blank()
+            return
 
         # Add actions for references
         for field in refs:
