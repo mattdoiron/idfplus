@@ -24,13 +24,14 @@
 # Also see http://wiki.winehq.org/BuildingWine
 
 # The following prerequisites are required:
-# sudo add-apt-repository ppa:ubuntu-wine/ppa --yes
-# sudo apt-get update
-# sudo apt-get install wine1.8-i386 winbind libgnutls-dev:i386
+# wget https://dl.winehq.org/wine-builds/Release.key
+# sudo apt-key add Release.key
+# sudo apt-add-repository 'https://dl.winehq.org/wine-builds/ubuntu/'
+# sudo apt-get install wine-stable winbind libgnutls-dev:i386
 
-# PLEASE NOTE: This script appears to build an exe, but it is currently broken and the editor
-# will crash on startup! I'll leave this script here for now, but don't expect it to work! The
-# WIX functionality does appear to work.
+# PLEASE NOTE: This script appears to build an exe, but it has not worked until recently!
+# Consider it fragile and there is no guarantee it will continue to work.
+# The WIX functionality appears to work also.
 
 # Define the necessary environment variables
 prepare_env () {
@@ -104,8 +105,8 @@ install_prerequisites () {
     echo "Setting WINE to Windows 7..."
     winetricks --unattended win7
 
-#    echo "Installing .NET..."
-#    winetricks --unattended dotnet30 dotnet30sp1
+    echo "Installing .NET..."
+    winetricks --unattended dotnet30 dotnet30sp1
 
 #    echo "Installing MFC42..."
 #    winetricks --unattended mfc42
