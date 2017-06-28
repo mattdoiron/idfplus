@@ -156,7 +156,7 @@ build () {
     echo "Building IDFPlus for Windows..."
     wine python -m PyInstaller --clean --noconfirm --onedir --log-level=INFO \
         --distpath=${DIST_DIR} --workpath=${BUILD_DIR} \
-        --upx-dir=../resources/upx/upx391w \
+        --upx-dir=../resources/upx/upx394w \
         idfplus.spec
 }
 

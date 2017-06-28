@@ -26,5 +26,5 @@ SET DIST_DIR=%cd%\..\dist
 ECHO Building IDFPlus using PyInstaller on Windows...
 pyinstaller --clean --noconfirm --onedir --log-level=INFO ^
     --distpath=%DIST_DIR% --workpath=%BUILD_DIR% ^
-    --upx-dir=..\resources\upx\upx391w ^
+    --upx-dir=..\resources\upx\upx394w ^
     idfplus_wine.spec

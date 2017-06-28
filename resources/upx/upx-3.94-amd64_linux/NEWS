@@ -2,6 +2,33 @@
 User visible changes for UPX
 ==================================================================
 
+Changes in 3.94 (12 May 2017):
+  * Add support for arm64-linux (aka "aarch64").
+  * Add support for --lzma compression on 64-bit PowerPC (Thierry Fauck).
+  * For Mach, "upx -d" will unpack a prefix of the file (and warn).
+  * Various improvements to the ELF formats.
+  * bug fixes - see https://github.com/upx/upx/milestone/3
+
+Changes in 3.93 (29 Jan 2017):
+  * UPX has moved to GitHub - the new home page is https://upx.github.io
+  * Fixed some win32/pe and win64/pe regressions introduced in 3.92
+  * bug fixes - see https://github.com/upx/upx/milestone/1
+
+Changes in 3.92 (11 Dec 2016):
+  * UPX has moved to GitHub - the new home page is https://upx.github.io
+  * IMPORTANT: all PE formats: internal changes: reunited the diverged source
+    files - please report all regressions into the bug tracker and try UPX 3.91
+    in case of problems.
+  * Support Apple MacOS 10.12 "Sierra", including more-robust de-compression.
+  * Explicitly diagnose Go-language bad PT_LOAD; recommend hemfix.c.
+    https://sourceforge.net/p/upx/bugs/195/   https://github.com/pwaller/goupx
+  * Fix CERT-FI Case 829767 UPX command line tools segfaults.
+    Received by UPX Team on 2015-May-08; originally reported
+    by Codenomicon to NCSC-FI on 2015-01-08.
+    The vulnerabilities were discovered by Joonas Kuorilehto and
+    Antti Häyrynen from Codenomicon.
+  * bug fixes - see https://github.com/upx/upx/milestone/1
+
 Changes in 3.91 (30 Sep 2013):
   * Added experimental support for Windows 64-bit PE files, based on
     work by Stefan Widmann. Please use for testing only!

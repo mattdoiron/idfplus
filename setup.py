@@ -170,11 +170,11 @@ class Freeze(Command):
 
     def _upx_version(self):
         if self.is_win:
-            upx_version = 'upx391w'
+            upx_version = 'upx394w'
         elif self.is_32bit:
-            upx_version = 'upx-3.91-i386_linux'
+            upx_version = 'upx-3.94-i386_linux'
         else:
-            upx_version = 'upx-3.91-amd64_linux'
+            upx_version = 'upx-3.94-amd64_linux'
         return upx_version
 
     def initialize_options(self):
