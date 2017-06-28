@@ -456,7 +456,7 @@ class UIMainWindow(object):
                                              iconVisibleInMenu=True,
                                              triggered=self.open_in_text_editor)
 
-        self.helpAct = QtGui.QAction("&EnergyPlus Help", self,
+        self.helpAct = QtGui.QAction("&EnergyPlus Help (Online)", self,
                                      statusTip="Show the EnergyPlus' help",
                                      triggered=self.energyplus_help)
 
