@@ -9,8 +9,5 @@ argparse==1.4.0
 faulthandler==2.6
 odict==1.6.2
 persistent==4.2.4.2
-PySide==1.2.4
+pyside==1.2.4
 zope.interface==4.4.2     # via persistent
-
-# The following packages are considered to be unsafe in a requirements file:
-# setuptools                # via odict, zope.interface

@@ -3,3 +3,4 @@ Sphinx
 pyinstaller
 pip-tools
 pip-review
+pytest

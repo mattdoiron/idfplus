@@ -45,23 +45,25 @@ if sys.version_info.major != 2 and sys.version_info.minor < 7:
 project = 'idfplus'
 packages = [
     'idfplus',
-    'idfplus.gui',
+    'idfplus.widgets',
+    'idfplus.models',
     'idfplus.eplusio',
 ]
 requires = [
-    "appdirs==1.4.0",
-    "odict==1.5.2",
-    "persistent==4.2.2",
-    "pyside==1.2.4",
-    "faulthandler==2.4"
+    "appdirs==1.4.3",
+    "argparse==1.4.0",
+    "faulthandler==2.6",
+    "odict==1.6.2",
+    "persistent==4.2.4.2",
+    "pyside==1.2.4"
 ]
 requires_dev = [
-    "pip-review==0.5",
-    "pip-tools==1.8.0",
+    "pip-review==0.5.3",
+    "pip-tools==1.9.0",
     "pyinstaller==3.1.1",
-    "sphinx==1.5.1",
+    "sphinx==1.6.2",
 ]
-requires_test = ['pytest==3.0.5']
+requires_test = ['pytest==3.1.2']
 requires_setup = []
 
 with open(os.path.join(project, '__init__.py'), 'r') as fd:
