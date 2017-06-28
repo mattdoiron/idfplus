@@ -31,31 +31,31 @@ Build the specific version (standalone) as a wheel or egg. Wheel seems to be bro
 
 .. code-block:: bash
 
-    python2.7 setup.py bdist_wheel --qmake=/usr/bin/qmake-qt4 --version=1.2.2 --standalone
+    python2.7 setup.py bdist_wheel --qmake=/usr/bin/qmake-qt4 --version=1.2.4 --standalone
     
 or
 
 .. code-block:: bash
 
-    python2.7 setup.py bdist_egg --qmake=/usr/bin/qmake-qt4 --version=1.2.2 --standalone
+    python2.7 setup.py bdist_egg --qmake=/usr/bin/qmake-qt4 --version=1.2.4 --standalone
 
 Install the newly created file
 
 .. code-block:: bash
 
-    sudo pip2.7 install dist/PySide-1.2.2-cp27-none-linux-x86_64.whl
+    sudo pip2.7 install dist/PySide-1.2.4-cp27-none-linux-x86_64.whl
 
 or
 
 .. code-block:: bash
 
-    sudo easy_install install dist/PySide-1.2.2-cp27-none-linux-x86_64.egg
+    sudo easy_install install dist/PySide-1.2.4-cp27-none-linux-x86_64.egg
 
 Or install into a virtualenv
 
 .. code-block:: bash
 
-    bin/pip2.7 install ../dist/PySide-1.2.2-cp27-none-linux-x86_64.egg
+    bin/pip2.7 install ../dist/PySide-1.2.4-cp27-none-linux-x86_64.egg
 
 Run the post-install script
 

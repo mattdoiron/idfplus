@@ -70,15 +70,15 @@ download_prerequisites () {
       wget --directory-prefix=${DOWNLOAD_DIR} --show-progress --quiet -O vcredist_x86_sp1.exe \
         https://download.microsoft.com/download/5/D/8/5D8C65CB-C849-4025-8E95-C3966CAFD8AE/vcredist_x86.exe
     fi
-    if [ ! -f ${DOWNLOAD_DIR}/mono-4.2.1.102-gtksharp-2.12.30-win32-0.msi ]; then
+    if [ ! -f ${DOWNLOAD_DIR}/mono-5.2.0.179-gtksharp-2.12.45-win32-0.msi ]; then
       echo "Downloading Mono..."
       wget --directory-prefix=${DOWNLOAD_DIR} --show-progress --quiet \
-        http://download.mono-project.com/archive/4.2.1/windows-installer/mono-4.2.1.102-gtksharp-2.12.30-win32-0.msi
+        https://download.mono-project.com/archive/5.2.0/windows-installer/mono-5.2.0.179-gtksharp-2.12.45-win32-0.msi
     fi
-    if [ ! -f ${DOWNLOAD_DIR}/wix310-binaries.zip ]; then
+    if [ ! -f ${DOWNLOAD_DIR}/wix311-binaries.zip ]; then
       echo "Downloading WIX Toolset..."
       wget --directory-prefix=${DOWNLOAD_DIR} --show-progress --quiet \
-        http://wixtoolset.org/downloads/v3.10.1.2213/wix310-binaries.zip
+        https://github.com/wixtoolset/wix3/releases/download/wix311rtm/wix311-binaries.zip
     fi
 #    if [ ! -f ${DOWNLOAD_DIR}/PSDK-x86.exe ]; then
 #      echo "Downloading Windows Server 2003 SP1 Platform SDK..."
@@ -117,14 +117,14 @@ install_prerequisites () {
     echo "Installing Visual C++ for Python..."
     wine msiexec /i ${DOWNLOAD_DIR}/VCForPython27.msi /qn ALLUSERS=1
 
-    echo "Installing Python v2.7.11..."
+    echo "Installing Python v2.7.12..."
     wine msiexec /i ${DOWNLOAD_DIR}/python-2.7.12.msi /qn ALLUSERS=1 TARGETDIR="C:\\Python27"
 
 #    echo "Installing PyWin32 v219..."
 #    wine ${DOWNLOAD_DIR}/pywin32-219.win32-py2.7.exe /q
 
-#    echo "Installing Mono v4.2.1.102..."
-#    wine msiexec /i ${DOWNLOAD_DIR}/mono-4.2.1.102-gtksharp-2.12.30-win32-0.msi /qn ALLUSERS=1
+#    echo "Installing Mono..."
+#    wine msiexec /i ${DOWNLOAD_DIR}/mono-5.2.0.179-gtksharp-2.12.45-win32-0.msi /qn ALLUSERS=1
 
 #    echo "Installing Windows Server 2003 SP1 Platform SDK..."
 #    wine ${DOWNLOAD_DIR}/PSDK-x86.exe
@@ -133,7 +133,7 @@ install_prerequisites () {
 #    wineboot -ru
 
     echo "Extracting WIX..."
-    unzip -q -n ${DOWNLOAD_DIR}/wix310-binaries.zip -d ${DOWNLOAD_DIR}/wix310
+    unzip -q -n ${DOWNLOAD_DIR}/wix311-binaries.zip -d ${DOWNLOAD_DIR}/wix311
 
     echo "Installing Python dependencies..."
     wine python -m pip install -U pip -q
