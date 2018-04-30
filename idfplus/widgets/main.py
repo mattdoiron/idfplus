@@ -240,7 +240,6 @@ class UIMainWindow(object):
         # Perform other UI-related initialization tasks
         self.center()
         self.setUnifiedTitleAndToolBarOnMac(True)
-        self.setWindowTitle('IDF+ Editor')
         self.setWindowIcon(QtGui.QIcon(':/images/logo.png'))
 
         # Status bar setup

@@ -788,6 +788,7 @@ class IDFPlus(QtGui.QMainWindow, main.UIMainWindow):
         """
 
         self.file_path = file_name
+        self.setWindowFilePath(file_name)
         self.setWindowModified(False)
 
         if self.file_path:
@@ -795,7 +796,6 @@ class IDFPlus(QtGui.QMainWindow, main.UIMainWindow):
         else:
             shown_name = 'Untitled'
 
-        self.setWindowTitle('IDF+ Editor - {}[*]'.format(shown_name))
         self.pathLabel.setText(shown_name)
 
         if self.idd:
@@ -841,13 +841,8 @@ class IDFPlus(QtGui.QMainWindow, main.UIMainWindow):
         """
 
         self.statusBar().showMessage(message, 5000)
+        self.setWindowFilePath(self.file_path)
         self.setWindowModified(self.file_dirty)
-        if self.file_path is not None:
-            basename = os.path.basename(self.file_path)
-            window_title = 'IDF+ Editor - {}[*]'.format(basename)
-        else:
-            window_title = 'IDF+ Editor'
-        self.setWindowTitle(window_title)
 
     def setVisible(self, visible):
         """Integrates system tray with minimize/maximize.
@@ -1257,6 +1252,7 @@ class IDFPlus(QtGui.QMainWindow, main.UIMainWindow):
         """
 
         self.file_dirty = dirty_state
+        self.setWindowFilePath(self.file_path)
         self.setWindowModified(dirty_state)
         self.saveAct.setEnabled(dirty_state)
 

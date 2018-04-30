@@ -30,6 +30,7 @@ import argparse
 from PySide import QtGui
 
 # Local imports
+from idfplus import __version__ as version
 from idfplus import config
 from idfplus.main import IDFPlus
 
@@ -55,6 +56,8 @@ def main():
         app = QtGui.QApplication.instance()
         if app is None:
             app = QtGui.QApplication(qt_args)
+            app.setApplicationName("IDF+ Editor")
+            app.setApplicationVersion(version)
 
         # Create the main window and show it
         idf_plus_window = IDFPlus(args=parsed_args)
