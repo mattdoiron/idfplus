@@ -264,11 +264,20 @@ class UIMainWindow(object):
         self.clipboard = QtGui.QApplication.instance().clipboard()
         self.obj_clipboard = []
 
-        self.setStyleSheet("""QToolTip {
-                           background-color: gray;
-                           color: white;
-                           border: black solid 1px
-                           } """)
+        self.setStyleSheet("""
+            QToolTip {
+               background-color: gray;
+               color: white;
+               border: black solid 1px
+            } 
+            # QMenu {
+            #     background-color: rgbf(0.949020, 0.945098, 0.941176);
+            #     color: rgb(255,255,255);
+            # }
+            # QMenu::item::selected {
+            #     background-color: rgbf(0.949020, 0.945098, 0.941176);
+            # }
+            """)
 
     def create_tray_menu(self):
         """Creates an icon and menu for the system tray
