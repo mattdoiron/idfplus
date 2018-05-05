@@ -299,6 +299,11 @@ class Parser(object):
 
         tag_result = dict()
 
+        # Don't process comment lines
+        line_clean = line_in.expandtabs().lstrip()
+        if line_clean.startswith(COMMENT_DELIMITER_GENERAL):
+            return tag_result
+
         # Create a list containing any tags found in line_in
         match = [x for x in TAG_LIST if x in line_in]
 
