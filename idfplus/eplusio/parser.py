@@ -680,14 +680,14 @@ class IDFParser(Parser):
         :param idf:
         """
 
-        # Set idf if it's given
-        if idf is not None:
+        # Set idf if it's given. Use either one supplied on init or a blank one
+        if idf is not None and isinstance(idf, idfmodel.IDFFile):
             self.idf = idf
         else:
             self.idf = idfmodel.IDFFile()
 
         # Set the idd if it's given
-        if idd and isinstance(idd, iddmodel.IDDFile):
+        if idd is not None and isinstance(idd, iddmodel.IDDFile):
             self.idd = idd
         else:
             self.idd = self.idf.idd
@@ -700,7 +700,8 @@ class IDFParser(Parser):
     def parse_idf(self, raw_idf, file_path=None):
         """Parse the provided idf file and populate an IDFFile object with objects.
 
-        :param file_path:
+        :param raw_idf: File-like object containing idf to prse
+        :param file_path: option file path to use to fetch an idf to parse
         :rtype : iterator
         """
 
@@ -708,9 +709,9 @@ class IDFParser(Parser):
         if file_path:
             total_size = os.path.getsize(file_path)
         else:
-            total_size = len(raw_idf)
+            total_size = len(raw_idf.getvalue())
         total_read = 0.0
-        log.info('Parsing IDF file: {} ({} bytes)'.format(file_path, total_size))
+        log.info('Parsing IDF: {} ({} bytes)'.format(file_path or 'pasted text', total_size))
 
         # Prepare some variables to store the results
         fields = StringIO()
