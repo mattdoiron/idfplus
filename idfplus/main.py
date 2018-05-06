@@ -705,7 +705,8 @@ class IDFPlus(QtGui.QMainWindow, main.UIMainWindow):
 
         # Select the resulting found item (this also triggers a load of the table view)
         tree_selection_model.setCurrentIndex(matches[0],
-                                             QtGui.QItemSelectionModel.SelectCurrent)
+                                             int(QtGui.QItemSelectionModel.SelectCurrent |
+                                                 QtGui.QItemSelectionModel.Rows))
 
         # Scroll to the matched selection
         self.classTree.scrollTo(matches[0], QtGui.QAbstractItemView.PositionAtCenter)
