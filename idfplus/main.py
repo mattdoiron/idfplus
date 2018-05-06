@@ -260,6 +260,7 @@ class IDFPlus(QtGui.QMainWindow, main.UIMainWindow):
         self.add_recent_file(file_path)
         self.set_current_file(file_path)
         self.set_dirty(False)
+        self.select_tree_class("Version")
         self.update_status('File Loaded Successfully!')
         log.debug('File Loaded Successfully! ({})'.format(file_path or "New File"))
         return True
