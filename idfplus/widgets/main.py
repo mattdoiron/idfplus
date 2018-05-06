@@ -339,17 +339,24 @@ class UIMainWindow(object):
                                        triggered=self.cutObject,
                                        iconText='Cut Obj')
 
-        self.copyAct = QtGui.QAction(QtGui.QIcon(':/images/copy.png'), "&Copy Values", self,
-                                     shortcut=QtGui.QKeySequence('Ctrl+Shift+c'),
+        self.copyAct = QtGui.QAction(QtGui.QIcon(':/images/copy.png'),
+                                     "&Copy Selected Values", self,
                                      statusTip="Copy current selection's contents to clipboard",
                                      iconVisibleInMenu=True,
                                      triggered=self.copySelected)
 
-        self.pasteAct = QtGui.QAction(QtGui.QIcon(':/images/paste.png'), "&Paste Values", self,
-                                      shortcut=QtGui.QKeySequence('Ctrl+Shift+v'),
+        self.pasteAct = QtGui.QAction(QtGui.QIcon(':/images/paste.png'),
+                                      "&Paste Selected Values", self,
                                       statusTip="Paste clipboard into current selection",
                                       iconVisibleInMenu=True,
                                       triggered=self.pasteSelected)
+
+        self.pasteExtAct = QtGui.QAction(QtGui.QIcon(':/images/paste.png'),
+                                      "&Paste from External", self,
+                                      shortcut=QtGui.QKeySequence('Ctrl+Shift+v'),
+                                      statusTip="Paste from external program",
+                                      iconVisibleInMenu=True,
+                                      triggered=self.paste_from_external)
 
         self.transposeAct = QtGui.QAction("Transpose", self,
                                           shortcut=QtGui.QKeySequence('Ctrl+t'),
@@ -565,6 +572,7 @@ class UIMainWindow(object):
         self.editMenu.addAction(self.cutObjAct)
         self.editMenu.addAction(self.copyObjAct)
         self.editMenu.addAction(self.pasteObjAct)
+        self.editMenu.addAction(self.pasteExtAct)
         self.editMenu.addSeparator()
         self.editMenu.addAction(self.delObjAct)
         self.editMenu.addSeparator().setText('Values')

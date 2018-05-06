@@ -26,6 +26,7 @@ import subprocess
 import sys
 import errno
 import codecs
+from cStringIO import StringIO
 
 # PySide imports
 from PySide import QtGui
@@ -921,6 +922,35 @@ class IDFPlus(QtGui.QMainWindow, main.UIMainWindow):
         # Create undo command and push it to the undo stack
         cmd = commands.PasteSelectedCmd(self)
         self.undo_stack.push(cmd)
+
+    def paste_from_external(self):
+        """Grabs system clipboard and attempts to parse it as an IDF file for pasting.
+        """
+
+        # Grab system clipboard and continue only if it's text
+        mime_data = self.clipboard.mimeData()
+        if not mime_data.hasText():
+            return
+
+        # Create a idf file and parser, and parse the incoming text
+        idf = idfmodel.IDFFile()
+        idf.set_idd(self.idd)
+        my_parser = parser.IDFParser(idf=idf, idd=self.idd)
+        to_parse = StringIO(mime_data.text())
+        result = [prog for prog in my_parser.parse_idf(to_parse)]
+
+        # Create an undo object for each class of new objects
+        for obj_class, idf_objects in idf.iteritems():
+            if not idf_objects:
+                continue
+
+            # Set the class tree and object clipboard so that the undo command can grab them
+            self.select_tree_class(obj_class)
+            self.obj_clipboard = ([[-1]], [idf_objects])
+
+            # Create undo command and push it to the undo stack
+            cmd = commands.NewObjectCmd(self, from_clipboard=True)
+            self.undo_stack.push(cmd)
 
     def pasteObject(self):
         """Pastes the currently copied object(s).
