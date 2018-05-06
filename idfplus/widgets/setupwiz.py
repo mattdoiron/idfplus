@@ -128,6 +128,10 @@ class SetupWizLoadPage(QtGui.QWizardPage):
         dir_name, filt = file_dialog.getOpenFileName(self, dialog_name,
                                                      directory, formats)
 
+        if not dir_name:
+            self.complete = False
+            return
+
         # Show progress bar and parse IDD file
         self.progress_bar.show()
         log.debug("Processing IDD file")
