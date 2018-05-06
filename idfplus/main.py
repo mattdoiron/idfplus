@@ -256,6 +256,7 @@ class IDFPlus(QtGui.QMainWindow, main.UIMainWindow):
         self.groups = self.idd.groups
         self.update_idf_options()
         self.load_tree_view()
+        self.undo_stack.clear()
         log.debug('Updating recent file list...')
         self.file_path = file_path
         self.add_recent_file(file_path)
