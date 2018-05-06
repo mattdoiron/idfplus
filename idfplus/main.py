@@ -213,11 +213,12 @@ class IDFPlus(QtGui.QMainWindow, main.UIMainWindow):
         message = "Loading {}...".format(file_path or 'New File')
         self.statusBar().showMessage(message, 5000)
         self.pathLabel.setText("")
-        if file_path:
-            self.progressDialogIDF.setLabelText(message)
-            self.progressDialogIDF.show()
 
         try:
+            if file_path:
+                self.progressDialogIDF.setLabelText(message)
+                self.progressDialogIDF.show()
+
             # Try to load the specified IDF file
             self.load_idf(file_path)
         except iddmodel.IDDError as e:
@@ -230,8 +231,6 @@ class IDFPlus(QtGui.QMainWindow, main.UIMainWindow):
                                           QtGui.QMessageBox.Ok)
                 message = ("Loading failed. Could not find "
                            "matching IDD file for version {}.".format(e.version))
-                self.progressDialogIDF.cancel()
-                self.update_status(message)
                 return False
         except parser.InvalidIDFObject as e:
             # Invalid name of object, warn use and cancel
@@ -239,17 +238,16 @@ class IDFPlus(QtGui.QMainWindow, main.UIMainWindow):
                                       "{}\n\nLoading cancelled!".format(e.message),
                                       QtGui.QMessageBox.Ok)
             message = "Loading failed. Invalid idf object."
-            self.progressDialogIDF.cancel()
-            self.update_status(message)
             return False
         except OSError as e:
             if e.errno == errno.ENOENT:
                 message = "Loading failed. No such IDF file found."
-                self.progressDialogIDF.cancel()
-                self.update_status(message)
                 return False
             else:
                 raise OSError(e.errno, e.strerror, e.filename)
+        finally:
+            self.progressDialogIDF.cancel()
+            self.update_status(message)
 
         # Everything worked, so set some variables and update status
         log.debug('Loading tree view...')
