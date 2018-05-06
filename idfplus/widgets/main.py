@@ -392,7 +392,7 @@ class UIMainWindow(object):
                                        iconText='Dup Obj')
 
         self.delObjAct = QtGui.QAction(QtGui.QIcon(':/images/delete.png'), "Delete Object", self,
-                                       shortcut=QtGui.QKeySequence('Del'),
+                                       shortcut=QtGui.QKeySequence.Delete,
                                        statusTip="Delete the current Object(s)",
                                        iconVisibleInMenu=True,
                                        triggered=self.deleteObject,
