@@ -263,6 +263,7 @@ class IDFPlus(QtGui.QMainWindow, main.UIMainWindow):
         self.set_current_file(file_path)
         self.set_dirty(False)
         self.select_tree_class("Version")
+        self.classTable.setCurrentIndex(self.classTable.model().index(0, 0))
         self.update_status('File Loaded Successfully!')
         log.debug('File Loaded Successfully! ({})'.format(file_path or "New File"))
         return True
