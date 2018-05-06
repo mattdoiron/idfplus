@@ -671,7 +671,23 @@ class IDFPlus(QtGui.QMainWindow, main.UIMainWindow):
         """
 
         obj_class, obj_index, field_index = field.field_id
+        self.select_tree_class(obj_class)
 
+        # After the table is loaded, get its model and selection model
+        table_source_model = self.classTable.model().sourceModel()
+        table_model = self.classTable.model()
+
+        # Create an index for the target field with the table's model
+        table_index_source = table_source_model.sourceModel().index(obj_index,
+                                                                    field_index)
+        table_index_partial = table_source_model.mapFromSource(table_index_source)
+        table_index = table_model.mapFromSource(table_index_partial)
+
+        # Give focus to the class table and select the target index
+        self.classTable.setFocus()
+        self.classTable.setCurrentIndex(table_index)
+
+    def select_tree_class(self, obj_class):
         # Get the tree selection model and model
         tree_model = self.classTree.model()
         tree_selection_model = self.classTree.selectionModel()
@@ -691,20 +707,6 @@ class IDFPlus(QtGui.QMainWindow, main.UIMainWindow):
 
         # Scroll to the matched selection
         self.classTree.scrollTo(matches[0], QtGui.QAbstractItemView.PositionAtCenter)
-
-        # After the table is loaded, get its model and selection model
-        table_source_model = self.classTable.model().sourceModel()
-        table_model = self.classTable.model()
-
-        # Create an index for the target field with the table's model
-        table_index_source = table_source_model.sourceModel().index(obj_index,
-                                                                    field_index)
-        table_index_partial = table_source_model.mapFromSource(table_index_source)
-        table_index = table_model.mapFromSource(table_index_partial)
-
-        # Give focus to the class table and select the target index
-        self.classTable.setFocus()
-        self.classTable.setCurrentIndex(table_index)
 
     def addActions(self, target, actions):
         """Helper to add actions or a separator easily.
