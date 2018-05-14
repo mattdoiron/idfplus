@@ -23,7 +23,7 @@ block_cipher = None
 project = 'idfplus'
 spec_dir = os.path.realpath('.')
 up_one_dir = '..' if spec_dir.endswith('build') else ''
-main_module = os.path.join('..', project + '.py')
+main_module = os.path.join('..', 'main.py')
 hooks_path = os.path.join(up_one_dir, 'resources', 'hooks')
 icon_path = os.path.join(up_one_dir, 'resources', 'images', 'logo.ico')
 
