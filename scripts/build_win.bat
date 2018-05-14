@@ -20,7 +20,8 @@
 :: installed, ideally a virtuallenv.
 
 ECHO Setting some variables...
-SET BUILD_DIR=%cd%
+SET SCRIPT_DIR=%cd%
+SET BUILD_DIR=%cd%\..\build
 SET DIST_DIR=%cd%\..\dist
 
 ECHO Building IDFPlus using PyInstaller on Windows...

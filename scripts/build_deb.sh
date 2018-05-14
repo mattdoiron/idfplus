@@ -27,7 +27,8 @@
 
 # Define the necessary environment variables
 prepare_env () {
-    export BUILD_DIR=$PWD
+    export SCRIPT_DIR=$PWD
+    export BUILD_DIR=$PWD/../build
     export DIST_DIR=$PWD/../dist
     export VERSION=0.1.0
 }

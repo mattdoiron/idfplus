@@ -107,9 +107,10 @@ class bdist_msi(_bdist_msi):
         root_path = os.path.dirname(__file__)
         dist_dir = os.path.join(root_path, 'dist')
         build_dir = os.path.join(root_path, 'build')
+        resources_dir = os.path.join(root_path, 'resources')
         bind_dir = os.path.join(dist_dir, project)
         wix_obj = os.path.join(build_dir, '{}.wixobj'.format(project))
-        wxs_file = os.path.join(build_dir, '{}.wxs'.format(project))
+        wxs_file = os.path.join(resources_dir, '{}.wxs'.format(project))
         msi_file = os.path.join(dist_dir, '{}-v{}.msi'.format(project, version))
 
         print('Running candle...')
