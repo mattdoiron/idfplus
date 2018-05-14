@@ -197,7 +197,7 @@ class Freeze(Command):
 
     def run(self):
         root_path = os.path.dirname(__file__)
-        spec_file = os.path.join(root_path, 'build', project + '.spec')
+        spec_file = os.path.join(root_path, project + '.spec')
         dist_dir = os.path.join(root_path, 'dist')
         build_dir = os.path.join(root_path, 'build')
         upx_dir = os.path.join(root_path, 'resources', 'upx', self._upx_version())
