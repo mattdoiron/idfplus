@@ -183,7 +183,6 @@ class MyDict(PersistentMapping):
         return super(MyDict, self).__getitem__(key.lower())
 
     def __contains__(self, key):
-        print(key)
         try:
             self[key]
             return True
