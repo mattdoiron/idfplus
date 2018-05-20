@@ -40,34 +40,34 @@ OPTIONS_LIST = ['OriginalOrderTop', 'UseSpecialFormat', 'HideGroups',
 COMMENT_DELIMITER_GENERAL = '!'
 COMMENT_DELIMITER_SPECIAL = '!-'
 OBJECT_END_DELIMITER = ';'
-TAG_LIST = ['\\field', '\\Field',
-            '\\note', '\\Note',
-            '\\required-field', '\\Required-field',
-            '\\units', '\\Units',
-            '\\ip-units', '\\Ip-units',
-            '\\unitsBasedOnField', '\\UnitsBasedOnField',
-            '\\minimum>', '\\Minimum>',
-            '\\minimum', '\\Minimum',
-            '\\maximum<', '\\Maximum<',
-            '\\maximum', '\\Maximum',
-            '\\default', '\\Default',
-            '\\deprecated', '\\Deprecated',
-            '\\autosizable', '\\Autosizable',
-            '\\autocalculatable', '\\Autocalculatable',
-            '\\type', '\\Type',
-            '\\retaincase', '\\Retaincase',
-            '\\key', '\\Key',
-            '\\object-list', '\\Object-list',
-            '\\reference', '\\Reference',
-            '\\memo', '\\Memo',
-            '\\unique-object', '\\Unique-object',
-            '\\required-object', '\\Required-object',
-            '\\min-fields', '\\Min-fields',
-            '\\obsolete', '\\Obsolete',
-            '\\extensible:', '\\Extensible:',
-            '\\begin-extensible', '\\Begin-extensible',
-            '\\format', '\\Format',
-            '\\group', '\\Group']
+TAG_LIST = ['\\field',
+            '\\note',
+            '\\required-field',
+            '\\units',
+            '\\ip-units',
+            '\\unitsbasedonfield',
+            '\\minimum>',
+            '\\minimum',
+            '\\maximum<',
+            '\\maximum',
+            '\\default',
+            '\\deprecated',
+            '\\autosizable',
+            '\\autocalculatable',
+            '\\type',
+            '\\retaincase',
+            '\\key',
+            '\\object-list',
+            '\\reference',
+            '\\memo',
+            '\\unique-object',
+            '\\required-object',
+            '\\min-fields',
+            '\\obsolete',
+            '\\extensible:',
+            '\\begin-extensible',
+            '\\format',
+            '\\group']
 
 
 class InvalidIDFObject(Exception):
@@ -146,7 +146,7 @@ class Writer(object):
                             pass
 
                         # Write the object name
-                        idf_file.write("  {},{}".format(obj_class, eol_char))
+                        idf_file.write("  {},{}".format(obj.obj_class_display, eol_char))
 
                         # Write the fields
                         field_count = len(obj)
@@ -305,7 +305,7 @@ class Parser(object):
             return tag_result
 
         # Create a list containing any tags found in line_in
-        match = [x for x in TAG_LIST if x in line_in]
+        match = [x for x in TAG_LIST if x in line_in.lower()]
 
         # Hack for note field. Why is this needed!?
         if '\\note' in line_in:
@@ -324,8 +324,7 @@ class Parser(object):
                 value = True
 
             # Save results
-            tag_result = dict(tag=match[0].strip('\\').lower(),
-                              value=value)
+            tag_result = dict(tag=match[0].strip('\\'), value=value)
 
         # Return results
         return tag_result
@@ -338,11 +337,11 @@ class Parser(object):
         :param line_in:
         """
 
-        line_clean = line_in.expandtabs().lstrip()
+        line_clean = line_in.expandtabs().lstrip().lower()
         matches = list()
 
-        if line_clean.startswith('!-Option'):
-            matches = [x for x in OPTIONS_LIST if x in line_clean]
+        if line_clean.startswith('!-option'):
+            matches = [x.lower() for x in OPTIONS_LIST if x in line_clean]
 
         # Return matches
         return matches
@@ -389,7 +388,7 @@ class IDDParser(Parser):
     :param idd:
     """
 
-    __parser_version__ = '0.1.0'
+    __parser_version__ = '0.1.1'
 
     def __init__(self, idd=None):
         """Initialize the parser
@@ -527,7 +526,8 @@ class IDDParser(Parser):
                 if end_object and empty_line:
 
                     # The first field is the object class name
-                    obj_class = field_list.pop(0)
+                    obj_class_display = field_list.pop(0)
+                    obj_class = obj_class_display.lower()
 
                     # Create IDDField objects for all fields
                     for i, field_key in enumerate(field_list):
@@ -564,7 +564,7 @@ class IDDParser(Parser):
                         idd_object[field_key] = new_field
 
                     # Save the parsed variables in the idd_object
-                    idd_object._obj_class = obj_class
+                    idd_object._obj_class_display = obj_class_display
                     idd_object._group = group
                     idd_object._ordered_fields = ordered_fields
                     idd_object.comments_special = comment_list_special
@@ -580,7 +580,7 @@ class IDDParser(Parser):
                         idd._groups.append(group)
 
                     # Save the new object as part of the IDD file
-                    if obj_class not in ['Lead Input', 'Simulation Data']:
+                    if obj_class not in ['lead input', 'simulation data']:
                         idd[obj_class] = idd_object
 
                     # Reset variables for next object
@@ -757,10 +757,10 @@ class IDFParser(Parser):
             fields[-1] = fields[-1].replace(OBJECT_END_DELIMITER, '')
 
             # The first field is the object class name
-            obj_class = fields.pop(0)
+            obj_class = fields.pop(0).lower()
 
             # Detect idf file version and use it to select idd file
-            if obj_class.lower() == 'version':
+            if obj_class == 'version':
                 self.assign_idd(fields[0])
 
             # Create a new IDF Object to contain the fields
@@ -789,7 +789,8 @@ class IDFParser(Parser):
                     # Store the field in a list to be passed to SQL later
                     if file_path is not None:
                         append_new_field((new_field.uuid,
-                                          obj_class.lower(),
+                                          obj_class,
+                                          new_field.obj_class_display,
                                           new_field.ref_type,
                                           value))
             except IDDError:
@@ -811,7 +812,7 @@ class IDFParser(Parser):
 
         # Execute the SQL to insert the new objects
         if file_path is not None:
-            insert_operation = "INSERT INTO idf_objects VALUES (?,?,?,?)"
+            insert_operation = "INSERT INTO idf_objects VALUES (?,?,?,?,?)"
             self.idf.db.executemany(insert_operation, field_objects)
             self.idf.db.commit()
 

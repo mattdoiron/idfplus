@@ -946,7 +946,8 @@ class IDFPlus(QtGui.QMainWindow, main.UIMainWindow):
                 continue
 
             # Set the class tree and object clipboard so that the undo command can grab them
-            self.select_tree_class(obj_class)
+            obj_class_display = idf_objects[0].obj_class_display
+            self.select_tree_class(obj_class_display)
             self.obj_clipboard = ([[-1]], [idf_objects])
 
             # Create undo command and push it to the undo stack

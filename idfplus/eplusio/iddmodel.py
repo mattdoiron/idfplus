@@ -177,12 +177,26 @@ class IDDError(Exception):
         super(IDDError, self).__init__(*args, **kwargs)
 
 
-class PODict(_odict, PersistentMapping):
+class MyDict(PersistentMapping):
+
+    def __getitem__(self, key):
+        return super(MyDict, self).__getitem__(key.lower())
+
+    def __contains__(self, key):
+        print(key)
+        try:
+            self[key]
+            return True
+        except KeyError:
+            return False
+
+
+class PODict(_odict, MyDict):
     """Persistent ordered dictionary
     """
 
     def _dict_impl(self):
-        return PersistentMapping
+        return MyDict
 
 
 class IDDFile(PODict):
@@ -228,6 +242,9 @@ class IDDFile(PODict):
 
     def __reduce__(self):
         return super(IDDFile, self).__reduce__()
+
+    def get(self, key, default=None):
+        return super(IDDFile, self).get(key.lower(), default)
 
     # def __setitem__(self, key, value, dict_setitem=dict.__setitem__):
     #     """Override the default __setitem__ to ensure that only certain
@@ -280,7 +297,7 @@ class IDDFile(PODict):
         :param obj_class:
         """
 
-        return self.get(obj_class, dict())
+        return self.get(obj_class, None)
 
     def valid_class(self, obj_class):
         """Returns True if provided class is valid
@@ -289,10 +306,6 @@ class IDDFile(PODict):
         """
 
         if obj_class in self:
-            return True
-        elif obj_class.lower() in self:
-            return True
-        elif obj_class.upper() in self:
             return True
         else:
             return False
@@ -327,7 +340,7 @@ class IDDObject(dict):
 
         Also sets the idd file for use by this object.
 
-        :param str obj_class: Class type of this idf object
+        :param str obj_class_display: Class type of this idf object (for display purposes)
         :param str group: group that this idd object belongs to
         :param IDDFile outer: the outer object for this object (type IDDFile)
         :param args: arguments to pass to dictionary
@@ -335,7 +348,7 @@ class IDDObject(dict):
         """
 
         # Set various attributes of the idf object
-        self._obj_class = kwargs.pop('obj_class', None)
+        self._obj_class_display = kwargs.pop('obj_class_display', None)
         self._group = kwargs.pop('group', None)
         self._ordered_fields = list()
         self._idd = outer
@@ -349,12 +362,21 @@ class IDDObject(dict):
 
     @property
     def obj_class(self):
-        """Read-only property containing idd object's class type
+        """Read-only property containing idd object's class type in standardized lower case
 
         :returns str: Returns the obj_class string
         """
 
-        return self._obj_class
+        return self._obj_class_display.lower()
+
+    @property
+    def obj_class_display(self):
+        """Read-only property containing idd object's class type in a nice-caps version
+
+        :returns str: Returns the obj_class_display string
+        """
+
+        return self._obj_class_display
 
     # def index(self, key):
     #     """Read-only property that returns the index of this field
@@ -407,7 +429,7 @@ class IDDObject(dict):
         """
 
         # Prepare the info variable and add the object class
-        info = 'Class: {}'.format(self._obj_class)
+        info = 'Class: {}'.format(self.obj_class_display)
 
         # Grab the object memo, if any
         memo = self.tags.get('memo')
@@ -447,7 +469,6 @@ class IDDField(object):
 
         self._key = key
         self._outer = outer
-        self._obj_class = outer.obj_class
         self.value = kwargs.pop('value', None)
         self.tags = dict()
 
@@ -529,7 +550,7 @@ class IDDField(object):
         :return: The name of the class from the outer object
         """
 
-        return self._outer._obj_class
+        return self._outer.obj_class
 
     @property
     def units(self):

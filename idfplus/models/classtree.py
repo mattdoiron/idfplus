@@ -70,18 +70,18 @@ class ObjectClassTreeModel(CustomTreeModel):
     def setupModelData(self, idf, parent):
         if self.show_groups:
             group = ''
-            for obj_class, obj in idf._idd.iteritems():
+            for obj_class, obj in idf.idd.iteritems():
                 if group != obj.group:
                     group = obj.group
                     group_root = TreeItem((group, ''), parent)
                     parent.appendChild(group_root)
                 objs = idf.get(obj_class, None)
-                child = TreeItem((obj_class, objs), group_root)
+                child = TreeItem((obj.obj_class_display, objs), group_root)
                 group_root.appendChild(child)
         else:
-            for obj_class, obj in idf._idd.iteritems():
-                objs = idf.get(obj_class, None)
-                child = TreeItem((obj_class, objs), parent)
+            for obj_class, obj in idf.idd.iteritems():
+                objs = idf.get(obj.obj_class_display, None)
+                child = TreeItem((obj.obj_class, objs), parent)
                 parent.appendChild(child)
 
     def setData(self, index, value, role=QtCore.Qt.EditRole):

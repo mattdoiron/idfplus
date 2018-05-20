@@ -162,7 +162,7 @@ class SearchReplaceDialog(QtGui.QDialog):
         model.setHeaderData(2, QtCore.Qt.Horizontal, "UUID")
 
         for hit in results:
-            add_result_row(model, hit['value'], hit['obj_class'], hit['uuid'])
+            add_result_row(model, hit['value'], hit['obj_class_display'], hit['uuid'])
 
         return model
 

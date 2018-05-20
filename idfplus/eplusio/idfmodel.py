@@ -76,6 +76,9 @@ class IDFFile(OrderedDict):
         self._init_db()
         self.field_registry = dict()
 
+    def __getitem__(self, obj_class):
+        return super(IDFFile, self).__getitem__(obj_class.lower())
+
     def _init_db(self):
 
         self.db = sqlite3.connect(':memory:')
@@ -86,6 +89,7 @@ class IDFFile(OrderedDict):
         cursor.execute("CREATE TABLE idf_objects"
                        "(uuid TEXT PRIMARY KEY,"
                        "obj_class TEXT,"
+                       "obj_class_display TEXT,"
                        "ref_type TEXT,"
                        "value TEXT COLLATE NOCASE)")
         self.db.commit()
@@ -196,7 +200,7 @@ class IDFFile(OrderedDict):
         """
 
         query = "value='{}' AND ref_type='{}'".format(field.value, ref_type)
-        query += " AND NOT obj_class ='{}'".format(field.obj_class.lower())
+        query += " AND NOT obj_class ='{}'".format(field.obj_class)
 
         if ignore_geometry:
             query += " AND NOT obj_class='buildingsurface:detailed'"
@@ -260,7 +264,10 @@ class IDFFile(OrderedDict):
         :param obj_class:
         """
 
-        return self.get(obj_class, list())
+        return self.get(obj_class, None)
+
+    def get(self, key, default=None):
+        return super(IDFFile, self).get(key.lower(), default)
 
     def get_objects(self, key, index, count=None):
         """Returns the specified object.
@@ -363,9 +370,10 @@ class IDFFile(OrderedDict):
         append_new_field = field_objects.append
         for field in fields:
             if field:
-                append_new_field((field.uuid, field.obj_class, field.ref_type, field.value))
+                append_new_field((field.uuid, field.obj_class, field.obj_class_display,
+                                  field.ref_type, field.value))
 
-        upsert_operation = "INSERT OR REPLACE INTO idf_objects VALUES (?, ?, ?, ?)"
+        upsert_operation = "INSERT OR REPLACE INTO idf_objects VALUES (?, ?, ?, ?, ?)"
         self.db.executemany(upsert_operation, field_objects)
 
         if commit:
@@ -401,7 +409,7 @@ class IDFFile(OrderedDict):
         :type obj_class: str
         """
 
-        idd_object = self._idd.idd_object(obj_class)
+        idd_object = self.idd.idd_object(obj_class)
         max_field_count = len(idd_object)
         idf_object = self[obj_class][index_obj]
         current_field_count = len(idf_object)
@@ -451,7 +459,7 @@ class IDFFile(OrderedDict):
 
         # Check for another special case where there is no direct indicator of units
         if field.value and not units:
-            if field.obj_class.lower() == 'schedule:compact' and field.index > 1:
+            if field.obj_class == 'schedule:compact' and field.index > 1:
                 field_type = field.value.split(":")
                 if not field_type[0].lower() in ["through", "for", "interpolate", "until"]:
                     units = self._units_based_on_type_limits(field)
@@ -490,7 +498,7 @@ class IDFFile(OrderedDict):
         ip_units = idd_field.tags.get('ip-units')
 
         # Check for another special case where there is no direct indicator of units
-        if field.obj_class.lower() == 'schedule:compact' and not units and field.index > 1:
+        if field.obj_class == 'schedule:compact' and not units and field.index > 1:
             field_type = field.value.split(":")
             if not field_type[0].lower() in ["through", "for", "interpolate", "until"]:
                 units = self._units_based_on_type_limits(field)
@@ -663,8 +671,8 @@ class IDFObject(list):
 
     # Using slots simplifies the internal structure of the object and makes
     # it more memory efficiency
-    __slots__ = ['comments', 'comments_special', '_outer', 'obj_class',
-                 '_group', '_uuid', 'obj_class', 'group', 'uuid']
+    __slots__ = ['comments', 'comments_special', '_outer', 'obj_class', '_obj_class',
+                 '_group', '_uuid', 'group', 'uuid', 'obj_class_display', '_idd_object']
 
     def __init__(self, outer, obj_class, **kwargs):
         """Use kwargs to pre-populate some values, then remove them from kwargs
@@ -679,7 +687,7 @@ class IDFObject(list):
         # Set various attributes of the idf object
         self.comments = list()
         self.comments_special = list()
-        self.obj_class = obj_class
+        self._obj_class = obj_class
         self._outer = outer
         self._uuid = None
 
@@ -690,12 +698,30 @@ class IDFObject(list):
         """String representation of the object.
         """
 
-        field_str = self.obj_class + ','
+        field_str = self.obj_class_display + ','
         for field in self:
             field_str += str(field or '') + ','
         field_str = field_str[:-1]
         field_str += ';'
         return field_str
+
+    @property
+    def obj_class_display(self):
+        """Read-only property of class
+
+        :return: str
+        """
+
+        return self._outer._idd[self.obj_class].obj_class_display
+
+    @property
+    def obj_class(self):
+        """Read-only property of lower-case class
+
+        :return: str
+        """
+
+        return self._obj_class
 
     @property
     def uuid(self):
@@ -857,6 +883,16 @@ class IDFField(object):
         return self._outer.obj_class
 
     @property
+    def obj_class_display(self):
+        """Returns this field's outer object's (IDFObject) class
+
+        :rtype: str
+        :return: The name of the class from the outer object
+        """
+
+        return self._outer.obj_class_display
+
+    @property
     def index(self):
         """Read-only property that returns the index of this field
 
@@ -876,7 +912,7 @@ class IDFField(object):
         """
 
         try:
-            my_id = (self.obj_class,
+            my_id = (self.obj_class_display,
                      self._outer._outer[self.obj_class].index(self._outer),
                      self.index)
         except KeyError:

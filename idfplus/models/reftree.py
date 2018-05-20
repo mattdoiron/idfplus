@@ -38,7 +38,7 @@ class RefTreeItem(BaseTreeItem):
             if data in ['Object', 'Class', '']:
                 return data
             if column == 1:
-                return self.itemData[column].obj_class
+                return self.itemData[column].obj_class_display
             else:
                 return self.itemData[1]._outer[0].value or self.itemData[1].value
         except IndexError:
