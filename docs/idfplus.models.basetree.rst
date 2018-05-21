@@ -5,3 +5,5 @@ idfplus.models.basetree module
     :members:
     :undoc-members:
     :show-inheritance:
+    :private-members:
+    :special-members: __init__

@@ -5,6 +5,8 @@ idfplus.eplusio package
     :members:
     :undoc-members:
     :show-inheritance:
+    :private-members:
+    :special-members: __init__
 
 Submodules
 ----------

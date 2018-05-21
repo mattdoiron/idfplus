@@ -5,3 +5,8 @@ idfplus.eplusio.iddmodel module
     :members:
     :undoc-members:
     :show-inheritance:
+    :private-members:
+    :special-members: __init__, __getitem__, __contains__
+
+.. autoattribute:: idfplus.eplusio.iddmodel.IDDFile
+    :annotation:

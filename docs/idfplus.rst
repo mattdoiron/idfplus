@@ -5,6 +5,8 @@ IDFplus Package Documentation
     :members:
     :undoc-members:
     :show-inheritance:
+    :private-members:
+    :special-members: __init__
 
 Subpackages
 -----------
