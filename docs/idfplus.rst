@@ -1,13 +1,27 @@
-Main Goals
-==========
+IDFplus Package Documentation
+=============================
 
-* To be an open source, cross-platform idf editor
-* To provide additional convenience features building on what the existing editor
-  already does well
-* Provide a platform to interact with idf files in complex ways
-* To fix any annoyances with the existing editor
-* to not "mess with" the idf file format, simply work with it (no custom file
-  formats or incompatible changes, etc)
-* To work with any version of EnergyPlus the user has installed
-* More flexible views of objects (transpose, sort, filter, search)
-* Full undo support
+.. automodule:: idfplus
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+Subpackages
+-----------
+
+.. toctree::
+
+    idfplus.eplusio
+    idfplus.models
+    idfplus.widgets
+
+Submodules
+----------
+
+.. toctree::
+
+   idfplus.commands
+   idfplus.config
+   idfplus.delegates
+   idfplus.logger
+   idfplus.main

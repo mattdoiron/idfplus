@@ -14,6 +14,7 @@ Contents
    idfplus.rst
    IDFPlus Build Instructions.rst
    PySide Build Instructions.rst
+   changelog.rst
 
 Indices and tables
 ==================
@@ -21,4 +22,3 @@ Indices and tables
 * :ref:`genindex`
 * :ref:`modindex`
 * :ref:`search`
-
