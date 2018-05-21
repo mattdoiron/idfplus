@@ -1,20 +1,6 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
-"""
-Copyright (c) 2014, Matthew Doiron. All rights reserved.
-
-IDF+ is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-IDF+ is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with IDF+. If not, see <http://www.gnu.org/licenses/>.
+"""This submodule reads/parses IDD and IDF files as well as writes IDF files.
 """
 
 # System imports
@@ -75,11 +61,16 @@ class InvalidIDFObject(Exception):
     """
 
     def __init__(self, message):
+        """Exception indicating an invalid IDF object
+
+        :param str message: Message to go along with exception
+        """
+
         self.message = message
 
 
 class Writer(object):
-    """Class to take care of writing idf and idd files.
+    """Class to take care of writing IDF files.
     """
 
     def __init__(self):
@@ -89,8 +80,7 @@ class Writer(object):
     def write_idf(idf):
         """Write an IDF from the specified idfObject
 
-        :param idf: IDFObject to write
-        :type idf: IDFObject
+        :param IDFObject idf: IDFObject to write
         """
 
         idd = idf._idd
@@ -195,8 +185,9 @@ class Parser(object):
     def fields(line_in):
         """Strips all comments, etc and returns what's left
 
-        :rtype : list:
-        :param line_in:
+        :param str line_in: Raw string input (line from IDF file)
+        :returns: List of strings representing IDF fields
+        :rtype: list
         """
 
         fields = list()
@@ -236,8 +227,9 @@ class Parser(object):
     def comments_general(line_in):
         """Parses a string and returns the general comment if it exists
 
-        :param line_in:
-        :rtype str:
+        :param str line_in: Raw string input (line from IDF file)
+        :returns: General comments from the given line
+        :rtype: str
         """
 
         comments = None
@@ -276,8 +268,9 @@ class Parser(object):
     def comments_special(line_in):
         """Parses a line and returns any special comments present.
 
-        :rtype str:
-        :param line_in:
+        :param str line_in: Raw string input (line from IDF file)
+        :returns: String containing special comments from given line
+        :rtype: str
         """
 
         line_clean = line_in.expandtabs().lstrip()
@@ -293,8 +286,9 @@ class Parser(object):
     def tags(line_in):
         """Parses a line and gets any fields tags present
 
-        :rtype : dict:
-        :param line_in:
+        :param str line_in: Raw string input (line from IDF file)
+        :returns: A dictionary of tags. Keys are tag names, values are tag values.
+        :rtype: dict
         """
 
         tag_result = dict()
@@ -333,8 +327,9 @@ class Parser(object):
     def options(line_in):
         """Parses a line and returns any options present.
 
-        :rtype : list
-        :param line_in:
+        :param str line_in: Raw string input (line from IDF file)
+        :returns: A list of strings representing IDF file options found on the given line
+        :rtype: list
         """
 
         line_clean = line_in.expandtabs().lstrip().lower()
@@ -349,8 +344,10 @@ class Parser(object):
     def parse_line(self, line_in):
         """Parses a line from the IDD/IDF file and returns results
 
-        :rtype : dict:
-        :param line_in: 
+        :param str line_in: Raw string input (line from IDF file)
+        :returns: A dictionary containing all of the fields, comments, options and tags from the
+                  given line
+        :rtype: dict
         """
 
         # Get results
@@ -385,7 +382,7 @@ class Parser(object):
 class IDDParser(Parser):
     """Class that handles all parsing related specifically to IDD files.
 
-    :param idd:
+    :param IDDFile idd: IDD file to populate while parsing
     """
 
     __parser_version__ = '0.1.1'
@@ -393,8 +390,7 @@ class IDDParser(Parser):
     def __init__(self, idd=None):
         """Initialize the parser
 
-        :type idd: IDDFile
-        :param idd:
+        :param IDDFile idd: IDD file to populate during parsing
         """
 
         # Call the parent class' init method
@@ -408,10 +404,11 @@ class IDDParser(Parser):
             self.idd = iddmodel.IDDFile(parser_version=self.__parser_version__)
 
     def parse_idd(self, file_path):
-        """Parse the provided idd (or idf) file
+        """Parse the provided idd file
 
-        :rtype : generator
-        :param file_path: 
+        :param str file_path:
+        :returns: Yields a progress counter between 0 and 100
+        :rtype: generator
         """
 
         # TODO write parser for unit conversion comments!
@@ -622,9 +619,8 @@ class IDDParser(Parser):
 
         Also sets some attributes of the file.
 
-        :rtype : IDDFile
-        :param version:
-        :return: :raise IDDFileDoesNotExist:
+        :param str version:
+        :raise IDDError:
         """
 
         # Create the full path to the idd file
@@ -677,7 +673,9 @@ class IDFParser(Parser):
     def __init__(self, idf=None, idd=None, default_version=None):
         """Initializes the IDFParser class with an option idf file.
 
-        :param idf:
+        :param IDFFile idf: IDF file to be populated by the parser
+        :param IDDFile idd: IDD file to use while parsing
+        :param str default_version: Default version of the IDD file to use
         """
 
         # Set idf if it's given. Use either one supplied on init or a blank one
@@ -700,9 +698,10 @@ class IDFParser(Parser):
     def parse_idf(self, raw_idf, file_path=None):
         """Parse the provided idf file and populate an IDFFile object with objects.
 
-        :param raw_idf: File-like object containing idf to prse
-        :param file_path: option file path to use to fetch an idf to parse
-        :rtype : iterator
+        :param raw_idf: File-like object containing idf to parse
+        :param str file_path: option file path to use to fetch an idf to parse
+        :returns: Yields a progress counter between 0 and 100
+        :rtype: generator
         """
 
         self.idf.file_path = file_path
@@ -821,7 +820,7 @@ class IDFParser(Parser):
     def assign_idd(self, _version=None):
         """Verifies that an idd of the correct version is available
 
-        :param _version:
+        :param str _version:
         """
 
         if self.idd:
