@@ -1,20 +1,6 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
-"""
-Copyright (c) 2014, Matthew Doiron. All rights reserved.
-
-IDF+ is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-IDF+ is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with IDF+. If not, see <http://www.gnu.org/licenses/>.
+"""The IDD model file contains the data structure for IDD files.
 """
 
 # Package imports
@@ -172,12 +158,20 @@ class IDDError(Exception):
     """
 
     def __init__(self, message, version, *args, **kwargs):
+        """Initializes the object
+
+        :param str message: Message to carry along with exception
+        :param str version: Expected version of IDD file
+        """
+
         self.message = message
         self.version = version
         super(IDDError, self).__init__(*args, **kwargs)
 
 
 class MyDict(PersistentMapping):
+    """Subclass PersistentMapping in order to override __getitem__ to always use lower case.
+    """
 
     def __getitem__(self, key):
         return super(MyDict, self).__getitem__(key.lower())
@@ -206,21 +200,16 @@ class IDDFile(PODict):
 
     .. code-block:: python
 
-    {'ScheduleTypeLimits': IDDObject,
-    'SimulationControl':  IDDObject}
-
-    :attr str version: IDD file version
-    :attr list groups: List of groups to which classes can belong
+       {'ScheduleTypeLimits': IDDObject,
+        'SimulationControl':  IDDObject}
     """
 
     def __init__(self, data=(), **kwargs):
         """Initializes the idd file
 
+        :param data: Data to be passed to PODict constructor
         :param str version: IDD file version
-        :param list groups: list of groups from the idd file
-        :param list conversions: list of unit conversions from the idd file
-        :param *args: arguments to pass to dictionary
-        :param **kwargs: keyword arguments to pass to dictionary
+        :param str parser_version: Version of parser that was used to generate this IDD file
         """
 
         # Various attributes of the idd file
@@ -229,10 +218,10 @@ class IDDFile(PODict):
         self._version_set = False
         self._version = kwargs.pop('version', None)
         self._parser_version = kwargs.pop('parser_version', None)
-        self.options = list()
-        self.tags = dict()
-        self.file_path = None
-        self.object_lists = dict()
+        self.options = list()  #: List of option associated with this IDF file
+        self.tags = dict()  #: Dictionary of tags associated with this IDF file
+        self.file_path = None  #: String containing the file path for this IDF file
+        self.object_lists = dict()  #: The object lists for this IDF file
         self._object_list_length = 0
         self._ureg = UNITS_REGISTRY
 
@@ -293,7 +282,9 @@ class IDDFile(PODict):
     def idd_object(self, obj_class):
         """Returns the specified object class.
 
-        :param obj_class:
+        :param str obj_class: Object class of desired idd object
+        :returns: IDDObject, which is a list of IDDField objects
+        :rtype: IDDObject
         """
 
         return self.get(obj_class, None)
@@ -301,7 +292,9 @@ class IDDFile(PODict):
     def valid_class(self, obj_class):
         """Returns True if provided class is valid
 
-        :param obj_class: Object class to validate
+        :param str obj_class: Object class to validate
+        :returns: True or False
+        :rtype: bool
         """
 
         if obj_class in self:
@@ -312,8 +305,10 @@ class IDDFile(PODict):
     def field(self, obj_class, index):
         """Returns the specified field. Convenience function.
 
-        :param index:
-        :param obj_class:
+        :param str index: IDD field index such as A1, N1, A2, N2, etc
+        :param str obj_class: Object class of desired field
+        :returns: IDFField object
+        :rtype: IDFField
         """
 
         try:
@@ -340,10 +335,11 @@ class IDDObject(dict):
         Also sets the idd file for use by this object.
 
         :param str obj_class_display: Class type of this idf object (for display purposes)
-        :param str group: group that this idd object belongs to
+        :param str group: group to which this IDD object belongs
+        :param str comments: Comments for this object
+        :param str comments_special: Special comments for this object
         :param IDDFile outer: the outer object for this object (type IDDFile)
-        :param args: arguments to pass to dictionary
-        :param kwargs: keyword arguments to pass to dictionary
+        :param data: Data to be passed to dict's constructor
         """
 
         # Set various attributes of the idf object
@@ -363,7 +359,8 @@ class IDDObject(dict):
     def obj_class(self):
         """Read-only property containing idd object's class type in standardized lower case
 
-        :returns str: Returns the obj_class string
+        :returns: Returns the obj_class string
+        :rtype: str
         """
 
         return self._obj_class_display.lower()
@@ -372,7 +369,8 @@ class IDDObject(dict):
     def obj_class_display(self):
         """Read-only property containing idd object's class type in a nice-caps version
 
-        :returns str: Returns the obj_class_display string
+        :returns: Returns the obj_class_display string
+        :rtype: str
         """
 
         return self._obj_class_display
@@ -398,9 +396,9 @@ class IDDObject(dict):
     def key(self, index):
         """Finds the key from the given index.
 
-        :param int index:
-        :rtype: str
+        :param int index: The index of the field for which they key is to be returned
         :return: The object's key, eg. A1, N3
+        :rtype: str
         """
 
         try:
@@ -425,6 +423,8 @@ class IDDObject(dict):
 
     def get_info(self):
         """Read-only property returning a collection of comments/notes about the obj
+
+        :rtype: str
         """
 
         # Prepare the info variable and add the object class
@@ -465,6 +465,11 @@ class IDDField(object):
     # TODO merge this class with IDFField?
 
     def __init__(self, outer, key, **kwargs):
+        """
+
+        :param IDDObject outer: The IDDObject to which this field belongs
+        :param str key: The key used to access this field (i.e. A1, N2, etc)
+        """
 
         self._key = key
         self._outer = outer
@@ -475,7 +480,10 @@ class IDDField(object):
         super(IDDField, self).__init__()
 
     def get_info(self):
-        """Read-only property returning a collection of comments/notes about the obj
+        """Returns a collection of comments/notes about the obj
+
+        :return: Returns a collection of comments/notes about the obj
+        :rtype: str
         """
 
         # Prepare the info variable and add the field name
@@ -527,7 +535,6 @@ class IDDField(object):
         """Returns the object's key.
 
         :rtype: str
-        :return: The object's key
         """
 
         return self._key
@@ -536,17 +543,16 @@ class IDDField(object):
     def index(self):
         """Returns object's index
 
-        :return:
+        :rtype: str
         """
 
         return self._outer._ordered_fields.index(self._key)
 
     @property
     def obj_class(self):
-        """Returns the object's class.
+        """Returns the name of the class from the outer object
 
         :rtype: str
-        :return: The name of the class from the outer object
         """
 
         return self._outer.obj_class
