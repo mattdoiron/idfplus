@@ -54,8 +54,8 @@ class TreeItem(BaseTreeItem):
     def data(self, column):
         """Returns data for specified column in the tree
 
-        :type column: int
-        :return:
+        :param int column: column of desired data
+        :rtype: str or None
         """
 
         data = self.itemData[column]
@@ -83,13 +83,10 @@ class CustomTreeModel(QtCore.QAbstractItemModel):
     """
 
     def data(self, index, role):
-        """Returns data for specified column in the tree
+        """Returns various data for specified column in the tree
 
-        :param index: Index of tree item for which data is requested
-        :type index: QtCore.QModelIndex()
-        :param role: QtCore.Qt.Role
-        :type role: int
-        :return: Various data related to the tree item
+        :param QtCore.QModelIndex() index: Index of tree item for which data is requested
+        :param int role: QtCore.Qt.Role
         """
 
         if not index.isValid():

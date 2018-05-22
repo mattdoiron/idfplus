@@ -18,8 +18,7 @@ class RefTreeItem(BaseTreeItem):
     def data(self, column):
         """Returns data for specified column in specialized reference tree
 
-        :type column: int
-        :return:
+        :type int column:
         """
 
         data = self.itemData[column]

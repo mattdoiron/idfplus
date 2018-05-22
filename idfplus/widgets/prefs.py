@@ -25,6 +25,9 @@ class PrefsDialog(QtGui.QDialog):
     """
 
     def __init__(self, parent, prefs):
+        """Initialize the preferences tab
+        """
+
         super(PrefsDialog, self).__init__(parent)
         self.prefs = prefs
         button_box = QtGui.QDialogButtonBox(QtGui.QDialogButtonBox.Ok)
@@ -55,6 +58,9 @@ class PrefsDialog(QtGui.QDialog):
 
 class AppearanceTab(QtGui.QWidget):
     def __init__(self, parent):
+        """Initialize the appearance tab
+        """
+
         super(AppearanceTab, self).__init__(parent)
 
         self.prefs = parent.prefs
@@ -158,6 +164,9 @@ class AppearanceTab(QtGui.QWidget):
 
 class SaveTab(QtGui.QWidget):
     def __init__(self, parent):
+        """Initialize the save tab
+        """
+
         super(SaveTab, self).__init__(parent)
 
         self.prefs = parent.prefs
@@ -248,6 +257,9 @@ class SaveTab(QtGui.QWidget):
 
 class AdvancedTab(QtGui.QWidget):
     def __init__(self, parent):
+        """Initialize the advanced tab
+        """
+
         super(AdvancedTab, self).__init__(parent)
 
         self.prefs = parent.prefs

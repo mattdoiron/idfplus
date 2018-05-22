@@ -23,6 +23,9 @@ class SearchReplaceDialog(QtGui.QDialog):
     """
 
     def __init__(self, parent, initial_query=None):
+        """Initialize the search window
+        """
+
         super(SearchReplaceDialog, self).__init__(parent)
 
         self.parent = parent
@@ -330,6 +333,9 @@ class MySearchField(QtGui.QLineEdit):
     """
 
     def __init__(self, search_button):
+        """Initialize the search field class
+        """
+
         super(MySearchField, self).__init__()
         self.search_button = search_button
 

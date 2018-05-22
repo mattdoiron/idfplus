@@ -716,7 +716,7 @@ class IDFObject(list):
 
     @property
     def obj_class_display(self):
-        """Read-only property of class
+        """Read-only property of class containing display-friendly object class
 
         :rtype: str
         """
@@ -725,7 +725,7 @@ class IDFObject(list):
 
     @property
     def obj_class(self):
-        """Read-only property of lower-case class
+        """Read-only property of lower-case objcet class
 
         :rtype: str
         """
