@@ -188,19 +188,19 @@ class PODict(_odict, MyDict):
 class IDDFile(PODict):
     """Primary object representing idd file and container for idd objects.
 
-    Is an OrderedDict of IDDObjects with the class type as a
-    key. For example:
+    Is an :class:`collections.OrderedDict` of :class:`IDDObject` s with the class type as a
+    key. All keys are lower case. For example:
 
     .. code-block:: python
 
-       {'ScheduleTypeLimits': IDDObject,
-        'SimulationControl':  IDDObject}
+       {'scheduletypelimits': IDDObject,
+        'simulationcontrol':  IDDObject}
     """
 
     def __init__(self, data=(), **kwargs):
         """Initializes the idd file
 
-        :param data: Data to be passed to PODict constructor
+        :param data: Data to be passed to :class:`PODict` constructor
         :param str version: IDD file version
         :param str parser_version: Version of parser that was used to generate this IDD file
         """
@@ -225,6 +225,9 @@ class IDDFile(PODict):
         return super(IDDFile, self).__reduce__()
 
     def get(self, key, default=None):
+        """Override get to ensure lower case key
+        """
+
         return super(IDDFile, self).get(key.lower(), default)
 
     # def __setitem__(self, key, value, dict_setitem=dict.__setitem__):
@@ -239,7 +242,7 @@ class IDDFile(PODict):
 
     @property
     def version(self):
-        """Read-only property containing idf file version.
+        """Read-only property containing IDF file version.
         """
 
         return self._version
@@ -273,11 +276,10 @@ class IDDFile(PODict):
         return self._object_list_length
 
     def idd_object(self, obj_class):
-        """Returns the specified object class.
+        """Returns the specified :class:`IDDObject`.
 
-        :param str obj_class: Object class of desired idd object
-        :returns: IDDObject, which is a list of IDDField objects
-        :rtype: IDDObject
+        :param str obj_class: Object class of desired :class:`IDDObject`
+        :rtype: IDDObject(IDDField)
         """
 
         return self.get(obj_class, None)
@@ -300,7 +302,6 @@ class IDDFile(PODict):
 
         :param str index: IDD field index such as A1, N1, A2, N2, etc
         :param str obj_class: Object class of desired field
-        :returns: IDFField object
         :rtype: IDFField
         """
 
@@ -319,7 +320,7 @@ class IDDFile(PODict):
 class IDDObject(dict):
     """Represents objects in idd files.
 
-    Contains a dictionary of fields in the form: {'A1':IDDField1, 'N1':IDDField2}
+    This class is a dictionary of fields in the form: {'A1':IDDField1, 'N1':IDDField2}
     """
 
     def __init__(self, outer, data=(), **kwargs):
@@ -327,23 +328,23 @@ class IDDObject(dict):
 
         Also sets the idd file for use by this object.
 
-        :param str obj_class_display: Class type of this idf object (for display purposes)
+        :param str obj_class_display: Class type of this IDF object (for display purposes)
         :param str group: group to which this IDD object belongs
         :param str comments: Comments for this object
         :param str comments_special: Special comments for this object
-        :param IDDFile outer: the outer object for this object (type IDDFile)
+        :param IDDFile outer: the outer object for this object
         :param data: Data to be passed to dict's constructor
         """
 
-        # Set various attributes of the idf object
+        # Set various attributes of the IDF object
         self._obj_class_display = kwargs.pop('obj_class_display', None)
         self._group = kwargs.pop('group', None)
         self._ordered_fields = list()
         self._idd = outer
         self._extensible = None
-        self.tags = dict()
-        self.comments = kwargs.pop('comments', None)
-        self.comments_special = kwargs.pop('comments_special', None)
+        self.tags = dict()  #: Tags belonging to this :class:`IDDObject`
+        self.comments = kwargs.pop('comments', None)  #: Comments for this :class:`IDDObject`
+        self.comments_special = kwargs.pop('comments_special', None)  #: Special comments for this :class:`IDDObject`
 
         # Call the parent class' init method
         super(IDDObject, self).__init__(data)
@@ -460,7 +461,7 @@ class IDDField(object):
     def __init__(self, outer, key, **kwargs):
         """
 
-        :param IDDObject outer: The IDDObject to which this field belongs
+        :param IDDObject outer: The :class:`IDDObject` to which this field belongs
         :param str key: The key used to access this field (i.e. A1, N2, etc)
         """
 
