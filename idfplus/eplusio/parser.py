@@ -73,9 +73,6 @@ class Writer(object):
     """Class to take care of writing IDF files.
     """
 
-    def __init__(self):
-        super(Writer, self).__init__()
-
     @staticmethod
     def write_idf(idf):
         """Write an IDF from the specified idfObject
@@ -177,9 +174,6 @@ class Writer(object):
 class Parser(object):
     """Base class for more specialized parsers
     """
-
-    def __init__(self):
-        super(Parser, self).__init__()
 
     @staticmethod
     def fields(line_in):

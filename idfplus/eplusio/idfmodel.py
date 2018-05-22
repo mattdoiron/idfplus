@@ -121,8 +121,8 @@ class IDFFile(OrderedDict):
         :param IDDFile idd: IDD file to use for this IDF file
         """
 
-        if not idd:
-            raise
+        if not isinstance(idd, IDDFile):
+            raise IDFError
 
         self._idd = idd
         self._version = idd.version
@@ -313,7 +313,7 @@ class IDFFile(OrderedDict):
         # If there are no objects to add, make a new blank one
         if not new_objects or (len(new_objects) == 1 and new_objects[0] is None):
             obj = IDFObject(self, obj_class)
-            obj.set_defaults(self.idd)
+            obj.set_defaults()
             new_objects = [obj]
 
         # Insert the new object(s)
@@ -678,7 +678,7 @@ class IDFObject(list):
     # Using slots simplifies the internal structure of the object and makes
     # it more memory efficiency
     __slots__ = ['comments', 'comments_special', '_outer', 'obj_class', '_obj_class',
-                 '_group', '_uuid', 'group', 'uuid', 'obj_class_display', '_idd_object']
+                 '_uuid', 'uuid', 'obj_class_display', '_idd_object']
 
     def __init__(self, outer, obj_class, **kwargs):
         """Initialize the IDF object
@@ -740,6 +740,17 @@ class IDFObject(list):
             self._uuid = str(uuid.uuid4())
         return self._uuid
 
+    @property
+    def idd_object(self):
+        """Read-only property containing the object's class's :class:`IDDObject`
+
+        :rtype: IDDObject
+        """
+
+        if not self._idd_object:
+            self._idd_object = self._outer._idd.get(self.obj_class)
+        return self._idd_object
+
     def duplicate(self):
         """Create a new :class:`IDFField` object and copy this one's references and value.
 
@@ -762,13 +773,11 @@ class IDFObject(list):
 
         return result
 
-    def set_defaults(self, idd):
-        """Populates the object's fields with their defaults
-
-        :param idd: IDDObject to use for sourcing defaults
+    def set_defaults(self):
+        """Populates the object's fields with their defaults using the given IDD
         """
 
-        idd_object = idd.idd_object(self.obj_class)
+        idd_object = self.idd_object
         for i, idd_field in enumerate(idd_object.itervalues()):
             default = idd_field.tags.get('default', None)
             try:
@@ -796,8 +805,8 @@ class IDFField(object):
 
     # Using slots simplifies the internal structure of the object and makes
     # it more memory efficiency
-    __slots__ = ['key', 'tags', 'value', 'idd_object', 'ref_type', 'ureg',
-                 'outer', 'uuid', '_key', '_tags', '_value', '_idd_object',
+    __slots__ = ['key', 'tags', 'value', 'idd_object', 'ref_type',
+                 'uuid', '_key', '_tags', '_value', '_idd_object',
                  '_ref_type', '_outer', '_uuid', 'index', '_index']
 
     def __init__(self, outer, value=None, **kwargs):

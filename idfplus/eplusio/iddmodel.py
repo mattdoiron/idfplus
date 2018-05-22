@@ -176,13 +176,6 @@ class MyDict(PersistentMapping):
     def __getitem__(self, key):
         return super(MyDict, self).__getitem__(key.lower())
 
-    def __contains__(self, key):
-        try:
-            self[key]
-            return True
-        except KeyError:
-            return False
-
 
 class PODict(_odict, MyDict):
     """Persistent ordered dictionary
