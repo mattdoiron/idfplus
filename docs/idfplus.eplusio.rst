@@ -13,7 +13,6 @@ Submodules
 
 .. toctree::
 
-   idfplus.eplusio.config
    idfplus.eplusio.iddmodel
    idfplus.eplusio.idfmodel
    idfplus.eplusio.parser
