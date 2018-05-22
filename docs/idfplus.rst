@@ -1,5 +1,5 @@
-IDFplus Package Documentation
-=============================
+IDFplus Documentation for Developers
+====================================
 
 .. automodule:: idfplus
     :members:
