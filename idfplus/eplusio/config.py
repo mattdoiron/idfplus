@@ -1,6 +1,9 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 """Configuration specific to eplusio module
+
+:copyright: (c) 2014 by Matt Doiron.
+:license: GPL v3, see LICENSE for more details.
 """
 
 # System imports

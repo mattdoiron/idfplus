@@ -13,7 +13,6 @@ Submodules
 
 .. toctree::
 
-   idfplus.widgets.help
    idfplus.widgets.main
    idfplus.widgets.prefs
    idfplus.widgets.search

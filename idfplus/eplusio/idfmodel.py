@@ -1,6 +1,9 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 """IDF file, object and field models. These serve as the primary data structure for IDF files
+
+:copyright: (c) 2014 by Matt Doiron.
+:license: GPL v3, see LICENSE for more details.
 """
 
 # System imports
