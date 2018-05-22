@@ -1,5 +1,5 @@
-idfplus.models.reftree module
-=============================
+idfplus.models.reftree
+======================
 
 .. automodule:: idfplus.models.reftree
     :members:

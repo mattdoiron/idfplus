@@ -1,5 +1,5 @@
-idfplus.widgets.search module
-=============================
+idfplus.widgets.search
+======================
 
 .. automodule:: idfplus.widgets.search
     :members:

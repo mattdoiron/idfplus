@@ -1,5 +1,5 @@
-idfplus.logger module
-=====================
+idfplus.logger
+==============
 
 .. automodule:: idfplus.logger
     :members:

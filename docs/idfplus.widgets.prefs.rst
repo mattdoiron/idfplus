@@ -1,5 +1,5 @@
-idfplus.widgets.prefs module
-============================
+idfplus.widgets.prefs
+=====================
 
 .. automodule:: idfplus.widgets.prefs
     :members:

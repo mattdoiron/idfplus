@@ -1,5 +1,5 @@
-idfplus.models.classtable module
-================================
+idfplus.models.classtable
+=========================
 
 .. automodule:: idfplus.models.classtable
     :members:

@@ -1,5 +1,5 @@
-idfplus.eplusio.parser module
-=============================
+idfplus.eplusio.parser
+======================
 
 .. automodule:: idfplus.eplusio.parser
     :members:

@@ -1,5 +1,5 @@
-idfplus.main module
-===================
+idfplus.main
+============
 
 .. automodule:: idfplus.main
     :members:

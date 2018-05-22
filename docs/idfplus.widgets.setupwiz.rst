@@ -1,5 +1,5 @@
-idfplus.widgets.setupwiz module
-===============================
+idfplus.widgets.setupwiz
+========================
 
 .. automodule:: idfplus.widgets.setupwiz
     :members:
