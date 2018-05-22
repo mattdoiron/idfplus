@@ -1,20 +1,6 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
-"""
-Copyright (c) 2014, Matthew Doiron. All rights reserved.
-
-IDF+ is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-IDF+ is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with IDF+. If not, see <http://www.gnu.org/licenses/>.
+"""IDF file, object and field models. These serve as the primary data structure for IDF files
 """
 
 # System imports
@@ -24,7 +10,7 @@ from collections import OrderedDict
 
 # Package imports
 from . import config
-from .iddmodel import UNITS_REGISTRY, UNIT_TYPES, ALLOWED_OPTIONS, IDDObject
+from .iddmodel import UNITS_REGISTRY, UNIT_TYPES, ALLOWED_OPTIONS, IDDObject, IDDFile
 
 # Investigate as replacement for large lists
 # https://pypi.python.org/pypi/blist
@@ -35,51 +21,52 @@ class IDFError(Exception):
     """
 
     def __init__(self, message, *args, **kwargs):
+        """Init base class for IDF exceptions
+
+        :param str message: Message to pass along with exception
+        """
+
         self.message = message
         super(IDFError, self).__init__(*args, **kwargs)
 
 
 class IDFFile(OrderedDict):
-    """Primary object representing idf file and container for idf objects.
+    """Primary object representing IDF file and container for IDF objects.
 
-    Contains an OrderedDict of lists of IDFObjects with the class type as a
-    key. For example:
-    {'ScheduleTypeLimits': [IDFObject1, IDFObject2, IDFObject3],
-    'SimulationControl':  [IDFObject4]}
+    This class is an :class:`collections.OrderedDict` of lists of
+    :class:`IDFObject` with the class type as a key. Class keys are always lower case.
+    For example:
 
-    :attr IDDFile idd: IDDFile object containing pre-compiled idd file
-    :attr str version: EnergyPlus version number (eg. 8.1.0.008)
-    :attr str eol_char: depends on file (could be \\n or \\r\\n, etc)
-    :attr list options: options that may have been found in idf file
-    :attr str file_path: full, absolute path to idf file
+    .. code-block:: python
+
+        {'scheduletypelimits': [IDFObject1, IDFObject2, IDFObject3],
+         'simulationcontrol':  [IDFObject4]}
     """
 
     def __init__(self, *args, **kwargs):
-        """Initializes a new idf, blank or opens the given file_path
-
-        :param str file_path:
-        :param \*args: arguments to pass to base dictionary type
-        :param \*\*kwargs: keyword arguments to pass to base dictionary type
+        """Initializes a new IDF, blank or opens the given file_path
         """
 
         # Call the parent class' init method
         super(IDFFile, self).__init__(*args, **kwargs)
 
-        # Various attributes of the idf file
+        # Various attributes of the IDF file
         self._idd = None
         self._eol_char = '\n'
-        self.file_path = None
-        self.options = list()
+        self.file_path = None  #: Full absolute path to IDF file
+        self.options = list()  #: List of options that may have been found in IDF file
         self._version = None
-        self.si_units = True
+        self.si_units = True  #: Boolean representing whether SI units are to be displayed
         self._uuid = str(uuid.uuid4())
         self._init_db()
-        self.field_registry = dict()
+        self.field_registry = dict()  #: Dictionary containing a registry of fields
 
     def __getitem__(self, obj_class):
         return super(IDFFile, self).__getitem__(obj_class.lower())
 
     def _init_db(self):
+        """Initialize the SQLite database to store field values for search
+        """
 
         self.db = sqlite3.connect(':memory:')
         self.db.row_factory = sqlite3.Row
@@ -95,7 +82,7 @@ class IDFFile(OrderedDict):
         self.db.commit()
 
     def init_blank(self):
-        """Sets up a blank idf file
+        """Sets up a blank IDF file
         """
 
         # Prepare the idd file
@@ -112,7 +99,9 @@ class IDFFile(OrderedDict):
 
     @property
     def version(self):
-        """Read-only property containing idf file version
+        """Read-only property containing IDF file version
+
+        :rtype: str
         """
 
         return self._version
@@ -120,13 +109,16 @@ class IDFFile(OrderedDict):
     @property
     def idd(self):
         """Read-only property containing idd file
+
+        :rtype: IDDObject
         """
 
         return self._idd
 
     def set_idd(self, idd):
         """Sets the IDD file and takes care of some setup operations
-        :param idd:
+
+        :param IDDFile idd: IDD file to use for this IDF file
         """
 
         if not idd:
@@ -139,8 +131,9 @@ class IDFFile(OrderedDict):
     def reference_tree_data(self, obj_class, index):
         """Constructs a list of lists of nodes for the reference tree view.
 
-        :param index:
-        :param obj_class:
+        :param QModelIndex index: Index representing row and column location of selected field
+        :param str obj_class: Object class to use when creating reference tree
+        :rtype: list(IDFField) or None
         """
 
         if not index:
@@ -164,7 +157,8 @@ class IDFFile(OrderedDict):
     def reference_count(self, field):
         """Returns a count of references for the given field.
 
-        :param field:
+        :param IDFField field: The field to query for references
+        :rtype: int
         """
 
         # Continue only if a valid field is present and the right type
@@ -178,7 +172,9 @@ class IDFFile(OrderedDict):
     def references(self, field, ignore_geometry=False):
         """Performs search for all references
 
-        :return:
+        :param IDFField field: Field for which the references will be retrieved
+        :param bool ignore_geometry: Set if returned references should exclude geometry
+        :rtype: list(IDFField)
         """
 
         if not field.value:
@@ -196,7 +192,10 @@ class IDFFile(OrderedDict):
     def _query_refs(self, field, ref_type, ignore_geometry):
         """Performs search for incoming or outgoing references
 
-        :return:
+        :param IDFField field: Field for which the references will be retrieved
+        :param str ref_type: Type of reference (reference or object-list)
+        :param bool ignore_geometry: Set if returned references should exclude geometry
+        :rtype: list(IDFField)
         """
 
         query = "value='{}' AND ref_type='{}'".format(field.value, ref_type)
@@ -222,7 +221,7 @@ class IDFFile(OrderedDict):
         """Pre-allocates the keys of the IDFFile.
 
         This must be done early so that all objects added later are added
-        in the proper order (this is an OrderedDict!).
+        in the proper order (this is an :class:`collections.OrderedDict`!).
         """
 
         self.update((k, list()) for k in self._idd.iterkeys())
@@ -230,10 +229,11 @@ class IDFFile(OrderedDict):
     def search(self, search_query, whole_field=False, advanced=False, ignore_geometry=False):
         """Performs search for a search_query
 
-        :param search_query:
-        :param whole_field:
-        :param advanced:
-        :return:
+        :param str search_query: SQL query to perform
+        :param bool whole_field: Whole or partial field match
+        :param bool advanced: Use advanced or simple query mode
+        :param bool ignore_geometry: Set if returned references should include geometry
+        :rtype: list, str
         """
 
         if advanced:
@@ -261,21 +261,24 @@ class IDFFile(OrderedDict):
     def idf_objects(self, obj_class):
         """Returns all the objects in the specified class.
 
-        :param obj_class:
+        :param str obj_class: Object class of IDF objects to return
         """
 
         return self.get(obj_class, None)
 
     def get(self, key, default=None):
+        """Override get in order to ensure lower case obj_class names
+        """
+
         return super(IDFFile, self).get(key.lower(), default)
 
     def get_objects(self, key, index, count=None):
-        """Returns the specified object.
+        """Returns the specified range of objects.
 
-        :param count: Number of objects to return.
-        :param index: Starting index.
-        :param key: Class of objects to return.
-        :returns list: List of IDFObjects.
+        :param int count: Number of objects to return.
+        :param int index: Starting index.
+        :param str key: Class of objects to return.
+        :rtype: list(IDFObject).
         """
 
         if count is None:
@@ -286,11 +289,13 @@ class IDFFile(OrderedDict):
     def add_objects(self, obj_class, new_objects, position=None, update=True):
         """Adds the specified object(s) to the IDFFile.
 
-        :param update:
-        :param obj_class:
-        :param position:
-        :param new_objects: List of IDFObjects or single IDFObject
-        :returns int: Number of objects added
+        :param bool update: Flag to update the field index or not
+        :param str obj_class: Object class into which the objects will be added
+        :param bool position: Position at which the objects will be added
+        :param new_objects: :class:`IDFObject` (s) to add
+        :type new_objects: list(IDFObject) or IDFObject
+        :returns: Number of objects added
+        :rtype: int
         """
 
         # We accept lists or single objects, but must use lists later on
@@ -327,10 +332,10 @@ class IDFFile(OrderedDict):
         return len(new_objects)
 
     def _index_objects(self, new_objects):
-        """
+        """Adds objects to the internal index
 
-        :param new_objects:
-        :return:
+        :param list(IDFObject) new_objects: List of :class:`IDFObject` 's to add to
+            the index
         """
 
         for obj in new_objects:
@@ -338,10 +343,10 @@ class IDFFile(OrderedDict):
         self.db.commit()
 
     def _deindex_objects(self, objects_to_delete):
-        """
+        """Remove specified objects from the internal index
 
-        :param objects_to_delete:
-        :return:
+        :param list(IDFObject) objects_to_delete: List of :class:`IDFObject` 's to delete
+            from the index
         """
 
         # Create IDFField objects for all fields and add them to the IDFObject
@@ -357,10 +362,9 @@ class IDFFile(OrderedDict):
         self.db.commit()
 
     def _upsert_field_index(self, fields, commit=True):
-        """
+        """Upsert (update or insert) the field index
 
-        :param fields:
-        :return:
+        :param list(IDFField) fields: Fields to upsert
         """
 
         if not fields:
@@ -382,13 +386,10 @@ class IDFFile(OrderedDict):
     def field(self, obj_class, index_obj, index_field):
         """Returns the specified field. Convenience function.
 
-        :param index_field:
-        :type index_field: int
-        :param index_obj:
-        :type index_obj: int
-        :param obj_class:
-        :type obj_class: str
-        :return: IDFField object
+        :param int index_field: Position of field in its object
+        :param int index_obj: Position of object in its class
+        :param str obj_class: Class of object to return
+        :rtype: IDFField
         """
 
         try:
@@ -401,12 +402,9 @@ class IDFFile(OrderedDict):
     def allocate_fields(self, obj_class, index_obj, index_field):
         """Checks for max allowable fields and allocates more if necessary.
 
-        :param index_field:
-        :type index_field: int
-        :param index_obj:
-        :type index_obj: int
-        :param obj_class:
-        :type obj_class: str
+        :param int index_field: Position of field in its object
+        :param int index_obj: Position of object in its class
+        :param str obj_class: Class of object to return
         """
 
         idd_object = self.idd.idd_object(obj_class)
@@ -425,11 +423,11 @@ class IDFFile(OrderedDict):
             self[obj_class][index_obj][index_field] = field
 
     def remove_objects(self, obj_class, first_row, last_row):
-        """Deletes specified object.
+        """Deletes specified object(s)
 
-        :param first_row:
-        :param last_row:
-        :param obj_class:
+        :param int first_row: Position of first row to delete
+        :param int last_row: Postition of last row to delete
+        :param str obj_class: Class of objects to delete
         """
 
         # Remove the fields from graph also
@@ -443,7 +441,8 @@ class IDFFile(OrderedDict):
     def units(self, field):
         """Returns the given field's current display units.
 
-        :param eplusio.idfmodel.IDFField field:
+        :param IDFField field: Field for which the units are desired
+        :rtype: str
         """
 
         if field is None:
@@ -486,10 +485,11 @@ class IDFFile(OrderedDict):
     def _unit_conversion(self, field):
         """Gets the appropriate unit conversion value(s)
 
-        :param eplusio.idfmodel.IDFField field:
+        :param IDFField field: Field for which the unit conversion is desired
+        :rtype: str
         """
 
-        # Get the idd field corresponding to this idf field
+        # Get the idd field corresponding to this IDF field
         idd_object = self.idd.idd_object(field.obj_class)
         idd_field = idd_object[field.key]
 
@@ -520,7 +520,8 @@ class IDFFile(OrderedDict):
     def _units_based_on_type_limits(self, field):
         """Returns the given field's current display units when based on a 'type limit'.
 
-        :param eplusio.idfmodel.IDFField field:
+        :param IDFField field: Field whose units will be returned
+        :rtype: str
         """
 
         type_limits_field = field._outer[1]
@@ -546,8 +547,8 @@ class IDFFile(OrderedDict):
         """Returns units if field's units are based on the content of another field.
 
         :param str units:
-        :param eplusio.idfmodel.IDFField field:
-        :return:
+        :param IDFField field: Field whose units will be returned
+        :rtype: str
         """
 
         based_on_field_key = units.split()[-1]
@@ -562,10 +563,11 @@ class IDFFile(OrderedDict):
         return actual_units
 
     def to_si(self, field, override_value=None):
-        """Accepts field, and returns the value in SI units.
+        """Accepts field, and returns a string of the value in SI units.
 
-        :param override_value: Convert this value instead of the field's current value
-        :param field: IDFField object containing the value to be converted
+        :param float override_value: Convert this value instead of the field's current value
+        :param IDFField field: Field containing the value to be converted
+        :rtype: str
         """
 
         if not field:
@@ -589,9 +591,10 @@ class IDFFile(OrderedDict):
         return data
 
     def to_ip(self, field):
-        """Accepts a field, and returns the value in IP units.
+        """Accepts a field, and returns a string of the value in IP units.
 
-        :param field: IDFField object containing the value to be converted
+        :param IDFField field: Field containing the value to be converted
+        :rtype: str
         """
 
         if not field:
@@ -616,10 +619,9 @@ class IDFFile(OrderedDict):
         return data
 
     def set_options(self, options):
-        """Sets or unsets the specified options in this idf's options field
+        """Sets or unsets the specified options in this :class:`IDFFile`'s options field
 
-        :param options: Dictionary of options to set
-        :type options: dict
+        :param dict options: Dictionary of options to set
         """
 
         for option, value in options.iteritems():
@@ -641,33 +643,37 @@ class IDFFile(OrderedDict):
                 raise ValueError('Invalid option for {}!'.format(option))
 
     def iter_ordered(self):
+        """Not implemented
+        """
 
-        # TODO save order of object as they are being parsed then create a list of objects
-        # according to the sorted list of the objects. Then yield the items here in order.
-        # for obj_class in self._idd.iterkeys():
-        #     yield obj_class, self.idf_objects(obj_class)
-        # This will allow getting rid of the OrderedDict class which is slow!
+        #: Todo save order of object as they are being parsed then create a list of objects
+        #: according to the sorted list of the objects. Then yield the items here in order.
+        #: for obj_class in self._idd.iterkeys():
+        #:     yield obj_class, self.idf_objects(obj_class)
+        #: This will allow getting rid of the :class:`collections.OrderedDict` class which is slow!
         pass
 
     def field_by_uuid(self, field_uuid):
+        """Looks up the field in the field registry and returns the one matching the uuid
+
+        :param str field_uuid: UUID of field as found in the registry
+        :rtype: IDFField
+        """
 
         return self.field_registry.get(field_uuid, None)
 
 
 class IDFObject(list):
-    """Represents objects in idf files.
+    """Represents objects in IDF files.
 
-    Contains a list of fields in the form: [IDFField1, IDFField2, IDFField3]
+    This class is a list of :class:`IDFField` objects in the form:
 
-    :attr str obj_class: Class type of object
-    :attr str group: Group to which this object belongs
-    :attr IDFFile idd: Contains the IDD file used by this IDF object
-    :attr list comments: User comments for this object
-    :attr list incoming_links: List of tuples of objects that link to this
-    :attr list outgoing_links: List of tuples of objects to which this links
+    .. code-block:: python
+
+        [IDFField1, IDFField2, IDFField3]
     """
 
-    # TODO This class is almost the same as IDDObject. It should subclass it.
+    #: TODO This class is almost the same as IDDObject. It should subclass it.
 
     # Using slots simplifies the internal structure of the object and makes
     # it more memory efficiency
@@ -675,18 +681,18 @@ class IDFObject(list):
                  '_group', '_uuid', 'group', 'uuid', 'obj_class_display', '_idd_object']
 
     def __init__(self, outer, obj_class, **kwargs):
-        """Use kwargs to pre-populate some values, then remove them from kwargs
+        """Initialize the IDF object
 
-        Also sets the idd file for use by this object.
+        Use kwargs to pre-populate some values, then remove them from kwargs. Also sets
+        the idd file for use by this object.
 
-        :param IDFFile outer:
-        :param str obj_class: Class type of this idf object
-        :param \*\*kwargs: keyword arguments to pass to dictionary
+        :param IDFFile outer: :class:`IDFFile` containing this :class:`IDFObject`
+        :param str obj_class: Class type of this :class:`IDFObject`
         """
 
-        # Set various attributes of the idf object
-        self.comments = list()
-        self.comments_special = list()
+        # Set various attributes of the IDF object
+        self.comments = list()  #: Comments for this :class:`IDFObject`
+        self.comments_special = list()  #: Special comments for this :class:`IDFObject`
         self._obj_class = obj_class
         self._outer = outer
         self._uuid = None
@@ -709,7 +715,7 @@ class IDFObject(list):
     def obj_class_display(self):
         """Read-only property of class
 
-        :return: str
+        :rtype: str
         """
 
         return self._outer._idd[self.obj_class].obj_class_display
@@ -718,7 +724,7 @@ class IDFObject(list):
     def obj_class(self):
         """Read-only property of lower-case class
 
-        :return: str
+        :rtype: str
         """
 
         return self._obj_class
@@ -735,9 +741,9 @@ class IDFObject(list):
         return self._uuid
 
     def duplicate(self):
-        """Create a new IDFField object and copy this one's references and value.
+        """Create a new :class:`IDFField` object and copy this one's references and value.
 
-        :return:
+        :rtype: IDFObject
         """
 
         def new_field(field):
@@ -777,17 +783,16 @@ class IDFObject(list):
 
 
 class IDFField(object):
-    """Basic component of the idf object classes.
+    """Basic component of the IDF object classes.
 
     Contains a key and value. Values must always be in metric units.
-    Simply a regular dict containing keys which are the names of various
-    field tags such as: required, field, type, minimum, etc.
+    Values are always strings because IDF files are text files.
     """
 
-    # TODO This class is actually the same as IDDField. Merge them?
-    # Create a base class with common attributes and subclass it to add any
-    # differences. When creating a new field, simply copy the IDDField and add
-    # the appropriate attributes like value? Need to reset uuid on copy operations.
+    #: TODO This class is actually the same as IDDField. Merge them?
+    #: Create a base class with common attributes and subclass it to add any
+    #: differences. When creating a new field, simply copy the IDDField and add
+    #: the appropriate attributes like value? Need to reset uuid on copy operations.
 
     # Using slots simplifies the internal structure of the object and makes
     # it more memory efficiency
@@ -796,10 +801,10 @@ class IDFField(object):
                  '_ref_type', '_outer', '_uuid', 'index', '_index']
 
     def __init__(self, outer, value=None, **kwargs):
-        """Initializes a new idf field
+        """Initializes a new IDF field
 
-        :param value:
-        :param IDFObject outer:
+        :param IDFObject outer: :class:`IDFObject` containing this :class:`IDFField`
+        :param str value: Value of this field
         """
 
         self._key = kwargs.pop('key', None)
@@ -811,7 +816,6 @@ class IDFField(object):
         self._outer = outer
         self._uuid = None
 
-        # Call the parent class' init method
         super(IDFField, self).__init__()
 
     def __str__(self):
@@ -844,7 +848,7 @@ class IDFField(object):
     def value(self, new_value):
         """Sets value of field and makes sure that index is also updated
 
-        :param new_value:
+        :param str new_value: Value to become new vaule of this field
         """
 
         # Update the value and then the IDFFile's index
@@ -853,7 +857,7 @@ class IDFField(object):
 
     @property
     def tags(self):
-        """Returns this field's tags
+        """Returns a dict of this field's tags
 
         :rtype: dict
         """
@@ -864,40 +868,36 @@ class IDFField(object):
 
     @property
     def name(self):
-        """Return this field's name (the 'field' tag)
+        """Return this field's name (the 'field' tag from the IDD file)
 
         :rtype: str
-        :return: The name of the field from the idd file
         """
 
         return self.tags.get('field', str())
 
     @property
     def obj_class(self):
-        """Returns this field's outer object's (IDFObject) class
+        """Returns this field's outer object's (:class:`IDFObject`) class
 
         :rtype: str
-        :return: The name of the class from the outer object
         """
 
         return self._outer.obj_class
 
     @property
     def obj_class_display(self):
-        """Returns this field's outer object's (IDFObject) class
+        """Returns this field's outer object's (:class:`IDFObject`) class in a nice-to-display form
 
         :rtype: str
-        :return: The name of the class from the outer object
         """
 
         return self._outer.obj_class_display
 
     @property
     def index(self):
-        """Read-only property that returns the index of this field
+        """Read-only property that returns the index of this field in its containing object
 
         :rtype: int
-        :return: The index of this field in its outer class
         """
 
         if not self._index:
@@ -938,7 +938,7 @@ class IDFField(object):
 
     @property
     def idd_object(self):
-        """Read-only property containing the object's IDD Class Object
+        """Read-only property containing this field's corresponding :class:`IDDObject`
 
         :rtype: IDDObject
         """
@@ -961,8 +961,8 @@ class IDFField(object):
     def has_tags(self, tags_to_check):
         """Returns a list of tags which are contained in both this field and tags_to_check
 
-        :rtype: str
-        :param tags_to_check:
+        :param list(str) tags_to_check:
+        :rtype: list(str)
         """
 
         return list(set(self.tags) & set(tags_to_check))
