@@ -70,7 +70,7 @@ class ObjectClassTreeModel(CustomTreeModel):
         else:
             for obj_class, obj in idf.idd.iteritems():
                 objs = idf.get(obj.obj_class_display, None)
-                child = TreeItem((obj.obj_class, objs), parent)
+                child = TreeItem((obj.obj_class_display, objs), parent)
                 parent.appendChild(child)
 
     def setData(self, index, value, role=QtCore.Qt.EditRole):
