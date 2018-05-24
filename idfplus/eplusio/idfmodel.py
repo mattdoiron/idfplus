@@ -699,6 +699,7 @@ class IDFObject(list):
         self._obj_class = obj_class
         self._outer = outer
         self._uuid = None
+        self._idd_object = None
 
         # Call the parent class' init method
         super(IDFObject, self).__init__(**kwargs)
