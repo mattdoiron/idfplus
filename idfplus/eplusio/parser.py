@@ -298,17 +298,13 @@ class Parser(object):
         # Create a list containing any tags found in line_in
         match = [x for x in TAG_LIST if x in line_in.lower()]
 
-        # Hack for note field. Why is this needed!?
-        if '\\note' in line_in:
-            match.append('\\note')
-
         # If there are any matches, save the first one
         if match:
 
             # Partition the line at the match
             part = line_in.strip().partition(match[0])
 
-            # If there is a value save it
+            # If there is a value save it, otherwise it's a boolean so set True
             if part[-1]:
                 value = part[-1].lstrip()
             else:
@@ -509,7 +505,7 @@ class IDDParser(Parser):
                                 if value != tag_dict[tag]:
                                     tag_dict[tag] = [tag_dict[tag], value]
                         else:
-                            # Otherwise simply add it
+                            # Otherwise simply assign it
                             tag_dict[tag] = value
 
                     # Check for the special group tag
