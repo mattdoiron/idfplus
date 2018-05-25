@@ -502,10 +502,12 @@ class IDDParser(Parser):
                     else:
                         # If this tag is already present, try to append its value
                         if tag in tag_dict:
-                            try:
-                                tag_dict[tag].append(value)
-                            except AttributeError:
-                                tag_dict[tag] = [tag_dict[tag], value]
+                            if isinstance(tag_dict[tag], list):
+                                if value not in tag_dict[tag]:
+                                    tag_dict[tag].append(value)
+                            else:
+                                if value != tag_dict[tag]:
+                                    tag_dict[tag] = [tag_dict[tag], value]
                         else:
                             # Otherwise simply add it
                             tag_dict[tag] = value
