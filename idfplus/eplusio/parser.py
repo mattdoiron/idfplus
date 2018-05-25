@@ -378,7 +378,7 @@ class IDDParser(Parser):
     :param IDDFile idd: IDD file to populate while parsing
     """
 
-    __parser_version__ = '0.1.1'
+    __parser_version__ = '0.1.2'
 
     def __init__(self, idd=None):
         """Initialize the parser
