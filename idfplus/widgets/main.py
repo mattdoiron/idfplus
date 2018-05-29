@@ -309,6 +309,12 @@ class UIMainWindow(object):
                                      iconVisibleInMenu=True,
                                      triggered=self.save)
 
+        self.saveFormatAct = QtGui.QAction(QtGui.QIcon(':/images/save.png'), "&Format && Save",
+                                     self, shortcut=QtGui.QKeySequence('Ctrl+Shift+F'),
+                                     statusTip="Format File and Save to disk",
+                                     iconVisibleInMenu=True,
+                                     triggered=self.format_save)
+
         self.saveAsAct = QtGui.QAction(QtGui.QIcon(':/images/saveas.png'), "Save &As...", self,
                                        shortcut=QtGui.QKeySequence.SaveAs,
                                        statusTip="Save the document under a new name",
@@ -546,7 +552,7 @@ class UIMainWindow(object):
         # File Menu
         self.fileMenu = self.menuBar().addMenu("&File")
         self.fileMenuActions = (self.newAct, self.openAct, self.saveAct,
-                                self.saveAsAct, None, self.exitAct)
+                                self.saveAsAct, self.saveFormatAct, None, self.exitAct)
         self.update_file_menu()
         self.fileMenu.aboutToShow.connect(self.update_file_menu)
 

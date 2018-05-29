@@ -321,6 +321,13 @@ class IDFPlus(QtGui.QMainWindow, main.UIMainWindow):
         else:
             return False
 
+    def format_save(self):
+        """Manually set the dirty flag and save the file. Convenience function for reformatting
+        """
+
+        self.set_dirty(True)
+        self.save()
+
     def idfplus_help(self):
         """"""
         pass
