@@ -921,6 +921,8 @@ class IDFField(object):
     def field_id(self):
         """Read-only property that returns the id of this field
 
+        :returns: A tuple containing the properly capitalized object class, object index and
+                  field index
         :rtype: tuple
         """
 

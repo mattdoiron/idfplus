@@ -661,8 +661,8 @@ class IDFPlus(QtGui.QMainWindow, main.UIMainWindow):
         :return:
         """
 
-        obj_class, obj_index, field_index = field.field_id
-        self.select_tree_class(obj_class)
+        obj_class_display, obj_index, field_index = field.field_id
+        self.select_tree_class(obj_class_display)
 
         # After the table is loaded, get its model and selection model
         table_source_model = self.classTable.model().sourceModel()
@@ -679,6 +679,11 @@ class IDFPlus(QtGui.QMainWindow, main.UIMainWindow):
         self.classTable.setCurrentIndex(table_index)
 
     def select_tree_class(self, obj_class):
+        """Selects the specified object class and scroll the class to its location.
+
+        :param str obj_class: Target object class. Capitalization must match IDD file.
+        """
+
         # Get the tree selection model and model
         tree_model = self.classTree.model()
         tree_selection_model = self.classTree.selectionModel()
