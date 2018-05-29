@@ -292,7 +292,7 @@ class IDFPlus(QtGui.QMainWindow, main.UIMainWindow):
         """
 
         home_dir = os.path.expanduser('~')
-        directory = os.path.dirname(self.file_path) if self.file_path else home_dir
+        directory = self.file_path if self.file_path else home_dir
         formats = 'EnergyPlus Files (*.idf)'
         file_name, filtr = QtGui.QFileDialog.getSaveFileName(self, 'Save As',
                                                              directory, formats)
