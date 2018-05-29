@@ -914,7 +914,10 @@ class IDFPlus(QtGui.QMainWindow, main.UIMainWindow):
         """Pastes clipboard into cells starting at selected cell.
         """
 
-        # Create undo command and push it to the undo stack
+        # Create undo command and push to undo stack, but only if there is text in clipboard
+        mime_data = self.clipboard.mimeData()
+        if not mime_data.hasText():
+            return
         cmd = commands.PasteSelectedCmd(self)
         self.undo_stack.push(cmd)
 

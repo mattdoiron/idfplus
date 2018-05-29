@@ -316,6 +316,10 @@ class PasteSelectedCmd(ObjectCmd):
         # Iterate through text, splitting into rows
         self.old_objects = []
         rows = raw_text.split('\n')
+
+        if not rows:
+            return
+
         for i, row in enumerate(rows[:-1]):
             values = row.split(',')
             for j, value in enumerate(values):
