@@ -57,3 +57,8 @@ class TestIDFPlus(object):
         assert isinstance(idd_parser, parser.IDDParser)
         for progress in idd_parser.parse_idd(file_path):
             pass
+        assert progress == 100
+        assert isinstance(idd_file["version"], iddmodel.IDDObject)
+        assert isinstance(idd_file["version"]["A1"], iddmodel.IDDField)
+        assert idd_file["version"]["A1"].tags.get('default') == "7.0"
+
