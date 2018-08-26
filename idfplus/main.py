@@ -63,8 +63,8 @@ class IDFPlus(QtGui.QMainWindow, main.UIMainWindow):
         self.obj_orientation = QtCore.Qt.Vertical
         self.current_obj_class = None
         self.obj_clipboard = []
-        self.file_watcher = None
         self.args = args
+        self.check_file_changed = False
 
         # Create main application elements
         self.create_actions()
@@ -104,6 +104,18 @@ class IDFPlus(QtGui.QMainWindow, main.UIMainWindow):
         # Open a file immediately if specified by command-line. Timer allows UI to load fist.
         if self.args.filename:
             QtCore.QTimer.singleShot(0, self.load_file)
+
+    def app_focus_changed(self, old_focus_widget, new_focus_widget):
+        # Should we check for file change? Only if required and if main window is regaining focus
+        if self.check_file_changed and not old_focus_widget:
+            file_time_last_modified_new = os.path.getmtime(self.idf.file_path)
+            if self.file_time_last_modified != file_time_last_modified_new:
+                log.debug('File change detected!')
+                self.file_changed()
+
+    def start_focus_watcher(self):
+        app = QtGui.QApplication.instance()
+        app.focusChanged.connect(self.app_focus_changed)
 
     def closeEvent(self, event):
         """Called when the application is closed.
@@ -171,8 +183,8 @@ class IDFPlus(QtGui.QMainWindow, main.UIMainWindow):
 
         self.idf = idf
         self.idd = idf._idd
-        self.reset_file_watcher()
-        self.start_file_watcher()
+        self.file_time_last_modified = os.path.getmtime(file_path)
+        self.check_file_changed = True
 
     def load_file(self, file_path=None):
         """Loads a specified file or gets the file_path from the sender.
@@ -204,6 +216,7 @@ class IDFPlus(QtGui.QMainWindow, main.UIMainWindow):
         self.pathLabel.setText("")
         self.progressBarIDF.show()
 
+        # Try to load the specified IDF file
         try:
             self.load_idf(file_path)
         except iddmodel.IDDError as e:
@@ -272,16 +285,10 @@ class IDFPlus(QtGui.QMainWindow, main.UIMainWindow):
         """Called by save action.
         """
 
-        # Disable file watcher during save
-        self.file_watcher.removePaths([self.idf.file_path])
-
         if self.file_path:
             self.save_file()
         else:
             self.save_as()
-
-        # Restore file watcher
-        self.file_watcher.addPaths([self.idf.file_path])
 
     def save_as(self):
         """Called by the save as action.
@@ -313,6 +320,7 @@ class IDFPlus(QtGui.QMainWindow, main.UIMainWindow):
             self.add_recent_file(file_name)
             self.statusBar().showMessage("File saved", 2000)
             self.set_dirty(False)
+            self.check_file_changed = True
             return True
         else:
             return False
@@ -1323,24 +1331,6 @@ class IDFPlus(QtGui.QMainWindow, main.UIMainWindow):
             if e.errno != errno.ENOENT:
                 raise
 
-    def reset_file_watcher(self):
-        """Clears file watcher list
-
-        :return:
-        """
-
-        if self.file_watcher:
-            self.file_watcher.removePaths(self.file_watcher.files())
-
-    def start_file_watcher(self):
-        """Watch specified file for changes and alert user.
-
-        :return:
-        """
-
-        self.file_watcher = QtCore.QFileSystemWatcher([self.idf.file_path])
-        self.file_watcher.fileChanged.connect(self.file_changed)
-
     def energy_plus_docs(self):
         if not self.idd:
             return
@@ -1377,19 +1367,17 @@ class IDFPlus(QtGui.QMainWindow, main.UIMainWindow):
                       .format(win_doc_path, current_platform))
 
     def file_changed(self):
-        """Responds to signal from filewatcher that a file has changed.
+        """Responds to signal from focus watcher that a file has changed.
 
         :return:
         """
-
-        # Immediately reset watcher so we don't get more messages.
-        self.reset_file_watcher()
 
         message = "This file has be changed by another program! Would you like" \
                   "to reload it now? Any unsaved changes will be lost!"
         flags = QtGui.QMessageBox.StandardButton.Yes
         flags |= QtGui.QMessageBox.StandardButton.No
         response = QtGui.QMessageBox.question(self, "File Change detected!", message, flags)
+        self.check_file_changed = False
 
         if response == QtGui.QMessageBox.Yes:
             self.load_file(self.idf.file_path)
