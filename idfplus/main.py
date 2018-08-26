@@ -72,7 +72,7 @@ class IDFPlus(QtGui.QMainWindow, main.UIMainWindow):
         self.create_menus()
         self.create_shortcuts()
         self.create_tray_menu()
-        self.create_progress_bar()
+        self.start_focus_watcher()
 
         # Restore preferences
         self.hide_empty_classes = True if self.prefs['hide_empty_classes'] == 1 else False
@@ -164,7 +164,7 @@ class IDFPlus(QtGui.QMainWindow, main.UIMainWindow):
                 idf_parser = parser.IDFParser(idf,
                                               default_version=self.prefs['default_idd_version'])
                 for progress in idf_parser.parse_idf(raw_idf, file_path):
-                    self.progressDialogIDF.setValue(progress)
+                    self.progressBarIDF.setValue(progress)
             else:
                 log.info('Loading blank IDF file...')
                 idf.init_blank()
@@ -202,13 +202,9 @@ class IDFPlus(QtGui.QMainWindow, main.UIMainWindow):
         message = "Loading {}...".format(file_path or 'New File')
         self.statusBar().showMessage(message, 5000)
         self.pathLabel.setText("")
+        self.progressBarIDF.show()
 
         try:
-            if file_path:
-                self.progressDialogIDF.setLabelText(message)
-                self.progressDialogIDF.show()
-
-            # Try to load the specified IDF file
             self.load_idf(file_path)
         except iddmodel.IDDError as e:
             # Required IDD file doesn't exist so launch IDD wizard
@@ -235,7 +231,7 @@ class IDFPlus(QtGui.QMainWindow, main.UIMainWindow):
             else:
                 raise OSError(e.errno, e.strerror, e.filename)
         finally:
-            self.progressDialogIDF.cancel()
+            self.reset_progress_bar()
             self.update_status(message)
 
         # Everything worked, so set some variables and update status

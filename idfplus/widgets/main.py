@@ -233,22 +233,25 @@ class UIMainWindow(object):
 
         # Status bar setup
         self.statusBar().showMessage('Status: Ready')
-        self.statusBar().setSizeGripEnabled(True)
-        self.pathLabel = QtGui.QLabel()
-        self.pathLabel.setAlignment(QtCore.Qt.AlignCenter)
-        self.pathLabel.setMinimumSize(self.pathLabel.sizeHint())
-        self.pathLabel.setFrameStyle(QtGui.QFrame.StyledPanel | QtGui.QFrame.Sunken)
-        self.statusBar().addPermanentWidget(self.pathLabel)
         self.unitsLabel = QtGui.QLabel()
         self.unitsLabel.setAlignment(QtCore.Qt.AlignCenter)
         self.unitsLabel.setMinimumSize(self.unitsLabel.sizeHint())
         self.unitsLabel.setFrameStyle(QtGui.QFrame.StyledPanel | QtGui.QFrame.Sunken)
         self.statusBar().addPermanentWidget(self.unitsLabel)
+        self.pathLabel = QtGui.QLabel()
+        self.pathLabel.setAlignment(QtCore.Qt.AlignCenter)
+        self.pathLabel.setMinimumSize(self.pathLabel.sizeHint())
+        self.pathLabel.setFrameStyle(QtGui.QFrame.StyledPanel | QtGui.QFrame.Sunken)
+        self.statusBar().addPermanentWidget(self.pathLabel)
         self.versionLabel = QtGui.QLabel()
         self.versionLabel.setAlignment(QtCore.Qt.AlignCenter)
         self.versionLabel.setMinimumSize(self.versionLabel.sizeHint())
         self.versionLabel.setFrameStyle(QtGui.QFrame.StyledPanel | QtGui.QFrame.Sunken)
         self.statusBar().addPermanentWidget(self.versionLabel)
+        self.progressBarIDF = QtGui.QProgressBar()
+        self.progressBarIDF.setAlignment(QtCore.Qt.AlignCenter)
+        self.progressBarIDF.setMaximumWidth(200)
+        self.statusBar().addPermanentWidget(self.progressBarIDF)
 
         self.clipboard = QtGui.QApplication.instance().clipboard()
         self.obj_clipboard = []
@@ -729,23 +732,8 @@ class UIMainWindow(object):
         menu.popup(self.classTable.viewport().mapToGlobal(position))
         self.mouse_position = position
 
-    def create_progress_bar(self):
-
-        # Setup idf progress dialog
-        self.progressDialogIDF = QtGui.QProgressDialog("Loading IDF File", "", 0,
-                                                       100, self)
-        self.progressDialogIDF.setWindowTitle('Loading IDF File')
-        self.progressDialogIDF.setWindowModality(QtCore.Qt.WindowModal)
-        self.progressDialogIDF.setMinimumDuration(500)
-        self.progressDialogIDF.setCancelButton(None)
-
-        # Setup idd progress dialog
-        self.progressDialogIDD = QtGui.QProgressDialog("Loading IDD File", "", 0,
-                                                       100, self)
-        self.progressDialogIDD.setWindowTitle('Loading IDD File')
-        self.progressDialogIDD.setWindowModality(QtCore.Qt.WindowModal)
-        self.progressDialogIDD.setMinimumDuration(500)
-        self.progressDialogIDD.setCancelButton(None)
+    def reset_progress_bar(self):
+        self.progressBarIDF.hide()
 
     def center(self):
         """Called to center the window on the screen on startup.
