@@ -23,8 +23,11 @@ IDD_FILE_NAME_ROOT = 'EnergyPlus_IDD_v{}.dat'
 COMPANY_NAME_FULL = "Mindful Modeller"
 COMPANY_NAME = 'mindfulmodeller'
 APP_NAME = "IDFPlus"
-DATA_DIR = appdirs.user_data_dir(APP_NAME, COMPANY_NAME)
-LOG_DIR = appdirs.user_log_dir(APP_NAME, COMPANY_NAME)
+DATA_DIR = appdirs.user_data_dir(APP_NAME)
+LOG_DIR = appdirs.user_log_dir(APP_NAME)
+CONFIG_DIR = appdirs.user_config_dir()
+CONFIG_PATH = os.path.join(CONFIG_DIR, APP_NAME)
+CONFIG_FILE_PATH = os.path.join(CONFIG_DIR, APP_NAME, "{}.{}".format(APP_NAME, "ini"))
 LOG_FILE_NAME = "idfplus.log"
 LOG_PATH = os.path.join(LOG_DIR, LOG_FILE_NAME)
 MAX_OBJ_HISTORY = 100
@@ -51,10 +54,10 @@ class Settings(dict):
         """
 
         super(Settings, self).__init__(*args, **kwargs)
-        self.settings = QtCore.QSettings(QtCore.QSettings.IniFormat,
-                                         QtCore.QSettings.UserScope,
-                                         COMPANY_NAME,
-                                         APP_NAME)
+        QtCore.QSettings.setPath(QtCore.QSettings.IniFormat,
+                                 QtCore.QSettings.UserScope,
+                                 CONFIG_DIR)
+        self.settings = QtCore.QSettings(CONFIG_FILE_PATH, QtCore.QSettings.IniFormat)
         self.read_settings()
 
     def read_settings(self):
