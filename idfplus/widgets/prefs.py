@@ -36,7 +36,7 @@ class PrefsDialog(QtGui.QDialog):
         tab_widget = QtGui.QTabWidget()
         tab_widget.addTab(AppearanceTab(self), "Appearance")
         tab_widget.addTab(SaveTab(self), "Save Options")
-        tab_widget.addTab(AdvancedTab(self), "Advanced")
+        tab_widget.addTab(AdvancedTab(self, parent), "Advanced")
 
         # Create layout and assign it to self
         layout = QtGui.QVBoxLayout()
@@ -256,13 +256,14 @@ class SaveTab(QtGui.QWidget):
 
 
 class AdvancedTab(QtGui.QWidget):
-    def __init__(self, parent):
+    def __init__(self, parent_dialog, parent):
         """Initialize the advanced tab
         """
 
         super(AdvancedTab, self).__init__(parent)
 
-        self.prefs = parent.prefs
+        self.prefs = parent_dialog.prefs
+        self.parent = parent
 
         # Log Details
         log_label = QtGui.QLabel("Log Detail Level:")
@@ -294,6 +295,17 @@ class AdvancedTab(QtGui.QWidget):
         clear_group_box.addStretch(1)
         self.clear_idd_group_box.setLayout(clear_group_box)
 
+        # Open dirs code
+        self.open_settings_button = QtGui.QPushButton("Open Settings Directory")
+        self.open_settings_button.setMaximumWidth(150)
+        self.open_settings_button.clicked.connect(lambda: self.parent.show_in_folder(config.CONFIG_PATH))
+        self.open_log_button = QtGui.QPushButton("Open Log Directory")
+        self.open_log_button.setMaximumWidth(150)
+        self.open_log_button.clicked.connect(lambda: self.parent.show_in_folder(config.LOG_DIR))
+        self.open_data_button = QtGui.QPushButton("Open Data Directory")
+        self.open_data_button.setMaximumWidth(150)
+        self.open_data_button.clicked.connect(lambda: self.parent.show_in_folder(config.DATA_DIR))
+
         # Default IDF file version code
         idd_label = QtGui.QLabel("Default IDF File Version:")
         idd_label.setToolTip('Default version to use if none is detected.')
@@ -313,6 +325,9 @@ class AdvancedTab(QtGui.QWidget):
         main_layout.addSpacing(10)
         main_layout.addWidget(self.clear_idd_group_box)
         main_layout.addStretch(1)
+        main_layout.addWidget(self.open_settings_button)
+        main_layout.addWidget(self.open_log_button)
+        main_layout.addWidget(self.open_data_button)
         self.setLayout(main_layout)
 
     def log_level(self):
