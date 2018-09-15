@@ -426,8 +426,8 @@ class UIMainWindow(object):
         self.showInFolderAct = QtGui.QAction(QtGui.QIcon(':/images/new.png'), "&Show in folder",
                                              self, shortcut=QtGui.QKeySequence('Ctrl+Shift+t'),
                                              statusTip="Open location of current file",
-                                             iconVisibleInMenu=True,
-                                             triggered=self.show_in_folder)
+                                             iconVisibleInMenu=True)
+        self.showInFolderAct.triggered.connect(lambda: self.show_in_folder())
 
         self.epDocGettingStartedAction = QtGui.QAction("EnergyPlus Getting Started", self,
                                                        triggered=self.energy_plus_docs)

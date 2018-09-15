@@ -395,35 +395,36 @@ class IDFPlus(QtGui.QMainWindow, main.UIMainWindow):
 
         pass
 
-    def show_in_folder(self):
-        """Opens the location of the current IDF file.
+    def show_in_folder(self, target=None):
+        """Opens the specified location in the OS's default file browser.
         """
 
         current_platform = sys.platform
         result = 1
 
-        if self.file_path:
+        # Default to the current file path
+        if not target:
+            target = self.file_path
+
+        if target:
             if current_platform.startswith('linux'):
                 try:
-                    result = subprocess.check_call(["nautilus", self.file_path])
+                    dir_path = os.path.dirname(target)
+                    result = subprocess.check_call(["xdg-open", dir_path])
                 except (subprocess.CalledProcessError, OSError):
-                    try:
-                        dir_path = os.path.dirname(self.file_path)
-                        result = subprocess.check_call(["xdg-open", dir_path])
-                    except (subprocess.CalledProcessError, OSError):
-                        log.debug('Not supported on this OS')
-                        result = 1
+                    log.debug('Not supported on this OS')
+                    result = 1
             elif current_platform.startswith('win'):
-                file_path = os.path.normpath(self.file_path)
+                file_path = os.path.normpath(target)
                 result = subprocess.call(["explorer", "/select,", file_path])
                 result = 0  # windows returns 1 for some reason...
             else:
-                dir_path = os.path.dirname(self.file_path)
+                dir_path = os.path.dirname(target)
                 result = subprocess.check_call(["open", dir_path])
 
         if result != 0:
             log.debug("Failed to show in folder: {} (on platform: {})"
-                      .format(self.file_path, current_platform))
+                      .format(target, current_platform))
 
     def open_in_text_editor(self):
         """Opens the current IDF file in the default text editor
