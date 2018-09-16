@@ -42,15 +42,20 @@ class UIMainWindow(object):
         # Object navigation history
         self.obj_history = deque([], config.MAX_OBJ_HISTORY)
 
+        app = QtGui.QApplication.instance()
+        base_font = QtGui.QFont()
+        base_font.fromString(self.prefs['base_font'])
+        app.setFont(base_font)
+
         # Object class table widget
         # classTable = QtGui.QTableView(self)
         classTable = classtable.TableView(self)
         classTable.setObjectName("classTable")
         classTable.setAlternatingRowColors(True)
         classTable.setFrameShape(QtGui.QFrame.StyledPanel)
-        font = QtGui.QFont(self.prefs['base_font'],
-                           self.prefs['base_font_size'])
-        classTable.setFont(font)
+        classTable_font = QtGui.QFont()
+        classTable_font.fromString(self.prefs['class_table_font'])
+        classTable.setFont(classTable_font)
         fm = classTable.fontMetrics()
         classTable.setWordWrap(True)
         classTable.setEditTriggers(QtGui.QAbstractItemView.EditKeyPressed |
@@ -101,9 +106,9 @@ class UIMainWindow(object):
         classTree.setExpandsOnDoubleClick(True)
         classTree.setIndentation(15)
         classTree.setAnimated(True)
-        tree_font = QtGui.QFont(self.prefs['class_tree_font'],
-                                self.prefs['class_tree_font_size'])
-        classTree.setFont(tree_font)
+        classTree_font = QtGui.QFont()
+        classTree_font.fromString(self.prefs['class_tree_font'])
+        classTree.setFont(classTree_font)
         classTree.setAlternatingRowColors(True)
         classTree.setHorizontalScrollMode(QtGui.QAbstractItemView.ScrollPerPixel)
         palette = classTree.palette()
@@ -141,9 +146,9 @@ class UIMainWindow(object):
         commentView.setLineWrapMode(QtGui.QTextEdit.FixedColumnWidth)
         commentView.setLineWrapColumnOrWidth(499)
         commentView.setFrameShape(QtGui.QFrame.StyledPanel)
-        comment_font = QtGui.QFont(self.prefs['comments_font'],
-                                   self.prefs['comments_font_size'])
-        commentView.setFont(comment_font)
+        commentView_font = QtGui.QFont()
+        commentView_font.fromString(self.prefs['comments_font'])
+        commentView.setFont(commentView_font)
         commentDockWidget.setWidget(commentView)
 
         # Info and help widget
@@ -177,7 +182,9 @@ class UIMainWindow(object):
         logView = QtGui.QPlainTextEdit(logDockWidget)
         logView.setLineWrapMode(QtGui.QPlainTextEdit.NoWrap)
         logView.setReadOnly(True)
-        logView.setFont(font)
+        logView_font = QtGui.QFont()
+        logView_font.fromString(self.prefs['base_font'])
+        logView.setFont(logView_font)
         logView.ensureCursorVisible()
         logDockWidget.setWidget(logView)
 

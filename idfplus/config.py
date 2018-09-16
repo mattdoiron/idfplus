@@ -69,10 +69,8 @@ class Settings(dict):
         # Retrieve settings and store them in the prefs dict
         settings.beginGroup("Appearance")
         self['style'] = settings.value("style", default_style())
-        self['base_font_size'] = int(settings.value("base_font_size", 9))
-        self['base_font'] = settings.value("base_font", "Arial")
-        self['comments_font_size'] = int(settings.value("comments_font_size", 10))
-        self['comments_font'] = settings.value("comments_font", "Courier")
+        self['base_font'] = settings.value("base_font", "Arial,9")
+        self['comments_font'] = settings.value("comments_font", "Courier,9")
         self['hide_groups'] = int(settings.value("hide_groups", 1))
         self['hide_empty_classes'] = int(settings.value("hide_empty_classes", 1))
         self['show_ip_units'] = int(settings.value("show_ip_units", 0))
@@ -83,14 +81,12 @@ class Settings(dict):
         settings.endGroup()
 
         settings.beginGroup("ClassTree")
-        self['class_tree_font_size'] = int(settings.value("class_tree_font_size", 9))
-        self['class_tree_font'] = settings.value("class_tree_font", "Arial")
+        self['class_tree_font'] = settings.value("class_tree_font", "Arial,9")
         settings.endGroup()
 
         settings.beginGroup("ClassTable")
         self['default_column_width'] = int(settings.value("default_column_width", 120))
-        self['class_table_font_size'] = int(settings.value("class_table_font_size", 9))
-        self['class_table_font'] = settings.value("class_table_font", "Arial")
+        self['class_table_font'] = settings.value("class_table_font", "Arial,9")
         self['show_units_in_headers'] = int(settings.value("show_units_in_headers", 0))
         self['show_units_in_cells'] = int(settings.value("show_units_in_cells", 0))
         settings.endGroup()
@@ -120,9 +116,7 @@ class Settings(dict):
 
         settings.beginGroup("Appearance")
         settings.setValue("style", self['style'])
-        settings.setValue("base_font_size", self['base_font_size'])
         settings.setValue("base_font", self['base_font'])
-        settings.setValue("comments_font_size", self['comments_font_size'])
         settings.setValue("comments_font", self['comments_font'])
         settings.setValue("hide_groups", self['hide_groups'])
         settings.setValue("hide_empty_classes", self['hide_empty_classes'])
@@ -130,13 +124,11 @@ class Settings(dict):
         settings.endGroup()
 
         settings.beginGroup("ClassTree")
-        settings.setValue("class_tree_font_size", self['class_tree_font_size'])
         settings.setValue("class_tree_font", self['class_tree_font'])
         settings.endGroup()
 
         settings.beginGroup("ClassTable")
         settings.setValue("default_column_width", self['default_column_width'])
-        settings.setValue("class_table_font_size", self['class_table_font_size'])
         settings.setValue("class_table_font", self['class_table_font'])
         settings.setValue("show_units_in_headers", self['show_units_in_headers'])
         settings.setValue("show_units_in_cells", self['show_units_in_cells'])

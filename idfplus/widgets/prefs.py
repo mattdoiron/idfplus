@@ -35,6 +35,7 @@ class PrefsDialog(QtGui.QDialog):
         # Create the tab widget and assign its tabs
         tab_widget = QtGui.QTabWidget()
         tab_widget.addTab(AppearanceTab(self), "Appearance")
+        tab_widget.addTab(FontsTab(self, parent), "Fonts")
         tab_widget.addTab(SaveTab(self), "Save Options")
         tab_widget.addTab(AdvancedTab(self, parent), "Advanced")
 
@@ -54,6 +55,120 @@ class PrefsDialog(QtGui.QDialog):
         """
         self.prefs.write_settings()
         super(PrefsDialog, self).accept()
+
+
+class FontsTab(QtGui.QWidget):
+    def __init__(self, parent_dialog, parent):
+        """Initialize the fonts tab
+        """
+
+        super(FontsTab, self).__init__(parent_dialog)
+
+        self.prefs = parent_dialog.prefs
+        self.parent = parent
+
+        # Base application font code
+        app = QtGui.QApplication.instance()
+        self.font_base = app.font()
+        font_label_base = QtGui.QLabel("Base Application Font:")
+        self.font_combo_base = QtGui.QFontComboBox()
+        self.font_combo_base.setMaximumWidth(175)
+        self.font_combo_base.setCurrentFont(self.font_base.family())
+        self.font_combo_base.currentFontChanged.connect(self.update)
+        self.font_size_combo_base = QtGui.QComboBox()
+        points_base = [str(p) for p in QtGui.QFontDatabase().pointSizes(self.font_base.family())]
+        self.font_size_combo_base.addItems(points_base)
+        self.font_size_combo_base.setMaximumWidth(50)
+        self.font_size_combo_base.setCurrentIndex(self.font_size_combo_base.findText(str(self.font_base.pointSize())))
+        self.font_size_combo_base.currentIndexChanged.connect(self.update)
+        base_layout = QtGui.QHBoxLayout()
+        base_layout.addWidget(font_label_base)
+        base_layout.addWidget(self.font_combo_base)
+        base_layout.addWidget(self.font_size_combo_base)
+
+        # Class Tree font code
+        self.font_classTree = self.parent.classTree.font()
+        font_label_classTree = QtGui.QLabel("Class Tree Font:")
+        self.font_combo_classTree = QtGui.QFontComboBox()
+        self.font_combo_classTree.setMaximumWidth(175)
+        self.font_combo_classTree.setCurrentFont(self.font_classTree.family())
+        self.font_combo_classTree.currentFontChanged.connect(self.update)
+        self.font_size_combo_classTree = QtGui.QComboBox()
+        points_base = [str(p) for p in QtGui.QFontDatabase().pointSizes(self.font_classTree.family())]
+        self.font_size_combo_classTree.addItems(points_base)
+        self.font_size_combo_classTree.setMaximumWidth(50)
+        self.font_size_combo_classTree.setCurrentIndex(self.font_size_combo_classTree.findText(str(self.font_classTree.pointSize())))
+        self.font_size_combo_classTree.currentIndexChanged.connect(self.update)
+        classTree_layout = QtGui.QHBoxLayout()
+        classTree_layout.addWidget(font_label_classTree)
+        classTree_layout.addWidget(self.font_combo_classTree)
+        classTree_layout.addWidget(self.font_size_combo_classTree)
+
+        # Class Table font code
+        self.font_classTable = self.parent.classTable.font()
+        font_label_classTable = QtGui.QLabel("Class Table Font:")
+        self.font_combo_classTable = QtGui.QFontComboBox()
+        self.font_combo_classTable.setMaximumWidth(175)
+        self.font_combo_classTable.setCurrentFont(self.font_classTable.family())
+        self.font_combo_classTable.currentFontChanged.connect(self.update)
+        self.font_size_combo_classTable = QtGui.QComboBox()
+        points_base = [str(p) for p in QtGui.QFontDatabase().pointSizes(self.font_classTable.family())]
+        self.font_size_combo_classTable.addItems(points_base)
+        self.font_size_combo_classTable.setMaximumWidth(50)
+        self.font_size_combo_classTable.setCurrentIndex(self.font_size_combo_classTable.findText(str(self.font_classTable.pointSize())))
+        self.font_size_combo_classTable.currentIndexChanged.connect(self.update)
+        classTable_layout = QtGui.QHBoxLayout()
+        classTable_layout.addWidget(font_label_classTable)
+        classTable_layout.addWidget(self.font_combo_classTable)
+        classTable_layout.addWidget(self.font_size_combo_classTable)
+
+        # Comments view font code
+        self.font_comments = self.parent.commentView.font()
+        font_label_comments = QtGui.QLabel("Comments Font:")
+        self.font_combo_comments = QtGui.QFontComboBox()
+        self.font_combo_comments.setMaximumWidth(175)
+        self.font_combo_comments.setCurrentFont(self.font_comments.family())
+        self.font_combo_comments.currentFontChanged.connect(self.update)
+        self.font_size_combo_comments = QtGui.QComboBox()
+        points_base = [str(p) for p in QtGui.QFontDatabase().pointSizes(self.font_comments.family())]
+        self.font_size_combo_comments.addItems(points_base)
+        self.font_size_combo_comments.setMaximumWidth(50)
+        self.font_size_combo_comments.setCurrentIndex(self.font_size_combo_comments.findText(str(self.font_comments.pointSize())))
+        self.font_size_combo_comments.currentIndexChanged.connect(self.update)
+        comments_layout = QtGui.QHBoxLayout()
+        comments_layout.addWidget(font_label_comments)
+        comments_layout.addWidget(self.font_combo_comments)
+        comments_layout.addWidget(self.font_size_combo_comments)
+
+        # Main layout code
+        mainLayout = QtGui.QVBoxLayout()
+        mainLayout.addLayout(base_layout)
+        mainLayout.addSpacing(10)
+        mainLayout.addLayout(classTree_layout)
+        mainLayout.addSpacing(10)
+        mainLayout.addLayout(classTable_layout)
+        mainLayout.addSpacing(10)
+        mainLayout.addLayout(comments_layout)
+        mainLayout.addStretch(1)
+        self.setLayout(mainLayout)
+
+    def update(self):
+        self.font_base.setFamily(self.font_combo_base.currentFont().family())
+        self.font_base.setPointSize(int(self.font_size_combo_base.currentText()))
+        self.font_classTree.setFamily(self.font_combo_classTree.currentFont().family())
+        self.font_classTree.setPointSize(int(self.font_size_combo_classTree.currentText()))
+        self.font_classTable.setFamily(self.font_combo_classTable.currentFont().family())
+        self.font_classTable.setPointSize(int(self.font_size_combo_classTable.currentText()))
+        self.font_comments.setFamily(self.font_combo_comments.currentFont().family())
+        self.font_comments.setPointSize(int(self.font_size_combo_comments.currentText()))
+        self.prefs['base_font'] = self.font_base.toString()
+        self.prefs['class_tree_font'] = self.font_classTree.toString()
+        self.prefs['class_table_font'] = self.font_classTable.toString()
+        self.prefs['comments_font'] = self.font_comments.toString()
+        # self.prefs['log_font'] = self.font_base.toString()
+        # self.prefs['ref_font'] = self.font_base.toString()
+        # self.prefs['info_font'] = self.font_base.toString()
+        # self.prefs['undo_font'] = self.font_base.toString()
 
 
 class AppearanceTab(QtGui.QWidget):
