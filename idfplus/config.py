@@ -229,7 +229,7 @@ def default_style():
     elif system == 'Macintosh':
         style = 'Macintosh'
     else:
-        style = 'Cleanlooks'
+        style = 'GTK+'
     return style
 
 
