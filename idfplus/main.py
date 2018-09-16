@@ -405,15 +405,20 @@ class IDFPlus(QtGui.QMainWindow, main.UIMainWindow):
         # Default to the current file path
         if not target:
             target = self.file_path
+            dir_path = os.path.dirname(target)
+        else:
+            dir_path = target
 
         if target:
             if current_platform.startswith('linux'):
                 try:
-                    dir_path = os.path.dirname(target)
-                    result = subprocess.check_call(["xdg-open", dir_path])
+                    result = subprocess.check_call(["nautilus", "--select", target])
                 except (subprocess.CalledProcessError, OSError):
-                    log.debug('Not supported on this OS')
-                    result = 1
+                    try:
+                        result = subprocess.check_call(["xdg-open", dir_path])
+                    except (subprocess.CalledProcessError, OSError):
+                        log.debug('Not supported on this OS')
+                        result = 1
             elif current_platform.startswith('win'):
                 file_path = os.path.normpath(target)
                 result = subprocess.call(["explorer", "/select,", file_path])
