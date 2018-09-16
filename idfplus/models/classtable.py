@@ -41,6 +41,7 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
         self.idd_object = None
         self.obj_orientation = obj_orientation or QtCore.Qt.Vertical
         self.prefs = parent.prefs
+        self.parent = parent
         super(IDFObjectTableModel, self).__init__(parent)
 
     def setObjectClass(self, obj_class, idf):
@@ -166,6 +167,8 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
                     return None
         elif role == QtCore.Qt.BackgroundRole:
             return QtGui.QColor(244, 244, 244)
+        elif role == QtCore.Qt.FontRole:
+            return self.parent.font()
         return None
 
     def rowCount(self, parent=None):
