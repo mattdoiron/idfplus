@@ -297,13 +297,13 @@ class AdvancedTab(QtGui.QWidget):
 
         # Open dirs code
         self.open_settings_button = QtGui.QPushButton("Open Settings Directory")
-        self.open_settings_button.setMaximumWidth(150)
-        self.open_settings_button.clicked.connect(lambda: self.parent.show_in_folder(config.CONFIG_PATH))
+        self.open_settings_button.setMaximumWidth(175)
+        self.open_settings_button.clicked.connect(lambda: self.parent.show_in_folder(config.CONFIG_FILE_PATH))
         self.open_log_button = QtGui.QPushButton("Open Log Directory")
-        self.open_log_button.setMaximumWidth(150)
+        self.open_log_button.setMaximumWidth(175)
         self.open_log_button.clicked.connect(lambda: self.parent.show_in_folder(config.LOG_DIR))
         self.open_data_button = QtGui.QPushButton("Open Data Directory")
-        self.open_data_button.setMaximumWidth(150)
+        self.open_data_button.setMaximumWidth(175)
         self.open_data_button.clicked.connect(lambda: self.parent.show_in_folder(config.DATA_DIR))
 
         # Default IDF file version code
