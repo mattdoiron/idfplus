@@ -215,8 +215,9 @@ class AlphaNumericDelegate(CustomStyledItemDelegate):
         text_edit.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
         text_edit.setFrameStyle(QtGui.QFrame.NoFrame)
         text_edit.setWordWrapMode(QtGui.QTextOption.WrapAnywhere)
-        text_edit.setFont(QtGui.QFont(self.prefs['class_table_font'],
-                                      self.prefs['class_table_font_size']))
+        text_edit_font = QtGui.QFont()
+        text_edit_font.fromString(self.prefs['class_table_font'])
+        text_edit.setFont(text_edit_font)
         text_edit.setStyleSheet("""QPlainTextEdit { margin-left:0;
             margin-top:0; margin-bottom:0; margin-right:0;
             padding-left:-2; padding-top:0; padding-bottom:0;
@@ -341,8 +342,8 @@ class ChoiceDelegate(CustomStyledItemDelegate):
             auto_complete = True
         else:
             auto_complete = False
-        font = QtGui.QFont(self.prefs['class_table_font'],
-                           self.prefs['class_table_font_size'])
+        font = QtGui.QFont()
+        font.fromString(self.prefs['class_table_font'])
         self.comboBox = ExtendedComboBox(parent, auto_complete)
         self.tableView = QtGui.QTableView(self.comboBox)
         self.tableView.setModel(self.model)
