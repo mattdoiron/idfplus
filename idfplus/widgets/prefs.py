@@ -76,7 +76,7 @@ class FontsTab(QtGui.QWidget):
         self.font_combo_base.setCurrentFont(self.font_base.family())
         self.font_combo_base.currentFontChanged.connect(self.update)
         self.font_size_combo_base = QtGui.QComboBox()
-        points_base = [str(p) for p in QtGui.QFontDatabase().pointSizes(self.font_base.family())]
+        points_base = self.font_points(self.font_base)
         self.font_size_combo_base.addItems(points_base)
         self.font_size_combo_base.setMaximumWidth(50)
         self.font_size_combo_base.setCurrentIndex(self.font_size_combo_base.findText(str(self.font_base.pointSize())))
@@ -94,8 +94,8 @@ class FontsTab(QtGui.QWidget):
         self.font_combo_classTree.setCurrentFont(self.font_classTree.family())
         self.font_combo_classTree.currentFontChanged.connect(self.update)
         self.font_size_combo_classTree = QtGui.QComboBox()
-        points_base = [str(p) for p in QtGui.QFontDatabase().pointSizes(self.font_classTree.family())]
-        self.font_size_combo_classTree.addItems(points_base)
+        points_classTree = self.font_points(self.font_classTree)
+        self.font_size_combo_classTree.addItems(points_classTree)
         self.font_size_combo_classTree.setMaximumWidth(50)
         self.font_size_combo_classTree.setCurrentIndex(self.font_size_combo_classTree.findText(str(self.font_classTree.pointSize())))
         self.font_size_combo_classTree.currentIndexChanged.connect(self.update)
@@ -112,8 +112,8 @@ class FontsTab(QtGui.QWidget):
         self.font_combo_classTable.setCurrentFont(self.font_classTable.family())
         self.font_combo_classTable.currentFontChanged.connect(self.update)
         self.font_size_combo_classTable = QtGui.QComboBox()
-        points_base = [str(p) for p in QtGui.QFontDatabase().pointSizes(self.font_classTable.family())]
-        self.font_size_combo_classTable.addItems(points_base)
+        points_classTable = self.font_points(self.font_classTable)
+        self.font_size_combo_classTable.addItems(points_classTable)
         self.font_size_combo_classTable.setMaximumWidth(50)
         self.font_size_combo_classTable.setCurrentIndex(self.font_size_combo_classTable.findText(str(self.font_classTable.pointSize())))
         self.font_size_combo_classTable.currentIndexChanged.connect(self.update)
@@ -130,8 +130,8 @@ class FontsTab(QtGui.QWidget):
         self.font_combo_comments.setCurrentFont(self.font_comments.family())
         self.font_combo_comments.currentFontChanged.connect(self.update)
         self.font_size_combo_comments = QtGui.QComboBox()
-        points_base = [str(p) for p in QtGui.QFontDatabase().pointSizes(self.font_comments.family())]
-        self.font_size_combo_comments.addItems(points_base)
+        points_comments = self.font_points(self.font_comments)
+        self.font_size_combo_comments.addItems(points_comments)
         self.font_size_combo_comments.setMaximumWidth(50)
         self.font_size_combo_comments.setCurrentIndex(self.font_size_combo_comments.findText(str(self.font_comments.pointSize())))
         self.font_size_combo_comments.currentIndexChanged.connect(self.update)
@@ -169,6 +169,12 @@ class FontsTab(QtGui.QWidget):
         # self.prefs['ref_font'] = self.font_base.toString()
         # self.prefs['info_font'] = self.font_base.toString()
         # self.prefs['undo_font'] = self.font_base.toString()
+
+    def font_points(self, font):
+        points = [str(p) for p in QtGui.QFontDatabase().pointSizes(font.family())]
+        if not points:
+            points = [str(p) for p in QtGui.QFontDatabase().standardSizes()]
+        return points
 
 
 class AppearanceTab(QtGui.QWidget):
