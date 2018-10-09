@@ -335,7 +335,7 @@ class UIMainWindow(object):
                                      shortcut=QtGui.QKeySequence('Ctrl+Q'),
                                      iconVisibleInMenu=True,
                                      statusTip="Exit the application",
-                                     triggered=self.close)
+                                     triggered=self.closeAllWindows)
 
         self.cutObjAct = QtGui.QAction(QtGui.QIcon(':/images/cut.png'), "Cu&t Object", self,
                                        shortcut=QtGui.QKeySequence.Cut,

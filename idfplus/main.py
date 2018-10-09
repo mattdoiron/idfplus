@@ -117,6 +117,10 @@ class IDFPlus(QtGui.QMainWindow, main.UIMainWindow):
         app = QtGui.QApplication.instance()
         app.focusChanged.connect(self.app_focus_changed)
 
+    def closeAllWindows(self):
+        app = QtGui.QApplication.instance()
+        app.closeAllWindows()
+
     def closeEvent(self, event):
         """Called when the application is closed.
 
