@@ -13,12 +13,13 @@ project = 'idfplus'
 main_module = 'main.py'
 hooks_path = os.path.join('resources', 'hooks')
 icon_path = os.path.join('resources', 'images', 'logo.ico')
+datas_path = os.path.join('resources', 'datas')
 version_info_path = os.path.join('resources', 'version_info.txt')
 
 options = [('v', None, 'OPTION')]
 a = Analysis([main_module],
              binaries=None,
-             datas=None,
+             datas=[ (datas_path, '.') ],
              hiddenimports=None,
              hookspath=[hooks_path],
              runtime_hooks=None,

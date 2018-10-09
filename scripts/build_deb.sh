@@ -30,7 +30,7 @@ prepare_env () {
     export SCRIPT_DIR=$PWD
     export BUILD_DIR=$PWD/../build
     export DIST_DIR=$PWD/../dist
-    export VERSION=0.1.0
+    export VERSION=0.1.0-beta6
 }
 
 # Package the deb using fpm
@@ -44,6 +44,7 @@ make_installer () {
     --prefix /usr/share --chdir ${DIST_DIR} --no-depends --no-deb-use-file-permissions \
     --maintainer "Matt Doiron <mattdoiron@gmail.com>" \
     --deb-changelog ${DIST_DIR}/../CHANGELOG.rst \
+    --provides idfplus --vendor "Mindful Modeller" --after-install=after_install.sh \
     --force --package ${DIST_DIR} --input-type dir --output-type deb idfplus
 }
 
