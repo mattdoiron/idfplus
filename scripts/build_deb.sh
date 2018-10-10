@@ -28,9 +28,8 @@
 # Define the necessary environment variables
 prepare_env () {
     export SCRIPT_DIR=$PWD
-    export BUILD_DIR=$PWD/../build
     export DIST_DIR=$PWD/../dist
-    export VERSION=0.1.0-beta6
+    export VERSION=0.1.0-b7
 }
 
 # Package the deb using fpm
