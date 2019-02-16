@@ -1,0 +1,8 @@
+Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
+Upstream-Name: idfplus
+Upstream-Contact: Matt Doiron <mattdoiron@gmail.com>
+Source: https://bitbucket.org/mattdoiron/idfplus
+
+Files: *
+Copyright: 2019 Matt Doiron <mattdoiron@gmail.com>
+License: GPL-3

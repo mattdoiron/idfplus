@@ -21,18 +21,21 @@
 # The OS used to build the .deb file will be the LOWEST version supported. So, use
 # an older (preferably LTS) version if possible.
 
-# The following prerequisites are required:
+# The following prerequisites are required if fpm is used:
 # sudo apt-get install build-essential debhelper lintian ruby ruby-dev rubygems gcc make
 # sudo gem install --no-ri --no-rdoc fpm
 
 # Define the necessary environment variables
 prepare_env () {
-    export SCRIPT_DIR=$PWD
-    export DIST_DIR=$PWD/../dist
-    export VERSION=0.1.0-b7
+    export VERSION=0.1.0-b8
+    export NAME=idfplus
+    export SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+    export BUILD_DIR=${SCRIPT_DIR}/../build
+    export DIST_DIR=${SCRIPT_DIR}/../dist
+    export DEB_DIR=${BUILD_DIR}/${NAME}-${VERSION}
 }
 
-# Package the deb using fpm
+# Package the deb using fpm (NOT USED)
 make_installer () {
     chmod -R 0755 ${DIST_DIR}/idfplus/
 
@@ -47,14 +50,30 @@ make_installer () {
     --force --package ${DIST_DIR} --input-type dir --output-type deb idfplus
 }
 
+# Package as a deb manually
+make_deb () {
+#    echo ${DEB_DIR}
+#    rm -r ${DEB_DIR}
+    mkdir -p ${DEB_DIR}/opt/${NAME}
+    mkdir -p ${DEB_DIR}/usr/bin
+    mkdir -p ${DEB_DIR}/DEBIAN
+    cp ${SCRIPT_DIR}/DEBIAN_control ${DEB_DIR}/DEBIAN/control
+    cp ${SCRIPT_DIR}/DEBIAN_copyright ${DEB_DIR}/DEBIAN/copyright
+    cp ${SCRIPT_DIR}/../CHANGELOG.rst ${DEB_DIR}/DEBIAN/changelog
+    cp ${SCRIPT_DIR}/../resources/datas/idfplus.desktop ${DEB_DIR}/opt/${NAME}
+    cp -r ${DIST_DIR}/idfplus/* ${DEB_DIR}/opt/${NAME}
+    ln -s /opt/${NAME}/${NAME} ${DEB_DIR}/usr/bin/${NAME}
+    dpkg-deb --build ${DEB_DIR}
+}
+
 prepare_env
 
 # Detect command line arguments
 case "$1" in
-    installer)
-        make_installer
+    deb)
+        make_deb
         ;;
     *)
-        echo $"Usage: $0 {installer}"
+        echo $"Usage: $0 {deb}"
         exit 1
 esac

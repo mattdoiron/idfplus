@@ -1,0 +1,21 @@
+Package: idfplus
+Version: 0.1.0-b8-1
+License: GPL-3
+Vendor: Mindful Modeller
+Architecture: i386
+Maintainer: Matt Doiron <mattdoiron@gmail.com>
+Provides: idfplus
+Source: idfplus
+Section: Editor
+Priority: optional
+Homepage: https://bitbucket.org/mattdoiron/idfplus
+Description: IDF+ is an enhanced editor for EnergyPlus input files.
+ IDF+ is an enhanced editor for idf files—the text-based, simulation input files for
+ EnergyPlus. In creating the tool, I've attempted to embrace the concepts and ideas that I find
+ most useful in my every-day building energy modelling. I've written these ideas in a "manifesto"
+ (rather, I discovered and developed the concepts as I created the tool and used others). I use
+ the official IDF Editor that comes with EnergyPlus every day—it is the primary tool I use for
+ interacting with IDF files. I have come to respect it and think it is probably the best tool
+ out there right now for working with IDF files, however, it also has some significant
+ limitations that I decided to address. The working name I've chosen is IDF+, but I am hoping
+ to find something a bit more original as development progresses (suggestions are welcome!).
