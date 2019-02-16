@@ -1,10 +1,11 @@
 [Desktop Entry]
 Name=IDFPlus Editor
+Version=0.1.0-b8
 Comment=Enhanced editor for EnergyPlus input files
 Exec=idfplus %f
-Icon=/usr/share/idfplus/idfplus.png
+Icon=/opt/idfplus/idfplus.png
 Terminal=false
 Type=Application
-Categories=Development
+Categories=Editor
 StartupNotify=true
 MimeType=application/x-python
