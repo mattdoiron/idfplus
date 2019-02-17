@@ -1,5 +1,5 @@
 # requirements.in
-PySide
+PySide2
 appdirs
 odict
 persistent
