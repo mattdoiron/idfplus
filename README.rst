@@ -30,13 +30,13 @@ Python v2.7.x and the appropriate dependencies. See the Doc folder for more info
 Open Source and Cross Platform
 ------------------------------
 
-The tool is written in Python_ (v2.7.12) using PySide_ 1.2.4 for a graphical library, and
+The tool is written in Python_ (v2.7.14) using PySide2_ 5.12.1 for a graphical library, and
 the source code is available under the GPLv3 open source licence. It is currently
-working on both Ubuntu 16.10/17.10 and Windows 7/8/10, but will eventually work on Mac OSX
+working on both Ubuntu 16.04+ and Windows 7/8/10, but will eventually work on Mac OSX
 as well.
 
 .. _Python: https://www.python.org/
-.. _PySide: http://qt-project.org/wiki/PySide/
+.. _PySide2: https://www.qt.io/qt-for-python
 
 Lightweight Editor
 ------------------
