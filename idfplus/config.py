@@ -11,9 +11,9 @@ import os
 import appdirs
 import logging
 
-# PySide imports
-from PySide import QtGui
-from PySide import QtCore
+# PySide2 imports
+from PySide2.QtCore import QDir, QSettings, QSize, QPoint, QByteArray
+from PySide2.QtWidgets import QStyleFactory, QApplication
 
 # Constants
 LOG_LEVEL = 'DEBUG'
@@ -54,10 +54,10 @@ class Settings(dict):
         """
 
         super(Settings, self).__init__(*args, **kwargs)
-        QtCore.QSettings.setPath(QtCore.QSettings.IniFormat,
-                                 QtCore.QSettings.UserScope,
+        QSettings.setPath(QSettings.IniFormat,
+                                 QSettings.UserScope,
                                  CONFIG_DIR)
-        self.settings = QtCore.QSettings(CONFIG_FILE_PATH, QtCore.QSettings.IniFormat)
+        self.settings = QSettings(CONFIG_FILE_PATH, QSettings.IniFormat)
         self.read_settings()
 
     def read_settings(self):
@@ -171,10 +171,10 @@ class Settings(dict):
         log.info('Restoring main window state')
         settings = self.settings
         settings.beginGroup("MainWindow")
-        self['size'] = settings.value("size", QtCore.QSize(1024, 768))
-        self['pos'] = settings.value("pos", QtCore.QPoint(200, 200))
-        self['state'] = settings.value("state", QtCore.QByteArray())
-        self['geometry'] = settings.value("geometry", QtCore.QByteArray())
+        self['size'] = settings.value("size", QSize(1024, 768))
+        self['pos'] = settings.value("pos", QPoint(200, 200))
+        self['state'] = settings.value("state", QByteArray())
+        self['geometry'] = settings.value("geometry", QByteArray())
         settings.endGroup()
 
         settings.beginGroup("Appearance")
@@ -185,7 +185,7 @@ class Settings(dict):
         window.move(self['pos'])
         window.restoreGeometry(self['geometry'])
         window.restoreState(self['state'])
-        QtGui.QApplication.setStyle(QtGui.QStyleFactory.create(self['style']))
+        QApplication.setStyle(QStyleFactory.create(self['style']))
 
     def update_log_level(self):
         """Refreshes handlers' log level and global variable
@@ -246,9 +246,9 @@ def get_os():
 
 def idd_versions():
 
-    data_dir = QtCore.QDir(DATA_DIR)
-    data_dir.setFilter(QtCore.QDir.Files | QtCore.QDir.Hidden | QtCore.QDir.Readable |
-                       QtCore.QDir.NoSymLinks | QtCore.QDir.NoDotAndDotDot)
+    data_dir = QDir(DATA_DIR)
+    data_dir.setFilter(QDir.Files | QDir.Hidden | QDir.Readable |
+                       QDir.NoSymLinks | QDir.NoDotAndDotDot)
     prefix, sep, postfix = IDD_FILE_NAME_ROOT.partition("{}")
     versions = []
 

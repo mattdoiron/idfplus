@@ -10,9 +10,14 @@
 import logging
 from collections import deque
 
-# PySide imports
-from PySide import QtGui
-from PySide import QtCore
+# PySide2 imports
+from PySide2.QtCore import Qt
+from PySide2.QtGui import QFont, QIcon, QKeySequence, QPalette
+from PySide2.QtWidgets import (QUndoStack, QApplication, QAbstractItemView, QFrame, QDockWidget,
+                               QTreeView, QLineEdit, QPushButton, QWidget, QTextEdit, QMenu,
+                               QPlainTextEdit, QUndoView, QLabel, QProgressBar, QSystemTrayIcon,
+                               QAction, QActionGroup, QCheckBox, QHeaderView, QVBoxLayout,
+                               QHBoxLayout, QDesktopWidget)
 
 # Package imports
 from ..models import classtable
@@ -36,42 +41,42 @@ class UIMainWindow(object):
         log.debug('Loading UI')
 
         # Undo Stack
-        self.undo_stack = QtGui.QUndoStack(self)
+        self.undo_stack = QUndoStack(self)
         self.undo_stack.setUndoLimit(100)
 
         # Object navigation history
         self.obj_history = deque([], config.MAX_OBJ_HISTORY)
 
-        app = QtGui.QApplication.instance()
-        base_font = QtGui.QFont()
+        app = QApplication.instance()
+        base_font = QFont()
         base_font.fromString(self.prefs['base_font'])
         app.setFont(base_font)
 
         # Object class table widget
-        # classTable = QtGui.QTableView(self)
+        # classTable = QTableView(self)
         classTable = classtable.TableView(self)
         classTable.setObjectName("classTable")
         classTable.setAlternatingRowColors(True)
-        classTable.setFrameShape(QtGui.QFrame.StyledPanel)
-        classTable_font = QtGui.QFont()
+        classTable.setFrameShape(QFrame.StyledPanel)
+        classTable_font = QFont()
         classTable_font.fromString(self.prefs['class_table_font'])
         classTable.setFont(classTable_font)
         fm = classTable.fontMetrics()
         classTable.setWordWrap(True)
-        classTable.setEditTriggers(QtGui.QAbstractItemView.EditKeyPressed |
-                                   QtGui.QAbstractItemView.DoubleClicked |
-                                   QtGui.QAbstractItemView.AnyKeyPressed |
-                                   QtGui.QAbstractItemView.SelectedClicked)
+        classTable.setEditTriggers(QAbstractItemView.EditKeyPressed |
+                                   QAbstractItemView.DoubleClicked |
+                                   QAbstractItemView.AnyKeyPressed |
+                                   QAbstractItemView.SelectedClicked)
         # classTable.horizontalHeader().setMovable(True)
         # classTable.verticalHeader().setMovable(False)
-        classTable.horizontalHeader().setResizeMode(QtGui.QHeaderView.Interactive)
-        classTable.verticalHeader().setResizeMode(QtGui.QHeaderView.Interactive)
+        classTable.horizontalHeader().setSectionResizeMode(QHeaderView.Interactive)
+        classTable.verticalHeader().setSectionResizeMode(QHeaderView.Interactive)
         classTable.horizontalHeader().setDefaultSectionSize(self.prefs['default_column_width'])
         classTable.verticalHeader().setDefaultSectionSize(fm.height() + 0)
         classTable.horizontalHeader().setCascadingSectionResizes(True)
         classTable.verticalHeader().setCascadingSectionResizes(True)
-        classTable.setSelectionMode(QtGui.QAbstractItemView.ExtendedSelection)
-        classTable.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
+        classTable.setSelectionMode(QAbstractItemView.ExtendedSelection)
+        classTable.setContextMenuPolicy(Qt.CustomContextMenu)
         classTable.customContextMenuRequested.connect(self.custom_table_context_menu)
         classTable.horizontalHeader().sectionResized.connect(classTable.resizeRowsToContents)
 
@@ -95,37 +100,37 @@ class UIMainWindow(object):
         # classTable.verticalHeader().sectionMoved.connect(self.moveObject)
 
         # Object class tree widget
-        classTreeDockWidget = QtGui.QDockWidget("Object Classes and Counts", self)
+        classTreeDockWidget = QDockWidget("Object Classes and Counts", self)
         classTreeDockWidget.setObjectName("classTreeDockWidget")
-        classTreeDockWidget.setAllowedAreas(QtCore.Qt.AllDockWidgetAreas)
+        classTreeDockWidget.setAllowedAreas(Qt.AllDockWidgetAreas)
 
-        classTree = QtGui.QTreeView(classTreeDockWidget)
+        classTree = QTreeView(classTreeDockWidget)
         classTree.setUniformRowHeights(True)
         classTree.setAllColumnsShowFocus(True)
         classTree.setRootIsDecorated(False)
         classTree.setExpandsOnDoubleClick(True)
         classTree.setIndentation(15)
         classTree.setAnimated(True)
-        classTree_font = QtGui.QFont()
+        classTree_font = QFont()
         classTree_font.fromString(self.prefs['class_tree_font'])
         classTree.setFont(classTree_font)
         classTree.setAlternatingRowColors(True)
-        classTree.setHorizontalScrollMode(QtGui.QAbstractItemView.ScrollPerPixel)
+        classTree.setHorizontalScrollMode(QAbstractItemView.ScrollPerPixel)
         palette = classTree.palette()
-        palette.setColor(QtGui.QPalette.Highlight, QtCore.Qt.darkCyan)
+        palette.setColor(QPalette.Highlight, Qt.darkCyan)
         classTree.setPalette(palette)
 
-        class_tree_window = QtGui.QWidget(classTreeDockWidget)
-        class_tree_dock_layout_v = QtGui.QVBoxLayout()
-        class_tree_dock_layout_h = QtGui.QHBoxLayout()
+        class_tree_window = QWidget(classTreeDockWidget)
+        class_tree_dock_layout_v = QVBoxLayout()
+        class_tree_dock_layout_h = QHBoxLayout()
         class_tree_dock_layout_v.setContentsMargins(0, 8, 0, 0)
         class_tree_dock_layout_h.setContentsMargins(0, 0, 0, 0)
 
-        class_tree_filter_edit = QtGui.QLineEdit(classTreeDockWidget)
+        class_tree_filter_edit = QLineEdit(classTreeDockWidget)
         class_tree_filter_edit.setPlaceholderText("Filter Classes")
         class_tree_filter_edit.textChanged.connect(self.treeFilterRegExpChanged)
 
-        class_tree_filter_cancel = QtGui.QPushButton("Clear", classTreeDockWidget)
+        class_tree_filter_cancel = QPushButton("Clear", classTreeDockWidget)
         class_tree_filter_cancel.setMaximumWidth(45)
         class_tree_filter_cancel.clicked.connect(self.clearTreeFilterClicked)
 
@@ -139,81 +144,81 @@ class UIMainWindow(object):
         classTreeDockWidget.setContentsMargins(0,0,0,0)
 
         # Comments widget
-        commentDockWidget = QtGui.QDockWidget("Comments", self)
+        commentDockWidget = QDockWidget("Comments", self)
         commentDockWidget.setObjectName("commentDockWidget")
-        commentDockWidget.setAllowedAreas(QtCore.Qt.AllDockWidgetAreas)
+        commentDockWidget.setAllowedAreas(Qt.AllDockWidgetAreas)
         commentView = UndoRedoTextEdit(commentDockWidget, self)
-        commentView.setLineWrapMode(QtGui.QTextEdit.FixedColumnWidth)
+        commentView.setLineWrapMode(QTextEdit.FixedColumnWidth)
         commentView.setLineWrapColumnOrWidth(499)
-        commentView.setFrameShape(QtGui.QFrame.StyledPanel)
-        commentView_font = QtGui.QFont()
+        commentView.setFrameShape(QFrame.StyledPanel)
+        commentView_font = QFont()
         commentView_font.fromString(self.prefs['comments_font'])
         commentView.setFont(commentView_font)
         commentDockWidget.setWidget(commentView)
 
         # Info and help widget
-        infoDockWidget = QtGui.QDockWidget("Info", self)
+        infoDockWidget = QDockWidget("Info", self)
         infoDockWidget.setObjectName("infoDockWidget")
-        infoDockWidget.setAllowedAreas(QtCore.Qt.AllDockWidgetAreas)
-        infoView = QtGui.QTextEdit(infoDockWidget)
-        infoView.setFrameShape(QtGui.QFrame.StyledPanel)
+        infoDockWidget.setAllowedAreas(Qt.AllDockWidgetAreas)
+        infoView = QTextEdit(infoDockWidget)
+        infoView.setFrameShape(QFrame.StyledPanel)
         infoView.setReadOnly(True)
         infoDockWidget.setWidget(infoView)
 
         # Node list and jump menu widget
-        refDockWidget = QtGui.QDockWidget("Field References", self)
+        refDockWidget = QDockWidget("Field References", self)
         refDockWidget.setObjectName("refDockWidget")
-        refDockWidget.setAllowedAreas(QtCore.Qt.AllDockWidgetAreas)
+        refDockWidget.setAllowedAreas(Qt.AllDockWidgetAreas)
         ref_model = reftree.ReferenceTreeModel(None, refDockWidget)
-        refView = QtGui.QTreeView(refDockWidget)
+        refView = QTreeView(refDockWidget)
         refView.setModel(ref_model)
         refView.setUniformRowHeights(True)
         refView.setRootIsDecorated(False)
         refView.setIndentation(15)
         refView.setColumnWidth(0, 160)
-        refView.setFrameShape(QtGui.QFrame.StyledPanel)
+        refView.setFrameShape(QFrame.StyledPanel)
         refDockWidget.setWidget(refView)
         refView.doubleClicked.connect(self.ref_tree_double_clicked)
 
         # Logging and debugging widget
-        logDockWidget = QtGui.QDockWidget("Log Viewer", self)
+        logDockWidget = QDockWidget("Log Viewer", self)
         logDockWidget.setObjectName("logDockWidget")
-        logDockWidget.setAllowedAreas(QtCore.Qt.AllDockWidgetAreas)
-        logView = QtGui.QPlainTextEdit(logDockWidget)
-        logView.setLineWrapMode(QtGui.QPlainTextEdit.NoWrap)
+        logDockWidget.setAllowedAreas(Qt.AllDockWidgetAreas)
+        logView = QPlainTextEdit(logDockWidget)
+        logView.setLineWrapMode(QPlainTextEdit.NoWrap)
         logView.setReadOnly(True)
-        logView_font = QtGui.QFont()
+        logView_font = QFont()
         logView_font.fromString(self.prefs['base_font'])
         logView.setFont(logView_font)
         logView.ensureCursorVisible()
         logDockWidget.setWidget(logView)
 
         # Undo view widget
-        undoDockWidget = QtGui.QDockWidget("Undo History", self)
+        undoDockWidget = QDockWidget("Undo History", self)
         undoDockWidget.setObjectName("undoDockWidget")
-        undoDockWidget.setAllowedAreas(QtCore.Qt.AllDockWidgetAreas)
-        undoView = QtGui.QUndoView(self.undo_stack)
+        undoDockWidget.setAllowedAreas(Qt.AllDockWidgetAreas)
+        undoView = QUndoView(self.undo_stack)
         undoDockWidget.setWidget(undoView)
 
         # Define corner docking behaviour
         self.setDockNestingEnabled(True)
-        self.setCorner(QtCore.Qt.TopLeftCorner,
-                       QtCore.Qt.LeftDockWidgetArea)
-        self.setCorner(QtCore.Qt.TopRightCorner,
-                       QtCore.Qt.RightDockWidgetArea)
-        self.setCorner(QtCore.Qt.BottomLeftCorner,
-                       QtCore.Qt.LeftDockWidgetArea)
-        self.setCorner(QtCore.Qt.BottomRightCorner,
-                       QtCore.Qt.RightDockWidgetArea)
+        self.setCorner(Qt.TopLeftCorner,
+                       Qt.LeftDockWidgetArea)
+        self.setCorner(Qt.TopRightCorner,
+                       Qt.RightDockWidgetArea)
+        self.setCorner(Qt.BottomLeftCorner,
+                       Qt.LeftDockWidgetArea)
+        self.setCorner(Qt.BottomRightCorner,
+                       Qt.RightDockWidgetArea)
 
         # Assign main widget and dock widgets to QMainWindow
         self.setCentralWidget(classTable)
-        self.addDockWidget(QtCore.Qt.LeftDockWidgetArea, classTreeDockWidget)
-        self.addDockWidget(QtCore.Qt.RightDockWidgetArea, commentDockWidget)
-        self.addDockWidget(QtCore.Qt.RightDockWidgetArea, infoDockWidget)
-        self.addDockWidget(QtCore.Qt.RightDockWidgetArea, refDockWidget)
-        self.addDockWidget(QtCore.Qt.RightDockWidgetArea, logDockWidget)
-        self.addDockWidget(QtCore.Qt.RightDockWidgetArea, undoDockWidget)
+        self.addDockWidget(Qt.LeftDockWidgetArea, classTreeDockWidget)
+        self.addDockWidget(Qt.RightDockWidgetArea, commentDockWidget)
+        self.addDockWidget(Qt.RightDockWidgetArea, infoDockWidget)
+        self.addDockWidget(Qt.RightDockWidgetArea, refDockWidget)
+        self.addDockWidget(Qt.RightDockWidgetArea, logDockWidget)
+        self.addDockWidget(Qt.RightDockWidgetArea, undoDockWidget)
 
         # Store widgets for access by other objects
         self.classTable = classTable
@@ -236,31 +241,31 @@ class UIMainWindow(object):
         # Perform other UI-related initialization tasks
         self.center()
         self.setUnifiedTitleAndToolBarOnMac(True)
-        self.setWindowIcon(QtGui.QIcon(':/images/logo.png'))
+        self.setWindowIcon(QIcon(':/images/logo.png'))
 
         # Status bar setup
         self.statusBar().showMessage('Status: Ready')
-        self.unitsLabel = QtGui.QLabel()
-        self.unitsLabel.setAlignment(QtCore.Qt.AlignCenter)
+        self.unitsLabel = QLabel()
+        self.unitsLabel.setAlignment(Qt.AlignCenter)
         self.unitsLabel.setMinimumSize(self.unitsLabel.sizeHint())
-        self.unitsLabel.setFrameStyle(QtGui.QFrame.StyledPanel | QtGui.QFrame.Sunken)
+        self.unitsLabel.setFrameStyle(QFrame.StyledPanel | QFrame.Sunken)
         self.statusBar().addPermanentWidget(self.unitsLabel)
-        self.pathLabel = QtGui.QLabel()
-        self.pathLabel.setAlignment(QtCore.Qt.AlignCenter)
+        self.pathLabel = QLabel()
+        self.pathLabel.setAlignment(Qt.AlignCenter)
         self.pathLabel.setMinimumSize(self.pathLabel.sizeHint())
-        self.pathLabel.setFrameStyle(QtGui.QFrame.StyledPanel | QtGui.QFrame.Sunken)
+        self.pathLabel.setFrameStyle(QFrame.StyledPanel | QFrame.Sunken)
         self.statusBar().addPermanentWidget(self.pathLabel)
-        self.versionLabel = QtGui.QLabel()
-        self.versionLabel.setAlignment(QtCore.Qt.AlignCenter)
+        self.versionLabel = QLabel()
+        self.versionLabel.setAlignment(Qt.AlignCenter)
         self.versionLabel.setMinimumSize(self.versionLabel.sizeHint())
-        self.versionLabel.setFrameStyle(QtGui.QFrame.StyledPanel | QtGui.QFrame.Sunken)
+        self.versionLabel.setFrameStyle(QFrame.StyledPanel | QFrame.Sunken)
         self.statusBar().addPermanentWidget(self.versionLabel)
-        self.progressBarIDF = QtGui.QProgressBar()
-        self.progressBarIDF.setAlignment(QtCore.Qt.AlignCenter)
+        self.progressBarIDF = QProgressBar()
+        self.progressBarIDF.setAlignment(Qt.AlignCenter)
         self.progressBarIDF.setMaximumWidth(200)
         self.statusBar().addPermanentWidget(self.progressBarIDF)
 
-        self.clipboard = QtGui.QApplication.instance().clipboard()
+        self.clipboard = QApplication.instance().clipboard()
         self.obj_clipboard = []
 
         self.setStyleSheet("""
@@ -283,7 +288,7 @@ class UIMainWindow(object):
         """
 
         # Menu for the system tray
-        self.trayIconMenu = QtGui.QMenu(self)
+        self.trayIconMenu = QMenu(self)
         self.trayIconMenu.addAction(self.minimizeAction)
         self.trayIconMenu.addAction(self.maximizeAction)
         self.trayIconMenu.addAction(self.restoreAction)
@@ -291,9 +296,9 @@ class UIMainWindow(object):
         self.trayIconMenu.addAction(self.exitAct)
 
         # System tray itself
-        self.trayIcon = QtGui.QSystemTrayIcon(self)
+        self.trayIcon = QSystemTrayIcon(self)
         self.trayIcon.setContextMenu(self.trayIconMenu)
-        self.trayIcon.setIcon(QtGui.QIcon(':/images/logo.png'))
+        self.trayIcon.setIcon(QIcon(':/images/logo.png'))
         self.trayIcon.setToolTip('IDF+')
         self.trayIcon.show()
 
@@ -301,232 +306,232 @@ class UIMainWindow(object):
         """Creates appropriate actions for use in menus and toolbars.
         """
 
-        self.newAct = QtGui.QAction(QtGui.QIcon(':/images/new1.png'), "&New", self,
-                                    shortcut=QtGui.QKeySequence.New,
+        self.newAct = QAction(QIcon(':/images/new1.png'), "&New", self,
+                                    shortcut=QKeySequence.New,
                                     statusTip="Create a new file",
                                     iconVisibleInMenu=True,
                                     triggered=self.new_file)
 
-        self.openAct = QtGui.QAction(QtGui.QIcon(':/images/open.png'), "&Open...", self,
-                                     shortcut=QtGui.QKeySequence.Open,
+        self.openAct = QAction(QIcon(':/images/open.png'), "&Open...", self,
+                                     shortcut=QKeySequence.Open,
                                      statusTip="Open an existing file",
                                      iconVisibleInMenu=True,
                                      triggered=self.open_file)
 
-        self.saveAct = QtGui.QAction(QtGui.QIcon(':/images/save.png'), "&Save", self,
-                                     shortcut=QtGui.QKeySequence.Save,
+        self.saveAct = QAction(QIcon(':/images/save.png'), "&Save", self,
+                                     shortcut=QKeySequence.Save,
                                      statusTip="Save the document to disk",
                                      iconVisibleInMenu=True,
                                      triggered=self.save)
 
-        self.saveFormatAct = QtGui.QAction(QtGui.QIcon(':/images/save.png'), "&Format && Save",
-                                     self, shortcut=QtGui.QKeySequence('Ctrl+Shift+F'),
+        self.saveFormatAct = QAction(QIcon(':/images/save.png'), "&Format && Save",
+                                     self, shortcut=QKeySequence('Ctrl+Shift+F'),
                                      statusTip="Format File and Save to disk",
                                      iconVisibleInMenu=True,
                                      triggered=self.format_save)
 
-        self.saveAsAct = QtGui.QAction(QtGui.QIcon(':/images/saveas.png'), "Save &As...", self,
-                                       shortcut=QtGui.QKeySequence.SaveAs,
+        self.saveAsAct = QAction(QIcon(':/images/saveas.png'), "Save &As...", self,
+                                       shortcut=QKeySequence.SaveAs,
                                        statusTip="Save the document under a new name",
                                        iconVisibleInMenu=True,
                                        triggered=self.save_as)
 
-        self.exitAct = QtGui.QAction(QtGui.QIcon(':/images/quit.png'), "E&xit", self,
-                                     shortcut=QtGui.QKeySequence('Ctrl+Q'),
+        self.exitAct = QAction(QIcon(':/images/quit.png'), "E&xit", self,
+                                     shortcut=QKeySequence('Ctrl+Q'),
                                      iconVisibleInMenu=True,
                                      statusTip="Exit the application",
                                      triggered=self.closeAllWindows)
 
-        self.cutObjAct = QtGui.QAction(QtGui.QIcon(':/images/cut.png'), "Cu&t Object", self,
-                                       shortcut=QtGui.QKeySequence.Cut,
+        self.cutObjAct = QAction(QIcon(':/images/cut.png'), "Cu&t Object", self,
+                                       shortcut=QKeySequence.Cut,
                                        statusTip="Cut current selection's contents to clipboard",
                                        iconVisibleInMenu=True,
                                        triggered=self.cutObject,
                                        iconText='Cut Obj')
 
-        self.copyAct = QtGui.QAction(QtGui.QIcon(':/images/copy.png'),
+        self.copyAct = QAction(QIcon(':/images/copy.png'),
                                      "&Copy Selected Values", self,
                                      statusTip="Copy current selection's contents to clipboard",
                                      iconVisibleInMenu=True,
                                      triggered=self.copySelected)
 
-        self.pasteAct = QtGui.QAction(QtGui.QIcon(':/images/paste.png'),
+        self.pasteAct = QAction(QIcon(':/images/paste.png'),
                                       "&Paste Selected Values", self,
                                       statusTip="Paste clipboard into current selection",
                                       iconVisibleInMenu=True,
                                       triggered=self.pasteSelected)
 
-        self.pasteExtAct = QtGui.QAction(QtGui.QIcon(':/images/paste.png'),
+        self.pasteExtAct = QAction(QIcon(':/images/paste.png'),
                                       "&Paste from External", self,
-                                      shortcut=QtGui.QKeySequence('Ctrl+Shift+v'),
+                                      shortcut=QKeySequence('Ctrl+Shift+v'),
                                       statusTip="Paste from external program",
                                       iconVisibleInMenu=True,
                                       triggered=self.paste_from_external)
 
-        self.transposeAct = QtGui.QAction("Transpose", self,
-                                          shortcut=QtGui.QKeySequence('Ctrl+t'),
+        self.transposeAct = QAction("Transpose", self,
+                                          shortcut=QKeySequence('Ctrl+t'),
                                           statusTip="Transpose rows and columns in object display",
                                           triggered=self.transpose_table)
 
-        self.newObjAct = QtGui.QAction(QtGui.QIcon(':/images/new2.png'), "New Object", self,
-                                       shortcut=QtGui.QKeySequence('Ctrl+Shift+n'),
+        self.newObjAct = QAction(QIcon(':/images/new2.png'), "New Object", self,
+                                       shortcut=QKeySequence('Ctrl+Shift+n'),
                                        statusTip="Create new object in current class",
                                        iconVisibleInMenu=True,
                                        triggered=self.newObject,
                                        iconText='New Obj')
 
-        self.copyObjAct = QtGui.QAction(QtGui.QIcon(':/images/copy.png'), "Copy Object", self,
-                                        shortcut=QtGui.QKeySequence.Copy,
+        self.copyObjAct = QAction(QIcon(':/images/copy.png'), "Copy Object", self,
+                                        shortcut=QKeySequence.Copy,
                                         statusTip="Copy the current Object(s)",
                                         iconVisibleInMenu=True,
                                         triggered=self.copyObject,
                                         iconText='Copy Obj')
 
-        self.pasteObjAct = QtGui.QAction(QtGui.QIcon(':/images/paste.png'), "Paste Object", self,
-                                         shortcut=QtGui.QKeySequence.Paste,
+        self.pasteObjAct = QAction(QIcon(':/images/paste.png'), "Paste Object", self,
+                                         shortcut=QKeySequence.Paste,
                                          statusTip="Paste the currently copies Object(s)",
                                          iconVisibleInMenu=True,
                                          triggered=self.pasteObject,
                                          iconText='Paste Obj')
 
-        self.dupObjAct = QtGui.QAction(QtGui.QIcon(':/images/copy.png'), "Duplicate Object", self,
-                                       shortcut=QtGui.QKeySequence('Shift+Ctrl+d'),
+        self.dupObjAct = QAction(QIcon(':/images/copy.png'), "Duplicate Object", self,
+                                       shortcut=QKeySequence('Shift+Ctrl+d'),
                                        statusTip="Duplicate the current Object(s)",
                                        iconVisibleInMenu=True,
                                        triggered=self.duplicateObject,
                                        iconText='Dup Obj')
 
-        self.delObjAct = QtGui.QAction(QtGui.QIcon(':/images/delete.png'), "Delete Object", self,
-                                       shortcut=QtGui.QKeySequence.Delete,
+        self.delObjAct = QAction(QIcon(':/images/delete.png'), "Delete Object", self,
+                                       shortcut=QKeySequence.Delete,
                                        statusTip="Delete the current Object(s)",
                                        iconVisibleInMenu=True,
                                        triggered=self.deleteObject,
                                        iconText='Del Obj')
 
-        self.undoAct = QtGui.QAction(QtGui.QIcon(':/images/undo.png'), "&Undo", self,
-                                     shortcut=QtGui.QKeySequence.Undo,
+        self.undoAct = QAction(QIcon(':/images/undo.png'), "&Undo", self,
+                                     shortcut=QKeySequence.Undo,
                                      statusTip="Undo previous action",
                                      iconVisibleInMenu=True,
                                      triggered=self.undo_stack.undo)
 
-        self.redoAct = QtGui.QAction(QtGui.QIcon(':/images/redo.png'), "&Redo", self,
-                                     shortcut=QtGui.QKeySequence.Redo,
+        self.redoAct = QAction(QIcon(':/images/redo.png'), "&Redo", self,
+                                     shortcut=QKeySequence.Redo,
                                      statusTip="Redo previous action",
                                      iconVisibleInMenu=True,
                                      triggered=self.undo_stack.redo)
 
-        self.groupAct = QtGui.QAction("Hide Groups in Class Tree", self,
-                                      shortcut=QtGui.QKeySequence('Ctrl+g'),
+        self.groupAct = QAction("Hide Groups in Class Tree", self,
+                                      shortcut=QKeySequence('Ctrl+g'),
                                       triggered=self.toggle_groups,
                                       checkable=True)
 
-        # self.navForwardAct = QtGui.QAction("Forward", self,
-        #         shortcut=QtGui.QKeySequence('Ctrl+Plus'),
+        # self.navForwardAct = QAction("Forward", self,
+        #         shortcut=QKeySequence('Ctrl+Plus'),
         #         statusTip="Go forward to the next object",
         #         triggered=self.navForward)
         #
-        # self.navBackAct = QtGui.QAction("Back", self,
-        #         shortcut=QtGui.QKeySequence('Ctrl+Minus'),
+        # self.navBackAct = QAction("Back", self,
+        #         shortcut=QKeySequence('Ctrl+Minus'),
         #         statusTip="Go back to the previous object",
         #         triggered=self.navBack)
 
-        self.showInFolderAct = QtGui.QAction(QtGui.QIcon(':/images/new.png'), "&Show in folder",
-                                             self, shortcut=QtGui.QKeySequence('Ctrl+Shift+t'),
+        self.showInFolderAct = QAction(QIcon(':/images/new.png'), "&Show in folder",
+                                             self, shortcut=QKeySequence('Ctrl+Shift+t'),
                                              statusTip="Open location of current file",
                                              iconVisibleInMenu=True)
         self.showInFolderAct.triggered.connect(lambda: self.show_in_folder())
 
-        self.epDocGettingStartedAction = QtGui.QAction("EnergyPlus Getting Started", self,
+        self.epDocGettingStartedAction = QAction("EnergyPlus Getting Started", self,
                                                        triggered=self.energy_plus_docs)
 
-        self.epDocIORefAction = QtGui.QAction("EnergyPlus I/O Reference", self,
+        self.epDocIORefAction = QAction("EnergyPlus I/O Reference", self,
                                               triggered=self.energy_plus_docs)
 
-        self.epDocOutputDetailsAction = QtGui.QAction("EnergyPlus Output Details and Examples",
+        self.epDocOutputDetailsAction = QAction("EnergyPlus Output Details and Examples",
                                                       self, triggered=self.energy_plus_docs)
 
-        self.epDocEngineeringRefAction = QtGui.QAction("EnergyPlus Engineering Reference", self,
+        self.epDocEngineeringRefAction = QAction("EnergyPlus Engineering Reference", self,
                                                        triggered=self.energy_plus_docs)
 
-        self.epDocAuxiliaryProgsAction = QtGui.QAction("EnergyPlus Auxiliary Programs", self,
+        self.epDocAuxiliaryProgsAction = QAction("EnergyPlus Auxiliary Programs", self,
                                                        triggered=self.energy_plus_docs)
 
-        self.epDocEMSGuideAction = QtGui.QAction("EnergyPlus EMS Application Guide", self,
+        self.epDocEMSGuideAction = QAction("EnergyPlus EMS Application Guide", self,
                                                  triggered=self.energy_plus_docs)
 
-        self.epDocComplianceAction = QtGui.QAction("Using EnergyPlus for Compliance", self,
+        self.epDocComplianceAction = QAction("Using EnergyPlus for Compliance", self,
                                                    triggered=self.energy_plus_docs)
 
-        self.epDocInterfaceAction = QtGui.QAction("External Interface Application Guide", self,
+        self.epDocInterfaceAction = QAction("External Interface Application Guide", self,
                                                   triggered=self.energy_plus_docs)
 
-        self.epDocTipsTricksAction = QtGui.QAction("Tips and Tricks Using EnergyPlus", self,
+        self.epDocTipsTricksAction = QAction("Tips and Tricks Using EnergyPlus", self,
                                                    triggered=self.energy_plus_docs)
 
-        self.epDocPlantGuideAction = QtGui.QAction("EnergyPlus Plant Application Guide", self,
+        self.epDocPlantGuideAction = QAction("EnergyPlus Plant Application Guide", self,
                                                    triggered=self.energy_plus_docs)
 
-        self.epDocAcknowledgmentsAction = QtGui.QAction("EnergyPlus Acknowledgments", self,
+        self.epDocAcknowledgmentsAction = QAction("EnergyPlus Acknowledgments", self,
                                                         triggered=self.energy_plus_docs)
 
-        self.openInEditorAct = QtGui.QAction(QtGui.QIcon(':/images/new.png'),
+        self.openInEditorAct = QAction(QIcon(':/images/new.png'),
                                              "&Open in text editor", self,
-                                             shortcut=QtGui.QKeySequence('Ctrl+e'),
+                                             shortcut=QKeySequence('Ctrl+e'),
                                              statusTip="Open current file in default editor",
                                              iconVisibleInMenu=True,
                                              triggered=self.open_in_text_editor)
 
-        self.helpAct = QtGui.QAction("&EnergyPlus Help (Online)", self,
+        self.helpAct = QAction("&EnergyPlus Help (Online)", self,
                                      statusTip="Show the EnergyPlus' help",
                                      triggered=self.energyplus_help)
 
-        self.aboutAct = QtGui.QAction("&About IDF+", self,
+        self.aboutAct = QAction("&About IDF+", self,
                                       statusTip="Show the application's About box",
                                       triggered=self.about)
 
-        self.clearRecentAct = QtGui.QAction("Clear Recent", self,
+        self.clearRecentAct = QAction("Clear Recent", self,
                                             statusTip="Clear recent files",
                                             triggered=self.clear_recent)
 
-        self.minimizeAction = QtGui.QAction("Mi&nimize", self,
+        self.minimizeAction = QAction("Mi&nimize", self,
                                             triggered=self.hide)
 
-        self.maximizeAction = QtGui.QAction("Ma&ximize", self,
+        self.maximizeAction = QAction("Ma&ximize", self,
                                             triggered=self.showMaximized)
 
-        self.restoreAction = QtGui.QAction("&Restore", self,
+        self.restoreAction = QAction("&Restore", self,
                                            triggered=self.showNormal)
 
-        self.showPrefsAction = QtGui.QAction("&Preferences", self,
+        self.showPrefsAction = QAction("&Preferences", self,
                                              triggered=self.show_prefs_dialog)
 
-        self.showSearchAction = QtGui.QAction("&Search && Replace", self,
-                                              shortcut=QtGui.QKeySequence('Ctrl+f'),
+        self.showSearchAction = QAction("&Search && Replace", self,
+                                              shortcut=QKeySequence('Ctrl+f'),
                                               triggered=self.show_search_dialog)
 
-        self.findThisAct = QtGui.QAction("Find This", self,
+        self.findThisAct = QAction("Find This", self,
                                          triggered=self.find_this)
 
-        self.jumpFilterGeometry = QtGui.QAction("Include Geometry", self,
+        self.jumpFilterGeometry = QAction("Include Geometry", self,
                                                 triggered=self.jump_to_filter_geometry,
                                                 checkable=True)
 
-        self.setIPUnitsAction = QtGui.QAction("&IP Units", self,
+        self.setIPUnitsAction = QAction("&IP Units", self,
                                               triggered=self.toggle_units,
                                               checkable=True)
 
-        self.setSIUnitsAction = QtGui.QAction("&SI Units", self,
+        self.setSIUnitsAction = QAction("&SI Units", self,
                                               triggered=self.toggle_units,
                                               checkable=True)
 
-        self.classWithObjsAction = QtGui.QAction("Show Only Classes With Objects", self,
-                                                 shortcut=QtGui.QKeySequence('Ctrl+l'),
+        self.classWithObjsAction = QAction("Show Only Classes With Objects", self,
+                                                 shortcut=QKeySequence('Ctrl+l'),
                                                  statusTip="Show Only Classes With Objects",
                                                  triggered=self.toggle_full_tree,
                                                  checkable=True)
 
-        self.fillRightAction = QtGui.QAction("Fill right", self,
-                                             shortcut=QtGui.QKeySequence('Ctrl+d'),
+        self.fillRightAction = QAction("Fill right", self,
+                                             shortcut=QKeySequence('Ctrl+d'),
                                              statusTip="Fill right",
                                              triggered=self.fill_right)
 
@@ -597,7 +602,7 @@ class UIMainWindow(object):
 
         # View Menu
         self.viewMenu = self.menuBar().addMenu("&View")
-        action_group = QtGui.QActionGroup(self)
+        action_group = QActionGroup(self)
         self.viewMenu.addAction(action_group.addAction(self.setSIUnitsAction))
         self.viewMenu.addAction(action_group.addAction(self.setIPUnitsAction))
         self.viewMenu.addSeparator().setText('Dockable Widgets')
@@ -650,7 +655,7 @@ class UIMainWindow(object):
         self.fileToolBar.addAction(self.newAct)
         self.fileToolBar.addAction(self.openAct)
         self.fileToolBar.addAction(self.saveAct)
-        self.fileToolBar.setToolButtonStyle(QtCore.Qt.ToolButtonTextBesideIcon)
+        self.fileToolBar.setToolButtonStyle(Qt.ToolButtonTextBesideIcon)
 
         # Edit Toolbar
         self.editToolBar = self.addToolBar("Edit Toolbar")
@@ -663,33 +668,33 @@ class UIMainWindow(object):
         self.editToolBar.addAction(self.cutObjAct)
         self.editToolBar.addAction(self.copyObjAct)
         self.editToolBar.addAction(self.pasteObjAct)
-        self.editToolBar.setToolButtonStyle(QtCore.Qt.ToolButtonTextBesideIcon)
+        self.editToolBar.setToolButtonStyle(Qt.ToolButtonTextBesideIcon)
 
         # Object history navigation toolbar
         # self.navToolBar = self.addToolBar("Navigation Toolbar")
         # self.navToolBar.setObjectName('viewToolBar')
         # self.navToolBar.addAction(self.navForwardAct)
         # self.navToolBar.addAction(self.navBackAct)
-        # self.navToolBar.setToolButtonStyle(QtCore.Qt.ToolButtonTextBesideIcon)
+        # self.navToolBar.setToolButtonStyle(Qt.ToolButtonTextBesideIcon)
 
         # Object filter toolbar
         self.filterToolBar = self.addToolBar("Filter Toolbar")
         self.filterToolBar.setObjectName('filterToolBar')
-        self.filterBox = QtGui.QLineEdit()
+        self.filterBox = QLineEdit()
         self.filterBox.setPlaceholderText("Filter Objects")
         self.filterBox.setMaximumWidth(160)
         self.filterBox.setFixedWidth(160)
-        # filterLabel = QtGui.QLabel("Filter Obj:", self)
+        # filterLabel = QLabel("Filter Obj:", self)
         # filterLabel.setBuddy(self.filterBox)
         # self.filterToolBar.addWidget(filterLabel)
         self.filterBox.textChanged.connect(self.tableFilterRegExpChanged)
         self.filterBox.textChanged.connect(self.treeFilterRegExpChanged)
-        clearFilterButton = QtGui.QPushButton('Clear')
+        clearFilterButton = QPushButton('Clear')
         clearFilterButton.setMaximumWidth(45)
         clearFilterButton.clicked.connect(self.clearFilterClicked)
         self.filterToolBar.addWidget(self.filterBox)
         self.filterToolBar.addWidget(clearFilterButton)
-        self.caseSensitivity = QtGui.QCheckBox('Case Sensitive')
+        self.caseSensitivity = QCheckBox('Case Sensitive')
         self.caseSensitivity.stateChanged.connect(self.caseSensitivityChanged)
         self.filterToolBar.addWidget(self.caseSensitivity)
         self.filterToolBar.addSeparator()
@@ -699,15 +704,15 @@ class UIMainWindow(object):
         """Creates keyboard shortcuts.
         """
 
-        # QtGui.QShortcut(QtGui.QKeySequence('Ctrl+l'), self).activated.connect(self.toggle_full_tree)
-        # QtGui.QShortcut(QtGui.QKeySequence('Ctrl+d'), self).activated.connect(self.fill_right)
-        # QtGui.QShortcut(QtGui.QKeySequence('Ctrl+d'), self).activated.connect(self.fill_right)
+        # QShortcut(QKeySequence('Ctrl+l'), self).activated.connect(self.toggle_full_tree)
+        # QShortcut(QKeySequence('Ctrl+d'), self).activated.connect(self.fill_right)
+        # QShortcut(QKeySequence('Ctrl+d'), self).activated.connect(self.fill_right)
 
 #    def createAction(self, text, slot=None, shortcut=None, icon=None,
 #                     tip=None, checkable=False, signal="triggered()"):
-#        action = QtGui.QAction(text, self)
+#        action = QAction(text, self)
 #        if icon is not None:
-#            action.setIcon(QtGui.QIcon(":/%s.png" % icon))
+#            action.setIcon(QIcon(":/%s.png" % icon))
 #        if shortcut is not None:
 #            action.setShortcut(shortcut)
 #        if tip is not None:
@@ -723,7 +728,7 @@ class UIMainWindow(object):
     def custom_table_context_menu(self, position):
 
         # Create a menu and populate it with actions
-        menu = QtGui.QMenu(self)
+        menu = QMenu(self)
         menu.addAction(self.undoAct)
         menu.addAction(self.redoAct)
         menu.addSeparator()
@@ -746,7 +751,7 @@ class UIMainWindow(object):
         """Called to center the window on the screen on startup.
         """
 
-        screen = QtGui.QDesktopWidget().screenGeometry()
+        screen = QDesktopWidget().screenGeometry()
         size = self.geometry()
         self.move((screen.width() - size.width()) / 2,
                   (screen.height() - size.height()) / 2)
@@ -790,12 +795,12 @@ class UIMainWindow(object):
         """
 
         index = self.classTable.indexAt(self.mouse_position)
-        text = self.classTable.model().data(index, QtCore.Qt.EditRole)
+        text = self.classTable.model().data(index, Qt.EditRole)
         if text:
             SearchReplaceDialog(self, initial_query=text).show()
 
 
-class UndoRedoTextEdit(QtGui.QTextEdit):
+class UndoRedoTextEdit(QTextEdit):
 
     def __init__(self, parent, main_window):
         super(UndoRedoTextEdit, self).__init__(parent)
@@ -808,14 +813,14 @@ class UndoRedoTextEdit(QtGui.QTextEdit):
         if self.first_key_press:
             self.init_cursor = self.textCursor().position()
             self.first_key_press = False
-        QtGui.QTextEdit.keyPressEvent(self, event)
+        QTextEdit.keyPressEvent(self, event)
 
     def focusInEvent(self, event):
         self.init_text = self.toPlainText()
-        QtGui.QTextEdit.focusInEvent(self, event)
+        QTextEdit.focusInEvent(self, event)
 
     def focusOutEvent(self, event):
         if self.toPlainText() != self.init_text:
             self.main_window.editComments(self.init_text, self.init_cursor)
         self.first_key_press = True
-        QtGui.QTextEdit.focusOutEvent(self, event)
+        QTextEdit.focusOutEvent(self, event)

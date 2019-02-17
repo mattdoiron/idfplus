@@ -10,8 +10,9 @@
 import os
 import logging
 
-# PySide imports
-from PySide import QtGui
+# PySide2 imports
+from PySide2.QtWidgets import (QWizardPage, QLabel, QVBoxLayout, QPushButton, QProgressBar,
+                               QFileDialog, QWizard)
 
 # Package imports
 from ..eplusio import parser
@@ -20,7 +21,7 @@ from ..eplusio import parser
 log = logging.getLogger(__name__)
 
 
-class SetupWizIntroPage(QtGui.QWizardPage):
+class SetupWizIntroPage(QWizardPage):
     """
 
     :param parent:
@@ -49,19 +50,19 @@ class SetupWizIntroPage(QtGui.QWizardPage):
                "how to work with IDF files. Each IDD file version is processed " \
                "and stored so that this procedure will be required only once, or " \
                "whenever a new IDD version is needed."
-        intro_text = QtGui.QLabel(text)
+        intro_text = QLabel(text)
         intro_text.setWordWrap(True)
-        intro_message = QtGui.QLabel(self.message)
+        intro_message = QLabel(self.message)
         intro_message.setWordWrap(True)
 
         # Create and assign layout
-        layout = QtGui.QVBoxLayout()
+        layout = QVBoxLayout()
         layout.addWidget(intro_text)
         layout.addWidget(intro_message)
         self.setLayout(layout)
 
 
-class SetupWizLoadPage(QtGui.QWizardPage):
+class SetupWizLoadPage(QWizardPage):
     """
 
     :param parent:
@@ -86,21 +87,21 @@ class SetupWizLoadPage(QtGui.QWizardPage):
         text = "The file being loaded requires an IDD file of <b>Version {}</b>. " \
                "Please choose the 'Energy+.idd' file from the installation directory " \
                "for this version of EnergyPlus.".format(self.version)
-        intro_text = QtGui.QLabel(text)
+        intro_text = QLabel(text)
         intro_text.setWordWrap(True)
 
         # Create the button to browse for the idd file
-        browse_button = QtGui.QPushButton("Browse for Energy+.idd v{} in the EnergyPlus "
+        browse_button = QPushButton("Browse for Energy+.idd v{} in the EnergyPlus "
                                           "install directory".format(self.version))
         browse_button.clicked.connect(self.load_idd)
 
         # Create and configure the progress bar
-        self.progress_bar = QtGui.QProgressBar(self)
+        self.progress_bar = QProgressBar(self)
         self.progress_bar.setRange(0, 100)
         self.progress_bar.hide()
 
         # Create and assign layout
-        layout = QtGui.QVBoxLayout()
+        layout = QVBoxLayout()
         layout.addWidget(intro_text)
         layout.addWidget(browse_button)
         layout.addWidget(self.progress_bar)
@@ -113,7 +114,7 @@ class SetupWizLoadPage(QtGui.QWizardPage):
         directory = os.path.expanduser('~')
         formats = "EnergyPlus IDD Files (*.idd)"
         dialog_name = 'Select EnergyPlus IDD File (Version: {})'.format(self.version)
-        file_dialog = QtGui.QFileDialog()
+        file_dialog = QFileDialog()
         dir_name, filt = file_dialog.getOpenFileName(self, dialog_name,
                                                      directory, formats)
 
@@ -141,7 +142,7 @@ class SetupWizLoadPage(QtGui.QWizardPage):
         return True if self.complete else False
 
 
-class SetupWizard(QtGui.QWizard):
+class SetupWizard(QWizard):
     """
 
     :param parent:
@@ -160,6 +161,6 @@ class SetupWizard(QtGui.QWizard):
         self.addPage(SetupWizIntroPage(self, version, message))
         self.addPage(SetupWizLoadPage(self, version))
         self.setWindowTitle("IDD Processing Wizard")
-        self.setWizardStyle(QtGui.QWizard.ModernStyle)
-        self.setOptions(QtGui.QWizard.NoBackButtonOnStartPage |
-                        QtGui.QWizard.NoBackButtonOnLastPage)
+        self.setWizardStyle(QWizard.ModernStyle)
+        self.setOptions(QWizard.NoBackButtonOnStartPage |
+                        QWizard.NoBackButtonOnLastPage)

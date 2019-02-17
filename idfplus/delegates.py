@@ -9,9 +9,14 @@
 # System imports
 import logging
 
-# PySide imports
-from PySide import QtGui
-from PySide import QtCore
+# PySide2 imports
+# from PySide2 import QtGui
+# from PySide2 import QtCore
+from PySide2.QtCore import Qt, QSize, QSortFilterProxyModel
+from PySide2.QtGui import (QFontMetrics, QTextOption, QTextCursor, QFont, QStandardItem,
+                           QStandardItemModel, QValidator)
+from PySide2.QtWidgets import (QStyledItemDelegate, QFrame, QAbstractItemView, QTableView,
+                               QComboBox, QCompleter, QPlainTextEdit, QAbstractItemDelegate)
 
 # Package imports
 from . import commands
@@ -20,7 +25,7 @@ from . import commands
 log = logging.getLogger(__name__)
 
 
-class GenericDelegate(QtGui.QStyledItemDelegate):
+class GenericDelegate(QStyledItemDelegate):
     """Template delegate for the table view.
     """
 
@@ -58,9 +63,9 @@ class GenericDelegate(QtGui.QStyledItemDelegate):
         :return: :rtype:
         """
 
-        if self.obj_orientation == QtCore.Qt.Horizontal:
+        if self.obj_orientation == Qt.Horizontal:
             return index.column()
-        if self.obj_orientation == QtCore.Qt.Vertical:
+        if self.obj_orientation == Qt.Vertical:
             return index.row()
 
     def sizeHint(self, option, index):
@@ -156,7 +161,7 @@ class GenericDelegate(QtGui.QStyledItemDelegate):
                 self.insertDelegate(i, AlphaNumericDelegate(self.main_window))
 
 
-class CustomStyledItemDelegate(QtGui.QStyledItemDelegate):
+class CustomStyledItemDelegate(QStyledItemDelegate):
 
     def __init__(self, main_window, parent=None):
         super(CustomStyledItemDelegate, self).__init__(parent)
@@ -166,19 +171,19 @@ class CustomStyledItemDelegate(QtGui.QStyledItemDelegate):
     def sizeHint(self, option, index):
 
         if not index.isValid():
-            return QtCore.QSize(self.prefs['default_column_width'], 14)
+            return QSize(self.prefs['default_column_width'], 14)
 
         rect = option.rect.adjusted(self.padding, self.padding, -self.padding, 0)
-        text = index.data(QtCore.Qt.DisplayRole)
+        text = index.data(Qt.DisplayRole)
 
-        fm = QtGui.QFontMetrics(option.font)
+        fm = QFontMetrics(option.font)
         b_rect = fm.boundingRect(rect,
-                                 QtCore.Qt.AlignLeft |
-                                 QtCore.Qt.AlignVCenter |
-                                 QtCore.Qt.TextWrapAnywhere,
+                                 Qt.AlignLeft |
+                                 Qt.AlignVCenter |
+                                 Qt.TextWrapAnywhere,
                                  text)
 
-        return QtCore.QSize(int(self.prefs['default_column_width']),
+        return QSize(int(self.prefs['default_column_width']),
                             b_rect.height())
 
     def paint(self, painter, option, index):
@@ -187,12 +192,12 @@ class CustomStyledItemDelegate(QtGui.QStyledItemDelegate):
             return
 
         rect = option.rect.adjusted(self.padding, self.padding, -self.padding, 0)
-        text = index.data(QtCore.Qt.DisplayRole)
+        text = index.data(Qt.DisplayRole)
 
         painter.save()
-        opt = QtGui.QTextOption()
-        opt.setWrapMode(QtGui.QTextOption.WrapAnywhere)
-        opt.setAlignment(QtCore.Qt.AlignLeft | QtCore.Qt.AlignVCenter)
+        opt = QTextOption()
+        opt.setWrapMode(QTextOption.WrapAnywhere)
+        opt.setAlignment(Qt.AlignLeft | Qt.AlignVCenter)
         painter.drawText(rect, text, opt)
         painter.restore()
 
@@ -211,11 +216,11 @@ class AlphaNumericDelegate(CustomStyledItemDelegate):
 
     def createEditor(self, parent, option, index):
         text_edit = ExtendedPlainTextEditor(parent)
-        text_edit.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
-        text_edit.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
-        text_edit.setFrameStyle(QtGui.QFrame.NoFrame)
-        text_edit.setWordWrapMode(QtGui.QTextOption.WrapAnywhere)
-        text_edit_font = QtGui.QFont()
+        text_edit.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        text_edit.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        text_edit.setFrameStyle(QFrame.NoFrame)
+        text_edit.setWordWrapMode(QTextOption.WrapAnywhere)
+        text_edit_font = QFont()
         text_edit_font.fromString(self.prefs['class_table_font'])
         text_edit.setFont(text_edit_font)
         text_edit.setStyleSheet("""QPlainTextEdit { margin-left:0;
@@ -232,11 +237,11 @@ class AlphaNumericDelegate(CustomStyledItemDelegate):
         """
 
         # Block signals, then update value
-        value = index.data(QtCore.Qt.EditRole)
+        value = index.data(Qt.EditRole)
         editor.blockSignals(True)
         editor.setPlainText(value)
-        editor.moveCursor(QtGui.QTextCursor.Start, QtGui.QTextCursor.MoveAnchor)
-        editor.moveCursor(QtGui.QTextCursor.End, QtGui.QTextCursor.KeepAnchor)
+        editor.moveCursor(QTextCursor.Start, QTextCursor.MoveAnchor)
+        editor.moveCursor(QTextCursor.End, QTextCursor.KeepAnchor)
         editor.blockSignals(False)
 
     def setModelData(self, editor, model, index):
@@ -249,7 +254,7 @@ class AlphaNumericDelegate(CustomStyledItemDelegate):
         """
 
         value = editor.toPlainText()
-        if index.data(QtCore.Qt.EditRole) == value:
+        if index.data(Qt.EditRole) == value:
             return
         cmd = commands.ModifyObjectCmd(self.main_window, value=value)
         self.main_window.undo_stack.push(cmd)
@@ -283,12 +288,12 @@ class ChoiceDelegate(CustomStyledItemDelegate):
 
         # If there isn't already a model, populate it
         if not self.model:
-            self.model = QtGui.QStandardItemModel()
+            self.model = QStandardItemModel()
             for tag, value in self.field.tags.iteritems():
                 if tag in self.combo_fields:
                     if tag == 'default':
-                        self.model.insertRow(0, [QtGui.QStandardItem(value),
-                                                 QtGui.QStandardItem(tag)])
+                        self.model.insertRow(0, [QStandardItem(value),
+                                                 QStandardItem(tag)])
                     elif tag == 'object-list':
                         # Get list of all classes that are part of the object-list
                         class_list = []
@@ -306,8 +311,8 @@ class ChoiceDelegate(CustomStyledItemDelegate):
 
                             # Cycle through all idf objects in the class
                             for obj in idf_objects:
-                                self.model.appendRow([QtGui.QStandardItem(obj[0].value),
-                                                      QtGui.QStandardItem(cls)])
+                                self.model.appendRow([QStandardItem(obj[0].value),
+                                                      QStandardItem(cls)])
                     elif tag == 'node':
                         # Retrieve a list of all nodes?
                         pass
@@ -319,11 +324,11 @@ class ChoiceDelegate(CustomStyledItemDelegate):
                         # Could make them all lists...would be annoying.
                         if isinstance(value, list):
                             for val in value:
-                                self.model.appendRow([QtGui.QStandardItem(val),
-                                                      QtGui.QStandardItem(tag)])
+                                self.model.appendRow([QStandardItem(val),
+                                                      QStandardItem(tag)])
                         else:
-                            self.model.appendRow([QtGui.QStandardItem(value),
-                                                  QtGui.QStandardItem(tag)])
+                            self.model.appendRow([QStandardItem(value),
+                                                  QStandardItem(tag)])
 
         if self.model.rowCount() > 0:
             # Check for and remove the 'current' item so it can be replace (at the top)
@@ -332,9 +337,9 @@ class ChoiceDelegate(CustomStyledItemDelegate):
                 self.model.removeRow(myitem[0].row())
 
             # Make a special item for the 'current' item
-            value = index.data(QtCore.Qt.EditRole)
-            current_item = QtGui.QStandardItem('current')
-            value_item = QtGui.QStandardItem(value)
+            value = index.data(Qt.EditRole)
+            current_item = QStandardItem('current')
+            value_item = QStandardItem(value)
             self.model.insertRow(0, [value_item, current_item])
 
         # Table AND combo get same model (table first!)
@@ -342,10 +347,10 @@ class ChoiceDelegate(CustomStyledItemDelegate):
             auto_complete = True
         else:
             auto_complete = False
-        font = QtGui.QFont()
+        font = QFont()
         font.fromString(self.prefs['class_table_font'])
         self.comboBox = ExtendedComboBox(parent, auto_complete)
-        self.tableView = QtGui.QTableView(self.comboBox)
+        self.tableView = QTableView(self.comboBox)
         self.tableView.setModel(self.model)
         self.comboBox.setModel(self.model)
         self.comboBox.setView(self.tableView)
@@ -354,10 +359,10 @@ class ChoiceDelegate(CustomStyledItemDelegate):
         self.comboBox.lineEdit().setFont(font)
 
         # Set properties of tableView and the combobox
-        self.tableView.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
-        self.tableView.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOn)
-        self.tableView.setSelectionMode(QtGui.QAbstractItemView.SingleSelection)
-        self.tableView.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
+        self.tableView.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        self.tableView.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOn)
+        self.tableView.setSelectionMode(QAbstractItemView.SingleSelection)
+        self.tableView.setSelectionBehavior(QAbstractItemView.SelectRows)
         self.tableView.verticalHeader().setVisible(False)
         self.tableView.horizontalHeader().setVisible(False)
         self.tableView.horizontalHeader().setStretchLastSection(True)
@@ -379,7 +384,7 @@ class ChoiceDelegate(CustomStyledItemDelegate):
         :param index:
         """
 
-        value = index.data(QtCore.Qt.EditRole)
+        value = index.data(Qt.EditRole)
         combo_index = editor.findText(value)
         if combo_index >= 0:
             editor.blockSignals(True)
@@ -395,14 +400,14 @@ class ChoiceDelegate(CustomStyledItemDelegate):
         :return: :rtype:
         """
 
-        if index.data(QtCore.Qt.EditRole) == editor.currentText():
+        if index.data(Qt.EditRole) == editor.currentText():
             return
         cmd = commands.ModifyObjectCmd(self.main_window,
                                        value=editor.currentText())
         self.main_window.undo_stack.push(cmd)
 
 
-class CustomValidator(QtGui.QValidator):
+class CustomValidator(QValidator):
     """Customized validator for preventing certain inputs
     """
 
@@ -416,18 +421,18 @@ class CustomValidator(QtGui.QValidator):
 
         # Blanks are ok
         if not input_str:
-            return QtGui.QValidator.Intermediate
+            return QValidator.Intermediate
 
         # Reject invalid characters
         matches = set(input_str).intersection({';', ',', '#', '!'})
         if len(matches) > 0:
-            return QtGui.QValidator.Invalid
+            return QValidator.Invalid
 
         # Accept everything else
-        return QtGui.QValidator.Acceptable
+        return QValidator.Acceptable
 
 
-class ExtendedComboBox(QtGui.QComboBox):
+class ExtendedComboBox(QComboBox):
     """Customized QComboBox which adds a filtered, popup auto-completer
     """
 
@@ -435,26 +440,26 @@ class ExtendedComboBox(QtGui.QComboBox):
         super(ExtendedComboBox, self).__init__(parent)
 
         # Set some properties
-        # self.setFocusPolicy(QtCore.Qt.StrongFocus)
+        # self.setFocusPolicy(Qt.StrongFocus)
         self.setEditable(True)
         self.setStyleSheet("QComboBox { border:0px; } "
                            "QComboBox QAbstractItemView { margin:0px; padding:0px; border:0px; }")
-        self.setInsertPolicy(QtGui.QComboBox.NoInsert)
+        self.setInsertPolicy(QComboBox.NoInsert)
         self.setValidator(CustomValidator(self))
         self.setMaxVisibleItems(15)
         self.auto_complete = auto_complete
 
         if auto_complete is True:
             # Add a filter model to filter matching items
-            self.filter_model = QtGui.QSortFilterProxyModel(self)
-            self.filter_model.setFilterCaseSensitivity(QtCore.Qt.CaseInsensitive)
+            self.filter_model = QSortFilterProxyModel(self)
+            self.filter_model.setFilterCaseSensitivity(Qt.CaseInsensitive)
             self.filter_model.setSourceModel(self.model())
 
             # Create and add a completer, which uses the filter model. Always show
             # all (filtered) completions
-            self.completer = QtGui.QCompleter(self)
+            self.completer = QCompleter(self)
             self.completer.setModel(self.filter_model)
-            self.completer.setCompletionMode(QtGui.QCompleter.UnfilteredPopupCompletion)
+            self.completer.setCompletionMode(QCompleter.UnfilteredPopupCompletion)
             self.completer.setMaxVisibleItems(15)
             self.setCompleter(self.completer)
 
@@ -504,7 +509,7 @@ class ExtendedComboBox(QtGui.QComboBox):
         super(ExtendedComboBox, self).setModelColumn(column)
 
 
-class ExtendedPlainTextEditor(QtGui.QPlainTextEdit):
+class ExtendedPlainTextEditor(QPlainTextEdit):
 
     def __init__(self, parent, **kwargs):
         """Subclassed QPlainTextEdit to override keypress events.
@@ -516,14 +521,14 @@ class ExtendedPlainTextEditor(QtGui.QPlainTextEdit):
         self.editor = parent.parent()
 
     def keyPressEvent(self, event):
-        if event.key() in [QtCore.Qt.Key_Comma, QtCore.Qt.Key_Exclam,
-                           QtCore.Qt.Key_NumberSign, QtCore.Qt.Key_Semicolon]:
+        if event.key() in [Qt.Key_Comma, Qt.Key_Exclam,
+                           Qt.Key_NumberSign, Qt.Key_Semicolon]:
             event.accept()
             return
-        elif event.key() in [QtCore.Qt.Key_Return, QtCore.Qt.Key_Enter]:
+        elif event.key() in [Qt.Key_Return, Qt.Key_Enter]:
             event.accept()
             self.editor.commitData(self)
-            self.editor.closeEditor(self, QtGui.QAbstractItemDelegate.NoHint)
+            self.editor.closeEditor(self, QAbstractItemDelegate.NoHint)
             return
         else:
             return super(ExtendedPlainTextEditor, self).keyPressEvent(event)

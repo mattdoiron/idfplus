@@ -10,15 +10,17 @@
 import logging
 import re
 
-# PySide imports
-from PySide import QtGui
-from PySide import QtCore
+# PySide2 imports
+from PySide2.QtCore import Qt
+from PySide2.QtGui import QStandardItemModel
+from PySide2.QtWidgets import (QDialog, QHBoxLayout, QPushButton, QTreeView, QAbstractItemView,
+                               QCheckBox, QLineEdit, QLabel, QVBoxLayout, QMessageBox)
 
 # Setup logging
 log = logging.getLogger(__name__)
 
 
-class SearchReplaceDialog(QtGui.QDialog):
+class SearchReplaceDialog(QDialog):
     """Search & Replace window
     """
 
@@ -32,38 +34,38 @@ class SearchReplaceDialog(QtGui.QDialog):
         self.prefs = parent.prefs
         self.items_checked = 0
 
-        self.search_button = QtGui.QPushButton('Search')
+        self.search_button = QPushButton('Search')
         self.search_text = MySearchField(self.search_button)
         self.search_text.setPlaceholderText("Enter search query here")
         self.search_button.clicked.connect(self.submit_search)
-        input_layout = QtGui.QHBoxLayout()
+        input_layout = QHBoxLayout()
         input_layout.addWidget(self.search_text)
         input_layout.addWidget(self.search_button)
 
-        self.results_tree = QtGui.QTreeView()
+        self.results_tree = QTreeView()
         self.results_tree.setRootIsDecorated(False)
         self.results_tree.setAlternatingRowColors(True)
         self.results_tree.setAllColumnsShowFocus(True)
-        self.results_tree.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
-        self.results_tree.setSelectionMode(QtGui.QAbstractItemView.SingleSelection)
+        self.results_tree.setSelectionBehavior(QAbstractItemView.SelectRows)
+        self.results_tree.setSelectionMode(QAbstractItemView.SingleSelection)
         self.results_tree.doubleClicked.connect(self.go_to_object)
 
-        self.whole_field_checkbox = QtGui.QCheckBox("Whole Field Only", self)
-        self.advanced_search_checkbox = QtGui.QCheckBox("Advanced Search", self)
+        self.whole_field_checkbox = QCheckBox("Whole Field Only", self)
+        self.advanced_search_checkbox = QCheckBox("Advanced Search", self)
         self.advanced_search_checkbox.stateChanged.connect(self.advanced_search_checked)
-        self.ignore_geometry_checkbox = QtGui.QCheckBox("Ignore Geometry", self)
-        self.go_button = QtGui.QPushButton('Go')
+        self.ignore_geometry_checkbox = QCheckBox("Ignore Geometry", self)
+        self.go_button = QPushButton('Go')
         self.go_button.clicked.connect(self.go_to_object)
-        checks_layout = QtGui.QHBoxLayout()
+        checks_layout = QHBoxLayout()
         checks_layout.addWidget(self.whole_field_checkbox)
         checks_layout.addWidget(self.advanced_search_checkbox)
         checks_layout.addWidget(self.ignore_geometry_checkbox)
         checks_layout.addStretch()
         checks_layout.addWidget(self.go_button)
 
-        self.query_label = QtGui.QLabel("Query:")
+        self.query_label = QLabel("Query:")
         self.query_label.setEnabled(False)
-        self.query_text = QtGui.QLineEdit()
+        self.query_text = QLineEdit()
         self.query_text.setEnabled(True)
         self.query_text.setReadOnly(True)
         self.query_text.setFrame(False)
@@ -71,21 +73,21 @@ class SearchReplaceDialog(QtGui.QDialog):
                                    background-color: LightGray;
                                    color: white;
                                    } """)
-        query_layout = QtGui.QHBoxLayout()
+        query_layout = QHBoxLayout()
         query_layout.addWidget(self.query_label)
         query_layout.addWidget(self.query_text)
 
-        self.select_label = QtGui.QLabel("Select:")
-        self.select_all_button = QtGui.QPushButton("All")
-        self.select_none_button = QtGui.QPushButton("None")
-        self.select_invert_button = QtGui.QPushButton("Invert")
-        self.delete_button = QtGui.QPushButton("Delete Objects")
+        self.select_label = QLabel("Select:")
+        self.select_all_button = QPushButton("All")
+        self.select_none_button = QPushButton("None")
+        self.select_invert_button = QPushButton("Invert")
+        self.delete_button = QPushButton("Delete Objects")
         self.select_all_button.clicked.connect(self.select_all_clicked)
         self.select_none_button.clicked.connect(self.select_none_clicked)
         self.select_invert_button.clicked.connect(self.select_invert_clicked)
         self.delete_button.clicked.connect(self.delete_button_clicked)
         self.delete_button.setEnabled(False)
-        selection_layout = QtGui.QHBoxLayout()
+        selection_layout = QHBoxLayout()
         selection_layout.addWidget(self.select_label)
         selection_layout.addWidget(self.select_all_button)
         selection_layout.addWidget(self.select_none_button)
@@ -93,17 +95,17 @@ class SearchReplaceDialog(QtGui.QDialog):
         selection_layout.addStretch()
         selection_layout.addWidget(self.delete_button)
 
-        self.replace_with_text = QtGui.QLineEdit()
-        self.replace_with_label = QtGui.QLabel("Replace With:")
-        self.replace_button = QtGui.QPushButton("Replace")
+        self.replace_with_text = QLineEdit()
+        self.replace_with_label = QLabel("Replace With:")
+        self.replace_button = QPushButton("Replace")
         self.replace_button.clicked.connect(self.replace_button_clicked)
         self.replace_button.setEnabled(False)
-        replace_layout = QtGui.QHBoxLayout()
+        replace_layout = QHBoxLayout()
         replace_layout.addWidget(self.replace_with_label)
         replace_layout.addWidget(self.replace_with_text)
         replace_layout.addWidget(self.replace_button)
 
-        layout = QtGui.QVBoxLayout()
+        layout = QVBoxLayout()
         layout.addLayout(input_layout)
         layout.addLayout(checks_layout)
         layout.addLayout(query_layout)
@@ -141,17 +143,17 @@ class SearchReplaceDialog(QtGui.QDialog):
             row_model.setData(model.index(0, 2), uuid)
 
             item_0 = model.itemFromIndex(model.index(0, 0))
-            item_0.setCheckState(QtCore.Qt.Unchecked)
-            item_0.setFlags(item_0.flags() | QtCore.Qt.ItemIsUserCheckable)
+            item_0.setCheckState(Qt.Unchecked)
+            item_0.setFlags(item_0.flags() | Qt.ItemIsUserCheckable)
             item_0.setEditable(False)
 
             item_1 = model.itemFromIndex(model.index(0, 1))
             item_1.setEditable(False)
 
-        model = QtGui.QStandardItemModel(0, 3, self)
-        model.setHeaderData(0, QtCore.Qt.Horizontal, "Value")
-        model.setHeaderData(1, QtCore.Qt.Horizontal, "Class")
-        model.setHeaderData(2, QtCore.Qt.Horizontal, "UUID")
+        model = QStandardItemModel(0, 3, self)
+        model.setHeaderData(0, Qt.Horizontal, "Value")
+        model.setHeaderData(1, Qt.Horizontal, "Class")
+        model.setHeaderData(2, Qt.Horizontal, "UUID")
 
         for hit in results:
             add_result_row(model, hit['value'], hit['obj_class_display'], hit['uuid'])
@@ -180,7 +182,7 @@ class SearchReplaceDialog(QtGui.QDialog):
 
     def item_checked(self, item):
 
-        if item.checkState() == QtCore.Qt.Checked:
+        if item.checkState() == Qt.Checked:
             self.items_checked += 1
         else:
             self.items_checked -= 1
@@ -198,7 +200,7 @@ class SearchReplaceDialog(QtGui.QDialog):
         result_count = model.rowCount()
 
         for i in range(result_count):
-            model.itemFromIndex(model.index(i, 0)).setCheckState(QtCore.Qt.Checked)
+            model.itemFromIndex(model.index(i, 0)).setCheckState(Qt.Checked)
 
     def select_none_clicked(self):
 
@@ -206,7 +208,7 @@ class SearchReplaceDialog(QtGui.QDialog):
         result_count = model.rowCount()
 
         for i in range(result_count):
-            model.itemFromIndex(model.index(i, 0)).setCheckState(QtCore.Qt.Unchecked)
+            model.itemFromIndex(model.index(i, 0)).setCheckState(Qt.Unchecked)
 
     def select_invert_clicked(self):
 
@@ -215,10 +217,10 @@ class SearchReplaceDialog(QtGui.QDialog):
 
         for i in range(result_count):
             item = model.itemFromIndex(model.index(i, 0))
-            if item.checkState() == QtCore.Qt.Checked:
-                new_state = QtCore.Qt.Unchecked
+            if item.checkState() == Qt.Checked:
+                new_state = Qt.Unchecked
             else:
-                new_state = QtCore.Qt.Checked
+                new_state = Qt.Checked
             item.setCheckState(new_state)
 
     def delete_button_clicked(self):
@@ -236,7 +238,7 @@ class SearchReplaceDialog(QtGui.QDialog):
         for i in range(result_count):
             item_0 = model.itemFromIndex(model.index(i, 0))
             item_2 = model.itemFromIndex(model.index(i, 2))
-            if item_0.checkState() != QtCore.Qt.Checked:
+            if item_0.checkState() != Qt.Checked:
                 continue
             field = self.parent.idf.field_by_uuid(item_2.text())
             obj = field._outer
@@ -250,7 +252,7 @@ class SearchReplaceDialog(QtGui.QDialog):
         self.parent.set_dirty(True)
         self.submit_search()
         self.parent.load_table_view(self.parent.current_obj_class)
-        QtGui.QMessageBox.information(self, "Delete Action", "Deletion Complete!")
+        QMessageBox.information(self, "Delete Action", "Deletion Complete!")
 
     def advanced_search_checked(self):
         if self.advanced_search_checkbox.isChecked():
@@ -284,7 +286,7 @@ class SearchReplaceDialog(QtGui.QDialog):
         for i in range(result_count):
             item_0 = model.itemFromIndex(model.index(i, 0))
             item_2 = model.itemFromIndex(model.index(i, 2))
-            if item_0.checkState() != QtCore.Qt.Checked:
+            if item_0.checkState() != Qt.Checked:
                 continue
             field = self.parent.idf.field_by_uuid(item_2.text())
             if self.whole_field_checkbox.isChecked() or self.advanced_search_checkbox.isChecked():
@@ -296,19 +298,19 @@ class SearchReplaceDialog(QtGui.QDialog):
         self.parent.set_dirty(True)
         self.submit_search()
         self.parent.load_table_view(self.parent.current_obj_class)
-        QtGui.QMessageBox.information(self, "Replacement", "Replacement Complete!")
+        QMessageBox.information(self, "Replacement", "Replacement Complete!")
 
     def confirm_action(self, question):
         """Confirm user wants to perform action
         """
 
-        flags = QtGui.QMessageBox.StandardButton.Yes
-        flags |= QtGui.QMessageBox.StandardButton.No
-        response = QtGui.QMessageBox.question(self, "Are you sure?", question, flags)
+        flags = QMessageBox.StandardButton.Yes
+        flags |= QMessageBox.StandardButton.No
+        response = QMessageBox.question(self, "Are you sure?", question, flags)
 
-        if response == QtGui.QMessageBox.Yes:
+        if response == QMessageBox.Yes:
             return True
-        elif QtGui.QMessageBox.No:
+        elif QMessageBox.No:
             return False
         else:
             return False
@@ -328,7 +330,7 @@ class SearchReplaceDialog(QtGui.QDialog):
         self.parent.jump_to_field(field)
 
 
-class MySearchField(QtGui.QLineEdit):
+class MySearchField(QLineEdit):
     """Subclass of QLineEdit used to allow submitting search with return/enter keys.
     """
 
@@ -344,7 +346,7 @@ class MySearchField(QtGui.QLineEdit):
 
         :param event:
         """
-        if event.key() == QtCore.Qt.Key_Return or event.key() == QtCore.Qt.Key_Enter:
+        if event.key() == Qt.Key_Return or event.key() == Qt.Key_Enter:
             self.search_button.click()
         else:
             super(MySearchField, self).keyPressEvent(event)

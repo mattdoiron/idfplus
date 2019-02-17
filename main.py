@@ -16,7 +16,7 @@ import faulthandler
 import argparse
 
 # PySide imports
-from PySide import QtGui
+from PySide2.QtWidgets import QApplication
 
 # Local imports
 from idfplus import __version__ as version
@@ -42,9 +42,9 @@ def main():
         qt_args = sys.argv[:1] + unparsed_args
 
         # Retrieve the currently running instance or make a new one
-        app = QtGui.QApplication.instance()
+        app = QApplication.instance()
         if app is None:
-            app = QtGui.QApplication(qt_args)
+            app = QApplication(qt_args)
             app.setApplicationName("IDF+ Editor")
             app.setApplicationVersion(version)
 
@@ -52,6 +52,7 @@ def main():
         idf_plus_window = IDFPlus(args=parsed_args)
         idf_plus_window.show()
         sys.exit(app.exec_())
+
 
 if __name__ == '__main__':
     main()

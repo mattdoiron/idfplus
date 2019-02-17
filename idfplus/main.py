@@ -17,9 +17,12 @@ import errno
 import codecs
 from cStringIO import StringIO
 
-# PySide imports
-from PySide import QtGui
-from PySide import QtCore
+# PySide2 imports
+from PySide2.QtCore import (Qt, QTimer, QFileInfo, QModelIndex, qVersion, QPersistentModelIndex,
+                            QFile, QItemSelectionModel)
+from PySide2.QtGui import QTextCursor, QIcon, QClipboard
+from PySide2.QtWidgets import (QMainWindow, QFileDialog, QMessageBox, QHeaderView, QApplication,
+                               QAction, QAbstractItemView, QApplication)
 
 # Package imports
 from . import delegates
@@ -40,7 +43,7 @@ log = logger.setup_logging(config.LOG_LEVEL, 'idfplus', config.LOG_PATH)
 log.info('----==== Launching IDF+ ====----')
 
 
-class IDFPlus(QtGui.QMainWindow, main.UIMainWindow):
+class IDFPlus(QMainWindow, main.UIMainWindow):
     """Main GUI window for IDF+ program.
     """
 
@@ -60,7 +63,7 @@ class IDFPlus(QtGui.QMainWindow, main.UIMainWindow):
         self.idf = None
         self.groups = None
         self.file_dirty = False
-        self.obj_orientation = QtCore.Qt.Vertical
+        self.obj_orientation = Qt.Vertical
         self.current_obj_class = None
         self.obj_clipboard = []
         self.args = args
@@ -103,7 +106,7 @@ class IDFPlus(QtGui.QMainWindow, main.UIMainWindow):
 
         # Open a file immediately if specified by command-line. Timer allows UI to load fist.
         if self.args.filename:
-            QtCore.QTimer.singleShot(0, self.load_file)
+            QTimer.singleShot(0, self.load_file)
 
     def app_focus_changed(self, old_focus_widget, new_focus_widget):
         # Should we check for file change? Only if required and if main window is regaining focus
@@ -114,11 +117,11 @@ class IDFPlus(QtGui.QMainWindow, main.UIMainWindow):
                 self.file_changed()
 
     def start_focus_watcher(self):
-        app = QtGui.QApplication.instance()
+        app = QApplication.instance()
         app.focusChanged.connect(self.app_focus_changed)
 
     def closeAllWindows(self):
-        app = QtGui.QApplication.instance()
+        app = QApplication.instance()
         app.closeAllWindows()
 
     def closeEvent(self, event):
@@ -153,8 +156,8 @@ class IDFPlus(QtGui.QMainWindow, main.UIMainWindow):
             directory = os.path.dirname(self.file_path) if self.file_path else home_dir
             formats = "EnergyPlus Files (*.idf)"
             dialog_name = 'Open file'
-            file_dialog = QtGui.QFileDialog()
-            file_dialog.setFileMode(QtGui.QFileDialog.ExistingFile)
+            file_dialog = QFileDialog()
+            file_dialog.setFileMode(QFileDialog.ExistingFile)
             file_name, filt = file_dialog.getOpenFileName(self, dialog_name,
                                                           directory, formats)
             if file_name:
@@ -205,7 +208,7 @@ class IDFPlus(QtGui.QMainWindow, main.UIMainWindow):
             log.debug('Loading file from dialog: {}'.format(file_path))
         if file_path is None:
             action = self.sender()
-            if isinstance(action, QtGui.QAction):
+            if isinstance(action, QAction):
                 if action.text() != "&New":
                     file_path = action.data()
                     log.debug('Loading file from recent file menu: {}'.format(file_path))
@@ -227,18 +230,18 @@ class IDFPlus(QtGui.QMainWindow, main.UIMainWindow):
             # Required IDD file doesn't exist so launch IDD wizard
             if not self.launch_idd_wizard(file_path, e.version, e.message):
                 # Wizard failed, warn user and cancel
-                QtGui.QMessageBox.warning(self, "Processing IDD File Failed",
+                QMessageBox.warning(self, "Processing IDD File Failed",
                                           ("{}\n\nVersion Required: {}\n\nLoading "
                                            "cancelled!".format(e.message, e.version)),
-                                          QtGui.QMessageBox.Ok)
+                                          QMessageBox.Ok)
                 message = ("Loading failed. Could not find "
                            "matching IDD file for version {}.".format(e.version))
                 return False
         except parser.InvalidIDFObject as e:
             # Invalid name of object, warn use and cancel
-            QtGui.QMessageBox.warning(self, "Processing IDF File Failed",
+            QMessageBox.warning(self, "Processing IDF File Failed",
                                       "{}\n\nLoading cancelled!".format(e.message),
-                                      QtGui.QMessageBox.Ok)
+                                      QMessageBox.Ok)
             message = "Loading failed. Invalid idf object."
             return False
         except OSError as e:
@@ -301,7 +304,7 @@ class IDFPlus(QtGui.QMainWindow, main.UIMainWindow):
         home_dir = os.path.expanduser('~')
         directory = self.file_path if self.file_path else home_dir
         formats = 'EnergyPlus Files (*.idf)'
-        file_name, filtr = QtGui.QFileDialog.getSaveFileName(self, 'Save As',
+        file_name, filtr = QFileDialog.getSaveFileName(self, 'Save As',
                                                              directory, formats)
         if file_name:
             if not (file_name.endswith('.idf') or file_name.endswith('.imf')):
@@ -364,7 +367,7 @@ class IDFPlus(QtGui.QMainWindow, main.UIMainWindow):
 
         import PySide
 
-        QtGui.QMessageBox.about(self, "About IDF+",
+        QMessageBox.about(self, "About IDF+",
                 """<b>IDF+</b> v{0}
                 <p>This is an enhanced editor for EnergyPlus simulation input files.
                 For more information please see
@@ -384,7 +387,7 @@ class IDFPlus(QtGui.QMainWindow, main.UIMainWindow):
                 http://www.gnu.org/licenses/</a> for more details.</p>
                 <p>Built with: Python {1}, Qt {2} and PySide {3} on {4}</p>""".format(
                 __version__, platform.python_version(),
-                PySide.QtCore.qVersion(), PySide.__version__,
+                qVersion(), PySide.__version__,
                 platform.system()))
 
     def navForward(self):
@@ -491,13 +494,13 @@ class IDFPlus(QtGui.QMainWindow, main.UIMainWindow):
         recent_files = []
         if self.prefs['recent_files']:
             for name in self.prefs['recent_files']:
-                if name != current and QtCore.QFile.exists(name):
+                if name != current and QFile.exists(name):
                     recent_files.append(name)
         if recent_files:
             self.fileMenu.addSeparator().setText('Recent Files')
             for i, name in enumerate(recent_files):
-                file_name = QtCore.QFileInfo(name).fileName()
-                action = QtGui.QAction(QtGui.QIcon(":/images/icon.png"),
+                file_name = QFileInfo(name).fileName()
+                action = QAction(QIcon(":/images/icon.png"),
                                        '{} - {}'.format(i + 1, file_name),
                                        self)
                 action.setData(name)
@@ -517,7 +520,7 @@ class IDFPlus(QtGui.QMainWindow, main.UIMainWindow):
 
         # Helper to insert a blank action
         def insert_blank():
-            action = QtGui.QAction(QtGui.QIcon(":/images/icon.png"), 'No references', self)
+            action = QAction(QIcon(":/images/icon.png"), 'No references', self)
             self.jumpToMenu.addAction(action)
 
         # Get selection and indexes
@@ -549,7 +552,7 @@ class IDFPlus(QtGui.QMainWindow, main.UIMainWindow):
 
         # Add actions for references
         for field in refs:
-            action = QtGui.QAction(QtGui.QIcon(":/images/icon.png"),
+            action = QAction(QIcon(":/images/icon.png"),
                                    '{} ({})'.format(field._outer[0].value, field.obj_class), self)
             action.triggered.connect(lambda: self.jump_to_field(field))
             self.jumpToMenu.addAction(action)
@@ -602,7 +605,7 @@ class IDFPlus(QtGui.QMainWindow, main.UIMainWindow):
     def update_units_label(self, index):
         """Updates the units label
 
-        :param QtCore.QModelIndex index:
+        :param QModelIndex index:
         """
 
         field = self.idf.field(self.current_obj_class, index.row(), index.column())
@@ -612,7 +615,7 @@ class IDFPlus(QtGui.QMainWindow, main.UIMainWindow):
     def update_comments(self, index):
         """Updates the comments view widget
 
-        :param QtCore.QModelIndex index:
+        :param QModelIndex index:
         """
 
         current_obj = self.idf[self.current_obj_class][index.row()]
@@ -624,7 +627,7 @@ class IDFPlus(QtGui.QMainWindow, main.UIMainWindow):
     def update_info_view(self, index):
         """Updates the info view widget
 
-        :param QtCore.QModelIndex index:
+        :param QModelIndex index:
         """
 
         obj_info = self.idd[self.current_obj_class].get_info()
@@ -654,7 +657,7 @@ class IDFPlus(QtGui.QMainWindow, main.UIMainWindow):
     def update_reference_view(self, index):
         """Updates the reference tree view widget
 
-        :param QtCore.QModelIndex index:
+        :param QModelIndex index:
         """
 
         # Create a new model for the tree view and assign it, then refresh view
@@ -711,20 +714,17 @@ class IDFPlus(QtGui.QMainWindow, main.UIMainWindow):
 
         # Find the items in the class tree that contain the object class
         matches = tree_model.match(tree_model.index(0, 0),
-                                   QtCore.Qt.DisplayRole,
+                                   Qt.DisplayRole,
                                    obj_class,
                                    hits=1,
-                                   flags=int(QtCore.Qt.MatchRecursive |
-                                             QtCore.Qt.MatchExactly |
-                                             QtCore.Qt.MatchWrap))
+                                   flags=Qt.MatchRecursive | Qt.MatchExactly | Qt.MatchWrap)
 
         # Select the resulting found item (this also triggers a load of the table view)
         tree_selection_model.setCurrentIndex(matches[0],
-                                             int(QtGui.QItemSelectionModel.SelectCurrent |
-                                                 QtGui.QItemSelectionModel.Rows))
+                                             QItemSelectionModel.SelectCurrent | QItemSelectionModel.Rows)
 
         # Scroll to the matched selection
-        self.classTree.scrollTo(matches[0], QtGui.QAbstractItemView.PositionAtCenter)
+        self.classTree.scrollTo(matches[0], QAbstractItemView.PositionAtCenter)
 
     def addActions(self, target, actions):
         """Helper to add actions or a separator easily.
@@ -763,11 +763,11 @@ class IDFPlus(QtGui.QMainWindow, main.UIMainWindow):
             pattern = None
         if not self.classTree.model():
             return
-        current_class = QtCore.QPersistentModelIndex(self.classTree.currentIndex())
+        current_class = QPersistentModelIndex(self.classTree.currentIndex())
         self.classTree.model().setFilterRegExp(pattern)
         self.classTree.model().invalidateFilter()
         self.classTree.expandAll()
-        self.classTree.scrollTo(current_class, QtGui.QAbstractItemView.PositionAtCenter)
+        self.classTree.scrollTo(current_class, QAbstractItemView.PositionAtCenter)
 
         # If the current class was hidden by the filter, clear the tableView
         if not current_class.isValid():
@@ -795,9 +795,9 @@ class IDFPlus(QtGui.QMainWindow, main.UIMainWindow):
             return
 
         if self.caseSensitivity.isChecked():
-            sensitivity = QtCore.Qt.CaseSensitive
+            sensitivity = Qt.CaseSensitive
         else:
-            sensitivity = QtCore.Qt.CaseInsensitive
+            sensitivity = Qt.CaseInsensitive
         self.classTable.model().setFilterCaseSensitivity(sensitivity)
         self.tableFilterRegExpChanged()
 
@@ -826,15 +826,15 @@ class IDFPlus(QtGui.QMainWindow, main.UIMainWindow):
         """
 
         if self.file_dirty:
-            reply = QtGui.QMessageBox.warning(self,
+            reply = QMessageBox.warning(self,
                                               "Application",
                                               "The document has been modified.\nDo you want to save your changes?",
-                                              QtGui.QMessageBox.Save |
-                                              QtGui.QMessageBox.Discard |
-                                              QtGui.QMessageBox.Cancel)
-            if reply == QtGui.QMessageBox.Cancel:
+                                              QMessageBox.Save |
+                                              QMessageBox.Discard |
+                                              QMessageBox.Cancel)
+            if reply == QMessageBox.Cancel:
                 return False
-            elif reply == QtGui.QMessageBox.Save:
+            elif reply == QMessageBox.Save:
                 self.save_file()
         return True
 
@@ -1030,7 +1030,7 @@ class IDFPlus(QtGui.QMainWindow, main.UIMainWindow):
         range_to_copy = []
         col = []
         for i in indexes:
-            col.append(i.data(QtCore.Qt.EditRole) or '')
+            col.append(i.data(Qt.EditRole) or '')
             if i.row() == last:
                 range_to_copy.append(col)
                 col = []
@@ -1045,7 +1045,7 @@ class IDFPlus(QtGui.QMainWindow, main.UIMainWindow):
             text_copied += '\n'
 
         # Save converted text to the clipboard
-        self.clipboard.setText(text_copied, QtGui.QClipboard.Clipboard)
+        self.clipboard.setText(text_copied, QClipboard.Clipboard)
         self.obj_clipboard = None
         return True
 
@@ -1076,7 +1076,7 @@ class IDFPlus(QtGui.QMainWindow, main.UIMainWindow):
         self.prefs.write_settings()
         tree = self.classTree
         current = tree.currentIndex()
-        current_persistent = QtCore.QPersistentModelIndex(current)
+        current_persistent = QPersistentModelIndex(current)
 
         if self.idf:
             if self.prefs['save_hidden_classes'] == 1 and self.hide_empty_classes is True:
@@ -1093,7 +1093,7 @@ class IDFPlus(QtGui.QMainWindow, main.UIMainWindow):
         # TODO need to find a way to handle what happens when 'currentIndex' disappears
         #     during the filtering.
 
-        tree.scrollTo(current_persistent, QtGui.QAbstractItemView.PositionAtCenter)
+        tree.scrollTo(current_persistent, QAbstractItemView.PositionAtCenter)
 
     def load_table_view(self, obj_class):
         """Loads the table of objects for the specified class name.
@@ -1138,7 +1138,7 @@ class IDFPlus(QtGui.QMainWindow, main.UIMainWindow):
         if source_sel:
             partial = self.classTable.model().mapSelectionFromSource(source_sel)
             previous_sel = self.classTable.model().mapSelectionFromSource(partial)
-            selection_model.select(previous_sel, QtGui.QItemSelectionModel.SelectCurrent)
+            selection_model.select(previous_sel, QItemSelectionModel.SelectCurrent)
         else:
             self.classTable.setCurrentIndex(self.classTable.model().index(0, 0))
             # self.classTable.setFocus()
@@ -1174,7 +1174,7 @@ class IDFPlus(QtGui.QMainWindow, main.UIMainWindow):
         padding = 10
         class_width = widget_width - scrollbar_width - min_count_width - padding
         header = self.classTree.header()
-        header.setResizeMode(QtGui.QHeaderView.Interactive)
+        header.setSectionResizeMode(QHeaderView.Interactive)
         header.setMinimumSectionSize(min_count_width)
         self.classTree.resizeColumnToContents(1)
         self.classTree.setColumnWidth(0, class_width)
@@ -1187,15 +1187,15 @@ class IDFPlus(QtGui.QMainWindow, main.UIMainWindow):
         """Transposes the table
         """
 
-        if self.obj_orientation == QtCore.Qt.Horizontal:
-            self.obj_orientation = QtCore.Qt.Vertical
-            self.classTable.model().obj_orientation = QtCore.Qt.Vertical
+        if self.obj_orientation == Qt.Horizontal:
+            self.obj_orientation = Qt.Vertical
+            self.classTable.model().obj_orientation = Qt.Vertical
             # self.classTable.horizontalHeader().setMovable(True)
             # self.classTable.verticalHeader().setMovable(False)
             # log.info('Setting object orientation to vertical.')
         else:
-            self.obj_orientation = QtCore.Qt.Horizontal
-            self.classTable.model().obj_orientation = QtCore.Qt.Horizontal
+            self.obj_orientation = Qt.Horizontal
+            self.classTable.model().obj_orientation = Qt.Horizontal
             # self.classTable.horizontalHeader().setMovable(False)
             # self.classTable.verticalHeader().setMovable(True)
             # print('Setting object orientation to: Horizontal')
@@ -1220,7 +1220,7 @@ class IDFPlus(QtGui.QMainWindow, main.UIMainWindow):
             return
 
         # Get the class name from the tree's data method
-        data = self.classTree.model().data(index, QtCore.Qt.DisplayRole)
+        data = self.classTree.model().data(index, Qt.DisplayRole)
 
         # If there is no data, return
         if not data:
@@ -1246,12 +1246,12 @@ class IDFPlus(QtGui.QMainWindow, main.UIMainWindow):
         to_paste = ''
 
         # Store values of the selected fields of the first column/row in the selection
-        if self.obj_orientation == QtCore.Qt.Vertical:
+        if self.obj_orientation == Qt.Vertical:
             sel_range = selection.height()
             fill_range = selection.width()
             for i in range(sel_range):
                 index = model.index(top_left_current.row() + i, top_left_current.column())
-                value = model.data(index, QtCore.Qt.EditRole) or ''
+                value = model.data(index, Qt.EditRole) or ''
                 for j in range(fill_range):
                     to_paste += value + ','
                 to_paste = to_paste[:-1]
@@ -1261,7 +1261,7 @@ class IDFPlus(QtGui.QMainWindow, main.UIMainWindow):
             fill_range = selection.height()
             for i in range(sel_range):
                 index = model.index(top_left_current.row(), top_left_current.column() + i)
-                value = model.data(index, QtCore.Qt.EditRole) or ''
+                value = model.data(index, Qt.EditRole) or ''
                 stored_values.append(value)
             for j in range(fill_range):
                 values = [val for val in stored_values]
@@ -1280,8 +1280,8 @@ class IDFPlus(QtGui.QMainWindow, main.UIMainWindow):
         """
 
         self.logView.appendPlainText(log_text)
-        self.logView.moveCursor(QtGui.QTextCursor.End)
-        self.logView.moveCursor(QtGui.QTextCursor.StartOfLine)
+        self.logView.moveCursor(QTextCursor.End)
+        self.logView.moveCursor(QTextCursor.StartOfLine)
 
     def start_log_watcher(self):
         """Start the log watcher and connect signals
@@ -1294,8 +1294,8 @@ class IDFPlus(QtGui.QMainWindow, main.UIMainWindow):
         log_path = os.path.join(config.LOG_DIR, config.LOG_FILE_NAME)
         with open(log_path) as f:
             self.logView.setPlainText(f.read().strip())
-            self.logView.moveCursor(QtGui.QTextCursor.End)
-            self.logView.moveCursor(QtGui.QTextCursor.StartOfLine)
+            self.logView.moveCursor(QTextCursor.End)
+            self.logView.moveCursor(QTextCursor.StartOfLine)
 
     def set_dirty(self, dirty_state):
         """
@@ -1384,14 +1384,14 @@ class IDFPlus(QtGui.QMainWindow, main.UIMainWindow):
 
         message = "This file has be changed by another program! Would you like" \
                   "to reload it now? Any unsaved changes will be lost!"
-        flags = QtGui.QMessageBox.StandardButton.Yes
-        flags |= QtGui.QMessageBox.StandardButton.No
-        response = QtGui.QMessageBox.question(self, "File Change detected!", message, flags)
+        flags = QMessageBox.StandardButton.Yes
+        flags |= QMessageBox.StandardButton.No
+        response = QMessageBox.question(self, "File Change detected!", message, flags)
         self.check_file_changed = False
 
-        if response == QtGui.QMessageBox.Yes:
+        if response == QMessageBox.Yes:
             self.load_file(self.idf.file_path)
-        elif QtGui.QMessageBox.No:
+        elif QMessageBox.No:
             return False
         else:
             return False

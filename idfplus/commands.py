@@ -10,15 +10,16 @@
 import logging
 from itertools import chain
 
-# PySide imports
-from PySide import QtGui
-from PySide import QtCore
+# PySide2 imports
+from PySide2.QtCore import (Qt, QPersistentModelIndex, QItemSelection, QItemSelectionRange,
+                            QItemSelectionModel)
+from PySide2.QtWidgets import QUndoCommand
 
 # Setup logging
 log = logging.getLogger(__name__)
 
 
-class ObjectCmd(QtGui.QUndoCommand):
+class ObjectCmd(QUndoCommand):
     """Base class to be inherited by all classes needing QUndoCommand features
     """
 
@@ -28,11 +29,11 @@ class ObjectCmd(QtGui.QUndoCommand):
         # TODO many of these are not needed for all subclasses. Break them out into
         # separate init methods in each subclass
         self.indexes_in = main_window.classTable.selectedIndexes()
-        # self.indexes = [QtCore.QPersistentModelIndex(i) for i in self.indexes_in]
+        # self.indexes = [QPersistentModelIndex(i) for i in self.indexes_in]
         self.indexes = self.indexes_in
         self.main_window = main_window
         obj_class_index = main_window.classTree.selectedIndexes()[0]
-        self.obj_class_index = QtCore.QPersistentModelIndex(obj_class_index)
+        self.obj_class_index = QPersistentModelIndex(obj_class_index)
         self.obj_class = main_window.current_obj_class
         self.obj_orientation = main_window.obj_orientation
         self.mime_data = None
@@ -80,7 +81,7 @@ class ObjectCmd(QtGui.QUndoCommand):
         """
 
         # Use stored selection to reconstruct indexes for the current model.
-        selection = QtGui.QItemSelection()
+        selection = QItemSelection()
         for sel in self.selection_saved:
             if self.obj_orientation == self.main_window.obj_orientation:
                 top_left = self.model.index(sel[0].row(), sel[0].column())
@@ -89,7 +90,7 @@ class ObjectCmd(QtGui.QUndoCommand):
                 top_left = self.model.index(sel[0].column(), sel[0].row())
                 bottom_right = self.model.index(sel[1].column(), sel[1].row())
 
-            sel_range = QtGui.QItemSelectionRange(top_left, bottom_right)
+            sel_range = QItemSelectionRange(top_left, bottom_right)
             selection.append(sel_range)
 
         if not selection:
@@ -105,17 +106,17 @@ class ObjectCmd(QtGui.QUndoCommand):
                 bottom_right = self.model.index(row_count-1, col_count-1)
                 # print('using 2')
             # print('1 br: {},{}'.format(bottom_right.row(), bottom_right.column()))
-            sel_range = QtGui.QItemSelectionRange(top_left, bottom_right)
+            sel_range = QItemSelectionRange(top_left, bottom_right)
             selection.append(sel_range)
 
         last_sel = selection[-1]
-        selection_new = QtGui.QItemSelection()
+        selection_new = QItemSelection()
 
         if not self.selection_saved:
             self.selection_saved.append((last_sel.topLeft(), last_sel.bottomRight()))
 
         # Define the offset and range
-        if self.main_window.obj_orientation == QtCore.Qt.Vertical:
+        if self.main_window.obj_orientation == Qt.Vertical:
             row_offset = 0
             col_offset = 0 if not offset else selection[-1].width()
             range_size = selection[-1].width()
@@ -128,7 +129,7 @@ class ObjectCmd(QtGui.QUndoCommand):
             highlight_size = range_size
 
         # Construct the selection range indexes for the current model
-        if self.main_window.obj_orientation == QtCore.Qt.Vertical:
+        if self.main_window.obj_orientation == Qt.Vertical:
             top_left = self.model.index(last_sel.top() + row_offset,
                                         last_sel.left() + col_offset)
             bottom_right = self.model.index(last_sel.bottom() + row_offset,
@@ -144,25 +145,25 @@ class ObjectCmd(QtGui.QUndoCommand):
         # Check for a selection range that extends beyond the size of the current model
         if not bottom_right.isValid():
             sel = self.selection_saved[-1]
-            if self.obj_orientation == QtCore.Qt.Vertical and \
+            if self.obj_orientation == Qt.Vertical and \
                self.obj_orientation == self.main_window.obj_orientation:
                 count = self.model.columnCount(top_left)
                 bottom_right = self.model.index(sel[1].row() + row_offset,
                                                 count - 1 + col_offset)
                 # print('1 br: {},{}'.format(bottom_right.row(), bottom_right.column()))
-            elif self.obj_orientation == QtCore.Qt.Vertical and \
+            elif self.obj_orientation == Qt.Vertical and \
                  self.obj_orientation != self.main_window.obj_orientation:
                 count = self.model.rowCount(top_left)
                 bottom_right = self.model.index(count - 1 + row_offset,
                                                 sel[1].row() + col_offset)
                 # print('2 br: {},{}'.format(bottom_right.row(), bottom_right.column()))
-            elif self.obj_orientation == QtCore.Qt.Horizontal and \
+            elif self.obj_orientation == Qt.Horizontal and \
                  self.obj_orientation == self.main_window.obj_orientation:
                 count = self.model.rowCount(top_left)
                 bottom_right = self.model.index(count - 1 + row_offset,
                                                 sel[1].column() + col_offset)
                 # print('3 br: {},{}'.format(bottom_right.row(), bottom_right.column()))
-            elif self.obj_orientation == QtCore.Qt.Horizontal and \
+            elif self.obj_orientation == Qt.Horizontal and \
                  self.obj_orientation != self.main_window.obj_orientation:
                 count = self.model.columnCount(top_left)
                 bottom_right = self.model.index(sel[1].column() + row_offset,
@@ -170,13 +171,13 @@ class ObjectCmd(QtGui.QUndoCommand):
                 # print('4 br: {},{}'.format(bottom_right.row(), bottom_right.column()))
 
         # Create the selection range and append it to the new selection
-        sel_range = QtGui.QItemSelectionRange(top_left, bottom_right)
+        sel_range = QItemSelectionRange(top_left, bottom_right)
         selection_new.append(sel_range)
 
         # Clear the selection model and reselect the appropriate indexes if necessary
         self.selection_model.reset()
         self.selection_model.select(selection_new,
-                                    QtGui.QItemSelectionModel.SelectCurrent)
+                                    QItemSelectionModel.SelectCurrent)
         self.main_window.classTable.setFocus()
 
         # Hack to 'refresh' the class tree
@@ -282,7 +283,7 @@ class PasteSelectedCmd(ObjectCmd):
             index = self.model.index(obj[0], obj[1])
 
             # Restore the old data
-            self.model.setData(index, obj[2], QtCore.Qt.EditRole)
+            self.model.setData(index, obj[2], Qt.EditRole)
 
         # Notify everyone that data has changed
         self.model.dataChanged.emit(start_index, index)
@@ -329,10 +330,10 @@ class PasteSelectedCmd(ObjectCmd):
 
                 # Save the data about to be replaced (for undo) as a tuple
                 self.old_objects.append((start_row + i, start_col + j,
-                                         index.data(QtCore.Qt.EditRole) or ''))
+                                         index.data(Qt.EditRole) or ''))
 
                 # Replace the data
-                self.model.setData(index, value, QtCore.Qt.EditRole)
+                self.model.setData(index, value, Qt.EditRole)
 
         # Notify everyone that data has changed
         self.model.dataChanged.emit(self.indexes[0], index)
@@ -400,7 +401,7 @@ class ModifyObjectCmd(ObjectCmd):
                    for ind in indexes_partial]
 
         # Call the setData method to change the values
-        self.model.setData(indexes[0], self.old_value, QtCore.Qt.EditRole)
+        self.model.setData(indexes[0], self.old_value, Qt.EditRole)
 
         # Notify everyone that data has changed
         self.model.dataChanged.emit(indexes[0], indexes[0])
@@ -430,10 +431,10 @@ class ModifyObjectCmd(ObjectCmd):
 
         # Store the old value for use by undo (only once)
         if self.old_value is None:
-            self.old_value = self.model.data(indexes[0], QtCore.Qt.EditRole) or ''
+            self.old_value = self.model.data(indexes[0], Qt.EditRole) or ''
 
         # Call the setData method to change the values
-        self.model.setData(indexes[0], self.value, QtCore.Qt.EditRole)
+        self.model.setData(indexes[0], self.value, Qt.EditRole)
 
         # Notify everyone that data has changed
         self.model.dataChanged.emit(indexes[0], indexes[0])
@@ -465,7 +466,7 @@ class EditCommentCmd(ObjectCmd):
         self.set_comments(self.init_text)
         self.text_editor.setText(self.init_text)
         self.text_editor.init_text = self.text_editor.toPlainText()
-        self.text_editor.setFocus(QtCore.Qt.OtherFocusReason)
+        self.text_editor.setFocus(Qt.OtherFocusReason)
         cursor = self.text_editor.textCursor()
         cursor.setPosition(self.init_cursor_pos)
         self.text_editor.setTextCursor(cursor)
@@ -483,7 +484,7 @@ class EditCommentCmd(ObjectCmd):
         self.set_comments(self.current_text)
         self.text_editor.setText(self.current_text)
         self.text_editor.init_text = self.text_editor.toPlainText()
-        self.text_editor.setFocus(QtCore.Qt.OtherFocusReason)
+        self.text_editor.setFocus(Qt.OtherFocusReason)
         cursor = self.text_editor.textCursor()
         cursor.setPosition(self.current_cursor_pos)
         self.text_editor.setTextCursor(cursor)
@@ -512,7 +513,7 @@ class EditCommentCmd(ObjectCmd):
         if not sel:
             return
         first = sel.first().topLeft()
-        if self.obj_orientation == QtCore.Qt.Horizontal:
+        if self.obj_orientation == Qt.Horizontal:
             ind = first.row()
         else:
             ind = first.column()

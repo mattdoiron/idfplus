@@ -6,8 +6,8 @@
 :license: GPL v3, see LICENSE for more details.
 """
 
-# PySide imports
-from PySide import QtCore
+# PySide2 imports
+from PySide2.QtCore import Qt, QModelIndex, QAbstractItemModel
 
 
 class BaseTreeItem(object):
@@ -77,7 +77,7 @@ class TreeItem(BaseTreeItem):
             return None
 
 
-class CustomTreeModel(QtCore.QAbstractItemModel):
+class CustomTreeModel(QAbstractItemModel):
     """Qt object that handles interaction between the jump widget and the data
     displayed in the tree view.
     """
@@ -85,14 +85,14 @@ class CustomTreeModel(QtCore.QAbstractItemModel):
     def data(self, index, role):
         """Returns various data for specified column in the tree
 
-        :param QtCore.QModelIndex() index: Index of tree item for which data is requested
-        :param int role: QtCore.Qt.Role
+        :param QModelIndex() index: Index of tree item for which data is requested
+        :param int role: Qt.Role
         """
 
         if not index.isValid():
             return None
 
-        if role != QtCore.Qt.DisplayRole:
+        if role != Qt.DisplayRole:
             return None
 
         item = index.internalPointer()
@@ -101,9 +101,9 @@ class CustomTreeModel(QtCore.QAbstractItemModel):
 
     def flags(self, index):
         if not index.isValid():
-            return QtCore.Qt.NoItemFlags
+            return Qt.NoItemFlags
 
-        return int(QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable)
+        return Qt.ItemIsEnabled | Qt.ItemIsSelectable
 
     def getItem(self, index):
         if index.isValid():
@@ -114,14 +114,14 @@ class CustomTreeModel(QtCore.QAbstractItemModel):
         return self.rootItem
 
     def headerData(self, section, orientation, role):
-        if orientation == QtCore.Qt.Horizontal and role == QtCore.Qt.DisplayRole:
+        if orientation == Qt.Horizontal and role == Qt.DisplayRole:
             return self.rootItem.data(section)
 
         return None
 
     def index(self, row, column, parent):
         if not self.hasIndex(row, column, parent):
-            return QtCore.QModelIndex()
+            return QModelIndex()
 
         if not parent.isValid():
             parentItem = self.rootItem
@@ -132,17 +132,17 @@ class CustomTreeModel(QtCore.QAbstractItemModel):
         if childItem:
             return self.createIndex(row, column, childItem)
         else:
-            return QtCore.QModelIndex()
+            return QModelIndex()
 
     def parent(self, index):
         if not index.isValid():
-            return QtCore.QModelIndex()
+            return QModelIndex()
 
         childItem = index.internalPointer()
         parentItem = childItem.parent()
 
         if not parentItem or parentItem == self.rootItem:
-            return QtCore.QModelIndex()
+            return QModelIndex()
 
         return self.createIndex(parentItem.row(), 0, parentItem)
 

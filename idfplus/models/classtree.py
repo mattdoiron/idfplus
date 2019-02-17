@@ -6,9 +6,9 @@
 :license: GPL v3, see LICENSE for more details.
 """
 
-# PySide imports
-from PySide import QtCore
-from PySide import QtGui
+# PySide2 imports
+from PySide2.QtCore import Qt, QSortFilterProxyModel, QRegExp
+from PySide2.QtGui import QColor
 
 # Package imports
 from .basetree import TreeItem
@@ -28,31 +28,31 @@ class ObjectClassTreeModel(CustomTreeModel):
 
     def flags(self, index):
         if not index.isValid():
-            return QtCore.Qt.NoItemFlags
+            return Qt.NoItemFlags
 
         item = index.internalPointer()
         if item.data(0) == '' and item.data(1) == '':
-            data = QtCore.Qt.NoItemFlags
+            data = Qt.NoItemFlags
         elif item.parent().data(0) == 'Object Class' and item.data(0) != '' and self.show_groups:
-            data = QtCore.Qt.ItemIsEnabled
+            data = Qt.ItemIsEnabled
         else:
-            data = int(QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable)
+            data = Qt.ItemIsEnabled | Qt.ItemIsSelectable
 
         return data
 
-    def data(self, index, role=QtCore.Qt.DisplayRole):
+    def data(self, index, role=Qt.DisplayRole):
         if not index.isValid():
             return None
 
         data = None
-        if role == QtCore.Qt.DisplayRole:
+        if role == Qt.DisplayRole:
             data = index.internalPointer().data(index.column())
-        elif role == QtCore.Qt.BackgroundRole:
+        elif role == Qt.BackgroundRole:
             item = index.internalPointer()
             if item.parent().data(0) == 'Object Class' and item.data(0) != '' and self.show_groups:
-                data = QtGui.QColor(205, 192, 176)  # light grey for group headers
-        elif role == QtCore.Qt.TextAlignmentRole and index.column() == 1:
-            data = QtCore.Qt.AlignRight
+                data = QColor(205, 192, 176)  # light grey for group headers
+        elif role == Qt.TextAlignmentRole and index.column() == 1:
+            data = Qt.AlignRight
 
         return data
 
@@ -73,8 +73,8 @@ class ObjectClassTreeModel(CustomTreeModel):
                 child = TreeItem((obj.obj_class_display, objs), parent)
                 parent.appendChild(child)
 
-    def setData(self, index, value, role=QtCore.Qt.EditRole):
-        if role != QtCore.Qt.EditRole:
+    def setData(self, index, value, role=Qt.EditRole):
+        if role != Qt.EditRole:
             return False
 
         item = self.getItem(index)
@@ -86,7 +86,7 @@ class ObjectClassTreeModel(CustomTreeModel):
         return result
 
 
-class TreeSortFilterProxyModel(QtGui.QSortFilterProxyModel):
+class TreeSortFilterProxyModel(QSortFilterProxyModel):
     """Proxy layer to sort and filter
     """
 
@@ -95,10 +95,10 @@ class TreeSortFilterProxyModel(QtGui.QSortFilterProxyModel):
         self.show_groups = not kwargs.pop('hide_groups', True)
         super(TreeSortFilterProxyModel, self).__init__(*args, **kwargs)
 
-        syntax = QtCore.QRegExp.PatternSyntax(QtCore.QRegExp.Wildcard)
-        case_sensitivity = QtCore.Qt.CaseInsensitive
+        syntax = QRegExp.PatternSyntax(QRegExp.Wildcard)
+        case_sensitivity = Qt.CaseInsensitive
 
-        self.setFilterRegExp(QtCore.QRegExp('', case_sensitivity, syntax))
+        self.setFilterRegExp(QRegExp('', case_sensitivity, syntax))
         self.setFilterCaseSensitivity(case_sensitivity)
 
     def filterAcceptsRow(self, row, parent):

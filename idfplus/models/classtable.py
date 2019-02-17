@@ -12,9 +12,12 @@ from operator import itemgetter
 from itertools import groupby
 from copy import deepcopy
 
-# PySide imports
-from PySide import QtGui
-from PySide import QtCore
+# PySide2 imports
+from PySide2.QtCore import (Qt, QAbstractTableModel, QItemSelection, QItemSelectionRange,
+                            QAbstractProxyModel, QRegExp, QItemSelectionModel, QModelIndex,
+                            QSortFilterProxyModel)
+from PySide2.QtGui import QColor
+from PySide2.QtWidgets import QTableView, QAbstractItemView
 
 # Package imports
 from ..eplusio.idfmodel import IDFError
@@ -23,15 +26,15 @@ from ..eplusio.idfmodel import IDFError
 log = logging.getLogger(__name__)
 
 
-class IDFObjectTableModel(QtCore.QAbstractTableModel):
+class IDFObjectTableModel(QAbstractTableModel):
     """Qt table model object that links the table widget and its underlying data structure.
     """
 
     def __init__(self, parent, obj_orientation=None):
         """Initialises table model
 
-        :param QtGui.QTableView parent: Parent qt object to which this model belongs
-        :param int obj_orientation: QtCore.Qt.Vertical or QtCore.Qt.Horizontal
+        :param QTableView parent: Parent qt object to which this model belongs
+        :param int obj_orientation: Qt.Vertical or Qt.Horizontal
         """
 
         self.obj_class = ''
@@ -39,7 +42,7 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
         self.idd = None
         self.idf_objects = None
         self.idd_object = None
-        self.obj_orientation = obj_orientation or QtCore.Qt.Vertical
+        self.obj_orientation = obj_orientation or Qt.Vertical
         self.prefs = parent.prefs
         self.parent = parent
         super(IDFObjectTableModel, self).__init__(parent)
@@ -67,10 +70,10 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
         """
 
         if not index.isValid():
-            return QtCore.Qt.ItemIsEnabled
+            return Qt.ItemIsEnabled
 
-        current_flags = QtCore.QAbstractTableModel.flags(self, index)
-        return QtCore.Qt.ItemFlags(current_flags | QtCore.Qt.ItemIsEditable)
+        current_flags = QAbstractTableModel.flags(self, index)
+        return Qt.ItemFlags(current_flags | Qt.ItemIsEditable)
 
     def data(self, index, role):
         """Overrides Qt method to provides various data to QtTable models.
@@ -79,7 +82,7 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
         data.
 
         :param QModelIndex index: QModelIndex of the cell for which data is requested
-        :param int role: Role being requested (QtCore.Qt.Role)
+        :param int role: Role being requested (Qt.Role)
         """
 
         # Check for valid qt index
@@ -93,20 +96,20 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
         field = None
 
         # If the role will require a field, get it now
-        if role in [QtCore.Qt.DisplayRole, QtCore.Qt.EditRole,
-                    QtCore.Qt.ToolTipRole, QtCore.Qt.BackgroundRole,
-                    QtCore.Qt.StatusTipRole]:
+        if role in [Qt.DisplayRole, Qt.EditRole,
+                    Qt.ToolTipRole, Qt.BackgroundRole,
+                    Qt.StatusTipRole]:
             try:
                 field = self.idf.field(self.obj_class, index_obj, index_field)
             except IDFError:
                 return None
 
         # Detect the role being request and return the correct data
-        if role == QtCore.Qt.DisplayRole or role == QtCore.Qt.EditRole:
+        if role == Qt.DisplayRole or role == Qt.EditRole:
             if not field:
                 data = None
             else:
-                if role != QtCore.Qt.EditRole and self.prefs['show_units_in_cells']:
+                if role != Qt.EditRole and self.prefs['show_units_in_cells']:
                     text_units = self.idf.units(field) or ''
                     spacing = ' ' if text_units else ''
                 else:
@@ -119,23 +122,23 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
                     data = '{}{}{}'.format(field.value, spacing, text_units)
                 else:
                     data = '{}{}{}'.format(self.idf.to_ip(field), spacing, text_units)
-        elif role == QtCore.Qt.ToolTipRole:
+        elif role == Qt.ToolTipRole:
             data = self.idf.units(field)
-        elif role == QtCore.Qt.DecorationRole:
+        elif role == Qt.DecorationRole:
             pass
-        elif role == QtCore.Qt.StatusTipRole:
+        elif role == Qt.StatusTipRole:
             data = self.idf.units(field)
-        elif role == QtCore.Qt.TextAlignmentRole:
-            data = int(QtCore.Qt.AlignLeft | QtCore.Qt.AlignVCenter)
-        elif role == QtCore.Qt.TextColorRole or role == QtCore.Qt.ForegroundRole:
+        elif role == Qt.TextAlignmentRole:
+            data = Qt.AlignLeft | Qt.AlignVCenter
+        elif role == Qt.TextColorRole or role == Qt.ForegroundRole:
             pass
-        elif role == QtCore.Qt.BackgroundRole:
+        elif role == Qt.BackgroundRole:
             # Highlight the cell's background depending on various states
             ref_node_count = self.idf.reference_count(field)
             if not field:
                 data = None
             elif field.value and ref_node_count == 0:
-                data = QtGui.QColor(255, 232, 150)
+                data = QColor(255, 232, 150)
             else:
                 data = None
         return data
@@ -145,29 +148,29 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
 
         :param int section: Index of header being requested
         :param int orientation: Vertical or Horizontal header requested
-        :param int role: QtCore.Qt.Role
+        :param int role: Qt.Role
         :returns: Data of various types depending on requested role
         """
 
-        if role == QtCore.Qt.TextAlignmentRole:
-            if orientation == QtCore.Qt.Horizontal:
-                return int(QtCore.Qt.AlignLeft | QtCore.Qt.AlignVCenter)
-            elif orientation == QtCore.Qt.Vertical:
-                return int(QtCore.Qt.AlignRight | QtCore.Qt.AlignVCenter)
-        elif role == QtCore.Qt.DisplayRole or role == QtCore.Qt.ToolTipRole:
-            if orientation == QtCore.Qt.Horizontal:
+        if role == Qt.TextAlignmentRole:
+            if orientation == Qt.Horizontal:
+                return Qt.AlignLeft | Qt.AlignVCenter
+            elif orientation == Qt.Vertical:
+                return Qt.AlignRight | Qt.AlignVCenter
+        elif role == Qt.DisplayRole or role == Qt.ToolTipRole:
+            if orientation == Qt.Horizontal:
                 try:
                     return self.field_labels[section]
                 except IndexError:
                     return None
-            elif orientation == QtCore.Qt.Vertical:
+            elif orientation == Qt.Vertical:
                 try:
                     return self.object_labels[section]
                 except IndexError:
                     return None
-        elif role == QtCore.Qt.BackgroundRole:
-            return QtGui.QColor(244, 244, 244)
-        elif role == QtCore.Qt.FontRole:
+        elif role == Qt.BackgroundRole:
+            return QColor(244, 244, 244)
+        elif role == Qt.FontRole:
             return self.parent.font()
         return None
 
@@ -196,7 +199,7 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
 
         :param QModelIndex index: Index of field to be set
         :param str value: The value to use when setting the field's data
-        :param int role: QtCore.Qt.Role
+        :param int role: Qt.Role
         :returns: True or False for success or failure respectively
         :rtype: bool
         """
@@ -205,7 +208,7 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
         if not index.isValid():
             return False
 
-        if role == QtCore.Qt.EditRole:
+        if role == Qt.EditRole:
             index_obj = index.row()
             index_field = index.column()
 
@@ -258,19 +261,19 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
                 last_row = None
                 first_row = len(self.idf_objects) - delete_count
                 last_row_refresh = len(self.idf_objects) - 1
-                self.beginRemoveRows(QtCore.QModelIndex(), first_row, last_row_refresh)
+                self.beginRemoveRows(QModelIndex(), first_row, last_row_refresh)
 
             # If there is no offset, delete starting from first of group
             elif not offset:
                 first_row = group[0]
                 last_row = group[0] + len(group)
-                self.beginRemoveRows(QtCore.QModelIndex(), first_row, last_row - 1)
+                self.beginRemoveRows(QModelIndex(), first_row, last_row - 1)
 
             # Otherwise delete starting from end of group
             else:
                 first_row = group[-1] + offset
                 last_row = group[-1] + offset + delete_count
-                self.beginRemoveRows(QtCore.QModelIndex(), first_row, last_row - 1)
+                self.beginRemoveRows(QModelIndex(), first_row, last_row - 1)
 
             # Delete the objects, update labels and inform that we're done inserting
             self.idf.remove_objects(self.obj_class, first_row, last_row)
@@ -311,7 +314,7 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
             last_row = first_row + count - 1
 
             # Warn the model that we're about to add rows, then do it
-            self.beginInsertRows(QtCore.QModelIndex(), first_row, last_row)
+            self.beginInsertRows(QModelIndex(), first_row, last_row)
             self.idf.add_objects(self.obj_class, obj_list, first_row)
 
             # Update labels and inform that we're done inserting
@@ -384,12 +387,12 @@ class IDFObjectTableModel(QtCore.QAbstractTableModel):
         self.field_labels = field_labels
 
 
-class TransposeProxyModel(QtGui.QAbstractProxyModel):
+class TransposeProxyModel(QAbstractProxyModel):
     """Translates columns to rows or vice versa
     """
 
     def __init__(self, parent, **kwargs):
-        self._obj_orientation = kwargs.pop('obj_orientation', QtCore.Qt.Vertical)
+        self._obj_orientation = kwargs.pop('obj_orientation', Qt.Vertical)
         super(TransposeProxyModel, self).__init__(parent, **kwargs)
 
     @property
@@ -422,7 +425,7 @@ class TransposeProxyModel(QtGui.QAbstractProxyModel):
         super(TransposeProxyModel, self).setSourceModel(source)
 
         # Connect signals in a transposed way as well
-        if self.obj_orientation == QtCore.Qt.Vertical:
+        if self.obj_orientation == Qt.Vertical:
             self.sourceModel().rowsAboutToBeInserted.connect(self.columnsAboutToBeInserted.emit)
             self.sourceModel().rowsInserted.connect(self.columnsInserted.emit)
             self.sourceModel().rowsAboutToBeRemoved.connect(self.columnsAboutToBeRemoved.emit)
@@ -443,9 +446,9 @@ class TransposeProxyModel(QtGui.QAbstractProxyModel):
         """
 
         if not source_index.isValid():
-            return QtCore.QModelIndex()
+            return QModelIndex()
 
-        if self.obj_orientation == QtCore.Qt.Vertical:
+        if self.obj_orientation == Qt.Vertical:
             return self.index(source_index.column(), source_index.row())
         else:
             return self.index(source_index.row(), source_index.column())
@@ -457,9 +460,9 @@ class TransposeProxyModel(QtGui.QAbstractProxyModel):
         """
 
         if not proxy_index.isValid():
-            return QtCore.QModelIndex()
+            return QModelIndex()
 
-        if self.obj_orientation == QtCore.Qt.Vertical:
+        if self.obj_orientation == Qt.Vertical:
             return self.sourceModel().index(proxy_index.column(), proxy_index.row())
         else:
             return self.sourceModel().index(proxy_index.row(), proxy_index.column())
@@ -470,11 +473,11 @@ class TransposeProxyModel(QtGui.QAbstractProxyModel):
         :param selection:
         """
 
-        return_selection = QtGui.QItemSelection()
+        return_selection = QItemSelection()
         for sel in selection:
             top_left = self.mapFromSource(sel.topLeft())
             bottom_right = self.mapFromSource(sel.bottomRight())
-            sel_range = QtGui.QItemSelectionRange(top_left, bottom_right)
+            sel_range = QItemSelectionRange(top_left, bottom_right)
             return_selection.append(sel_range)
         return return_selection
 
@@ -484,11 +487,11 @@ class TransposeProxyModel(QtGui.QAbstractProxyModel):
         :param selection:
         """
 
-        return_selection = QtGui.QItemSelection()
+        return_selection = QItemSelection()
         for sel in selection:
             top_left = self.mapToSource(sel.topLeft())
             bottom_right = self.mapToSource(sel.bottomRight())
-            sel_range = QtGui.QItemSelectionRange(top_left, bottom_right)
+            sel_range = QItemSelectionRange(top_left, bottom_right)
             return_selection.append(sel_range)
         return return_selection
 
@@ -507,7 +510,7 @@ class TransposeProxyModel(QtGui.QAbstractProxyModel):
         :param index:
         """
 
-        return QtCore.QModelIndex()
+        return QModelIndex()
 
     def rowCount(self, parent=None):
         """
@@ -515,7 +518,7 @@ class TransposeProxyModel(QtGui.QAbstractProxyModel):
         :param parent:
         """
 
-        if self.obj_orientation == QtCore.Qt.Vertical:
+        if self.obj_orientation == Qt.Vertical:
             return self.sourceModel().columnCount(parent)
         else:
             return self.sourceModel().rowCount(parent)
@@ -526,7 +529,7 @@ class TransposeProxyModel(QtGui.QAbstractProxyModel):
         :param parent:
         """
 
-        if self.obj_orientation == QtCore.Qt.Vertical:
+        if self.obj_orientation == Qt.Vertical:
             return self.sourceModel().rowCount(parent)
         else:
             return self.sourceModel().columnCount(parent)
@@ -549,12 +552,12 @@ class TransposeProxyModel(QtGui.QAbstractProxyModel):
         """
 
         new_orientation = orientation
-        if role == QtCore.Qt.DisplayRole or role == QtCore.Qt.ToolTipRole:
-            transposed = True if self.obj_orientation == QtCore.Qt.Vertical else False
-            if orientation == QtCore.Qt.Horizontal:
-                new_orientation = QtCore.Qt.Vertical if transposed else orientation
+        if role == Qt.DisplayRole or role == Qt.ToolTipRole:
+            transposed = True if self.obj_orientation == Qt.Vertical else False
+            if orientation == Qt.Horizontal:
+                new_orientation = Qt.Vertical if transposed else orientation
             else:
-                new_orientation = QtCore.Qt.Horizontal if transposed else orientation
+                new_orientation = Qt.Horizontal if transposed else orientation
         return self.sourceModel().headerData(section, new_orientation, role)
 
     def removeObjects(self, *args, **kwargs):
@@ -595,11 +598,11 @@ class TransposeProxyModel(QtGui.QAbstractProxyModel):
                               self.mapFromSource(bottom_right))
 
     def header_data_changed(self, orientation, first, last):
-        transposed = True if self.obj_orientation == QtCore.Qt.Vertical else False
-        if orientation == QtCore.Qt.Horizontal:
-            new_orientation = QtCore.Qt.Vertical if transposed else orientation
+        transposed = True if self.obj_orientation == Qt.Vertical else False
+        if orientation == Qt.Horizontal:
+            new_orientation = Qt.Vertical if transposed else orientation
         else:
-            new_orientation = QtCore.Qt.Horizontal if transposed else orientation
+            new_orientation = Qt.Horizontal if transposed else orientation
         self.headerDataChanged.emit(new_orientation, first, last)
 
     @property
@@ -610,18 +613,18 @@ class TransposeProxyModel(QtGui.QAbstractProxyModel):
         return self.sourceModel().obj_class
 
 
-class SortFilterProxyModel(QtGui.QSortFilterProxyModel):
+class SortFilterProxyModel(QSortFilterProxyModel):
     """Proxy layer to sort and filter
     """
 
     def __init__(self, parent, obj_orientation=None):
         super(SortFilterProxyModel, self).__init__(parent)
 
-        self._obj_orientation = obj_orientation or QtCore.Qt.Vertical
-        syntax = QtCore.QRegExp.PatternSyntax(QtCore.QRegExp.Wildcard)
-        case_sensitivity = QtCore.Qt.CaseInsensitive
+        self._obj_orientation = obj_orientation or Qt.Vertical
+        syntax = QRegExp.PatternSyntax(QRegExp.Wildcard)
+        case_sensitivity = Qt.CaseInsensitive
 
-        self.setFilterRegExp(QtCore.QRegExp('', case_sensitivity, syntax))
+        self.setFilterRegExp(QRegExp('', case_sensitivity, syntax))
         self.setFilterCaseSensitivity(case_sensitivity)
 
     @property
@@ -646,7 +649,7 @@ class SortFilterProxyModel(QtGui.QSortFilterProxyModel):
         self.endResetModel()
 
     def filterAcceptsColumn(self, col, parent):
-        if self.obj_orientation == QtCore.Qt.Horizontal:
+        if self.obj_orientation == Qt.Horizontal:
             return True
 
         model = self.sourceModel()
@@ -661,7 +664,7 @@ class SortFilterProxyModel(QtGui.QSortFilterProxyModel):
         return False
 
     def filterAcceptsRow(self, row, parent):
-        if self.obj_orientation == QtCore.Qt.Vertical:
+        if self.obj_orientation == Qt.Vertical:
             return True
 
         model = self.sourceModel()
@@ -676,20 +679,20 @@ class SortFilterProxyModel(QtGui.QSortFilterProxyModel):
         return False
 
     def mapSelectionFromSource(self, selection):
-        return_selection = QtGui.QItemSelection()
+        return_selection = QItemSelection()
         for sel in selection:
             top_left = self.mapFromSource(sel.topLeft())
             bottom_right = self.mapFromSource(sel.bottomRight())
-            sel_range = QtGui.QItemSelectionRange(top_left, bottom_right)
+            sel_range = QItemSelectionRange(top_left, bottom_right)
             return_selection.append(sel_range)
         return return_selection
 
     def mapSelectionToSource(self, selection):
-        return_selection = QtGui.QItemSelection()
+        return_selection = QItemSelection()
         for sel in selection:
             top_left = self.mapToSource(sel.topLeft())
             bottom_right = self.mapToSource(sel.bottomRight())
-            sel_range = QtGui.QItemSelectionRange(top_left, bottom_right)
+            sel_range = QItemSelectionRange(top_left, bottom_right)
             return_selection.append(sel_range)
         return return_selection
 
@@ -710,7 +713,7 @@ class SortFilterProxyModel(QtGui.QSortFilterProxyModel):
         return self.sourceModel().obj_class
 
 
-class TableView(QtGui.QTableView):
+class TableView(QTableView):
     """Subclass of QTableView to allow custom editing behaviour.
     """
 
@@ -719,17 +722,17 @@ class TableView(QtGui.QTableView):
         self.prefs = parent.prefs
 
     def keyPressEvent(self, event):
-        if event.key() == QtCore.Qt.Key_Return or event.key() == QtCore.Qt.Key_Enter:
-            if self.state() != QtGui.QAbstractItemView.EditingState:
+        if event.key() == Qt.Key_Return or event.key() == Qt.Key_Enter:
+            if self.state() != QAbstractItemView.EditingState:
                 event.accept()
                 self.edit(self.selectedIndexes()[0])
                 return
-        if event.modifiers() & QtCore.Qt.ControlModifier:
-            selection_keys = [QtCore.Qt.Key_PageUp, QtCore.Qt.Key_Up,
-                              QtCore.Qt.Key_PageDown, QtCore.Qt.Key_Down,
-                              QtCore.Qt.Key_Left, QtCore.Qt.Key_Right]
+        if event.modifiers() & Qt.ControlModifier:
+            selection_keys = [Qt.Key_PageUp, Qt.Key_Up,
+                              Qt.Key_PageDown, Qt.Key_Down,
+                              Qt.Key_Left, Qt.Key_Right]
             if event.key() in selection_keys:
-                if event.modifiers() & QtCore.Qt.ShiftModifier:
+                if event.modifiers() & Qt.ShiftModifier:
                     event.accept()
                     self.select_in_direction(event.key())
                     return
@@ -745,7 +748,7 @@ class TableView(QtGui.QTableView):
     def select_in_direction(self, key):
         """Selects fields in one direction.
 
-        :param QtCore.Qt.Key key:
+        :param Qt.Key key:
         """
 
         model = self.model()
@@ -756,29 +759,29 @@ class TableView(QtGui.QTableView):
         top_left = top_left_current
         bottom_right = bottom_right_current
 
-        if key in [QtCore.Qt.Key_PageUp, QtCore.Qt.Key_Up]:
+        if key in [Qt.Key_PageUp, Qt.Key_Up]:
             top_left = model.index(0, top_left_current.column())
             bottom_right = model.index(bottom_right_current.row(), bottom_right_current.column())
-        elif key in [QtCore.Qt.Key_PageDown, QtCore.Qt.Key_Down]:
+        elif key in [Qt.Key_PageDown, Qt.Key_Down]:
             top_left = model.index(top_left_current.row(), top_left_current.column())
             bottom_right = model.index(model.rowCount()-1, bottom_right_current.column())
-        elif key in [QtCore.Qt.Key_Left]:
+        elif key in [Qt.Key_Left]:
             top_left = model.index(top_left_current.row(), 0)
             bottom_right = model.index(bottom_right_current.row(), bottom_right_current.column())
-        elif key in [QtCore.Qt.Key_Right]:
+        elif key in [Qt.Key_Right]:
             top_left = model.index(top_left_current.row(), top_left_current.column())
             bottom_right = model.index(bottom_right_current.row(), model.columnCount()-1)
 
-        selection = QtGui.QItemSelection()
-        sel_range = QtGui.QItemSelectionRange(top_left, bottom_right)
+        selection = QItemSelection()
+        sel_range = QItemSelectionRange(top_left, bottom_right)
         selection.append(sel_range)
         selection_model.reset()
-        selection_model.select(selection, QtGui.QItemSelectionModel.SelectCurrent)
+        selection_model.select(selection, QItemSelectionModel.SelectCurrent)
 
     def select_first_in_direction(self, key):
         """Selects the first field in one direction.
 
-        :param QtCore.Qt.Key key:
+        :param Qt.Key key:
         """
 
         selected = self.selectedIndexes()
@@ -791,13 +794,13 @@ class TableView(QtGui.QTableView):
         row = selected[0].row()
         column = selected[0].column()
 
-        if key in [QtCore.Qt.Key_PageUp, QtCore.Qt.Key_Up]:
+        if key in [Qt.Key_PageUp, Qt.Key_Up]:
             to_select = model.index(0, column)
-        elif key in [QtCore.Qt.Key_PageDown, QtCore.Qt.Key_Down]:
+        elif key in [Qt.Key_PageDown, Qt.Key_Down]:
             to_select = model.index(model.rowCount()-1, column)
-        elif key in [QtCore.Qt.Key_Left]:
+        elif key in [Qt.Key_Left]:
             to_select = model.index(row, 0)
-        elif key in [QtCore.Qt.Key_Right]:
+        elif key in [Qt.Key_Right]:
             to_select = model.index(row, model.columnCount()-1)
 
         self.setCurrentIndex(to_select)
