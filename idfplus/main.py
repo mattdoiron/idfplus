@@ -364,7 +364,7 @@ class IDFPlus(QMainWindow, main.UIMainWindow):
         """Called by the about action.
         """
 
-        import PySide
+        import PySide2
 
         QMessageBox.about(self, "About IDF+",
                 """<b>IDF+</b> v{0}
@@ -386,7 +386,7 @@ class IDFPlus(QMainWindow, main.UIMainWindow):
                 http://www.gnu.org/licenses/</a> for more details.</p>
                 <p>Built with: Python {1}, Qt {2} and PySide {3} on {4}</p>""".format(
                 __version__, platform.python_version(),
-                qVersion(), PySide.__version__,
+                qVersion(), PySide2.__version__,
                 platform.system()))
 
     def navForward(self):
