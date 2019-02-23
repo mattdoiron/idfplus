@@ -51,7 +51,10 @@ requires_dev = [
     "pyinstaller==3.4",
     "sphinx==1.7.4",
 ]
-requires_test = ['pytest==3.5.1']
+requires_test = [
+    'pytest==3.5.1',
+    'pytest-qt==3.2.2'
+]
 requires_setup = []
 
 with open(os.path.join(project, '__init__.py'), 'r') as fd:
