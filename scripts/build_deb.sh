@@ -27,7 +27,7 @@
 
 # Define the necessary environment variables
 prepare_env () {
-    export VERSION=0.1.0-b8
+    export VERSION=0.1.0b8
     export NAME=idfplus
     export SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
     export BUILD_DIR=${SCRIPT_DIR}/../build

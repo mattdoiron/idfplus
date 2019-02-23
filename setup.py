@@ -42,13 +42,13 @@ requires = [
     "appdirs==1.4.3",
     "faulthandler==3.1",
     "odict==1.6.2",
-    "persistent==4.2.4.2",
-    "pyside==1.2.4"
+    "persistent==4.4.3",
+    "PySide2==5.12.1"
 ]
 requires_dev = [
     "pip-review==1.0",
     "pip-tools==2.0.2",
-    "pyinstaller==3.3.1",
+    "pyinstaller==3.4",
     "sphinx==1.7.4",
 ]
 requires_test = ['pytest==3.5.1']

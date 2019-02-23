@@ -9,4 +9,4 @@
 # Prepare for Python 3
 from __future__ import (print_function, division, absolute_import)
 
-__version__ = '0.1.0-beta6'
+__version__ = '0.1.0b8'
