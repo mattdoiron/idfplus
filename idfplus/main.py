@@ -712,15 +712,13 @@ class IDFPlus(QMainWindow, main.UIMainWindow):
         tree_selection_model = self.classTree.selectionModel()
 
         # Find the items in the class tree that contain the object class
-        matches = tree_model.match(tree_model.index(0, 0),
-                                   Qt.DisplayRole,
-                                   obj_class,
-                                   hits=1,
-                                   flags=Qt.MatchRecursive | Qt.MatchExactly | Qt.MatchWrap)
+        match_flags = Qt.MatchRecursive | Qt.MatchExactly | Qt.MatchWrap
+        matches = tree_model.match(tree_model.index(0, 0), Qt.DisplayRole, obj_class, hits=1,
+                                   flags=match_flags)
 
         # Select the resulting found item (this also triggers a load of the table view)
-        tree_selection_model.setCurrentIndex(matches[0],
-                                             QItemSelectionModel.SelectCurrent | QItemSelectionModel.Rows)
+        selection_flags = QItemSelectionModel.SelectCurrent | QItemSelectionModel.Rows
+        tree_selection_model.setCurrentIndex(matches[0], selection_flags)
 
         # Scroll to the matched selection
         self.classTree.scrollTo(matches[0], QAbstractItemView.PositionAtCenter)
