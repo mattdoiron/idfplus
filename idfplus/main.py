@@ -105,8 +105,9 @@ class IDFPlus(QMainWindow, main.UIMainWindow):
         }
 
         # Open a file immediately if specified by command-line. Timer allows UI to load fist.
-        if self.args.filename:
-            QTimer.singleShot(0, self.load_file)
+        if self.args:
+            if self.args.filename:
+                QTimer.singleShot(0, self.load_file)
 
     def app_focus_changed(self, old_focus_widget, new_focus_widget):
         # Should we check for file change? Only if required and if main window is regaining focus
@@ -193,20 +194,16 @@ class IDFPlus(QMainWindow, main.UIMainWindow):
         self.file_time_last_modified = os.path.getmtime(file_path)
         self.check_file_changed = True
 
-    def load_file(self, file_path=None):
+    def load_file(self, _file_path=None):
         """Loads a specified file or gets the file_path from the sender.
 
         :rtype : bool
-        :param file_path:
+        :param _file_path:
         """
 
-        if self.args.filename and not file_path:
-            file_path = self.args.filename
-
-        # Detect how/if to proceed
-        if file_path:
-            log.debug('Loading file from dialog: {}'.format(file_path))
-        if file_path is None:
+        # Handle defaults and check how to proceed
+        file_path = _file_path or self.args.filename
+        if not file_path:
             action = self.sender()
             if isinstance(action, QAction):
                 if action.text() != "&New":
@@ -216,6 +213,8 @@ class IDFPlus(QMainWindow, main.UIMainWindow):
                         return False
             else:
                 return False
+        else:
+            log.debug('Loading file from dialog: {}'.format(file_path))
 
         # Update status
         message = "Loading {}...".format(file_path or 'New File')
