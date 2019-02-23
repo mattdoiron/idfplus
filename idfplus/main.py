@@ -21,8 +21,8 @@ from cStringIO import StringIO
 from PySide2.QtCore import (Qt, QTimer, QFileInfo, QModelIndex, qVersion, QPersistentModelIndex,
                             QFile, QItemSelectionModel)
 from PySide2.QtGui import QTextCursor, QIcon, QClipboard
-from PySide2.QtWidgets import (QMainWindow, QFileDialog, QMessageBox, QHeaderView, QApplication,
-                               QAction, QAbstractItemView, QApplication)
+from PySide2.QtWidgets import (QMainWindow, QFileDialog, QMessageBox, QHeaderView, QAction,
+                               QAbstractItemView, QApplication)
 
 # Package imports
 from . import delegates
