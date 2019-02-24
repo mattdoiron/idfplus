@@ -394,12 +394,15 @@ class IDDParser(Parser):
             self.idd = idd
         else:
             log.debug('No IDD received by parser - using a blank one.')
+            log.debug('Parser version being set to: {}'.format(self.__parser_version__))
             self.idd = iddmodel.IDDFile(parser_version=self.__parser_version__)
+            log.debug('Parser reports as being version: {}'.format(self.idd.parser_version))
 
-    def parse_idd(self, file_path):
+    def parse_idd(self, file_path, write=True):
         """Parse the provided idd file
 
-        :param str file_path:
+        :param bool write: Whether or not to write the resulting file to disk.
+        :param str file_path: Absolute file path in which to look for IDD file to parse.
         :returns: Yields a progress counter between 0 and 100
         :rtype: generator
         """
@@ -600,14 +603,24 @@ class IDDParser(Parser):
             idd._object_list_length = object_list_length
 
         # Save changes
-        file_name = config.IDD_FILE_NAME_ROOT.format(version)
+        if write:
+            self.write_idd(idd)
+
+        # Yield the final progress for progress bars
+        log.info('Parsing IDD complete!')
+        yield math.ceil(100.0 * total_read / total_size)
+
+    @staticmethod
+    def write_idd(idd):
+        """Writes the specified IDD file to disk
+
+        :param IDDFile idd:
+        """
+
+        file_name = config.IDD_FILE_NAME_ROOT.format(idd.version)
         idd_path = os.path.join(config.DATA_DIR, file_name)
         with open(idd_path, 'wb') as fp:
             pickle.dump(idd, fp, 2)
-        log.info('Parsing IDD complete!')
-
-        # Yield the final progress for progress bars
-        yield math.ceil(100.0 * total_read / total_size)
 
     def load_idd(self, version):
         """Loads an idd file into the object instance variable.
