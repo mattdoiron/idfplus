@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 """This submodule reads/parses IDD and IDF files as well as writes IDF files.
 
-:copyright: (c) 2014 by Matt Doiron.
+:copyright: (c) 2019 by Matt Doiron.
 :license: GPL v3, see LICENSE for more details.
 """
 

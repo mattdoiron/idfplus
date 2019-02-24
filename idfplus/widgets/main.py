@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 """Module that contains the main UI window, all of its setup and all of its actions
 
-:copyright: (c) 2014 by Matt Doiron.
+:copyright: (c) 2019 by Matt Doiron.
 :license: GPL v3, see LICENSE for more details.
 """
 
