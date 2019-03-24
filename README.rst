@@ -30,7 +30,7 @@ Python v2.7.x and the appropriate dependencies. See the Doc folder for more info
 Open Source and Cross Platform
 ------------------------------
 
-The tool is written in Python_ (v2.7.14) using PySide2_ 5.12.1 for a graphical library, and
+The tool is written in Python_ (v2.7.14) using PySide2_ 5.12.2 for a graphical library, and
 the source code is available under the GPLv3 open source licence. It is currently
 working on both Ubuntu 16.04+ and Windows 7/8/10, but will eventually work on Mac OSX
 as well.

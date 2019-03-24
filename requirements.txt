@@ -8,6 +8,6 @@ appdirs==1.4.3
 faulthandler==3.1
 odict==1.6.2
 persistent==4.4.3
-pyside2==5.12.1
-shiboken2==5.12.1         # via pyside2
+pyside2==5.12.2
+shiboken2==5.12.2         # via pyside2
 zope.interface==4.6.0     # via persistent

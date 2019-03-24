@@ -43,7 +43,7 @@ requires = [
     "faulthandler==3.1",
     "odict==1.6.2",
     "persistent==4.4.3",
-    "PySide2==5.12.1"
+    "PySide2==5.12.2"
 ]
 requires_dev = [
     "pip-review==1.0",
