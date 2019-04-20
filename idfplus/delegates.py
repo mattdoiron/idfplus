@@ -173,32 +173,33 @@ class CustomStyledItemDelegate(QStyledItemDelegate):
         if not index.isValid():
             return QSize(self.prefs['default_column_width'], 14)
 
-        rect = option.rect.adjusted(self.padding, self.padding, -self.padding, 0)
+        # left, top, right, bottom
+        option.rect.adjust(self.padding, -self.padding, -self.padding, self.padding)
+
         text = index.data(Qt.DisplayRole)
 
         fm = QFontMetrics(option.font)
-        b_rect = fm.boundingRect(rect,
-                                 Qt.AlignLeft |
-                                 Qt.AlignVCenter |
-                                 Qt.TextWrapAnywhere,
+        b_rect = fm.boundingRect(option.rect,
+                                 Qt.AlignLeft | Qt.AlignVCenter | Qt.TextWrapAnywhere,
                                  text)
 
         return QSize(int(self.prefs['default_column_width']),
-                            b_rect.height())
+                     b_rect.height())
 
     def paint(self, painter, option, index):
 
         if not index.isValid():
             return
 
-        rect = option.rect.adjusted(self.padding, self.padding, -self.padding, 0)
+        # rect = option.rect.adjusted(self.padding, self.padding, -self.padding, 0)
+        option.rect.adjust(self.padding, -self.padding, -self.padding, self.padding)
         text = index.data(Qt.DisplayRole)
 
         painter.save()
         opt = QTextOption()
         opt.setWrapMode(QTextOption.WrapAnywhere)
         opt.setAlignment(Qt.AlignLeft | Qt.AlignVCenter)
-        painter.drawText(rect, text, opt)
+        painter.drawText(option.rect, text, opt)
         painter.restore()
 
 
@@ -223,10 +224,9 @@ class AlphaNumericDelegate(CustomStyledItemDelegate):
         text_edit_font = QFont()
         text_edit_font.fromString(self.prefs['class_table_font'])
         text_edit.setFont(text_edit_font)
-        text_edit.setStyleSheet("""QPlainTextEdit { margin-left:0;
-            margin-top:0; margin-bottom:0; margin-right:0;
-            padding-left:-2; padding-top:0; padding-bottom:0;
-            padding-right:-2; vertical-align: middle;}""")
+
+        # left, top, right, bottom
+        text_edit.setViewportMargins(-self.padding, -self.padding, -self.padding, -self.padding)
         return text_edit
 
     def setEditorData(self, editor, index):
