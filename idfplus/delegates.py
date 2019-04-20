@@ -278,6 +278,49 @@ class ChoiceDelegate(CustomStyledItemDelegate):
         self.combo_fields = ['minimum>', 'minimum', 'maximum<', 'maximum', 'default',
                              'key', 'object-list']
 
+    def create_model(self):
+        self.model = QStandardItemModel()
+        for tag, value in self.field.tags.iteritems():
+            if tag in self.combo_fields:
+                if tag == 'default':
+                    self.model.insertRow(0, [QStandardItem(value),
+                                             QStandardItem(tag)])
+                elif tag == 'object-list':
+                    # Get list of all classes that are part of the object-list
+                    class_list = []
+                    if isinstance(value, set) or isinstance(value, list):
+                        for val in value:
+                            class_list.extend(self.main_window.idd.object_lists[val])
+                    else:
+                        class_list.extend(self.main_window.idd.object_lists[value])
+
+                    # Cycle through all classes in the list
+                    for cls in class_list:
+
+                        # Get the objects for the current class
+                        idf_objects = self.main_window.idf.get(cls)
+
+                        # Cycle through all idf objects in the class
+                        for obj in idf_objects:
+                            self.model.appendRow([QStandardItem(obj[0].value),
+                                                  QStandardItem(cls)])
+                elif tag == 'node':
+                    # Retrieve a list of all nodes?
+                    pass
+                elif tag == 'external-list':
+                    # Retrieve list from external file
+                    pass
+                else:
+                    # Need to check if it's a list...is there a better way?
+                    # Could make them all lists...would be annoying.
+                    if isinstance(value, list):
+                        for val in value:
+                            self.model.appendRow([QStandardItem(val),
+                                                  QStandardItem(tag)])
+                    else:
+                        self.model.appendRow([QStandardItem(value),
+                                              QStandardItem(tag)])
+
     def createEditor(self, parent, option, index):
         """Creates a custom editor based on an extended QCombobox
 
@@ -288,47 +331,7 @@ class ChoiceDelegate(CustomStyledItemDelegate):
 
         # If there isn't already a model, populate it
         if not self.model:
-            self.model = QStandardItemModel()
-            for tag, value in self.field.tags.iteritems():
-                if tag in self.combo_fields:
-                    if tag == 'default':
-                        self.model.insertRow(0, [QStandardItem(value),
-                                                 QStandardItem(tag)])
-                    elif tag == 'object-list':
-                        # Get list of all classes that are part of the object-list
-                        class_list = []
-                        if isinstance(value, set) or isinstance(value, list):
-                            for val in value:
-                                class_list.extend(self.main_window.idd.object_lists[val])
-                        else:
-                            class_list.extend(self.main_window.idd.object_lists[value])
-
-                        # Cycle through all classes in the list
-                        for cls in class_list:
-
-                            # Get the objects for the current class
-                            idf_objects = self.main_window.idf.get(cls)
-
-                            # Cycle through all idf objects in the class
-                            for obj in idf_objects:
-                                self.model.appendRow([QStandardItem(obj[0].value),
-                                                      QStandardItem(cls)])
-                    elif tag == 'node':
-                        # Retrieve a list of all nodes?
-                        pass
-                    elif tag == 'external-list':
-                        # Retrieve list from external file
-                        pass
-                    else:
-                        # Need to check if it's a list...is there a better way?
-                        # Could make them all lists...would be annoying.
-                        if isinstance(value, list):
-                            for val in value:
-                                self.model.appendRow([QStandardItem(val),
-                                                      QStandardItem(tag)])
-                        else:
-                            self.model.appendRow([QStandardItem(value),
-                                                  QStandardItem(tag)])
+            self.create_model()
 
         if self.model.rowCount() > 0:
             # Check for and remove the 'current' item so it can be replace (at the top)
