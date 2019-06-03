@@ -335,9 +335,9 @@ class ChoiceDelegate(CustomStyledItemDelegate):
 
         if self.model.rowCount() > 0:
             # Check for and remove the 'current' item so it can be replace (at the top)
-            myitem = self.model.findItems('current', column=1)
-            if len(myitem) > 0:
-                self.model.removeRow(myitem[0].row())
+            my_item = self.model.findItems('current', column=1)
+            if len(my_item) > 0:
+                self.model.removeRow(my_item[0].row())
 
             # Make a special item for the 'current' item
             value = index.data(Qt.EditRole)
