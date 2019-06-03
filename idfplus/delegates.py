@@ -344,39 +344,48 @@ class ChoiceDelegate(CustomStyledItemDelegate):
             current_item = QStandardItem('current')
             value_item = QStandardItem(value)
             self.model.insertRow(0, [value_item, current_item])
-
-        # Table AND combo get same model (table first!)
-        if 'object-list' in self.field.tags.keys():
             auto_complete = True
         else:
             auto_complete = False
+
+        # Create the new combobox and assign fonts (early)
+        self.comboBox = ExtendedComboBox(parent, auto_complete)
         font = QFont()
         font.fromString(self.prefs['class_table_font'])
-        self.comboBox = ExtendedComboBox(parent, auto_complete)
-        self.tableView = QTableView(self.comboBox)
-        self.tableView.setModel(self.model)
-        self.comboBox.setModel(self.model)
-        self.comboBox.setView(self.tableView)
         self.comboBox.setFont(font)
-        self.comboBox.lineEdit().selectAll()  # TODO should depend on trigger!
         self.comboBox.lineEdit().setFont(font)
+        self.comboBox.completer.popup().setFont(font)
 
-        # Set properties of tableView and the combobox
+        # Create a tableView and set properties
+        self.tableView = QTableView(self.comboBox)
+        self.tableView.setFont(font)
+        self.tableView.setModel(self.model)
         self.tableView.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
-        self.tableView.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOn)
+        self.tableView.setVerticalScrollBarPolicy(Qt.ScrollBarAsNeeded)
         self.tableView.setSelectionMode(QAbstractItemView.SingleSelection)
         self.tableView.setSelectionBehavior(QAbstractItemView.SelectRows)
         self.tableView.verticalHeader().setVisible(False)
         self.tableView.horizontalHeader().setVisible(False)
-        self.tableView.horizontalHeader().setStretchLastSection(True)
-        self.tableView.setFont(font)
         self.tableView.resizeColumnsToContents()
         self.tableView.resizeRowsToContents()
-        header_width = self.tableView.horizontalHeader().length()
-        col_width = self.tableView.columnWidth(0)
+
+        # Assign model and view. Model fist!
+        self.comboBox.setModel(self.model)
+        self.comboBox.completer.setModel(self.model)
+        self.comboBox.setView(self.tableView)
+
+        # Define widths AFTER assigning model and view
+        max_visible = self.comboBox.maxVisibleItems()
+        scroll_visible = int(self.tableView.verticalScrollBar().maximum() >= max_visible)
         scroll_width = self.tableView.verticalScrollBar().width()
-        self.tableView.setMinimumWidth(header_width + scroll_width)
-        self.comboBox.set_popup_width(col_width + scroll_width)
+        viewport_width = self.tableView.viewportSizeHint().width()
+        col0_width = self.tableView.columnWidth(0)
+        self.tableView.setMinimumWidth(viewport_width + scroll_visible * scroll_width)
+        self.comboBox.setMinimumWidth(int(self.prefs['default_column_width']))
+        self.comboBox.completer.popup().setMinimumWidth(col0_width + scroll_width * 2)
+
+        # Select contents of editor
+        self.comboBox.lineEdit().selectAll()  # TODO should depend on trigger!
 
         return self.comboBox
 
@@ -453,63 +462,13 @@ class ExtendedComboBox(QComboBox):
         self.auto_complete = auto_complete
 
         if auto_complete is True:
-            # Add a filter model to filter matching items
-            self.filter_model = QSortFilterProxyModel(self)
-            self.filter_model.setFilterCaseSensitivity(Qt.CaseInsensitive)
-            self.filter_model.setSourceModel(self.model())
-
-            # Create and add a completer, which uses the filter model. Always show
-            # all (filtered) completions
             self.completer = QCompleter(self)
-            self.completer.setModel(self.filter_model)
-            self.completer.setCompletionMode(QCompleter.UnfilteredPopupCompletion)
+            self.completer.setCaseSensitivity(Qt.CaseInsensitive)
+            self.completer.setFilterMode(Qt.MatchContains)
             self.completer.setMaxVisibleItems(15)
             self.setCompleter(self.completer)
-
-            # Connect signals
-            self.lineEdit().textEdited[str].connect(self.filter_model.setFilterFixedString)
-            # self.completer.activated.connect(self.on_completer_activated)
         else:
             self.setCompleter(None)
-
-    def set_popup_width(self, width):
-        """
-
-        :param width:
-        """
-
-        if self.auto_complete:
-            self.completer.popup().setMinimumWidth(width)
-
-    # def on_completer_activated(self, text):
-    #     """On selection of an item from the completer, select the corresponding
-    #     item from combobox"""
-    #     if text:
-    #         index = self.findText(text)
-    #         self.setCurrentIndex(index)
-    #         self.activated[str].emit(self.itemText(index))
-
-    def setModel(self, model):
-        """On model change, update the models of the filter and completer as well
-
-        :param model:
-        """
-
-        super(ExtendedComboBox, self).setModel(model)
-        if self.auto_complete:
-            self.filter_model.setSourceModel(model)
-            self.completer.setModel(self.filter_model)
-
-    def setModelColumn(self, column):
-        """On model column change, update the model column of the filter and completer
-
-        :param column:
-        """
-
-        if self.auto_complete:
-            self.completer.setCompletionColumn(column)
-            self.filter_model.setFilterKeyColumn(column)
-        super(ExtendedComboBox, self).setModelColumn(column)
 
 
 class ExtendedPlainTextEditor(QPlainTextEdit):
