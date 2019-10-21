@@ -73,12 +73,9 @@ class UIMainWindow(object):
         classTable.verticalHeader().setSectionResizeMode(QHeaderView.Interactive)
         classTable.horizontalHeader().setDefaultSectionSize(self.prefs['default_column_width'])
         classTable.verticalHeader().setDefaultSectionSize(fm.height() + 0)
-        classTable.horizontalHeader().setCascadingSectionResizes(True)
-        classTable.verticalHeader().setCascadingSectionResizes(True)
         classTable.setSelectionMode(QAbstractItemView.ExtendedSelection)
         classTable.setContextMenuPolicy(Qt.CustomContextMenu)
         classTable.customContextMenuRequested.connect(self.custom_table_context_menu)
-        classTable.horizontalHeader().sectionResized.connect(classTable.resizeRowsToContents)
 
         # Create table model and proxy layers for transposing and filtering
         self.classTableModel = classtable.IDFObjectTableModel(classTable)
