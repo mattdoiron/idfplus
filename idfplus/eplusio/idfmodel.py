@@ -680,8 +680,8 @@ class IDFObject(list):
 
     # Using slots simplifies the internal structure of the object and makes
     # it more memory efficiency
-    __slots__ = ['comments', 'comments_special', '_outer', 'obj_class', '_obj_class',
-                 '_uuid', 'uuid', 'obj_class_display', '_idd_object']
+    __slots__ = ['comments', 'comments_special', '_outer', '_obj_class',
+                 '_uuid', '_idd_object']
 
     def __init__(self, outer, obj_class, **kwargs):
         """Initialize the IDF object
@@ -809,9 +809,8 @@ class IDFField(object):
 
     # Using slots simplifies the internal structure of the object and makes
     # it more memory efficiency
-    __slots__ = ['key', 'tags', 'value', 'idd_object', 'ref_type',
-                 'uuid', '_key', '_tags', '_value', '_idd_object',
-                 '_ref_type', '_outer', '_uuid', 'index', '_index']
+    __slots__ = ['_key', '_tags', '_value', '_idd_object',
+                 '_ref_type', '_outer', '_uuid', '_index']
 
     def __init__(self, outer, value=None, **kwargs):
         """Initializes a new IDF field
@@ -948,7 +947,7 @@ class IDFField(object):
             if type_tag == 'node':
                 self._ref_type = 'node'
             else:
-                self._ref_type = unicode(list(ref_type_set)[0]) if ref_type_set else None
+                self._ref_type = str(list(ref_type_set)[0]) if ref_type_set else None
         return self._ref_type
 
     @property

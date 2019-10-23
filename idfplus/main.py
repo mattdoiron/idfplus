@@ -15,7 +15,8 @@ import subprocess
 import sys
 import errno
 import codecs
-from cStringIO import StringIO
+# from cStringIO import StringIO
+from io import StringIO
 
 # PySide2 imports
 from PySide2.QtCore import (Qt, QTimer, QFileInfo, QModelIndex, qVersion, QPersistentModelIndex,

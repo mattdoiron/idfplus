@@ -11,8 +11,10 @@ import os
 import codecs
 import math
 import logging
-import cPickle as pickle
-from cStringIO import StringIO
+# import cPickle as pickle
+import pickle
+# from cStringIO import StringIO
+from io import StringIO
 
 # Package imports
 from . import idfmodel
@@ -760,7 +762,7 @@ class IDFParser(Parser):
             # ---- If we've gotten this far, we're at the end of an object ------
 
             # Clean up the fields and strip spaces, end of line chars
-            fields = map(str.strip, fields.getvalue().split(','))
+            fields = [str.strip(my_str) for my_str in fields.getvalue().split(',')]
             fields[-1] = fields[-1].replace(OBJECT_END_DELIMITER, '')
 
             # The first field is the object class name
