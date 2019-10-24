@@ -362,14 +362,14 @@ class SaveTab(QWidget):
 
     def update_order(self):
         text = self.order_edit.currentText()
-        for key, val in self.order_options.iteritems():
+        for key, val in self.order_options.items():
             if val == text:
                 to_save = key
         self.prefs['sort_order'] = to_save
 
     def update_format(self):
         text = self.format_edit.currentText()
-        for key, val in self.format_options.iteritems():
+        for key, val in self.format_options.items():
             if val == text:
                 to_save = key
         self.prefs['format'] = to_save

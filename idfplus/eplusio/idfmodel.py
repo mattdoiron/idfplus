@@ -92,7 +92,7 @@ class IDFFile(OrderedDict):
         from . import parser
         idd_parser = parser.IDDParser()
         self._idd = idd_parser.load_idd(config.DEFAULT_IDD_VERSION)
-        self.update((k, list()) for k, v in self._idd.iteritems())
+        self.update((k, list()) for k, v in self._idd.items())
 
         # Create the only mandatory object (version)
         version_obj = IDFObject(self, 'Version')
@@ -627,7 +627,7 @@ class IDFFile(OrderedDict):
         :param dict options: Dictionary of options to set
         """
 
-        for option, value in options.iteritems():
+        for option, value in options.items():
 
             if option in ALLOWED_OPTIONS.keys():
                 if value == '':
@@ -782,7 +782,7 @@ class IDFObject(list):
         """
 
         idd_object = self.idd_object
-        for i, idd_field in enumerate(idd_object.itervalues()):
+        for i, idd_field in enumerate(idd_object.values()):
             default = idd_field.tags.get('default', None)
             try:
                 # If there is a field present, set its value

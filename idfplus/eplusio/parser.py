@@ -113,9 +113,9 @@ class Writer(object):
                                "when using the IDFEditor.{}".format(eol_char))
 
                 if 'OriginalOrderTop' in idf.options or 'OriginalOrderBottom' in idf.options:
-                    idf_items = idf.iteritems()
+                    idf_items = idf.items()
                 else:
-                    idf_items = idf.iteritems()  # idf.iter_ordered() (not implemented)
+                    idf_items = idf.items()  # idf.iter_ordered() (not implemented)
 
                 for obj_class, obj_list in idf_items:
 

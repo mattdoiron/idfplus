@@ -280,7 +280,7 @@ class ChoiceDelegate(CustomStyledItemDelegate):
 
     def create_model(self):
         self.model = QStandardItemModel()
-        for tag, value in self.field.tags.iteritems():
+        for tag, value in self.field.tags.items():
             if tag in self.combo_fields:
                 if tag == 'default':
                     self.model.insertRow(0, [QStandardItem(value),

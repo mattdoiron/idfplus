@@ -59,7 +59,7 @@ class ObjectClassTreeModel(CustomTreeModel):
     def setupModelData(self, idf, parent):
         if self.show_groups:
             group = ''
-            for obj_class, obj in idf.idd.iteritems():
+            for obj_class, obj in idf.idd.items():
                 if group != obj.group:
                     group = obj.group
                     group_root = TreeItem((group, ''), parent)
@@ -68,7 +68,7 @@ class ObjectClassTreeModel(CustomTreeModel):
                 child = TreeItem((obj.obj_class_display, objs), group_root)
                 group_root.appendChild(child)
         else:
-            for obj_class, obj in idf.idd.iteritems():
+            for obj_class, obj in idf.idd.items():
                 objs = idf.get(obj.obj_class_display, None)
                 child = TreeItem((obj.obj_class_display, objs), parent)
                 parent.appendChild(child)

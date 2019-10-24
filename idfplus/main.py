@@ -957,7 +957,7 @@ class IDFPlus(QMainWindow, main.UIMainWindow):
         result = [prog for prog in my_parser.parse_idf(to_parse)]
 
         # Create an undo object for each class of new objects
-        for obj_class, idf_objects in idf.iteritems():
+        for obj_class, idf_objects in idf.items():
             if not idf_objects:
                 continue
 
