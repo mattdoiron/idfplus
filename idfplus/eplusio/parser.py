@@ -208,7 +208,7 @@ class Parser(object):
                 fields.pop(-1)
 
             # Strip away any spaces from each field
-            fields = map(lambda i: i.expandtabs().strip(), fields)
+            fields = [i.expandtabs().strip() for i in fields]
 
             # Remove any list items that are actually tags
             fields = [item for item in fields if not item.startswith('\\')]

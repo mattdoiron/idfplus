@@ -201,7 +201,7 @@ class AppearanceTab(QWidget):
         # Visual style code
         style_label = QLabel("Visual Style of Application:")
         self.style_edit = QComboBox(self)
-        self.style_edit.addItems(QStyleFactory.keys())
+        self.style_edit.addItems(list(QStyleFactory.keys()))
         self.style_edit.setMaximumWidth(200)
         self.style_edit.setCurrentIndex(self.style_edit.findText(self.prefs['style']))
 
@@ -304,7 +304,7 @@ class SaveTab(QWidget):
         # Sort Order Code
         order_label = QLabel("Save Order for Objects:")
         self.order_edit = QComboBox(self)
-        self.order_edit.addItems(self.order_options.values())
+        self.order_edit.addItems(list(self.order_options.values()))
         self.order_edit.setMaximumWidth(350)
         order_setting = self.order_options[self.prefs['sort_order']]
         self.order_edit.setCurrentIndex(self.order_edit.findText(order_setting))
@@ -312,7 +312,7 @@ class SaveTab(QWidget):
 
         format_label = QLabel("Special Formatting:")
         self.format_edit = QComboBox(self)
-        self.format_edit.addItems(self.format_options.values())
+        self.format_edit.addItems(list(self.format_options.values()))
         self.format_edit.setMaximumWidth(350)
         format_setting = self.format_options[self.prefs['special_formatting']]
         self.format_edit.setCurrentIndex(self.format_edit.findText(format_setting))
@@ -362,7 +362,7 @@ class SaveTab(QWidget):
 
     def update_order(self):
         text = self.order_edit.currentText()
-        for key, val in self.order_options.items():
+        for key, val in list(self.order_options.items()):
             if val == text:
                 to_save = key
         self.prefs['sort_order'] = to_save

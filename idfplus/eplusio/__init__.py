@@ -7,7 +7,4 @@ IDD files.
 :license: GPL v3, see LICENSE for more details.
 """
 
-# Prepare for Python 3
-from __future__ import (print_function, division, absolute_import)
-
 __version__ = '0.1.1'
