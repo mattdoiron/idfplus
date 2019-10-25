@@ -23,8 +23,8 @@ if sys.platform.startswith('win'):
 else:
     from setuptools import Command as _bdist_msi
 
-if sys.version_info.major != 2 and sys.version_info.minor < 7:
-    print("Currently compatible with Python 2.7.x only!")
+if sys.version_info.major != 3 and sys.version_info.minor < 7:
+    print("Currently compatible with Python 3.7.x only!")
     sys.exit(1)
 
 
@@ -37,19 +37,18 @@ packages = [
 ]
 requires = [
     "appdirs==1.4.3",
-    "faulthandler==3.1",
-    "odict==1.6.2",
-    "persistent==4.4.3",
-    "PySide2==5.12.2"
+    "odict==1.7.0",
+    "persistent==4.5.0",
+    "PySide2==5.13.1"
 ]
 requires_dev = [
     "pip-review==1.0",
-    "pip-tools==2.0.2",
+    "pip-tools==4.2.0",
     "pyinstaller==3.4",
-    "sphinx==1.7.4",
+    "sphinx==2.2.0",
 ]
 requires_test = [
-    'pytest==3.5.1',
+    'pytest==5.2.2',
     'pytest-qt==3.2.2'
 ]
 requires_setup = []
@@ -82,7 +81,7 @@ class PyTest(_test):
 class bdist_msi(_bdist_msi):
     description = 'Used to build an msi installer. Windows only.'
     user_options = []
-    all_versions = ['2.7']
+    all_versions = ['3.7']
 
     def initialize_options(self):
         if not sys.platform.startswith('win'):
@@ -217,7 +216,7 @@ setup(
     setup_requires=requires_setup,
     tests_require=requires_test,
     classifiers=[
-        'Programming Language :: Python :: 2.7',
+        'Programming Language :: Python :: 3.7',
         'Development Status :: 4 - Beta',
         'Natural Language :: English',
         'Environment :: Win32 (MS Windows)',

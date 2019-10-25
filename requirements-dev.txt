@@ -10,11 +10,10 @@ attrs==18.1.0             # via pytest
 babel==2.5.3              # via sphinx
 certifi==2018.4.16        # via requests
 chardet==3.0.4            # via requests
+cffi==1.13.1
 click==6.7                # via pip-tools
-dis3==0.1.2               # via pyinstaller
 docutils==0.14            # via sphinx
 first==2.0.1              # via pip-tools
-funcsigs==1.0.2           # via pytest
 future==0.16.0            # via pefile
 idna==2.6                 # via requests
 imagesize==1.0.0          # via sphinx
@@ -25,18 +24,21 @@ more-itertools==4.1.0     # via pytest
 packaging==17.1           # via pip-review, sphinx
 pefile==2017.11.5         # via pyinstaller
 pip-review==1.0
-pip-tools==2.0.2
+pip-tools==4.2.0
 pluggy==0.6.0             # via pytest
 py==1.5.3                 # via pytest
 pygments==2.2.0           # via sphinx
-pyinstaller==3.3.1
+pyinstaller==3.5
 pyparsing==2.2.0          # via packaging
-pytest==3.5.1
+pytest==5.2.2
 pytz==2018.4              # via babel
 requests==2.18.4          # via sphinx
 six==1.11.0               # via more-itertools, packaging, pip-tools, pytest, sphinx
 snowballstemmer==1.2.1    # via sphinx
-sphinx==1.7.4
+sphinx==2.2.0
 sphinxcontrib-websupport==1.0.1  # via sphinx
-typing==3.6.4             # via sphinx
 urllib3==1.22             # via requests
+
+# The following packages are considered to be unsafe in a requirements file:
+# pip==19.3.1               # via pip-review
+# setuptools==41.4.0        # via pyinstaller, pytest, sphinx

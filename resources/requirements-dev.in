@@ -4,3 +4,4 @@ pyinstaller
 pip-tools
 pip-review
 pytest
+cffi
