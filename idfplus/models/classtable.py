@@ -336,8 +336,8 @@ class IDFObjectTableModel(QAbstractTableModel):
 
         # Create groups of contiguous row indexes in reverse order
         groups = []
-        for key, g in groupby(enumerate(row_set), lambda (i, x): i-x):
-            groups.append(map(itemgetter(1), g))
+        for key, g in groupby(enumerate(row_set), lambda val: val[1]-val[0]):
+            groups.append([item[1] for item in g])
         groups.sort(reverse=reverse)
         return groups
 

@@ -227,7 +227,7 @@ class IDFFile(OrderedDict):
         in the proper order (this is an :class:`collections.OrderedDict`!).
         """
 
-        self.update((k, list()) for k in self._idd.iterkeys())
+        self.update((k, list()) for k in self._idd.keys())
 
     def search(self, search_query, whole_field=False, advanced=False, ignore_geometry=False):
         """Performs search for a search_query
@@ -481,7 +481,7 @@ class IDFFile(OrderedDict):
             else:
                 unit_dict = UNITS_REGISTRY.get(units)
                 if unit_dict:
-                    return unit_dict.keys()[0]
+                    return list(unit_dict.keys())[0]
                 else:
                     return units
 
@@ -516,7 +516,7 @@ class IDFFile(OrderedDict):
             if conversion:
                 # Lookup the desired ip_units in the dict if specified, otherwise get the
                 # 'first' (only) one in the dict.
-                return conversion.get(ip_units, conversion.get(conversion.keys()[0]))
+                return conversion.get(ip_units, conversion.get(list(conversion.keys())[0]))
 
         return None
 
