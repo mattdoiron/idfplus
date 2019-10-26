@@ -11,9 +11,7 @@ import os
 import codecs
 import math
 import logging
-# import cPickle as pickle
 import pickle
-# from cStringIO import StringIO
 from io import StringIO
 
 # Package imports

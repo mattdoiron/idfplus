@@ -15,7 +15,6 @@ import subprocess
 import sys
 import errno
 import codecs
-# from cStringIO import StringIO
 from io import StringIO
 
 # PySide2 imports
