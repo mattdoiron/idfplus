@@ -11,7 +11,6 @@ import os
 block_cipher = None
 project = 'idfplus'
 main_module = 'main.py'
-hooks_path = os.path.join('resources', 'hooks')
 icon_path = os.path.join('resources', 'images', 'logo.ico')
 datas_path = os.path.join('resources', 'datas')
 version_info_path = os.path.join('resources', 'version_info.txt')
@@ -21,7 +20,7 @@ a = Analysis([main_module],
              binaries=None,
              datas=[ (datas_path, '.') ],
              hiddenimports=['cffi'],
-             hookspath=[hooks_path],
+             hookspath=[],
              runtime_hooks=None,
              excludes=None,
              win_no_prefer_redirects=None,
