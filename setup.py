@@ -192,6 +192,7 @@ class Freeze(Command):
                       '--log-level=' + self.log_level,
                       '--distpath=' + dist_dir,
                       '--workpath=' + build_dir,
+                      '--noupx',
                       # '--upx-dir=' + upx_dir,
                       spec_file])
 

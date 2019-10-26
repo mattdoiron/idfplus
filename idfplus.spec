@@ -36,7 +36,6 @@ exe = EXE(pyz,
           name=project,
           debug=False,
           strip=None,
-          upx=True,
           console=False,
           version=version_info_path,
           icon=icon_path)
@@ -45,5 +44,4 @@ coll = COLLECT(exe,
                a.zipfiles,
                a.datas,
                strip=None,
-               upx=True,
                name=project)
