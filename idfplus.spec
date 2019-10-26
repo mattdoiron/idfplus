@@ -15,7 +15,6 @@ icon_path = os.path.join('resources', 'images', 'logo.ico')
 datas_path = os.path.join('resources', 'datas')
 version_info_path = os.path.join('resources', 'version_info.txt')
 
-options = [('v', None, 'OPTION')]
 a = Analysis([main_module],
              binaries=None,
              datas=[ (datas_path, '.') ],
@@ -30,7 +29,7 @@ pyz = PYZ(a.pure, a.zipped_data,
           cipher=block_cipher)
 exe = EXE(pyz,
           a.scripts,
-          options,
+          [],
           exclude_binaries=True,
           name=project,
           debug=False,
