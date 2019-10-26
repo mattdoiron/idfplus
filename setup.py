@@ -181,15 +181,13 @@ class Freeze(Command):
             raise DistutilsOptionError('PyInstaller is not installed')
         else:
             self.pyi_run = run
-        self.is_win = platform.system().startswith('Windows')
-        self.is_32bit = platform.architecture()[0] == '32bit'
 
     def run(self):
         root_path = os.path.dirname(__file__)
         spec_file = os.path.join(root_path, project + '.spec')
         dist_dir = os.path.join(root_path, 'dist')
         build_dir = os.path.join(root_path, 'build')
-        upx_dir = os.path.join(root_path, 'resources', 'upx', self._upx_version())
+        # upx_dir = os.path.join(root_path, 'resources', 'upx', self._upx_version())
         self.pyi_run(['--clean', '--noconfirm', '--onedir',
                       '--log-level=' + self.log_level,
                       '--distpath=' + dist_dir,
