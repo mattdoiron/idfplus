@@ -225,11 +225,11 @@ def default_style():
 
     system = get_os()
     if system == 'Windows':
-        style = 'Cleanlooks'
+        style = 'Fusion'
     elif system == 'Macintosh':
         style = 'Macintosh'
     else:
-        style = 'GTK+'
+        style = 'Fusion'
     return style
 
 
