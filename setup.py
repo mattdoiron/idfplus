@@ -120,6 +120,8 @@ class bdist_msi(_bdist_msi):
                 print('Cannot find "light" command. Please be sure WiX is installed.')
                 sys.exit(1)
 
+        print("Creation of msi complete. See {}.".format(msi_file))
+
     def test(self):
         print('No tests available')
 
@@ -153,6 +155,8 @@ class Harvest(Command):
             if e.errno == os.errno.ENOENT:
                 print('Cannot find "heat" command. Please be sure WiX is installed.')
                 sys.exit(1)
+
+        print("Harvest complete. See {} for list of files.".format(harvest_file))
 
 
 class Freeze(Command):
