@@ -9,7 +9,6 @@
 # System imports
 import uuid
 import sqlite3
-from collections import OrderedDict
 
 # Package imports
 from . import config
@@ -33,10 +32,10 @@ class IDFError(Exception):
         super(IDFError, self).__init__(*args, **kwargs)
 
 
-class IDFFile(OrderedDict):
+class IDFFile(dict):
     """Primary object representing IDF file and container for IDF objects.
 
-    This class is an :class:`collections.OrderedDict` of lists of
+    This class is an :class:`dict` of lists of
     :class:`IDFObject` with the class type as a key. Class keys are always lower case.
     For example:
 
@@ -224,7 +223,7 @@ class IDFFile(OrderedDict):
         """Pre-allocates the keys of the IDFFile.
 
         This must be done early so that all objects added later are added
-        in the proper order (this is an :class:`collections.OrderedDict`!).
+        in the proper order (as of Python 3.7 dict is ordered!).
         """
 
         self.update((k, list()) for k in self._idd.keys())
@@ -644,17 +643,6 @@ class IDFFile(OrderedDict):
 
             else:
                 raise ValueError('Invalid option for {}!'.format(option))
-
-    def iter_ordered(self):
-        """Not implemented
-        """
-
-        #: Todo save order of object as they are being parsed then create a list of objects
-        #: according to the sorted list of the objects. Then yield the items here in order.
-        #: for obj_class in self._idd.iterkeys():
-        #:     yield obj_class, self.idf_objects(obj_class)
-        #: This will allow getting rid of the :class:`collections.OrderedDict` class which is slow!
-        pass
 
     def field_by_uuid(self, field_uuid):
         """Looks up the field in the field registry and returns the one matching the uuid

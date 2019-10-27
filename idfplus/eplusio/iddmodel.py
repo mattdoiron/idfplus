@@ -191,7 +191,7 @@ class PODict(_odict, MyDict):
 class IDDFile(PODict):
     """Primary object representing idd file and container for idd objects.
 
-    Is an :class:`collections.OrderedDict` of :class:`IDDObject` s with the class type as a
+    Is a :class:`odict.pyodict` of :class:`IDDObject` s with the class type as a
     key. All keys are lower case. For example:
 
     .. code-block:: python
