@@ -45,8 +45,8 @@ requires = [
 requires_dev = [
     "pip-review==1.0",
     "pip-tools==4.2.0",
-    "pyinstaller==3.4",
-    "sphinx==2.2.0",
+    "pyinstaller==3.5",
+    "sphinx==2.2.1",
 ]
 requires_test = [
     'pytest==5.2.2',
