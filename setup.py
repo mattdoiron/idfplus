@@ -98,13 +98,14 @@ class bdist_msi(_bdist_msi):
         build_dir = os.path.join(root_path, 'build')
         resources_dir = os.path.join(root_path, 'resources')
         bind_dir = os.path.join(dist_dir, project)
+        wix_bin_dir = os.path.join(resources_dir, 'wix311')
         wix_obj = os.path.join(build_dir, '{}.wixobj'.format(project))
         wxs_file = os.path.join(resources_dir, '{}.wxs'.format(project))
         msi_file = os.path.join(dist_dir, '{}-v{}.msi'.format(project, version))
 
         print('Running candle...')
         try:
-            subprocess.call(['candle', '-nologo', '-out', wix_obj, wxs_file])
+            subprocess.call([os.path.join(wix_bin_dir, 'candle'), '-nologo', '-out', wix_obj, wxs_file])
         except OSError as e:
             if e.errno == errno.ENOENT:
                 print('Cannot find "candle" command. Please be sure WiX is installed.')
@@ -112,7 +113,7 @@ class bdist_msi(_bdist_msi):
 
         print('Running light...')
         try:
-            subprocess.call(['light', '-nologo', '-sacl', '-sval', '-spdb', '-b', bind_dir,
+            subprocess.call([os.path.join(wix_bin_dir, 'light'), '-nologo', '-sacl', '-sval', '-spdb', '-b', bind_dir,
                              '-ext', 'WixUIExtension', '-out', msi_file, wix_obj])
         except OSError as e:
             if e.errno == errno.ENOENT:
@@ -140,10 +141,12 @@ class Harvest(Command):
         dist_dir = os.path.join(root_path, 'dist')
         build_dir = os.path.join(root_path, 'build')
         source_dir = os.path.join(dist_dir, project)
+        resources_dir = os.path.join(root_path, 'resources')
+        wix_bin_dir = os.path.join(resources_dir, 'wix311')
         harvest_file = os.path.join(build_dir, '{}_harvest.wxs'.format(project))
 
         try:
-            subprocess.call(['heat', 'dir', source_dir, '-nologo', '-g1', '-gg', '-sfrag',
+            subprocess.call([os.path.join(wix_bin_dir, 'heat'), 'dir', source_dir, '-nologo', '-g1', '-gg', '-sfrag',
                              '-srd', '-cg', 'IDFPlusComponents', '-template', 'product',
                              '-sw5150', '-sw5151', '-out', harvest_file])
         except OSError as e:
