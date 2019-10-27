@@ -6,4 +6,4 @@
 :license: GPL v3, see LICENSE for more details.
 """
 
-__version__ = '0.1.0b8'
+__version__ = '0.2.0'

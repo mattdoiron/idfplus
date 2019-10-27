@@ -7,4 +7,4 @@ IDD files.
 :license: GPL v3, see LICENSE for more details.
 """
 
-__version__ = '0.1.1'
+__version__ = '0.1.2'
