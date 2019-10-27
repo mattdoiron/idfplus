@@ -410,8 +410,11 @@ class IDFPlus(QMainWindow, main.UIMainWindow):
 
         # Default to the current file path
         if not target:
-            target = self.file_path
-            dir_path = os.path.dirname(target)
+            if not self.file_path:
+                target = None
+            else:
+                target = self.file_path
+                dir_path = os.path.dirname(target)
         else:
             dir_path = target
 
