@@ -11,6 +11,7 @@ import os
 import re
 import sys
 import platform
+import errno
 import subprocess
 from codecs import open
 from setuptools import setup
@@ -105,7 +106,7 @@ class bdist_msi(_bdist_msi):
         try:
             subprocess.call(['candle', '-nologo', '-out', wix_obj, wxs_file])
         except OSError as e:
-            if e.errno == os.errno.ENOENT:
+            if e.errno == errno.ENOENT:
                 print('Cannot find "candle" command. Please be sure WiX is installed.')
                 sys.exit(1)
 
@@ -114,7 +115,7 @@ class bdist_msi(_bdist_msi):
             subprocess.call(['light', '-nologo', '-sacl', '-sval', '-spdb', '-b', bind_dir,
                              '-ext', 'WixUIExtension', '-out', msi_file, wix_obj])
         except OSError as e:
-            if e.errno == os.errno.ENOENT:
+            if e.errno == errno.ENOENT:
                 print('Cannot find "light" command. Please be sure WiX is installed.')
                 sys.exit(1)
 
