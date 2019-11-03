@@ -160,7 +160,7 @@ class IDFObjectTableModel(QAbstractTableModel):
         elif role == Qt.DisplayRole or role == Qt.ToolTipRole:
             if orientation == Qt.Horizontal:
                 try:
-                    return self.field_labels[section]
+                    return self.field_labels[section] or None
                 except IndexError:
                     return None
             elif orientation == Qt.Vertical:
