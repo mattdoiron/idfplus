@@ -253,10 +253,14 @@ class AlphaNumericDelegate(CustomStyledItemDelegate):
         :return: :rtype:
         """
 
-        value = editor.toPlainText()
-        if index.data(Qt.EditRole) == value:
+        new_value = editor.toPlainText()
+        old_value = index.data(Qt.EditRole) or ''
+        set_blank = False
+        if old_value and not new_value:
+            set_blank = True
+        if old_value == new_value and not set_blank:
             return
-        cmd = commands.ModifyObjectCmd(self.main_window, value=value)
+        cmd = commands.ModifyObjectCmd(self.main_window, value=new_value)
         self.main_window.undo_stack.push(cmd)
 
 
