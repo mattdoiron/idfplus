@@ -8,9 +8,7 @@
 
 # System imports
 import logging
-from operator import itemgetter
 from itertools import groupby
-from copy import deepcopy
 
 # PySide2 imports
 from PySide2.QtCore import (Qt, QAbstractTableModel, QItemSelection, QItemSelectionRange,

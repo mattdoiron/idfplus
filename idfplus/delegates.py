@@ -10,9 +10,7 @@
 import logging
 
 # PySide2 imports
-# from PySide2 import QtGui
-# from PySide2 import QtCore
-from PySide2.QtCore import Qt, QSize, QSortFilterProxyModel
+from PySide2.QtCore import Qt, QSize
 from PySide2.QtGui import (QFontMetrics, QTextOption, QTextCursor, QFont, QStandardItem,
                            QStandardItemModel, QValidator)
 from PySide2.QtWidgets import (QStyledItemDelegate, QFrame, QAbstractItemView, QTableView,
