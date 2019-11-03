@@ -1,6 +1,8 @@
 # requirements-dev.in
 Sphinx
+sphinx_rtd_theme
 pyinstaller
 pip-tools
 pip-review
 pytest
+cffi

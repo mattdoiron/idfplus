@@ -1,6 +1,11 @@
 Changelog
 =========
 
+v0.2.0, October xx, 2019
+
+* Update to use PySide2 and Python 3.7.
+* Lots of bug fixes.
+
 v0.1.0, February xx, 2016
 
 * Self-contained .msi installer for Windows 7+.

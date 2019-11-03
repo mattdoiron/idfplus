@@ -1,6 +1,8 @@
 Instructions for Building PySide
 ================================
 
+NOTE: These are no longer required if you're using pythong 3.7 and PySide2. Simply install via pip.
+
 These are slightly modified installation instruction from: http://pyside.readthedocs.org/en/latest/building/linux.html
 
 Install prerequisites

@@ -1,0 +1,6 @@
+# requirements.in
+PySide2
+appdirs
+odict
+persistent
+argparse

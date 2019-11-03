@@ -10,9 +10,7 @@
 import logging
 
 # PySide2 imports
-# from PySide2 import QtGui
-# from PySide2 import QtCore
-from PySide2.QtCore import Qt, QSize, QSortFilterProxyModel
+from PySide2.QtCore import Qt, QSize
 from PySide2.QtGui import (QFontMetrics, QTextOption, QTextCursor, QFont, QStandardItem,
                            QStandardItemModel, QValidator)
 from PySide2.QtWidgets import (QStyledItemDelegate, QFrame, QAbstractItemView, QTableView,
@@ -168,38 +166,38 @@ class CustomStyledItemDelegate(QStyledItemDelegate):
         self.padding = 2
         self.prefs = main_window.prefs
 
+    def valid_field_text(self, index):
+        try:
+            return index.data(Qt.DisplayRole)
+        except:
+            return False
+
     def sizeHint(self, option, index):
 
-        if not index.isValid():
+        text = self.valid_field_text(index)
+        if not text:
             return QSize(self.prefs['default_column_width'], 14)
 
         # left, top, right, bottom
         option.rect.adjust(self.padding, -self.padding, -self.padding, self.padding)
-
-        text = index.data(Qt.DisplayRole)
-
         fm = QFontMetrics(option.font)
         b_rect = fm.boundingRect(option.rect,
                                  Qt.AlignLeft | Qt.AlignVCenter | Qt.TextWrapAnywhere,
                                  text)
 
-        return QSize(int(self.prefs['default_column_width']),
-                     b_rect.height())
+        return QSize(int(self.prefs['default_column_width']), b_rect.height())
 
     def paint(self, painter, option, index):
 
-        if not index.isValid():
+        text = self.valid_field_text(index)
+        if not text:
             return
 
-        # rect = option.rect.adjusted(self.padding, self.padding, -self.padding, 0)
-        option.rect.adjust(self.padding, -self.padding, -self.padding, self.padding)
-        text = index.data(Qt.DisplayRole)
-
         painter.save()
-        opt = QTextOption()
-        opt.setWrapMode(QTextOption.WrapAnywhere)
-        opt.setAlignment(Qt.AlignLeft | Qt.AlignVCenter)
-        painter.drawText(option.rect, text, opt)
+        background = index.data(Qt.BackgroundRole) or option.backgroundBrush
+        painter.fillRect(option.rect, background)
+        option.rect.adjust(self.padding, -self.padding, -self.padding, self.padding)
+        painter.drawText(option.rect, Qt.AlignLeft | Qt.AlignVCenter | Qt.TextWrapAnywhere, text)
         painter.restore()
 
 
@@ -253,10 +251,14 @@ class AlphaNumericDelegate(CustomStyledItemDelegate):
         :return: :rtype:
         """
 
-        value = editor.toPlainText()
-        if index.data(Qt.EditRole) == value:
+        new_value = editor.toPlainText()
+        old_value = index.data(Qt.EditRole) or ''
+        set_blank = False
+        if old_value and not new_value:
+            set_blank = True
+        if old_value == new_value and not set_blank:
             return
-        cmd = commands.ModifyObjectCmd(self.main_window, value=value)
+        cmd = commands.ModifyObjectCmd(self.main_window, value=new_value)
         self.main_window.undo_stack.push(cmd)
 
 
@@ -280,7 +282,7 @@ class ChoiceDelegate(CustomStyledItemDelegate):
 
     def create_model(self):
         self.model = QStandardItemModel()
-        for tag, value in self.field.tags.iteritems():
+        for tag, value in self.field.tags.items():
             if tag in self.combo_fields:
                 if tag == 'default':
                     self.model.insertRow(0, [QStandardItem(value),

@@ -8,9 +8,7 @@
 
 # System imports
 import logging
-from operator import itemgetter
 from itertools import groupby
-from copy import deepcopy
 
 # PySide2 imports
 from PySide2.QtCore import (Qt, QAbstractTableModel, QItemSelection, QItemSelectionRange,
@@ -160,7 +158,7 @@ class IDFObjectTableModel(QAbstractTableModel):
         elif role == Qt.DisplayRole or role == Qt.ToolTipRole:
             if orientation == Qt.Horizontal:
                 try:
-                    return self.field_labels[section]
+                    return self.field_labels[section] or None
                 except IndexError:
                     return None
             elif orientation == Qt.Vertical:
@@ -336,8 +334,8 @@ class IDFObjectTableModel(QAbstractTableModel):
 
         # Create groups of contiguous row indexes in reverse order
         groups = []
-        for key, g in groupby(enumerate(row_set), lambda (i, x): i-x):
-            groups.append(map(itemgetter(1), g))
+        for key, g in groupby(enumerate(row_set), lambda val: val[1]-val[0]):
+            groups.append([item[1] for item in g])
         groups.sort(reverse=reverse)
         return groups
 

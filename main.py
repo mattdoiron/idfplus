@@ -6,9 +6,6 @@
 :license: GPL v3, see LICENSE for more details.
 """
 
-# Prepare for Python 3
-from __future__ import (print_function, division, absolute_import)
-
 # Standard library imports
 import sys
 import os

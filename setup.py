@@ -6,14 +6,12 @@
 :license: GPL v3, see LICENSE for more details.
 """
 
-# Prepare for Python 3
-from __future__ import (print_function, division, absolute_import)
-
 # System imports
 import os
 import re
 import sys
 import platform
+import errno
 import subprocess
 from codecs import open
 from setuptools import setup
@@ -26,8 +24,8 @@ if sys.platform.startswith('win'):
 else:
     from setuptools import Command as _bdist_msi
 
-if sys.version_info.major != 2 and sys.version_info.minor < 7:
-    print("Currently compatible with Python 2.7.x only!")
+if sys.version_info.major != 3 and sys.version_info.minor < 7:
+    print("Currently compatible with Python 3.7.x only!")
     sys.exit(1)
 
 
@@ -40,19 +38,18 @@ packages = [
 ]
 requires = [
     "appdirs==1.4.3",
-    "faulthandler==3.1",
-    "odict==1.6.2",
-    "persistent==4.4.3",
-    "PySide2==5.12.2"
+    "odict==1.7.0",
+    "persistent==4.5.0",
+    "PySide2==5.13.1"
 ]
 requires_dev = [
     "pip-review==1.0",
-    "pip-tools==2.0.2",
-    "pyinstaller==3.4",
-    "sphinx==1.7.4",
+    "pip-tools==4.2.0",
+    "pyinstaller==3.5",
+    "sphinx==2.2.1",
 ]
 requires_test = [
-    'pytest==3.5.1',
+    'pytest==5.2.2',
     'pytest-qt==3.2.2'
 ]
 requires_setup = []
@@ -85,7 +82,7 @@ class PyTest(_test):
 class bdist_msi(_bdist_msi):
     description = 'Used to build an msi installer. Windows only.'
     user_options = []
-    all_versions = ['2.7']
+    all_versions = ['3.7']
 
     def initialize_options(self):
         if not sys.platform.startswith('win'):
@@ -101,26 +98,29 @@ class bdist_msi(_bdist_msi):
         build_dir = os.path.join(root_path, 'build')
         resources_dir = os.path.join(root_path, 'resources')
         bind_dir = os.path.join(dist_dir, project)
+        wix_bin_dir = os.path.join(resources_dir, 'wix311')
         wix_obj = os.path.join(build_dir, '{}.wixobj'.format(project))
         wxs_file = os.path.join(resources_dir, '{}.wxs'.format(project))
         msi_file = os.path.join(dist_dir, '{}-v{}.msi'.format(project, version))
 
         print('Running candle...')
         try:
-            subprocess.call(['candle', '-nologo', '-out', wix_obj, wxs_file])
+            subprocess.call([os.path.join(wix_bin_dir, 'candle'), '-nologo', '-out', wix_obj, wxs_file])
         except OSError as e:
-            if e.errno == os.errno.ENOENT:
+            if e.errno == errno.ENOENT:
                 print('Cannot find "candle" command. Please be sure WiX is installed.')
                 sys.exit(1)
 
         print('Running light...')
         try:
-            subprocess.call(['light', '-nologo', '-sacl', '-sval', '-spdb', '-b', bind_dir,
+            subprocess.call([os.path.join(wix_bin_dir, 'light'), '-nologo', '-sacl', '-sval', '-spdb', '-b', bind_dir,
                              '-ext', 'WixUIExtension', '-out', msi_file, wix_obj])
         except OSError as e:
-            if e.errno == os.errno.ENOENT:
+            if e.errno == errno.ENOENT:
                 print('Cannot find "light" command. Please be sure WiX is installed.')
                 sys.exit(1)
+
+        print("Creation of msi complete. See {}.".format(msi_file))
 
     def test(self):
         print('No tests available')
@@ -143,16 +143,20 @@ class Harvest(Command):
         dist_dir = os.path.join(root_path, 'dist')
         build_dir = os.path.join(root_path, 'build')
         source_dir = os.path.join(dist_dir, project)
+        resources_dir = os.path.join(root_path, 'resources')
+        wix_bin_dir = os.path.join(resources_dir, 'wix311')
         harvest_file = os.path.join(build_dir, '{}_harvest.wxs'.format(project))
 
         try:
-            subprocess.call(['heat', 'dir', source_dir, '-nologo', '-g1', '-gg', '-sfrag',
+            subprocess.call([os.path.join(wix_bin_dir, 'heat'), 'dir', source_dir, '-nologo', '-g1', '-gg', '-sfrag',
                              '-srd', '-cg', 'IDFPlusComponents', '-template', 'product',
                              '-sw5150', '-sw5151', '-out', harvest_file])
         except OSError as e:
             if e.errno == os.errno.ENOENT:
                 print('Cannot find "heat" command. Please be sure WiX is installed.')
                 sys.exit(1)
+
+        print("Harvest complete. See {} for list of files.".format(harvest_file))
 
 
 class Freeze(Command):
@@ -185,19 +189,18 @@ class Freeze(Command):
             raise DistutilsOptionError('PyInstaller is not installed')
         else:
             self.pyi_run = run
-        self.is_win = platform.system().startswith('Windows')
-        self.is_32bit = platform.architecture()[0] == '32bit'
 
     def run(self):
         root_path = os.path.dirname(__file__)
         spec_file = os.path.join(root_path, project + '.spec')
         dist_dir = os.path.join(root_path, 'dist')
         build_dir = os.path.join(root_path, 'build')
-        upx_dir = os.path.join(root_path, 'resources', 'upx', self._upx_version())
+        # upx_dir = os.path.join(root_path, 'resources', 'upx', self._upx_version())
         self.pyi_run(['--clean', '--noconfirm', '--onedir',
                       '--log-level=' + self.log_level,
                       '--distpath=' + dist_dir,
                       '--workpath=' + build_dir,
+                      '--noupx',
                       # '--upx-dir=' + upx_dir,
                       spec_file])
 
@@ -220,7 +223,7 @@ setup(
     setup_requires=requires_setup,
     tests_require=requires_test,
     classifiers=[
-        'Programming Language :: Python :: 2.7',
+        'Programming Language :: Python :: 3.7',
         'Development Status :: 4 - Beta',
         'Natural Language :: English',
         'Environment :: Win32 (MS Windows)',

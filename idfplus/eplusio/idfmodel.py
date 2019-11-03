@@ -9,7 +9,6 @@
 # System imports
 import uuid
 import sqlite3
-from collections import OrderedDict
 
 # Package imports
 from . import config
@@ -33,10 +32,10 @@ class IDFError(Exception):
         super(IDFError, self).__init__(*args, **kwargs)
 
 
-class IDFFile(OrderedDict):
+class IDFFile(dict):
     """Primary object representing IDF file and container for IDF objects.
 
-    This class is an :class:`collections.OrderedDict` of lists of
+    This class is an :class:`dict` of lists of
     :class:`IDFObject` with the class type as a key. Class keys are always lower case.
     For example:
 
@@ -92,7 +91,7 @@ class IDFFile(OrderedDict):
         from . import parser
         idd_parser = parser.IDDParser()
         self._idd = idd_parser.load_idd(config.DEFAULT_IDD_VERSION)
-        self.update((k, list()) for k, v in self._idd.iteritems())
+        self.update((k, list()) for k, v in self._idd.items())
 
         # Create the only mandatory object (version)
         version_obj = IDFObject(self, 'Version')
@@ -224,10 +223,10 @@ class IDFFile(OrderedDict):
         """Pre-allocates the keys of the IDFFile.
 
         This must be done early so that all objects added later are added
-        in the proper order (this is an :class:`collections.OrderedDict`!).
+        in the proper order (as of Python 3.7 dict is ordered!).
         """
 
-        self.update((k, list()) for k in self._idd.iterkeys())
+        self.update((k, list()) for k in self._idd.keys())
 
     def search(self, search_query, whole_field=False, advanced=False, ignore_geometry=False):
         """Performs search for a search_query
@@ -481,7 +480,7 @@ class IDFFile(OrderedDict):
             else:
                 unit_dict = UNITS_REGISTRY.get(units)
                 if unit_dict:
-                    return unit_dict.keys()[0]
+                    return list(unit_dict.keys())[0]
                 else:
                     return units
 
@@ -516,7 +515,7 @@ class IDFFile(OrderedDict):
             if conversion:
                 # Lookup the desired ip_units in the dict if specified, otherwise get the
                 # 'first' (only) one in the dict.
-                return conversion.get(ip_units, conversion.get(conversion.keys()[0]))
+                return conversion.get(ip_units, conversion.get(list(conversion.keys())[0]))
 
         return None
 
@@ -627,7 +626,7 @@ class IDFFile(OrderedDict):
         :param dict options: Dictionary of options to set
         """
 
-        for option, value in options.iteritems():
+        for option, value in options.items():
 
             if option in ALLOWED_OPTIONS.keys():
                 if value == '':
@@ -644,17 +643,6 @@ class IDFFile(OrderedDict):
 
             else:
                 raise ValueError('Invalid option for {}!'.format(option))
-
-    def iter_ordered(self):
-        """Not implemented
-        """
-
-        #: Todo save order of object as they are being parsed then create a list of objects
-        #: according to the sorted list of the objects. Then yield the items here in order.
-        #: for obj_class in self._idd.iterkeys():
-        #:     yield obj_class, self.idf_objects(obj_class)
-        #: This will allow getting rid of the :class:`collections.OrderedDict` class which is slow!
-        pass
 
     def field_by_uuid(self, field_uuid):
         """Looks up the field in the field registry and returns the one matching the uuid
@@ -680,8 +668,8 @@ class IDFObject(list):
 
     # Using slots simplifies the internal structure of the object and makes
     # it more memory efficiency
-    __slots__ = ['comments', 'comments_special', '_outer', 'obj_class', '_obj_class',
-                 '_uuid', 'uuid', 'obj_class_display', '_idd_object']
+    __slots__ = ['comments', 'comments_special', '_outer', '_obj_class',
+                 '_uuid', '_idd_object']
 
     def __init__(self, outer, obj_class, **kwargs):
         """Initialize the IDF object
@@ -782,7 +770,7 @@ class IDFObject(list):
         """
 
         idd_object = self.idd_object
-        for i, idd_field in enumerate(idd_object.itervalues()):
+        for i, idd_field in enumerate(idd_object.values()):
             default = idd_field.tags.get('default', None)
             try:
                 # If there is a field present, set its value
@@ -809,9 +797,8 @@ class IDFField(object):
 
     # Using slots simplifies the internal structure of the object and makes
     # it more memory efficiency
-    __slots__ = ['key', 'tags', 'value', 'idd_object', 'ref_type',
-                 'uuid', '_key', '_tags', '_value', '_idd_object',
-                 '_ref_type', '_outer', '_uuid', 'index', '_index']
+    __slots__ = ['_key', '_tags', '_value', '_idd_object',
+                 '_ref_type', '_outer', '_uuid', '_index']
 
     def __init__(self, outer, value=None, **kwargs):
         """Initializes a new IDF field
@@ -948,7 +935,7 @@ class IDFField(object):
             if type_tag == 'node':
                 self._ref_type = 'node'
             else:
-                self._ref_type = unicode(list(ref_type_set)[0]) if ref_type_set else None
+                self._ref_type = str(list(ref_type_set)[0]) if ref_type_set else None
         return self._ref_type
 
     @property

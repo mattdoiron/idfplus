@@ -11,17 +11,15 @@ import os
 block_cipher = None
 project = 'idfplus'
 main_module = 'main.py'
-hooks_path = os.path.join('resources', 'hooks')
 icon_path = os.path.join('resources', 'images', 'logo.ico')
 datas_path = os.path.join('resources', 'datas')
 version_info_path = os.path.join('resources', 'version_info.txt')
 
-options = [('v', None, 'OPTION')]
 a = Analysis([main_module],
              binaries=None,
              datas=[ (datas_path, '.') ],
-             hiddenimports=None,
-             hookspath=[hooks_path],
+             hiddenimports=['cffi'],
+             hookspath=[],
              runtime_hooks=None,
              excludes=None,
              win_no_prefer_redirects=None,
@@ -31,12 +29,11 @@ pyz = PYZ(a.pure, a.zipped_data,
           cipher=block_cipher)
 exe = EXE(pyz,
           a.scripts,
-          options,
+          [],
           exclude_binaries=True,
           name=project,
           debug=False,
           strip=None,
-          upx=True,
           console=False,
           version=version_info_path,
           icon=icon_path)
@@ -45,5 +42,4 @@ coll = COLLECT(exe,
                a.zipfiles,
                a.datas,
                strip=None,
-               upx=True,
                name=project)

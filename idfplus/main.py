@@ -15,7 +15,7 @@ import subprocess
 import sys
 import errno
 import codecs
-from cStringIO import StringIO
+from io import StringIO
 
 # PySide2 imports
 from PySide2.QtCore import (Qt, QTimer, QFileInfo, QModelIndex, qVersion, QPersistentModelIndex,
@@ -410,8 +410,11 @@ class IDFPlus(QMainWindow, main.UIMainWindow):
 
         # Default to the current file path
         if not target:
-            target = self.file_path
-            dir_path = os.path.dirname(target)
+            if not self.file_path:
+                target = None
+            else:
+                target = self.file_path
+                dir_path = os.path.dirname(target)
         else:
             dir_path = target
 
@@ -956,7 +959,7 @@ class IDFPlus(QMainWindow, main.UIMainWindow):
         result = [prog for prog in my_parser.parse_idf(to_parse)]
 
         # Create an undo object for each class of new objects
-        for obj_class, idf_objects in idf.iteritems():
+        for obj_class, idf_objects in idf.items():
             if not idf_objects:
                 continue
 

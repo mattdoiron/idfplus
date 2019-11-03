@@ -11,8 +11,8 @@ import os
 import codecs
 import math
 import logging
-import cPickle as pickle
-from cStringIO import StringIO
+import pickle
+from io import StringIO
 
 # Package imports
 from . import idfmodel
@@ -111,9 +111,9 @@ class Writer(object):
                                "when using the IDFEditor.{}".format(eol_char))
 
                 if 'OriginalOrderTop' in idf.options or 'OriginalOrderBottom' in idf.options:
-                    idf_items = idf.iteritems()
+                    idf_items = idf.items()
                 else:
-                    idf_items = idf.iteritems()  # idf.iter_ordered() (not implemented)
+                    idf_items = idf.items()  # idf.iter_ordered() (not implemented)
 
                 for obj_class, obj_list in idf_items:
 
@@ -206,7 +206,7 @@ class Parser(object):
                 fields.pop(-1)
 
             # Strip away any spaces from each field
-            fields = map(lambda i: i.expandtabs().strip(), fields)
+            fields = [i.expandtabs().strip() for i in fields]
 
             # Remove any list items that are actually tags
             fields = [item for item in fields if not item.startswith('\\')]
@@ -760,7 +760,7 @@ class IDFParser(Parser):
             # ---- If we've gotten this far, we're at the end of an object ------
 
             # Clean up the fields and strip spaces, end of line chars
-            fields = map(str.strip, fields.getvalue().split(','))
+            fields = [str.strip(my_str) for my_str in fields.getvalue().split(',')]
             fields[-1] = fields[-1].replace(OBJECT_END_DELIMITER, '')
 
             # The first field is the object class name
