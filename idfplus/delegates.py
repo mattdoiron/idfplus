@@ -168,38 +168,38 @@ class CustomStyledItemDelegate(QStyledItemDelegate):
         self.padding = 2
         self.prefs = main_window.prefs
 
+    def valid_field_text(self, index):
+        try:
+            return index.data(Qt.DisplayRole)
+        except:
+            return False
+
     def sizeHint(self, option, index):
 
-        if not index.isValid():
+        text = self.valid_field_text(index)
+        if not text:
             return QSize(self.prefs['default_column_width'], 14)
 
         # left, top, right, bottom
         option.rect.adjust(self.padding, -self.padding, -self.padding, self.padding)
-
-        text = index.data(Qt.DisplayRole)
-
         fm = QFontMetrics(option.font)
         b_rect = fm.boundingRect(option.rect,
                                  Qt.AlignLeft | Qt.AlignVCenter | Qt.TextWrapAnywhere,
                                  text)
 
-        return QSize(int(self.prefs['default_column_width']),
-                     b_rect.height())
+        return QSize(int(self.prefs['default_column_width']), b_rect.height())
 
     def paint(self, painter, option, index):
 
-        if not index.isValid():
+        text = self.valid_field_text(index)
+        if not text:
             return
 
-        # rect = option.rect.adjusted(self.padding, self.padding, -self.padding, 0)
-        option.rect.adjust(self.padding, -self.padding, -self.padding, self.padding)
-        text = index.data(Qt.DisplayRole)
-
         painter.save()
-        opt = QTextOption()
-        opt.setWrapMode(QTextOption.WrapAnywhere)
-        opt.setAlignment(Qt.AlignLeft | Qt.AlignVCenter)
-        painter.drawText(option.rect, text, opt)
+        background = index.data(Qt.BackgroundRole) or option.backgroundBrush
+        painter.fillRect(option.rect, background)
+        option.rect.adjust(self.padding, -self.padding, -self.padding, self.padding)
+        painter.drawText(option.rect, Qt.AlignLeft | Qt.AlignVCenter | Qt.TextWrapAnywhere, text)
         painter.restore()
 
 
