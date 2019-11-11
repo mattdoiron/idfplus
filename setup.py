@@ -75,8 +75,8 @@ class PyTest(_test):
 
     def run_tests(self):
         import pytest
-        errno = pytest.main(self.pytest_args)
-        sys.exit(errno)
+        error_no = pytest.main(self.pytest_args)
+        sys.exit(error_no)
 
 
 class bdist_msi(_bdist_msi):
