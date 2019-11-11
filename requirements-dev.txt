@@ -48,4 +48,4 @@ zipp==0.6.0               # via importlib-metadata
 
 # The following packages are considered to be unsafe in a requirements file:
 # pip==19.3.1               # via pip-review
-# setuptools==41.4.0        # via pyinstaller, sphinx
+# setuptools==41.6.0        # via pyinstaller, sphinx
