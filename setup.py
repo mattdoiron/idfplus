@@ -99,10 +99,14 @@ class bdist_msi(_bdist_msi):
         build_dir = os.path.join(root_path, 'build')
         resources_dir = os.path.join(root_path, 'resources')
         bind_dir = os.path.join(dist_dir, project)
-        wix_bin_dir = os.path.join(resources_dir, 'wix311')
         wix_obj = os.path.join(build_dir, '{}.wixobj'.format(project))
         wxs_file = os.path.join(resources_dir, '{}.wxs'.format(project))
         msi_file = os.path.join(dist_dir, '{}-v{}.msi'.format(project, version))
+        my_env = os.environ.copy()
+        if my_env.get("WIX"):
+            wix_bin_dir = os.path.join(my_env["WIX"], "bin")
+        else:
+            wix_bin_dir = os.path.join(resources_dir, 'wix311')
 
         print('Running candle...')
         try:
