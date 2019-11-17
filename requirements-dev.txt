@@ -31,6 +31,7 @@ pyinstaller==3.5
 pyparsing==2.2.0          # via packaging
 pytest==5.2.2
 pytz==2018.4              # via babel
+pywin32==226; sys_platform=="win32"
 requests==2.18.4          # via sphinx
 six==1.11.0               # via more-itertools, packaging, pip-tools
 snowballstemmer==1.2.1    # via sphinx
