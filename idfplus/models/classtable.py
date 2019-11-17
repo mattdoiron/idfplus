@@ -132,7 +132,7 @@ class IDFObjectTableModel(QAbstractTableModel):
             pass
         elif role == Qt.BackgroundRole:
             # Highlight the cell's background depending on various states
-            ref_node_count = self.idf.reference_count(field)
+            ref_node_count = 1  # self.idf.reference_count(field)
             if not field:
                 data = None
             elif field.value and ref_node_count == 0:
