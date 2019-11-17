@@ -39,10 +39,11 @@ packages = [
 requires = [
     "appdirs==1.4.3",
     "odict==1.7.0",
-    "persistent==4.5.0",
-    "PySide2==5.13.1"
+    "persistent==4.5.1",
+    "PySide2==5.13.2"
 ]
 requires_dev = [
+    "cffi==1.13.1",
     "pip-review==1.0",
     "pip-tools==4.2.0",
     "pyinstaller==3.5",
@@ -50,7 +51,7 @@ requires_dev = [
     "pywin32==226 : sys.platform=='win32'"
 ]
 requires_test = [
-    'pytest==5.2.2',
+    'pytest==5.2.4',
     'pytest-qt==3.2.2'
 ]
 requires_setup = []

@@ -5,13 +5,12 @@
 #    pip-compile --output-file=requirements.txt resources/requirements.in
 #
 appdirs==1.4.3
-argparse==1.4.0
 cffi==1.13.1              # via persistent
 odict==1.7.0
-persistent==4.5.0
+persistent==4.5.1
 pycparser==2.19           # via cffi
-pyside2==5.13.1
-shiboken2==5.13.1         # via pyside2
+pyside2==5.13.2
+shiboken2==5.13.2         # via pyside2
 zope.interface==4.6.0     # via persistent
 
 # The following packages are considered to be unsafe in a requirements file:

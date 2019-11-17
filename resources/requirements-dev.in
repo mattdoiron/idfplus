@@ -3,7 +3,8 @@ cffi==1.13.1
 pip-review==1.0
 pip-tools==4.2.0
 pyinstaller==3.5
-pytest==5.2.2
+pytest==5.2.4
+pytest-qt==3.2.2
 pywin32==226; sys_platform=="win32"
-sphinx==2.2.0
+sphinx==2.2.1
 sphinx_rtd_theme

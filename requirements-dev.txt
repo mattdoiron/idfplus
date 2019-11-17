@@ -29,14 +29,15 @@ pycparser==2.19           # via cffi
 pygments==2.2.0           # via sphinx
 pyinstaller==3.5
 pyparsing==2.2.0          # via packaging
-pytest==5.2.2
+pytest-qt==3.2.2
+pytest==5.2.4
 pytz==2018.4              # via babel
 pywin32==226; sys_platform=="win32"
 requests==2.18.4          # via sphinx
 six==1.11.0               # via more-itertools, packaging, pip-tools
 snowballstemmer==1.2.1    # via sphinx
 sphinx-rtd-theme==0.4.3
-sphinx==2.2.0
+sphinx==2.2.1
 sphinxcontrib-applehelp==1.0.1  # via sphinx
 sphinxcontrib-devhelp==1.0.1  # via sphinx
 sphinxcontrib-htmlhelp==1.0.2  # via sphinx
