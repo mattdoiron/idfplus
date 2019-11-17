@@ -47,7 +47,7 @@ requires_dev = [
     "pip-tools==4.2.0",
     "pyinstaller==3.5",
     "sphinx==2.2.1",
-    "pywin32==226 : sys.platform=='win3'"
+    "pywin32==226 : sys.platform=='win32'"
 ]
 requires_test = [
     'pytest==5.2.2',
