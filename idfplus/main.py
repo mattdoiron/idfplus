@@ -326,6 +326,7 @@ class IDFPlus(QMainWindow, main.UIMainWindow):
             self.add_recent_file(file_name)
             self.statusBar().showMessage("File saved", 2000)
             self.set_dirty(False)
+            self.file_time_last_modified = os.path.getmtime(self.file_path)
             self.check_file_changed = True
             return True
         else:
