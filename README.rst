@@ -15,7 +15,7 @@ a bit more original as development progresses (suggestions are welcome!).
 .. _EnergyPlus: http://www.energyplus.gov/
 .. _written these ideas in a "manifesto": https://mindfulmodeller.ca/manifesto-good-energy-modelling-tools/
 
-See the Downloads_ section for installers. THere are currently deb and msi files for Ubuntu and
+See the Downloads_ section for installers. There are currently deb and msi files for Ubuntu and
 Windows respectively. You can run the editor in its uncompiled form on any machine that has
 Python v3.7.x and the appropriate dependencies. See the Doc folder for more info.
 
