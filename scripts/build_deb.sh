@@ -54,16 +54,17 @@ make_installer () {
 make_deb () {
 #    echo ${DEB_DIR}
 #    rm -r ${DEB_DIR}
-    mkdir -p ${DEB_DIR}/opt/${NAME}
-    mkdir -p ${DEB_DIR}/usr/bin
-    mkdir -p ${DEB_DIR}/DEBIAN
-    cp ${SCRIPT_DIR}/DEBIAN_control ${DEB_DIR}/DEBIAN/control
-    cp ${SCRIPT_DIR}/DEBIAN_copyright ${DEB_DIR}/DEBIAN/copyright
-    cp ${SCRIPT_DIR}/../CHANGELOG.rst ${DEB_DIR}/DEBIAN/changelog
-    cp ${SCRIPT_DIR}/../resources/datas/idfplus.desktop ${DEB_DIR}/opt/${NAME}
-    cp -r ${DIST_DIR}/idfplus/* ${DEB_DIR}/opt/${NAME}
-    ln -s ../opt/${NAME}/${NAME} ${DEB_DIR}/usr/bin/${NAME}
-    dpkg-deb --build ${DEB_DIR}
+#    mkdir -p ${DEB_DIR}/opt/${NAME}
+#    mkdir -p ${DEB_DIR}/usr/bin
+#    mkdir -p ${DEB_DIR}/DEBIAN
+#    cp ${SCRIPT_DIR}/DEBIAN_control ${DEB_DIR}/DEBIAN/control
+#    cp ${SCRIPT_DIR}/DEBIAN_copyright ${DEB_DIR}/DEBIAN/copyright
+#    cp ${SCRIPT_DIR}/../CHANGELOG.rst ${DEB_DIR}/DEBIAN/changelog
+#    cp ${SCRIPT_DIR}/../resources/datas/idfplus.desktop ${DEB_DIR}/opt/${NAME}
+#    cp -r ${DIST_DIR}/idfplus/* ${DEB_DIR}/opt/${NAME}
+#    ln -s ../opt/${NAME}/${NAME} ${DEB_DIR}/usr/bin/${NAME}
+#    dpkg-deb --build ${DEB_DIR}
+    dpkg-buildpackage -b --no-sign
 }
 
 prepare_env
