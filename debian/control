@@ -1,13 +1,12 @@
-Package: idfplus
-Version: 0.1.0-b8-1
-License: GPL-3
-Vendor: Mindful Modeller
-Architecture: i386
-Maintainer: Matt Doiron <mattdoiron@gmail.com>
-Provides: idfplus
 Source: idfplus
 Section: Editor
 Priority: optional
+Maintainer: Matt Doiron <mattdoiron@gmail.com>
+Build-Depends: debhelper (>= 9)
+
+Package: idfplus
+Architecture: amd64
+Provides: idfplus
 Homepage: https://bitbucket.org/mattdoiron/idfplus
 Description: IDF+ is an enhanced editor for EnergyPlus input files.
  IDF+ is an enhanced editor for idf files—the text-based, simulation input files for
