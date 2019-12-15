@@ -32,7 +32,7 @@ prepare_env () {
     export SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
     export BUILD_DIR=${SCRIPT_DIR}/../build
     export DIST_DIR=${SCRIPT_DIR}/../dist
-    export DEB_DIR=${BUILD_DIR}/${NAME}-${VERSION}
+    export DEB_DIR=${BUILD_DIR}/debian
 }
 
 # Package the deb using fpm (NOT USED)
@@ -62,7 +62,7 @@ make_deb () {
     cp ${SCRIPT_DIR}/../CHANGELOG.rst ${DEB_DIR}/DEBIAN/changelog
     cp ${SCRIPT_DIR}/../resources/datas/idfplus.desktop ${DEB_DIR}/opt/${NAME}
     cp -r ${DIST_DIR}/idfplus/* ${DEB_DIR}/opt/${NAME}
-    ln -s /opt/${NAME}/${NAME} ${DEB_DIR}/usr/bin/${NAME}
+    ln -s ../opt/${NAME}/${NAME} ${DEB_DIR}/usr/bin/${NAME}
     dpkg-deb --build ${DEB_DIR}
 }
 
