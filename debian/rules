@@ -13,4 +13,3 @@ binary:
 	dh_gencontrol
 	dh_link
 	dh_builddeb
-	dh_clean
