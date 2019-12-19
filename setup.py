@@ -21,8 +21,10 @@ from setuptools.dist import DistutilsOptionError
 
 if sys.platform.startswith('win'):
     from distutils.command.bdist_msi import bdist_msi as _bdist_msi
+    from setuptools import Command as _bdist
 else:
     from setuptools import Command as _bdist_msi
+    from distutils.command.bdist import bdist as _bdist
 
 if sys.version_info.major != 3 and sys.version_info.minor < 7:
     print("Currently compatible with Python 3.7.x only!")
@@ -211,6 +213,33 @@ class Freeze(Command):
                       spec_file])
 
 
+class bdist(_bdist):
+    description = 'Used to build an deb installer. Debian/Ubuntu only.'
+    user_options = []
+    all_versions = ['3.7']
+
+    def initialize_options(self):
+        if not sys.platform.startswith('linux'):
+            print("This command is available on Debian/Ubuntu only.")
+            sys.exit(1)
+
+    def finalize_options(self):
+        pass
+
+    def run(self):
+        print('Running dpkg-builddeb...')
+        try:
+            subprocess.call(['dpkg-buildpackage', '--build=binary', '--no-sign', '--post-clean'])
+        except OSError as e:
+            if e.errno == errno.ENOENT:
+                print('Cannot find "dpkg-buildpackage" command. Please be sure WiX is installed.')
+                sys.exit(1)
+
+        print("Creation of deb complete. See {}.".format('test'))
+
+    def test(self):
+        print('No tests available')
+
 setup(
     name=project,
     version=version,
@@ -251,6 +280,7 @@ setup(
     cmdclass={
         'freeze': Freeze,
         'bdist_msi': bdist_msi,
+        'bdist': bdist,
         'harvest': Harvest,
         'test': PyTest,
     },
