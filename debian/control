@@ -5,7 +5,7 @@ Maintainer: Matt Doiron <mattdoiron@gmail.com>
 Build-Depends: debhelper (>= 9)
 
 Package: idfplus
-Architecture: amd64
+Architecture: all
 Provides: idfplus
 Homepage: https://bitbucket.org/mattdoiron/idfplus
 Description: IDF+ is an enhanced editor for EnergyPlus input files.
