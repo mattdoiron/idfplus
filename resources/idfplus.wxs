@@ -199,12 +199,6 @@ along with IDF+. If not, see <http://www.gnu.org/licenses/>.
                         <Component Id="cmpE7BA6B2A97D877801247392F9FD3F700" Guid="FC14DEC0-668F-424D-8744-3EF5211CA10B">
                             <File Id="fil5342E681C509BC871ADD40CE673DB942" KeyPath="yes" Source="SourceDir\lib2to3\Grammar.txt" />
                         </Component>
-                        <Component Id="cmp10720FED60F9FDC3751D0B9965F49C07" Guid="4CD3FB5D-FC27-44FB-B883-B1E389DDE782">
-                            <File Id="fil6633091688EF4DC4A874F105DDC2CEB3" KeyPath="yes" Source="SourceDir\lib2to3\Grammar3.7.4.final.0.pickle" />
-                        </Component>
-                        <Component Id="cmp0A2E6C7BC703C33DC7A41990931F5636" Guid="0450ECA3-D7F3-47AC-BEDA-71D3F856B992">
-                            <File Id="fil36BEA0C16F005599EEC471091F980387" KeyPath="yes" Source="SourceDir\lib2to3\PatternGrammar3.7.4.final.0.pickle" />
-                        </Component>
                         <Directory Id="dirCDB290D33A5B237E1C98AD32E9011B88" Name="tests">
                             <Directory Id="dirBCBE72C5753C6EEBB26113292542A847" Name="data">
                                 <Component Id="cmp2F40728C605856D47357CF087C204C6C" Guid="0CFD7C2F-5A93-4297-8824-EDF585C42831">
@@ -508,8 +502,6 @@ along with IDF+. If not, see <http://www.gnu.org/licenses/>.
                 <ComponentRef Id="cmpDF49AF3303DCE1F56C893A6683626C57" />
                 <ComponentRef Id="cmpF187A5E9EAF7C96D73DF48E435017F2E" />
                 <ComponentRef Id="cmpE7BA6B2A97D877801247392F9FD3F700" />
-                <ComponentRef Id="cmp10720FED60F9FDC3751D0B9965F49C07" />
-                <ComponentRef Id="cmp0A2E6C7BC703C33DC7A41990931F5636" />
                 <ComponentRef Id="cmp2F40728C605856D47357CF087C204C6C" />
                 <ComponentRef Id="cmpEF36974D410F3E3C5C24762B3C0B2781" />
                 <ComponentRef Id="cmp7F0C9C5F3C9A03C54C2405682C84AA78" />
