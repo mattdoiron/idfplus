@@ -105,11 +105,14 @@ class bdist_msi(_bdist_msi):
         wix_obj = os.path.join(build_dir, '{}.wixobj'.format(project))
         wxs_file = os.path.join(resources_dir, '{}.wxs'.format(project))
         msi_file = os.path.join(dist_dir, '{}-v{}.msi'.format(project, version))
+        artifact_dir = os.path.join(root_path, 'artifacts')
+        artifact_file = os.path.join(artifact_dir, '{}-v{}.msi'.format(project, version))
         my_env = os.environ.copy()
         if my_env.get("WIX"):
             wix_bin_dir = os.path.join(my_env["WIX"], "bin")
         else:
             wix_bin_dir = os.path.join(resources_dir, 'wix311')
+        print("Wix dir: {}".format(wix_bin_dir))
 
         print('Running candle...')
         try:
@@ -128,7 +131,12 @@ class bdist_msi(_bdist_msi):
                 print('Cannot find "light" command. Please be sure WiX is installed.')
                 sys.exit(1)
 
-        print("Creation of msi complete. See {}.".format(msi_file))
+        # Move resulting msi file to its own folder for easier export as an artifact
+        if not os.path.exists(artifact_dir):
+            os.makedirs(artifact_dir)
+        os.rename(msi_file, artifact_file)
+        
+        print("Creation of msi complete. See {}.".format(artifact_file))
 
     def test(self):
         print('No tests available')
@@ -213,7 +221,7 @@ class Freeze(Command):
                       spec_file])
 
 
-class bdist(_bdist):
+class bdist_deb(_bdist):
     description = 'Used to build an deb installer. Debian/Ubuntu only.'
     user_options = []
     all_versions = ['3.7']
@@ -227,15 +235,25 @@ class bdist(_bdist):
         pass
 
     def run(self):
+        root_path = os.path.dirname(__file__)
+        deb = '{}_0.2.1-0_all.deb'.format(project)
+        deb_file = os.path.join('..', root_path, deb)
+        artifact_dir = os.path.join(root_path, 'artifacts')
+
         print('Running dpkg-builddeb...')
         try:
-            subprocess.call(['dpkg-buildpackage', '--build=binary', '--no-sign', '--post-clean'])
+            subprocess.call(['dpkg-buildpackage', '-b', '-tc'])
         except OSError as e:
             if e.errno == errno.ENOENT:
                 print('Cannot find "dpkg-buildpackage" command. Please be sure WiX is installed.')
                 sys.exit(1)
 
-        print("Creation of deb complete. See {}.".format('test'))
+        # Move resulting deb file to its own folder for easier export as an artifact
+        if not os.path.exists(artifact_dir):
+            os.makedirs(artifact_dir)
+        os.rename(deb_file, os.path.join(artifact_dir, deb))
+        
+        print("Creation of deb complete. See {}.".format(os.path.join(artifact_dir, deb_file)))
 
     def test(self):
         print('No tests available')
@@ -279,8 +297,7 @@ setup(
     },
     cmdclass={
         'freeze': Freeze,
-        'bdist_msi': bdist_msi,
-        'bdist': bdist,
+        'bdist': bdist_msi if sys.platform.startswith('win') else bdist_deb,
         'harvest': Harvest,
         'test': PyTest,
     },
