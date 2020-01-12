@@ -14,4 +14,4 @@ shiboken2==5.13.2         # via pyside2
 zope.interface==4.6.0     # via persistent
 
 # The following packages are considered to be unsafe in a requirements file:
-# setuptools==41.6.0        # via odict, zope.interface
+# setuptools
