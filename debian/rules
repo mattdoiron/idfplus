@@ -1,0 +1,19 @@
+#!/usr/bin/make -f
+DH_VERBOSE = 1
+
+%:
+	dh $@
+
+clean:
+	dh_clean
+
+build:
+	@# Do nothing
+
+binary:
+	mkdir -p debian/idfplus/usr/bin
+	mkdir -p debian/idfplus/opt/idfplus
+	cp -r dist/idfplus/* debian/idfplus/opt/idfplus/
+	dh_gencontrol
+	dh_link
+	dh_builddeb

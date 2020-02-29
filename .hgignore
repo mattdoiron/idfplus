@@ -32,6 +32,8 @@ var/
 *.egg-info/
 .installed.cfg
 *.egg
+*.eggs
+.pytest_cache/
 
 # Installer logs
 pip-log.txt
@@ -60,10 +62,12 @@ coverage.xml
 *.log
 *.pot
 
+# Other
+*.orig
+resources/
+
 # Sphinx documentation
 docs/_build/
-
-*.spec
 
 # switch to regexp syntax.
 syntax: regexp

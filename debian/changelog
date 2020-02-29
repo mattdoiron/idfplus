@@ -1,0 +1,5 @@
+idfplus (0.2.1-0) stretch; urgency=medium
+
+  * Initial packaging work with dpkg-buildpackage
+
+ -- maintainer Matt Doiron <mattdoiron@gmail.com>  Sun, 15 Dec 2019 14:40:50 -0400
