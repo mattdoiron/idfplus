@@ -252,7 +252,9 @@ class bdist_deb(_bdist):
         if not os.path.exists(artifact_dir):
             os.makedirs(artifact_dir)
         os.rename(deb_file, os.path.join(artifact_dir, deb))
-        
+        print(artifact_dir)
+        print(deb_file)
+
         print("Creation of deb complete. See {}.".format(os.path.join(artifact_dir, deb_file)))
 
     def test(self):
