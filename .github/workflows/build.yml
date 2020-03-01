@@ -1,4 +1,4 @@
-name: IDFPlus Build Workflow
+name: IDFPlus Build Workflow Test
 
 on:
   push:
