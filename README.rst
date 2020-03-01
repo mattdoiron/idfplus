@@ -15,16 +15,16 @@ a bit more original as development progresses (suggestions are welcome!).
 .. _EnergyPlus: http://www.energyplus.gov/
 .. _written these ideas in a "manifesto": https://mindfulmodeller.ca/manifesto-good-energy-modelling-tools/
 
-See the Downloads_ section for installers. There are currently deb and msi files for Ubuntu and
-Windows respectively. You can run the editor in its uncompiled form on any machine that has
+See the Releases_ section for installers. I'm currently working on deb and msi files for Ubuntu
+and Windows respectively. You can run the editor in its uncompiled form on any machine that has
 Python v3.7.x and the appropriate dependencies. See the Doc folder for more info.
 
-.. image:: https://bitbucket.org/mattdoiron/idfplus/raw/default/resources/idfplusscreenshot.png
+.. image:: resources/idfplusscreenshot.png
    :width: 300
    :target: screenshot_
 
-.. _Downloads: https://bitbucket.org/mattdoiron/idfplus/downloads/
-.. _screenshot: https://bitbucket.org/mattdoiron/idfplus/raw/default/resources/idfplusscreenshot.png
+.. _Releases: https://github.com/mattdoiron/idfplus/releases
+.. _screenshot: resources/idfplusscreenshot.png
      
 Open Source and Cross Platform
 ------------------------------
@@ -89,4 +89,4 @@ and should not be used for real projects! I would, however, appreciate any feedb
 and suggestions on how the editor can be improved. Please submit `an issue`_ if you
 find any bugs.
 
-.. _an issue: https://bitbucket.org/mattdoiron/idfplus/issues
+.. _an issue: https://github.com/mattdoiron/idfplus/issues
