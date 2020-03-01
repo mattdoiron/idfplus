@@ -3,7 +3,7 @@ name: IDFPlus Build Workflow
 on:
   push:
     branches:
-      - workflows
+      - build-workflow-testing
 
 jobs:
   build:
