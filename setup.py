@@ -159,8 +159,13 @@ class Harvest(Command):
         build_dir = os.path.join(root_path, 'build')
         source_dir = os.path.join(dist_dir, project)
         resources_dir = os.path.join(root_path, 'resources')
-        wix_bin_dir = os.path.join(resources_dir, 'wix311')
         harvest_file = os.path.join(build_dir, '{}_harvest.wxs'.format(project))
+        my_env = os.environ.copy()
+        if my_env.get("WIX"):
+            wix_bin_dir = os.path.join(my_env["WIX"], "bin")
+        else:
+            wix_bin_dir = os.path.join(resources_dir, 'wix311')
+        print("Wix dir: {}".format(wix_bin_dir))
 
         try:
             subprocess.call([os.path.join(wix_bin_dir, 'heat'), 'dir', source_dir, '-nologo', '-g1', '-gg', '-sfrag',
