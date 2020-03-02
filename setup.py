@@ -172,7 +172,7 @@ class Harvest(Command):
                              '-srd', '-cg', 'IDFPlusComponents', '-template', 'product',
                              '-sw5150', '-sw5151', '-out', harvest_file])
         except OSError as e:
-            if e.errno == os.errno.ENOENT:
+            if e.errno == errno.ENOENT:
                 print('Cannot find "heat" command. Please be sure WiX is installed.')
                 sys.exit(1)
 
