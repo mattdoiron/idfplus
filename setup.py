@@ -168,9 +168,9 @@ class Harvest(Command):
         print("Wix dir: {}".format(wix_bin_dir))
 
         try:
-            subprocess.call([os.path.join(wix_bin_dir, 'heat'), 'dir', source_dir, '-nologo', '-g1', '-gg', '-sfrag',
-                             '-srd', '-cg', 'IDFPlusComponents', '-template', 'product',
-                             '-sw5150', '-sw5151', '-out', harvest_file])
+            subprocess.call([os.path.join(wix_bin_dir, 'heat'), 'dir', source_dir, '-nologo',
+                             '-g1', '-gg', '-sfrag', '-ag', '-srd', '-cg', 'IDFPlusComponents',
+                             '-template', 'product', '-sw5150', '-sw5151', '-out', harvest_file])
         except OSError as e:
             if e.errno == errno.ENOENT:
                 print('Cannot find "heat" command. Please be sure WiX is installed.')
