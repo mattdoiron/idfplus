@@ -211,12 +211,6 @@ along with IDF+. If not, see <http://www.gnu.org/licenses/>.
                         <Component Id="cmpE7BA6B2A97D877801247392F9FD3F700" Guid="*">
                             <File Id="fil5342E681C509BC871ADD40CE673DB942" KeyPath="yes" Source="SourceDir\lib2to3\Grammar.txt" />
                         </Component>
-                        <Component Id="cmp10720FED60F9FDC3751D0B9965F49C07" Guid="*">
-                            <File Id="fil6633091688EF4DC4A874F105DDC2CEB3" KeyPath="yes" Source="SourceDir\lib2to3\Grammar3.7.4.final.0.pickle" />
-                        </Component>
-                        <Component Id="cmp0A2E6C7BC703C33DC7A41990931F5636" Guid="*">
-                            <File Id="fil36BEA0C16F005599EEC471091F980387" KeyPath="yes" Source="SourceDir\lib2to3\PatternGrammar3.7.4.final.0.pickle" />
-                        </Component>
                         <Directory Id="dirCDB290D33A5B237E1C98AD32E9011B88" Name="tests">
                             <Directory Id="dirBCBE72C5753C6EEBB26113292542A847" Name="data">
                                 <Component Id="cmp2F40728C605856D47357CF087C204C6C" Guid="*">
@@ -271,11 +265,6 @@ along with IDF+. If not, see <http://www.gnu.org/licenses/>.
                             <Directory Id="dir396544C2A22639576A123EF8ED4C6292" Name="iconengines">
                                 <Component Id="cmp14AE3C544CB1A531360DAB4A5F2013F5" Guid="*">
                                     <File Id="fil3C919BCA83DAA4A1F96AD3C70FFF779B" KeyPath="yes" Source="SourceDir\PySide2\plugins\iconengines\qsvgicon.dll" />
-                                </Component>
-                            </Directory>
-                            <Directory Id="dir1CC4D88A581441D1BE5CDCB36F77533C" Name="bearer">
-                                <Component Id="cmpA3B244931E5E7367D60063E1EABF5302" Guid="*">
-                                    <File Id="fil22697664E8FB69595F6C645D10E45C82" KeyPath="yes" Source="SourceDir\PySide2\plugins\bearer\qgenericbearer.dll" />
                                 </Component>
                             </Directory>
                             <Directory Id="dir5EA0E02E8F8928789E7E979CD6C0BABE" Name="styles">
@@ -510,8 +499,6 @@ along with IDF+. If not, see <http://www.gnu.org/licenses/>.
             <ComponentRef Id="cmpDF49AF3303DCE1F56C893A6683626C57" />
             <ComponentRef Id="cmpF187A5E9EAF7C96D73DF48E435017F2E" />
             <ComponentRef Id="cmpE7BA6B2A97D877801247392F9FD3F700" />
-            <ComponentRef Id="cmp10720FED60F9FDC3751D0B9965F49C07" />
-            <ComponentRef Id="cmp0A2E6C7BC703C33DC7A41990931F5636" />
             <ComponentRef Id="cmp2F40728C605856D47357CF087C204C6C" />
             <ComponentRef Id="cmpEF36974D410F3E3C5C24762B3C0B2781" />
             <ComponentRef Id="cmp7F0C9C5F3C9A03C54C2405682C84AA78" />
@@ -525,7 +512,6 @@ along with IDF+. If not, see <http://www.gnu.org/licenses/>.
             <ComponentRef Id="cmp0FEB9736692495654908A085EB584A18" />
             <ComponentRef Id="cmpFE453B2AA1386D22A77F2DA19BBABEE6" />
             <ComponentRef Id="cmp14AE3C544CB1A531360DAB4A5F2013F5" />
-            <ComponentRef Id="cmpA3B244931E5E7367D60063E1EABF5302" />
             <ComponentRef Id="cmpBBD346621B3DEEA992856888BE42E2CB" />
             <ComponentRef Id="cmp418A499F2F39551382DBE487FE4CB7A5" />
             <ComponentRef Id="cmp5884BDC24A22CDE2E8A15E95EAF3A96D" />
