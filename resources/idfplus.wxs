@@ -234,9 +234,6 @@ along with IDF+. If not, see <http://www.gnu.org/licenses/>.
                         </Directory>
                     </Directory>
                     <Directory Id="dirB7432D3C3695A34017AC5D89D7B98416" Name="PySide2">
-                        <Component Id="cmp4367AAB309B79A590F26551739CEC0E5" Guid="90721538-6D53-481F-B700-6EA87A1290C9">
-                            <File Id="filE33E4F60400EB82B3F654064951865F9" KeyPath="yes" Source="SourceDir\PySide2\d3dcompiler_47.dll" />
-                        </Component>
                         <Component Id="cmp547E055E33BD1E36FCF778623A21686C" Guid="C82B3F77-8AF0-4A2F-A29C-3EFFD91A5E3E">
                             <File Id="fil9A3DFFB4482A0D25A098AA67CF181AB0" KeyPath="yes" Source="SourceDir\PySide2\QtCore.pyd" />
                         </Component>
@@ -246,17 +243,8 @@ along with IDF+. If not, see <http://www.gnu.org/licenses/>.
                         <Component Id="cmp0FEB9736692495654908A085EB584A18" Guid="C79D5355-F044-4542-A33F-DAC222D44772">
                             <File Id="fil2123896E1D155D71CD15D48D12616165" KeyPath="yes" Source="SourceDir\PySide2\QtGui.pyd" />
                         </Component>
-                        <Component Id="cmp7CD196C563CBF187248C44681996C209" Guid="A3F23D87-6587-4DD1-A127-CBD7B780D25E">
-                            <File Id="filF35921629EA220C3EB8CA82187D3BA48" KeyPath="yes" Source="SourceDir\PySide2\libGLESv2.dll" />
-                        </Component>
-                        <Component Id="cmp1A8A0C5BD630C0BCA2B04CA440F93322" Guid="3768CA0E-F5B2-4FB6-A7E3-CFCA32AB0FB6">
-                            <File Id="filE2353CBC0175B45F19A38619438FD8D9" KeyPath="yes" Source="SourceDir\PySide2\opengl32sw.dll" />
-                        </Component>
                         <Component Id="cmpFE453B2AA1386D22A77F2DA19BBABEE6" Guid="4DF94561-AA0C-4C6B-A10F-1F981B2E3739">
                             <File Id="filC37CEAAD91EF3D265E55329CB8506DE6" KeyPath="yes" Source="SourceDir\PySide2\QtWidgets.pyd" />
-                        </Component>
-                        <Component Id="cmpE3917639DC1541F3EDC8205076723235" Guid="0E820526-BCDB-4DEE-AD7F-1B3C014E079A">
-                            <File Id="filA005E5557F59F3CE19E790B7FB10C388" KeyPath="yes" Source="SourceDir\PySide2\libEGL.dll" />
                         </Component>
                         <Directory Id="dir9DCC172441E07B943AF06B34D17E3AD1" Name="plugins">
                             <Directory Id="dir396544C2A22639576A123EF8ED4C6292" Name="iconengines">
@@ -396,11 +384,6 @@ along with IDF+. If not, see <http://www.gnu.org/licenses/>.
                                 <File Id="fil2FDDEC6FE14CBC4E24C49328993FE5D2" KeyPath="yes" Source="SourceDir\PySide2\translations\qtbase_en.qm" />
                             </Component>
                         </Directory>
-                        <Directory Id="dir0E2B544CACE36F4D4ADDB9AA3C229668" Name="PySide2">
-                            <Component Id="cmp7BA539D337F840E0ED69F920161E53A2" Guid="8D7D8F88-E0C1-4047-895E-DBDF33641564">
-                                <File Id="fil3FF7399AD0BC98278C188CEF575B0B63" KeyPath="yes" Source="SourceDir\PySide2\PySide2\qt.conf" />
-                            </Component>
-                        </Directory>
                     </Directory>
                     <Directory Id="dirAE060DEAB3199E428E14B3546D458D53" Name="zope">
                         <Directory Id="dir0764BA6B60FC19DF1711EEB262D26009" Name="interface">
@@ -509,14 +492,10 @@ along with IDF+. If not, see <http://www.gnu.org/licenses/>.
                 <ComponentRef Id="cmpC0BFE8D354F854E2A1C21E32F84DDCCB" />
                 <ComponentRef Id="cmp1D3B897E64D6FB2E4CF7164DCE615087" />
                 <ComponentRef Id="cmp6F5D1909745F8069326A80B399A8881A" />
-                <ComponentRef Id="cmp4367AAB309B79A590F26551739CEC0E5" />
                 <ComponentRef Id="cmp547E055E33BD1E36FCF778623A21686C" />
                 <ComponentRef Id="cmp5594BDF15835D69BD9463B962EC1D639" />
                 <ComponentRef Id="cmp0FEB9736692495654908A085EB584A18" />
-                <ComponentRef Id="cmp7CD196C563CBF187248C44681996C209" />
-                <ComponentRef Id="cmp1A8A0C5BD630C0BCA2B04CA440F93322" />
                 <ComponentRef Id="cmpFE453B2AA1386D22A77F2DA19BBABEE6" />
-                <ComponentRef Id="cmpE3917639DC1541F3EDC8205076723235" />
                 <ComponentRef Id="cmp14AE3C544CB1A531360DAB4A5F2013F5" />
                 <ComponentRef Id="cmpA3B244931E5E7367D60063E1EABF5302" />
                 <ComponentRef Id="cmpBBD346621B3DEEA992856888BE42E2CB" />
@@ -557,7 +536,6 @@ along with IDF+. If not, see <http://www.gnu.org/licenses/>.
                 <ComponentRef Id="cmpC82A33F2CD28FB0208BA8A2937400230" />
                 <ComponentRef Id="cmp2A874DA197A78E80B7A37805339DBD35" />
                 <ComponentRef Id="cmp5E61F7B13D7190B6246C086564F281F6" />
-                <ComponentRef Id="cmp7BA539D337F840E0ED69F920161E53A2" />
                 <ComponentRef Id="cmpD04441F916C8051DB0A322CFB7CBC39D" />
         </ComponentGroup>
     </Fragment>
