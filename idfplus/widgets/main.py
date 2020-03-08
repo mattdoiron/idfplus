@@ -91,6 +91,8 @@ class UIMainWindow(object):
         # Connect some signals
         selection_model = classTable.selectionModel()
         selection_model.selectionChanged.connect(self.table_selection_changed)
+        scroll_bar = classTable.verticalScrollBar()
+        scroll_bar.valueChanged.connect(self.scroll_changed)
 
         # These are currently broken
         # classTable.horizontalHeader().sectionMoved.connect(self.moveObject)

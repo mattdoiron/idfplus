@@ -13,7 +13,7 @@ from itertools import groupby
 # PySide2 imports
 from PySide2.QtCore import (Qt, QAbstractTableModel, QItemSelection, QItemSelectionRange,
                             QAbstractProxyModel, QRegExp, QItemSelectionModel, QModelIndex,
-                            QSortFilterProxyModel)
+                            QSortFilterProxyModel, QRect, QPoint)
 from PySide2.QtGui import QColor
 from PySide2.QtWidgets import QTableView, QAbstractItemView
 
@@ -802,3 +802,11 @@ class TableView(QTableView):
             to_select = model.index(row, model.columnCount()-1)
 
         self.setCurrentIndex(to_select)
+
+    def resize_visible_rows(self):
+        viewport_rect = QRect(QPoint(0, 0), self.viewport().size())
+        for row in range(self.model().rowCount()):
+            rect = self.visualRect(self.model().index(row, 0))
+            is_visible = viewport_rect.contains(rect)
+            if is_visible:
+                self.resizeRowToContents(row)
