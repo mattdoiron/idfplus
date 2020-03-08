@@ -42,19 +42,18 @@ requires = [
     "appdirs==1.4.3",
     "odict==1.7.0",
     "persistent==4.5.1",
-    "PySide2==5.13.2"
+    "PySide2==5.14.1"
 ]
 requires_dev = [
-    "cffi==1.13.1",
-    "pip-review==1.0",
-    "pip-tools==4.2.0",
-    "pyinstaller==3.5",
-    "sphinx==2.2.1",
+    "cffi==1.14.0",
+    "pip-tools==4.5.1",
+    "pyinstaller==3.6",
+    "sphinx==2.4.3",
     "pywin32==226 : sys.platform=='win32'"
 ]
 requires_test = [
-    'pytest==5.2.4',
-    'pytest-qt==3.2.2'
+    'pytest==5.3.5',
+    'pytest-qt==3.3.0'
 ]
 requires_setup = []
 
@@ -160,15 +159,20 @@ class Harvest(Command):
         build_dir = os.path.join(root_path, 'build')
         source_dir = os.path.join(dist_dir, project)
         resources_dir = os.path.join(root_path, 'resources')
-        wix_bin_dir = os.path.join(resources_dir, 'wix311')
         harvest_file = os.path.join(build_dir, '{}_harvest.wxs'.format(project))
+        my_env = os.environ.copy()
+        if my_env.get("WIX"):
+            wix_bin_dir = os.path.join(my_env["WIX"], "bin")
+        else:
+            wix_bin_dir = os.path.join(resources_dir, 'wix311')
+        print("Wix dir: {}".format(wix_bin_dir))
 
         try:
-            subprocess.call([os.path.join(wix_bin_dir, 'heat'), 'dir', source_dir, '-nologo', '-g1', '-gg', '-sfrag',
-                             '-srd', '-cg', 'IDFPlusComponents', '-template', 'product',
-                             '-sw5150', '-sw5151', '-out', harvest_file])
+            subprocess.call([os.path.join(wix_bin_dir, 'heat'), 'dir', source_dir, '-nologo',
+                             '-g1', '-gg', '-sfrag', '-ag', '-srd', '-cg', 'IDFPlusComponents',
+                             '-template', 'product', '-sw5150', '-sw5151', '-out', harvest_file])
         except OSError as e:
-            if e.errno == os.errno.ENOENT:
+            if e.errno == errno.ENOENT:
                 print('Cannot find "heat" command. Please be sure WiX is installed.')
                 sys.exit(1)
 
@@ -252,7 +256,9 @@ class bdist_deb(_bdist):
         if not os.path.exists(artifact_dir):
             os.makedirs(artifact_dir)
         os.rename(deb_file, os.path.join(artifact_dir, deb))
-        
+        print(artifact_dir)
+        print(deb_file)
+
         print("Creation of deb complete. See {}.".format(os.path.join(artifact_dir, deb_file)))
 
     def test(self):

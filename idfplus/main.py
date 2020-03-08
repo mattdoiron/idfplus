@@ -605,6 +605,9 @@ class IDFPlus(QMainWindow, main.UIMainWindow):
         self.update_units_label(index)
         self.update_comments(index)
 
+    def scroll_changed(self, position):
+        self.classTable.resize_visible_rows()
+
     def update_units_label(self, index):
         """Updates the units label
 
@@ -1145,7 +1148,7 @@ class IDFPlus(QMainWindow, main.UIMainWindow):
             # self.classTable.setFocus()
 
         # Resize rows for text wrap
-        self.classTable.resizeRowsToContents()
+        self.classTable.resize_visible_rows()
 
         # Now that there is a class selected, enable some actions and set some vars
         self.newObjAct.setEnabled(True)
