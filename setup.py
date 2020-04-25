@@ -303,7 +303,7 @@ setup(
     },
     cmdclass={
         'freeze': Freeze,
-        'bdist': bdist_msi if sys.platform.startswith('win') else bdist_deb,
+        'make_installer': bdist_msi if sys.platform.startswith('win') else bdist_deb,
         'harvest': Harvest,
         'test': PyTest,
     },
