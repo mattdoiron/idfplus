@@ -305,7 +305,7 @@ setup(
     },
     entry_points={
         'gui_scripts': [
-            'idfplus=idfplus:main',
+            'idfplus=idfplus.__main__:main',
         ],
     },
     cmdclass={
