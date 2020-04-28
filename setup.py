@@ -55,7 +55,7 @@ requires_test = [
     'pytest==5.3.5',
     'pytest-qt==3.3.0'
 ]
-requires_setup = []
+requires_setup = ['wheel==0.34.2']
 
 with open(os.path.join(project, '__init__.py'), 'r') as fd:
     version = re.search(r'^__version__\s*=\s*[\'"]([^\'"]*)[\'"]',
@@ -282,6 +282,7 @@ setup(
     install_requires=requires,
     setup_requires=requires_setup,
     tests_require=requires_test,
+    python_requires=">=3.7",
     classifiers=[
         'Programming Language :: Python :: 3.7',
         'Development Status :: 4 - Beta',
