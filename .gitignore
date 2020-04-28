@@ -33,6 +33,10 @@ var/
 *.egg
 *.eggs
 .pytest_cache/
+artifacts/
+debian/idfplus/
+debian/files
+*.substvars
 
 # Installer logs
 pip-log.txt
