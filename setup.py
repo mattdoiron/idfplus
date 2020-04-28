@@ -264,14 +264,15 @@ class bdist_deb(_bdist):
     def test(self):
         print('No tests available')
 
+
 setup(
     name=project,
     version=version,
     author='Matt Doiron',
     author_email='mattdoiron@gmail.com',
-    url='https://bitbucket.org/mattdoiron/idfplus/',
-    download_url='https://bitbucket.org/mattdoiron/idfplus/downloads/',
+    url='https://github.com/mattdoiron/idfplus/',
     description='Advanced editor for EnergyPlus simulation input files.',
+    long_description_content_type='text/x-rst',
     long_description=readme + '\n\n' + changelog,
     keywords='idd idf energyplus idfplus idf+ energy+',
     packages=packages,
@@ -296,6 +297,11 @@ setup(
         'Topic :: Scientific/Engineering :: Physics',
         'Natural Language :: English',
     ],
+    project_urls={
+        'Bug Reports': 'https://github.com/mattdoiron/idfplus/issues',
+        'Source': 'https://github.com/mattdoiron/idfplus/',
+        'Releases': 'https://github.com/mattdoiron/idfplus/releases',
+    },
     entry_points={
         'gui_scripts': [
             'idfplus=idfplus:main',
