@@ -1,9 +1,6 @@
 name: IDFPlus Build Workflow
 
-on:
-  push:
-    branches:
-      - ${{ github.ref }}
+on: push
 
 jobs:
   build:
