@@ -3,7 +3,7 @@ name: IDFPlus Build Workflow
 on:
   push:
     branches:
-      - build-workflow-testing
+      - ${{ github.ref }}
 
 jobs:
   build:
