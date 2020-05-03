@@ -103,9 +103,10 @@ class bdist_msi(_bdist_msi):
         bind_dir = os.path.join(dist_dir, project)
         wix_obj = os.path.join(build_dir, '{}.wixobj'.format(project))
         wxs_file = os.path.join(resources_dir, '{}.wxs'.format(project))
-        msi_file = os.path.join(dist_dir, '{}-v{}.msi'.format(project, version))
+        msi = '{}_{}.msi'.format(project, version)
+        msi_file = os.path.join(dist_dir, msi)
         artifact_dir = os.path.join(root_path, 'artifacts')
-        artifact_file = os.path.join(artifact_dir, '{}-v{}.msi'.format(project, version))
+        artifact_file = os.path.join(artifact_dir, msi)
         my_env = os.environ.copy()
         if my_env.get("WIX"):
             wix_bin_dir = os.path.join(my_env["WIX"], "bin")
@@ -240,7 +241,7 @@ class bdist_deb(_bdist):
 
     def run(self):
         root_path = os.path.dirname(__file__)
-        deb = '{}_0.2.1-0_all.deb'.format(project)
+        deb = '{}_{}.deb'.format(project, version)
         deb_file = os.path.join('..', root_path, deb)
         artifact_dir = os.path.join(root_path, 'artifacts')
 
