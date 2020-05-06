@@ -9,6 +9,7 @@
 # System imports
 import os
 import re
+from email.utils import formatdate
 import sys
 import platform
 import errno
@@ -18,6 +19,8 @@ from setuptools import setup
 from setuptools import Command
 from setuptools.command.test import test as _test
 from setuptools.dist import DistutilsOptionError
+import fileinput
+from shutil import copyfile
 
 if sys.platform.startswith('win'):
     from distutils.command.bdist_msi import bdist_msi as _bdist_msi
@@ -241,9 +244,15 @@ class bdist_deb(_bdist):
 
     def run(self):
         root_path = os.path.dirname(__file__)
-        deb = '{}_{}.deb'.format(project, version)
+        changelog_template = os.path.join(root_path, 'resources', 'deb_changelog')
+        changelog_deb = os.path.join(root_path, 'debian', 'changelog')
+        deb = '{}_{}-0_all.deb'.format(project, version)
         deb_file = os.path.join('..', root_path, deb)
         artifact_dir = os.path.join(root_path, 'artifacts')
+
+        # Move debian changelog template to debian folder and populate it
+        copyfile(changelog_template, changelog_deb)
+        self.write_changelog(changelog_deb)
 
         print('Running dpkg-builddeb...')
         try:
@@ -258,7 +267,14 @@ class bdist_deb(_bdist):
             os.makedirs(artifact_dir)
         os.rename(deb_file, os.path.join(artifact_dir, deb))
 
+        os.remove(changelog_deb)
         print("Creation of deb complete. See {}.".format(os.path.join(artifact_dir, deb_file)))
+
+    @staticmethod
+    def write_changelog(file_name):
+        with fileinput.FileInput(file_name, inplace=True) as file:
+            for line in file:
+                print(line.replace("<version>", version).replace("<chagelog_timestamp>", formatdate()), end='')
 
     def test(self):
         print('No tests available')
