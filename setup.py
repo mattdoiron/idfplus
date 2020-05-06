@@ -227,7 +227,7 @@ class Freeze(Command):
 
 
 class bdist_deb(_bdist):
-    description = 'Used to build an deb installer. Debian/Ubuntu only.'
+    description = 'Used to build a deb installer. Debian/Ubuntu only.'
     user_options = []
     all_versions = ['3.7']
 
@@ -257,8 +257,6 @@ class bdist_deb(_bdist):
         if not os.path.exists(artifact_dir):
             os.makedirs(artifact_dir)
         os.rename(deb_file, os.path.join(artifact_dir, deb))
-        print(artifact_dir)
-        print(deb_file)
 
         print("Creation of deb complete. See {}.".format(os.path.join(artifact_dir, deb_file)))
 
