@@ -7,7 +7,7 @@ Build-Depends: debhelper (>= 9)
 Package: idfplus
 Architecture: all
 Provides: idfplus
-Homepage: https://bitbucket.org/mattdoiron/idfplus
+Homepage: https://github.com/mattdoiron/idfplus/
 Description: IDF+ is an enhanced editor for EnergyPlus input files.
  IDF+ is an enhanced editor for idf files—the text-based, simulation input files for
  EnergyPlus. In creating the tool, I've attempted to embrace the concepts and ideas that I find

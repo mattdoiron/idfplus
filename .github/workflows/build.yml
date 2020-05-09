@@ -1,9 +1,6 @@
 name: IDFPlus Build Workflow
 
-on:
-  push:
-    branches:
-      - build-workflow-testing
+on: push
 
 jobs:
   build:
@@ -40,7 +37,7 @@ jobs:
 
       - name: Package the app
         run: |
-          python setup.py bdist
+          python setup.py make_installer
 
       - name: Archive production artifacts
         uses: actions/upload-artifact@v1
