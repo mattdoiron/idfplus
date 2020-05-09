@@ -10,7 +10,7 @@ import os
 
 block_cipher = None
 project = 'idfplus'
-main_module = 'main.py'
+main_module = 'idfplus/__main__.py'
 icon_path = os.path.join('resources', 'images', 'logo.ico')
 datas_path = os.path.join('resources', 'datas')
 version_info_path = os.path.join('resources', 'version_info.txt')

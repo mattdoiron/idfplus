@@ -9,6 +9,7 @@
 # System imports
 import os
 import re
+from email.utils import formatdate
 import sys
 import platform
 import errno
@@ -18,6 +19,8 @@ from setuptools import setup
 from setuptools import Command
 from setuptools.command.test import test as _test
 from setuptools.dist import DistutilsOptionError
+import fileinput
+from shutil import copyfile
 
 if sys.platform.startswith('win'):
     from distutils.command.bdist_msi import bdist_msi as _bdist_msi
@@ -55,7 +58,7 @@ requires_test = [
     'pytest==5.3.5',
     'pytest-qt==3.3.0'
 ]
-requires_setup = []
+requires_setup = ['wheel==0.34.2']
 
 with open(os.path.join(project, '__init__.py'), 'r') as fd:
     version = re.search(r'^__version__\s*=\s*[\'"]([^\'"]*)[\'"]',
@@ -103,9 +106,10 @@ class bdist_msi(_bdist_msi):
         bind_dir = os.path.join(dist_dir, project)
         wix_obj = os.path.join(build_dir, '{}.wixobj'.format(project))
         wxs_file = os.path.join(resources_dir, '{}.wxs'.format(project))
-        msi_file = os.path.join(dist_dir, '{}-v{}.msi'.format(project, version))
+        msi = '{}_{}.msi'.format(project, version)
+        msi_file = os.path.join(dist_dir, msi)
         artifact_dir = os.path.join(root_path, 'artifacts')
-        artifact_file = os.path.join(artifact_dir, '{}-v{}.msi'.format(project, version))
+        artifact_file = os.path.join(artifact_dir, msi)
         my_env = os.environ.copy()
         if my_env.get("WIX"):
             wix_bin_dir = os.path.join(my_env["WIX"], "bin")
@@ -226,7 +230,7 @@ class Freeze(Command):
 
 
 class bdist_deb(_bdist):
-    description = 'Used to build an deb installer. Debian/Ubuntu only.'
+    description = 'Used to build a deb installer. Debian/Ubuntu only.'
     user_options = []
     all_versions = ['3.7']
 
@@ -240,9 +244,15 @@ class bdist_deb(_bdist):
 
     def run(self):
         root_path = os.path.dirname(__file__)
-        deb = '{}_0.2.1-0_all.deb'.format(project)
+        changelog_template = os.path.join(root_path, 'resources', 'deb_changelog')
+        changelog_deb = os.path.join(root_path, 'debian', 'changelog')
+        deb = '{}_{}-0_all.deb'.format(project, version)
         deb_file = os.path.join('..', root_path, deb)
         artifact_dir = os.path.join(root_path, 'artifacts')
+
+        # Move debian changelog template to debian folder and populate it
+        copyfile(changelog_template, changelog_deb)
+        self.write_changelog(changelog_deb)
 
         print('Running dpkg-builddeb...')
         try:
@@ -256,22 +266,28 @@ class bdist_deb(_bdist):
         if not os.path.exists(artifact_dir):
             os.makedirs(artifact_dir)
         os.rename(deb_file, os.path.join(artifact_dir, deb))
-        print(artifact_dir)
-        print(deb_file)
 
+        os.remove(changelog_deb)
         print("Creation of deb complete. See {}.".format(os.path.join(artifact_dir, deb_file)))
+
+    @staticmethod
+    def write_changelog(file_name):
+        with fileinput.FileInput(file_name, inplace=True) as file:
+            for line in file:
+                print(line.replace("<version>", version).replace("<chagelog_timestamp>", formatdate()), end='')
 
     def test(self):
         print('No tests available')
+
 
 setup(
     name=project,
     version=version,
     author='Matt Doiron',
     author_email='mattdoiron@gmail.com',
-    url='https://bitbucket.org/mattdoiron/idfplus/',
-    download_url='https://bitbucket.org/mattdoiron/idfplus/downloads/',
+    url='https://github.com/mattdoiron/idfplus/',
     description='Advanced editor for EnergyPlus simulation input files.',
+    long_description_content_type='text/x-rst',
     long_description=readme + '\n\n' + changelog,
     keywords='idd idf energyplus idfplus idf+ energy+',
     packages=packages,
@@ -281,6 +297,7 @@ setup(
     install_requires=requires,
     setup_requires=requires_setup,
     tests_require=requires_test,
+    python_requires=">=3.7",
     classifiers=[
         'Programming Language :: Python :: 3.7',
         'Development Status :: 4 - Beta',
@@ -296,14 +313,19 @@ setup(
         'Topic :: Scientific/Engineering :: Physics',
         'Natural Language :: English',
     ],
+    project_urls={
+        'Bug Reports': 'https://github.com/mattdoiron/idfplus/issues',
+        'Source': 'https://github.com/mattdoiron/idfplus/',
+        'Releases': 'https://github.com/mattdoiron/idfplus/releases',
+    },
     entry_points={
         'gui_scripts': [
-            'idfplus=idfplus:main',
+            'idfplus=idfplus.__main__:main',
         ],
     },
     cmdclass={
         'freeze': Freeze,
-        'bdist': bdist_msi if sys.platform.startswith('win') else bdist_deb,
+        'make_installer': bdist_msi if sys.platform.startswith('win') else bdist_deb,
         'harvest': Harvest,
         'test': PyTest,
     },

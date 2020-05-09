@@ -365,14 +365,14 @@ class IDFPlus(QMainWindow, main.UIMainWindow):
         """Called by the about action.
         """
 
-        import PySide2
+        from PySide2 import __version__ as pyside2_version
 
         QMessageBox.about(self, "About IDF+",
                 """<b>IDF+</b> v{0}
                 <p>This is an enhanced editor for EnergyPlus simulation input files.
                 For more information please see
-                <a href="https://bitbucket.org/mattdoiron/idfplus/">
-                https://bitbucket.org/mattdoiron/idfplus/
+                <a href="https://github.com/mattdoiron/idfplus/">
+                https://github.com/mattdoiron/idfplus/
                 </a></p>
                 <p>Copyright &copy; 2014-2017 Matt Doiron (matt@mindfulmodeller.ca).
                 All rights reserved.</p>
@@ -387,7 +387,7 @@ class IDFPlus(QMainWindow, main.UIMainWindow):
                 http://www.gnu.org/licenses/</a> for more details.</p>
                 <p>Built with: Python {1}, Qt {2} and PySide {3} on {4}</p>""".format(
                 __version__, platform.python_version(),
-                qVersion(), PySide2.__version__,
+                qVersion(), pyside2_version,
                 platform.system()))
 
     def navForward(self):

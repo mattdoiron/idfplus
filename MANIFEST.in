@@ -1,6 +1,7 @@
 include MANIFEST.in
 include *.txt
 include *.rst
+include pyproject.toml
 include idfplus.py
 graft idfplus
 graft tests
