@@ -4,6 +4,25 @@
 #
 #    pip-compile requirements-test.in
 #
-py==1.4.31                # via pytest
-pytest==5.2.4
+atomicwrites==1.4.0
+    # via pytest
+attrs==20.3.0
+    # via pytest
+more-itertools==8.7.0
+    # via pytest
+packaging==20.9
+    # via pytest
+pluggy==0.13.1
+    # via pytest
+py==1.10.0
+    # via pytest
+pyparsing==2.4.7
+    # via packaging
 pytest-qt==3.2.2
+    # via -r requirements-test.in
+pytest==5.2.4
+    # via
+    #   -r requirements-test.in
+    #   pytest-qt
+wcwidth==0.2.5
+    # via pytest
