@@ -382,9 +382,9 @@ class TransposeProxyModel(QAbstractProxyModel):
     """Translates columns to rows or vice versa
     """
 
-    def __init__(self, parent, **kwargs):
+    def __init__(self, *args, **kwargs):
         self._obj_orientation = kwargs.pop('obj_orientation', Qt.Vertical)
-        super(TransposeProxyModel, self).__init__(parent, **kwargs)
+        super(TransposeProxyModel, self).__init__(*args, **kwargs)
 
     @property
     def obj_orientation(self):
@@ -594,14 +594,18 @@ class TransposeProxyModel(QAbstractProxyModel):
 
         return self.sourceModel().obj_class
 
+    @property
+    def idd_object(self):
+        return self.sourceModel().idd_object
 
 class SortFilterProxyModel(QSortFilterProxyModel):
     """Proxy layer to sort and filter
     """
 
-    def __init__(self, parent, obj_orientation=None):
-        super(SortFilterProxyModel, self).__init__(parent)
+    def __init__(self, *args, obj_orientation=None, **kwargs):
+        super(SortFilterProxyModel, self).__init__(*args, **kwargs)
 
+        self.idf = None
         self._obj_orientation = obj_orientation or Qt.Vertical
         syntax = QRegExp.PatternSyntax(QRegExp.Wildcard)
         case_sensitivity = Qt.CaseInsensitive
@@ -686,6 +690,9 @@ class SortFilterProxyModel(QSortFilterProxyModel):
     def obj_class(self):
         return self.sourceModel().obj_class
 
+    @property
+    def idd_object(self):
+        return self.sourceModel().idd_object
 
 class TableView(QTableView):
     """Subclass of QTableView to allow custom editing behaviour.
