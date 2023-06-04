@@ -296,16 +296,17 @@ class ChoiceDelegate(CustomStyledItemDelegate):
                     else:
                         class_list.extend(self.main_window.idd.object_lists[value])
 
-                    # Cycle through all classes in the list
                     for cls in class_list:
-
-                        # Get the objects for the current class
-                        idf_objects = self.main_window.idf.get(cls)
-
-                        # Cycle through all idf objects in the class
-                        for obj in idf_objects:
-                            self.model.appendRow([QStandardItem(obj[0].value),
-                                                  QStandardItem(cls)])
+                        if 'EquipmentTypes' in value:
+                            # Add only class names to current model, not objects
+                            self.model.appendRow([QStandardItem(cls),
+                                                  QStandardItem(value)])
+                        else:
+                            # Get the objects for the current class and add them to model
+                            idf_objects = self.main_window.idf.get(cls)
+                            for obj in idf_objects:
+                                self.model.appendRow([QStandardItem(obj[0].value),
+                                                      QStandardItem(cls)])
                 elif tag == 'node':
                     # Retrieve a list of all nodes?
                     pass
