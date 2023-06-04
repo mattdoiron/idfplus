@@ -46,20 +46,13 @@ class IDFObjectTableModel(QAbstractTableModel):
         super(IDFObjectTableModel, self).__init__(parent)
 
     def setObjectClass(self, obj_class, idf):
-        self.modelAboutToBeReset.emit()
-        self.beginResetModel()
         self.obj_class = obj_class
         self.idf = idf
         self.idd = idf.idd
         self.idf_objects = idf.idf_objects(obj_class)
         self.idd_object = idf.idd.idd_object(obj_class)
         self._refresh_labels()
-        self.endResetModel()
 
-    def reset_model(self):
-        self.modelAboutToBeReset.emit()
-        self.beginResetModel()
-        self.endResetModel()
 
     def flags(self, index):
         """Override Qt flags method for custom editing behaviour
@@ -402,17 +395,8 @@ class TransposeProxyModel(QAbstractProxyModel):
         self._obj_orientation = value
         self.sourceModel().obj_orientation = value
 
-    def setObjectClass(self, *args, **kwargs):
-        self.modelAboutToBeReset.emit()
-        self.beginResetModel()
-        self.sourceModel().setObjectClass(*args, **kwargs)
-        self.endResetModel()
-
-    def reset_model(self):
-        self.modelAboutToBeReset.emit()
-        self.beginResetModel()
-        self.sourceModel().reset_model()
-        self.endResetModel()
+    def setObjectClass(self, obj_class, idf):
+        self.sourceModel().setObjectClass(obj_class, idf)
 
     def setSourceModel(self, source):
         """Defines the source model to use and connects some signals.
@@ -634,30 +618,23 @@ class SortFilterProxyModel(QSortFilterProxyModel):
         self._obj_orientation = value
         self.sourceModel().obj_orientation = value
 
-    def setObjectClass(self, *args, **kwargs):
-        self.modelAboutToBeReset.emit()
-        self.beginResetModel()
-        self.sourceModel().setObjectClass(*args, **kwargs)
-        self.endResetModel()
-
-    def reset_model(self):
-        self.modelAboutToBeReset.emit()
-        self.beginResetModel()
-        self.sourceModel().reset_model()
-        self.endResetModel()
+    def setObjectClass(self, obj_class, idf):
+        self.sourceModel().setObjectClass(obj_class, idf)
+        self.invalidate()
+        self.idf = idf
+        self.resized_rows = []
 
     def filterAcceptsColumn(self, col, parent):
         if self.obj_orientation == Qt.Horizontal:
             return True
 
-        model = self.sourceModel()
-        row_count = model.rowCount(col)
         reg_exp = self.filterRegExp()
-
-        for row in range(row_count):
-            data = model.index(row, col, parent).data()
-            if reg_exp.indexIn(data) != -1:
-                return True
+        if not self.idf:
+            return True
+        objects = self.idf.idf_objects(self.obj_class)
+        obj = objects[col]
+        if reg_exp.indexIn(str(obj)) != -1:
+            return True
 
         return False
 
@@ -665,14 +642,13 @@ class SortFilterProxyModel(QSortFilterProxyModel):
         if self.obj_orientation == Qt.Vertical:
             return True
 
-        model = self.sourceModel()
-        column_count = model.columnCount(row)
         reg_exp = self.filterRegExp()
-
-        for col in range(column_count):
-            data = model.index(row, col, parent).data()
-            if reg_exp.indexIn(data) != -1:
-                return True
+        if not self.idf:
+            return True
+        objects = self.idf.idf_objects(self.obj_class)
+        obj = objects[row]
+        if reg_exp.indexIn(str(obj)) != -1:
+            return True
 
         return False
 
