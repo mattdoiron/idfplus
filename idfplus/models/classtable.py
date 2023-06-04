@@ -787,9 +787,29 @@ class TableView(QTableView):
         self.setCurrentIndex(to_select)
 
     def resize_visible_rows(self):
+        """
+        Resize rows to fit text and current column width, but only if rows is both visible
+        and contains an alphanumeric value (not just numbers)
+        """
+        #TODO broken for transposed view?
+
         viewport_rect = QRect(QPoint(0, 0), self.viewport().size())
-        for row in range(self.model().rowCount()):
-            rect = self.visualRect(self.model().index(row, 0))
+        model = self.model()
+        resized_rows = model.resized_rows
+        field_types = list(model.idd_object.keys())
+        orientation = model.obj_orientation
+
+        if orientation == Qt.Vertical:
+            count = range(model.rowCount())
+        else:
+            count = range(model.columnCount())
+
+        for i in count:
+            if orientation == Qt.Vertical:
+                rect = self.visualRect(model.index(i, 0))
+            else:
+                rect = self.visualRect(model.index(0, i))
             is_visible = viewport_rect.contains(rect)
-            if is_visible:
-                self.resizeRowToContents(row)
+            if is_visible and field_types[i][0] == 'A' and i not in resized_rows:
+                self.resizeRowToContents(i)
+                resized_rows.append(i)
