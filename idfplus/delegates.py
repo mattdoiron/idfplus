@@ -345,7 +345,6 @@ class ChoiceDelegate(CustomStyledItemDelegate):
             value = index.data(Qt.EditRole)
             current_item = QStandardItem('current')
             value_item = QStandardItem(value)
-            self.model.insertRow(0, [value_item, current_item])
             auto_complete = True
         else:
             auto_complete = False
@@ -370,6 +369,9 @@ class ChoiceDelegate(CustomStyledItemDelegate):
         self.tableView.horizontalHeader().setVisible(False)
         self.tableView.resizeColumnsToContents()
         self.tableView.resizeRowsToContents()
+        self.tableView.sortByColumn(0, Qt.AscendingOrder)  ## does this slow things down too much?
+        if self.model.rowCount() > 0:  ## do here after the sort
+            self.model.insertRow(0, [value_item, current_item])
 
         # Assign model and view. Model fist!
         self.comboBox.setModel(self.model)
