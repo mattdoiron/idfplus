@@ -1,5 +1,5 @@
 # requirements.in
-appdirs==1.4.3
-odict==1.7.0
-persistent==4.5.1
-pyside2==5.14.1
+appdirs==1.4.4
+odict==1.9.0
+persistent==5.0
+pyside2==5.15.2.1
