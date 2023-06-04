@@ -1148,6 +1148,7 @@ class IDFPlus(QMainWindow, main.UIMainWindow):
             # self.classTable.setFocus()
 
         # Resize rows for text wrap
+        self.classTable.verticalHeader().setDefaultSectionSize(22)
         self.classTable.resize_visible_rows()
 
         # Now that there is a class selected, enable some actions and set some vars
