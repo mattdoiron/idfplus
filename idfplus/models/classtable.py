@@ -180,8 +180,8 @@ class IDFObjectTableModel(QAbstractTableModel):
         """
 
         if self.idf_objects:
-            idf_max_length = max([len(obj) for obj in self.idf_objects])
-            return max(idf_max_length, len(self.idd_object))
+            idf_max_length = max(self.idf_objects, key=len)
+            return max(len(idf_max_length), len(self.idd_object))
         else:
             return len(self.idd_object or [])
 
