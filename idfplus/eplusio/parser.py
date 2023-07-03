@@ -794,6 +794,7 @@ class IDFParser(Parser):
                     append_idf_object(new_field)
 
                     # Store the field in a list to be passed to SQL later
+                    # Use generated uuid so that we can query a field directly in the db
                     if file_path is not None:
                         append_new_field((new_field.uuid,
                                           obj_class,
