@@ -81,6 +81,15 @@ class IDFFile(dict):
                        "obj_class_display TEXT,"
                        "ref_type TEXT,"
                        "value TEXT COLLATE NOCASE)")
+        # cursor.execute("CREATE TABLE reference_names"
+        #                "(id INTEGER PRIMARY KEY,"
+        #                "name TEXT COLLATE NOCASE)")
+        # cursor.execute("CREATE TABLE reference_links"
+        #                "(id INTEGER PRIMARY KEY,"
+        #                "reference_id INTEGER,"
+        #                "field_uuid TEXT,"
+        #                "FOREIGN KEY(reference_id) REFERENCES reference_names(id),"
+        #                "FOREIGN KEY(field_uuid) REFERENCES idf_fields(uuid) ON DELETE CASCADE)")
         self.db.commit()
 
     def init_blank(self):
@@ -365,6 +374,51 @@ class IDFFile(dict):
         for obj in new_objects:
             self._upsert_field_index(obj, commit=False)
         self.db.commit()
+
+    # def index_all_references(self):
+    #     """Adds references for all objects to the internal index
+    #     """
+    #
+    #     # Create list of all reference names and save them to the db
+    #     ref_names = list()
+    #     for obj_class in self:
+    #         objects = self[obj_class]
+    #         for obj in objects:
+    #             for field in obj:
+    #                 if field.ref_type:
+    #                     for ref_type in field.ref_type:
+    #                         ref = field.tags[ref_type]
+    #                         if isinstance(ref, list):
+    #                             ref_names.extend(ref)
+    #                         else:
+    #                             ref_names.append(ref)
+    #     insert_ref_names = "INSERT INTO reference_names (name) VALUES (?)"
+    #     self.db.executemany(insert_ref_names, zip(set(ref_names)))
+    #     self.db.commit()
+    #
+    #     # do it all again because we need to have the reference_names in there already?
+    #     field_references = []
+    #     refs_query = []
+    #     for obj_class in self:
+    #         objects = self[obj_class]
+    #         for obj in objects:
+    #             for field in obj:
+    #                 if field.ref_type:
+    #                     for ref_type in field.ref_type:
+    #                         ref = field.tags[ref_type]
+    #                         if isinstance(ref, list):
+    #                             field_references.extend(ref)
+    #                         else:
+    #                             field_references.append(ref)
+    #                 for ref in set(field_references):
+    #                     refs_query.append((ref, field.value))
+    #                 insert_refs= "INSERT INTO reference_links (reference_id, field_uuid)" \
+    #                              "VALUES ((SELECT id from reference_names WHERE name=?)," \
+    #                                      "(SELECT uuid from idf_fields WHERE uuid=?))"
+    #                 self.db.executemany(insert_refs, refs_query)
+    #                 self.db.commit()
+    #                 field_references = []
+    #                 refs_query = []
 
     def _deindex_objects(self, objects_to_delete):
         """Remove specified objects from the internal index
@@ -957,8 +1011,19 @@ class IDFField(object):
             if type_tag == 'node':
                 self._ref_type = 'node'
             else:
+                #TODO This picks the first type from the list! what if it has multiple types?
                 self._ref_type = str(list(ref_type_set)[0]) if ref_type_set else None
         return self._ref_type
+
+    @property
+    def ref_types(self):
+        """Read-only property containing list of reference types
+
+        :rtype: list
+        """
+        allowable_refs = {'reference', 'object-list', 'reference-class-name', 'node'}
+        ref_types = list(set(self.tags.keys()) & allowable_refs)
+        return ref_types
 
     @property
     def idd_object(self):
