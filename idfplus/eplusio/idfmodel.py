@@ -75,8 +75,8 @@ class IDFFile(dict):
         cursor = self.db.cursor()
 
         # Create table with uuid as primary key and case-insensitive value
-        cursor.execute("CREATE TABLE idf_objects"
-                       "(uuid TEXT PRIMARY KEY,"
+        cursor.execute("CREATE TABLE idf_fields"
+                       "(uuid PRIMARY KEY,"
                        "obj_class TEXT,"
                        "obj_class_display TEXT,"
                        "ref_type TEXT,"
@@ -168,6 +168,16 @@ class IDFFile(dict):
             return -1
         if field.ref_type not in ['object-list', 'reference']:
             return -1
+        if field.ref_type == 'object-list':
+            # Don't check object-lists that are made up of types of objects ie Boiler:HotWater
+            tags = field.tags['object-list']
+            if type(tags) is list:
+                for tag in tags:
+                    if tag.lower().endswith('types'):
+                        return -1
+            else:
+                if tags.lower().endswith('types'):
+                    return -1
 
         return len(self.references(field))
 
@@ -200,14 +210,22 @@ class IDFFile(dict):
         :rtype: list(IDFField)
         """
 
-        query = "value='{}' AND ref_type='{}'".format(field.value, ref_type)
-        query += " AND NOT obj_class ='{}'".format(field.obj_class)
+        if ref_type == 'node':
+            query = "value='{}' AND ref_type='{}'".format(field.value, ref_type)
+        else:
+            query = "value='{}'".format(field.value)
+
+        if field.obj_class in ['buildingsurface:detailed', 'fenestrationsurface:detailed']:
+            ignore_geometry = False
+        else:
+            # ignore references to itself:
+            query += " AND NOT obj_class='{}'".format(field.obj_class)
 
         if ignore_geometry:
             query += " AND NOT obj_class='buildingsurface:detailed'"
             query += " AND NOT obj_class='fenestrationsurface:detailed'"
 
-        query_records = "SELECT * from idf_objects WHERE {}".format(query)
+        query_records = "SELECT * from idf_fields WHERE {}".format(query)
 
         try:
             records = self.db.execute(query_records).fetchall()
@@ -215,7 +233,11 @@ class IDFFile(dict):
             records = []
             print("Invalid SQLite query! ('{}')".format(query_records))
 
-        results = [self.field_by_uuid(row['uuid']) for row in records]
+        results = []
+        for row in records:
+            # Add only rows that are not itself
+            if field.uuid != row['uuid']:
+                results.append(self.field_by_uuid(row['uuid']))
 
         return results
 
@@ -379,7 +401,7 @@ class IDFFile(dict):
                 append_new_field((field.uuid, field.obj_class, field.obj_class_display,
                                   field.ref_type, field.value))
 
-        upsert_operation = "INSERT OR REPLACE INTO idf_objects VALUES (?, ?, ?, ?, ?)"
+        upsert_operation = "INSERT OR REPLACE INTO idf_fields VALUES (?, ?, ?, ?, ?)"
         self.db.executemany(upsert_operation, field_objects)
 
         if commit:
@@ -877,7 +899,7 @@ class IDFField(object):
 
     @property
     def obj_class(self):
-        """Returns this field's outer object's (:class:`IDFObject`) class
+        """Returns this field's outer object's (:class:`IDFObject`) class (all lower case)
 
         :rtype: str
         """

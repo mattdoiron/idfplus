@@ -47,6 +47,7 @@ TAG_LIST = ['\\field',
             '\\retaincase',
             '\\key',
             '\\object-list',
+            '\\reference-class-name', ## must come before '\\reference'
             '\\reference',
             '\\memo',
             '\\unique-object',
@@ -541,20 +542,24 @@ class IDDParser(Parser):
                             idd_object._extensible = set_length
 
                         # Check for reference tag to construct ref-lists
-                        if 'reference' in tags:
-                            if isinstance(tags['reference'], list):
-                                for tag in tags['reference']:
+                        for tag in ['reference-class-name', 'reference']:
+                            if not tag in tags:
+                                continue
+                            if isinstance(tags[tag], list):
+                                for ref_tag in tags[tag]:
                                     try:
-                                        object_lists[tag].add(obj_class)
+                                        object_lists[ref_tag].add(obj_class_display)
                                     except KeyError:
-                                        object_lists[tag] = {obj_class}
-                                    object_list_length += 1
+                                        object_lists[ref_tag] = {obj_class_display}
+                                    if tag == 'reference':
+                                        object_list_length += 1
                             else:
                                 try:
-                                    object_lists[tags['reference']].add(obj_class)
+                                    object_lists[tags[tag]].add(obj_class_display)
                                 except KeyError:
-                                    object_lists[tags['reference']] = {obj_class}
-                                object_list_length += 1
+                                    object_lists[tags[tag]] = {obj_class_display}
+                                if tag == 'reference':
+                                    object_list_length += 1
 
                         idd_object[field_key] = new_field
 
@@ -820,8 +825,9 @@ class IDFParser(Parser):
 
         # Execute the SQL to insert the new objects
         if file_path is not None:
-            insert_operation = "INSERT INTO idf_objects VALUES (?,?,?,?,?)"
-            self.idf.db.executemany(insert_operation, field_objects)
+            insert_fields = 'INSERT INTO idf_fields (uuid, obj_class, obj_class_display, ref_type, value)' \
+                            'VALUES (?,?,?,?,?)'
+            self.idf.db.executemany(insert_fields, field_objects)
             self.idf.db.commit()
 
         log.info('Parsing IDF complete!')
