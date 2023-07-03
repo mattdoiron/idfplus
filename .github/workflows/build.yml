@@ -1,6 +1,8 @@
 name: IDFPlus Build Workflow
 
-on: push
+on:
+  push:
+  workflow_dispatch:
 
 jobs:
   build:
@@ -13,12 +15,31 @@ jobs:
         os: [ubuntu-18.04, windows-2019]
 
     steps:
+      - name: Check out repository
       - uses: actions/checkout@v1
 
       - name: Setup Python
         uses: actions/setup-python@v1
         with:
           python-version: 3.7
+
+      - name: Enable caching for pip in Ubuntu
+      - uses: actions/cache@v2
+        if: startswith(matrix.os, 'ubuntu')
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+
+      - name: Enable caching for pip in Windows
+      - uses: actions/cache@v2
+        if: startsWith(runner.os, 'Windows')
+        with:
+          path: ~\AppData\Local\pip\Cache
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
 
       - name: Install global dependencies
         run: |

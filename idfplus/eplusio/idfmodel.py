@@ -249,7 +249,7 @@ class IDFFile(dict):
             query += " AND NOT obj_class='buildingsurface:detailed'"
             query += " AND NOT obj_class='fenestrationsurface:detailed'"
 
-        query_records = "SELECT * from idf_objects WHERE {}".format(query)
+        query_records = "SELECT * from idf_fields WHERE {}".format(query)
 
         try:
             records = self.db.execute(query_records).fetchall()
@@ -359,7 +359,7 @@ class IDFFile(dict):
                 if field:
                     append_new_field((field.uuid,))
 
-        delete_operation = "DELETE FROM idf_objects WHERE uuid=(?)"
+        delete_operation = "DELETE FROM idf_fields WHERE uuid=(?)"
         self.db.executemany(delete_operation, field_objects)
         self.db.commit()
 
@@ -379,7 +379,12 @@ class IDFFile(dict):
                 append_new_field((field.uuid, field.obj_class, field.obj_class_display,
                                   field.ref_type, field.value))
 
+<<<<<<< Updated upstream
         upsert_operation = "INSERT OR REPLACE INTO idf_objects VALUES (?, ?, ?, ?, ?)"
+=======
+        upsert_operation = 'INSERT OR REPLACE INTO idf_fields (uuid, obj_class, obj_class_display, ref_type, value)' \
+                           'VALUES (?,?,?,?,?)'
+>>>>>>> Stashed changes
         self.db.executemany(upsert_operation, field_objects)
 
         if commit:
