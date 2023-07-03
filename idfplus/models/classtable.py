@@ -73,7 +73,6 @@ class IDFObjectTableModel(QAbstractTableModel):
         data.
 
         :param QModelIndex index: QModelIndex of the cell for which data is requested
-        :param int role: Role being requested (Qt.Role)
         :param Qt.Role role: Role being requested
         """
 
