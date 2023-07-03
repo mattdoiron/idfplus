@@ -171,27 +171,28 @@ class IDFPlus(QMainWindow, main.UIMainWindow):
         """
 
         log.info('Trying to load file: {}'.format(file_path))
-        if not os.path.isfile(file_path):
-            raise OSError(errno.ENOENT, os.strerror(errno.ENOENT), file_path)
-        idf = idfmodel.IDFFile()
-        # self.files.update({0:idf})
+        if file_path:
+            if not os.path.isfile(file_path):
+                raise OSError(errno.ENOENT, os.strerror(errno.ENOENT), file_path)
 
-        # Open the specified file in a safe way
-        with codecs.open(file_path, 'r',
-                         encoding=config.FILE_ENCODING,
-                         errors='backslashreplace') as raw_idf:
-            if file_path:
+            # Open the specified file in a safe way
+            with codecs.open(file_path, 'r',
+                             encoding=config.FILE_ENCODING,
+                             errors='backslashreplace') as raw_idf:
+                idf = idfmodel.IDFFile()
                 idf_parser = parser.IDFParser(idf,
                                               default_version=self.prefs['default_idd_version'])
                 for progress in idf_parser.parse_idf(raw_idf, file_path):
                     self.progressBarIDF.setValue(progress)
-            else:
-                log.info('Loading blank IDF file...')
-                idf.init_blank()
+
+            self.file_time_last_modified = os.path.getmtime(file_path)
+        else:
+            log.info('Loading blank IDF file...')
+            idf = idfmodel.IDFFile()
+            idf.init_blank()
 
         self.idf = idf
         self.idd = idf._idd
-        self.file_time_last_modified = os.path.getmtime(file_path)
         self.check_file_changed = True
 
     def load_file(self, _file_path=None):
