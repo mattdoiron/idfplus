@@ -175,7 +175,7 @@ class IDFFile(dict):
         # Continue only if a valid field is present and the right type
         if not field:
             return -1
-        if field.ref_type not in ['object-list', 'reference']:
+        if field.ref_type not in ['object-list', 'node']:
             return -1
         if field.ref_type == 'object-list':
             # Don't check object-lists that are made up of types of objects ie Boiler:HotWater
