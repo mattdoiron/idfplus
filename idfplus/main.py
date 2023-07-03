@@ -753,7 +753,6 @@ class IDFPlus(QMainWindow, main.UIMainWindow):
         if not self.classTable.model():
             return
         self.classTable.model().setFilterRegExp(pattern)
-        self.classTable.model().invalidateFilter()
         self.classTable.selectionModel().reset()
 
     def treeFilterRegExpChanged(self):
@@ -769,7 +768,6 @@ class IDFPlus(QMainWindow, main.UIMainWindow):
             return
         current_class = QPersistentModelIndex(self.classTree.currentIndex())
         self.classTree.model().setFilterRegExp(pattern)
-        self.classTree.model().invalidateFilter()
         self.classTree.expandAll()
         self.classTree.scrollTo(current_class, QAbstractItemView.PositionAtCenter)
 
