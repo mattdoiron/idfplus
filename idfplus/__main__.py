@@ -6,6 +6,9 @@
 :license: GPL v3, see LICENSE for more details.
 """
 
+#TODO from __feature__ import snake_case, true_property
+# https://www.pythonguis.com/faq/pyside2-vs-pyside6/
+
 # Standard library imports
 import sys
 import os
@@ -29,6 +32,33 @@ def process_args():
     return parser.parse_known_args()
 
 
+def get_darkModePalette(app=None):
+    # example of colour palettes
+    darkPalette = app.palette()
+    darkPalette.setColor(QPalette.Window, QColor(53, 53, 53))
+    darkPalette.setColor(QPalette.WindowText, Qt.white)
+    darkPalette.setColor(QPalette.Disabled, QPalette.WindowText, QColor(127, 127, 127))
+    darkPalette.setColor(QPalette.Base, QColor(42, 42, 42))
+    darkPalette.setColor(QPalette.AlternateBase, QColor(66, 66, 66))
+    darkPalette.setColor(QPalette.ToolTipBase, Qt.white)
+    darkPalette.setColor(QPalette.ToolTipText, Qt.white)
+    darkPalette.setColor(QPalette.Text, Qt.white)
+    darkPalette.setColor(QPalette.Disabled, QPalette.Text, QColor(127, 127, 127))
+    darkPalette.setColor(QPalette.Dark, QColor(35, 35, 35))
+    darkPalette.setColor(QPalette.Shadow, QColor(20, 20, 20))
+    darkPalette.setColor(QPalette.Button, QColor(53, 53, 53))
+    darkPalette.setColor(QPalette.ButtonText, Qt.white)
+    darkPalette.setColor(QPalette.Disabled, QPalette.ButtonText, QColor(127, 127, 127))
+    darkPalette.setColor(QPalette.BrightText, Qt.red)
+    darkPalette.setColor(QPalette.Link, QColor(42, 130, 218))
+    darkPalette.setColor(QPalette.Highlight, QColor(42, 130, 218))
+    darkPalette.setColor(QPalette.Disabled, QPalette.Highlight, QColor(80, 80, 80))
+    darkPalette.setColor(QPalette.HighlightedText, Qt.white)
+    darkPalette.setColor(QPalette.Disabled, QPalette.HighlightedText, QColor(127, 127, 127), )
+
+    return darkPalette
+
+
 def main():
     """Main function to start the program.
     """
@@ -46,10 +76,6 @@ def main():
             app = QApplication(qt_args)
             app.setApplicationName("IDF+ Editor")
             app.setApplicationVersion(version)
-
-
-            # setup stylesheet
-            # apply_stylesheet(app, theme='dark_teal.xml')
             # app.setPalette(get_darkModePalette(app))
 
         # Create the main window and show it
