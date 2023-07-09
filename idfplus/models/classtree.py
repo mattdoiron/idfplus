@@ -6,9 +6,10 @@
 :license: GPL v3, see LICENSE for more details.
 """
 
-# PySide2 imports
-from PySide2.QtCore import Qt, QSortFilterProxyModel, QRegExp
-from PySide2.QtGui import QColor
+# PySide6 imports
+from PySide6.QtCore import Qt, QSortFilterProxyModel
+from PySide6.QtGui import QPalette
+from PySide6.QtWidgets import QApplication
 
 # Package imports
 from .basetree import TreeItem
@@ -50,7 +51,9 @@ class ObjectClassTreeModel(CustomTreeModel):
         elif role == Qt.BackgroundRole:
             item = index.internalPointer()
             if item.parent().data(0) == 'Object Class' and item.data(0) != '' and self.show_groups:
-                data = QColor(205, 192, 176)  # light grey for group headers
+                app = QApplication.instance()
+                palette = app.palette()
+                data = palette.color(QPalette.Highlight)
         elif role == Qt.TextAlignmentRole and index.column() == 1:
             data = Qt.AlignRight
 
@@ -95,10 +98,7 @@ class TreeSortFilterProxyModel(QSortFilterProxyModel):
         self.show_groups = not kwargs.pop('hide_groups', True)
         super(TreeSortFilterProxyModel, self).__init__(*args, **kwargs)
 
-        syntax = QRegExp.PatternSyntax(QRegExp.Wildcard)
         case_sensitivity = Qt.CaseInsensitive
-
-        self.setFilterRegExp(QRegExp('', case_sensitivity, syntax))
         self.setFilterCaseSensitivity(case_sensitivity)
 
     def filterAcceptsRow(self, row, parent):

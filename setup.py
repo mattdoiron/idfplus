@@ -29,8 +29,8 @@ else:
     from setuptools import Command as _bdist_msi
     from distutils.command.bdist import bdist as _bdist
 
-if sys.version_info.major != 3 and sys.version_info.minor < 7:
-    print("Currently compatible with Python 3.7.x only!")
+if sys.version_info.major != 3 and sys.version_info.minor < 11:
+    print("Currently compatible with Python 3.11.x only!")
     sys.exit(1)
 
 
@@ -42,23 +42,22 @@ packages = [
     'idfplus.eplusio',
 ]
 requires = [
-    "appdirs==1.4.3",
-    "odict==1.7.0",
-    "persistent==4.5.1",
-    "PySide2==5.14.1"
+    "appdirs==1.4.4",
+    "odict==1.9.0",
+    "persistent==5.0",
+    "PySide6==6.5.1.1"
 ]
 requires_dev = [
-    "cffi==1.14.0",
-    "pip-tools==4.5.1",
+    "pip-tools==6.14.0",
     "pyinstaller==3.6",
-    "sphinx==2.4.3",
+    "sphinx==6.2.1",
     "pywin32==226 : sys.platform=='win32'"
 ]
 requires_test = [
-    'pytest==5.3.5',
-    'pytest-qt==3.3.0'
+    'pytest==7.4.0',
+    'pytest-qt==4.2.0'
 ]
-requires_setup = ['wheel==0.34.2']
+requires_setup = ['wheel==0.40.0']
 
 with open(os.path.join(project, '__init__.py'), 'r') as fd:
     version = re.search(r'^__version__\s*=\s*[\'"]([^\'"]*)[\'"]',

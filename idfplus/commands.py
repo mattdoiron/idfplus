@@ -10,10 +10,10 @@
 import logging
 from itertools import chain
 
-# PySide2 imports
-from PySide2.QtCore import (Qt, QPersistentModelIndex, QItemSelection, QItemSelectionRange,
+# PySide6 imports
+from PySide6.QtCore import (Qt, QPersistentModelIndex, QItemSelection, QItemSelectionRange,
                             QItemSelectionModel)
-from PySide2.QtWidgets import QUndoCommand
+from PySide6.QtGui import QUndoCommand
 
 # Setup logging
 log = logging.getLogger(__name__)
@@ -24,6 +24,9 @@ class ObjectCmd(QUndoCommand):
     """
 
     def __init__(self, main_window, *args, **kwargs):
+        self.from_clipboard = kwargs.pop('from_clipboard', False)
+        self.from_selection = kwargs.pop('from_selection', False)
+        self.value = kwargs.pop('value', None)
         super(ObjectCmd, self).__init__(*args, **kwargs)
 
         # TODO many of these are not needed for all subclasses. Break them out into
@@ -40,9 +43,6 @@ class ObjectCmd(QUndoCommand):
         self.new_objects = None
         self.new_object_groups = None
         self.old_objects = None
-        self.from_clipboard = kwargs.get('from_clipboard', False)
-        self.from_selection = kwargs.get('from_selection', False)
-        self.value = kwargs.get('value', None)
         self.old_value = None
         self.index_groups = []
         self.delete_count = 1

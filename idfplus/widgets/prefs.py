@@ -9,10 +9,10 @@
 # System imports
 import logging
 
-# PySide2 imports
-from PySide2.QtCore import Qt
-from PySide2.QtGui import QFontDatabase, QIntValidator
-from PySide2.QtWidgets import (QDialog, QDialogButtonBox, QTabWidget, QVBoxLayout, QGroupBox,
+# PySide6 imports
+from PySide6.QtCore import Qt
+from PySide6.QtGui import QFontDatabase, QIntValidator
+from PySide6.QtWidgets import (QDialog, QDialogButtonBox, QTabWidget, QVBoxLayout, QGroupBox,
                                QApplication, QLabel, QFontComboBox, QComboBox, QHBoxLayout,
                                QWidget, QLineEdit, QStyleFactory, QCheckBox, QRadioButton,
                                QButtonGroup, QPushButton)

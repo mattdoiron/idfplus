@@ -6,8 +6,8 @@
 :license: GPL v3, see LICENSE for more details.
 """
 
-# PySide2 imports
-from PySide2.QtCore import Qt, QModelIndex, QAbstractItemModel
+# PySide6 imports
+from PySide6.QtCore import Qt, QModelIndex, QAbstractItemModel
 
 
 class BaseTreeItem(object):

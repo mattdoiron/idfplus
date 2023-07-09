@@ -9,11 +9,11 @@
 # System imports
 import logging
 
-# PySide2 imports
-from PySide2.QtCore import Qt, QSize
-from PySide2.QtGui import (QFontMetrics, QTextOption, QTextCursor, QFont, QStandardItem,
+# PySide6 imports
+from PySide6.QtCore import Qt, QSize
+from PySide6.QtGui import (QFontMetrics, QTextOption, QTextCursor, QFont, QStandardItem,
                            QStandardItemModel, QValidator)
-from PySide2.QtWidgets import (QStyledItemDelegate, QFrame, QAbstractItemView, QTableView,
+from PySide6.QtWidgets import (QStyledItemDelegate, QFrame, QAbstractItemView, QTableView,
                                QComboBox, QCompleter, QPlainTextEdit, QAbstractItemDelegate)
 
 # Package imports

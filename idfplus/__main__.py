@@ -13,7 +13,9 @@ import faulthandler
 import argparse
 
 # PySide imports
-from PySide2.QtWidgets import QApplication
+from PySide6.QtWidgets import QApplication
+from PySide6.QtGui import QPalette, QColor
+from PySide6.QtCore import Qt
 
 # Local imports
 from idfplus import __version__ as version
@@ -45,10 +47,15 @@ def main():
             app.setApplicationName("IDF+ Editor")
             app.setApplicationVersion(version)
 
+
+            # setup stylesheet
+            # apply_stylesheet(app, theme='dark_teal.xml')
+            # app.setPalette(get_darkModePalette(app))
+
         # Create the main window and show it
         idf_plus_window = IDFPlus(args=parsed_args)
         idf_plus_window.show()
-        sys.exit(app.exec_())
+        sys.exit(app.exec())
 
 
 if __name__ == '__main__':

@@ -9,8 +9,8 @@
 # System imports
 from pytestqt import qtbot
 
-# PySide2 imports
-from PySide2.QtWidgets import QTextEdit, QTreeView, QPlainTextEdit, QUndoView, QLineEdit
+# PySide6 imports
+from PySide6.QtWidgets import QTextEdit, QTreeView, QPlainTextEdit, QUndoView, QLineEdit
 
 # Package imports
 from idfplus.main import IDFPlus

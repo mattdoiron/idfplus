@@ -10,8 +10,8 @@
 import os
 import logging
 
-# PySide2 imports
-from PySide2.QtWidgets import (QWizardPage, QLabel, QVBoxLayout, QPushButton, QProgressBar,
+# PySide6 imports
+from PySide6.QtWidgets import (QWizardPage, QLabel, QVBoxLayout, QPushButton, QProgressBar,
                                QFileDialog, QWizard)
 
 # Package imports

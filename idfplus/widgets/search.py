@@ -10,10 +10,10 @@
 import logging
 import re
 
-# PySide2 imports
-from PySide2.QtCore import Qt
-from PySide2.QtGui import QStandardItemModel
-from PySide2.QtWidgets import (QDialog, QHBoxLayout, QPushButton, QTreeView, QAbstractItemView,
+# PySide6 imports
+from PySide6.QtCore import Qt
+from PySide6.QtGui import QStandardItemModel
+from PySide6.QtWidgets import (QDialog, QHBoxLayout, QPushButton, QTreeView, QAbstractItemView,
                                QCheckBox, QLineEdit, QLabel, QVBoxLayout, QMessageBox)
 
 # Setup logging

@@ -11,9 +11,9 @@ import os
 import appdirs
 import logging
 
-# PySide2 imports
-from PySide2.QtCore import QDir, QSettings, QSize, QPoint, QByteArray
-from PySide2.QtWidgets import QStyleFactory, QApplication
+# PySide6 imports
+from PySide6.QtCore import QDir, QSettings, QSize, QPoint, QByteArray
+from PySide6.QtWidgets import QStyleFactory, QApplication
 
 # Constants
 LOG_LEVEL = 'DEBUG'

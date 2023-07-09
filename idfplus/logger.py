@@ -11,8 +11,8 @@ import logging
 import logging.handlers
 import sys
 
-# PySide2 imports
-from PySide2.QtCore import Signal, QObject
+# PySide6 imports
+from PySide6.QtCore import Signal, QObject
 
 
 def setup_logging(_level, name, log_path):

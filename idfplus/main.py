@@ -17,11 +17,11 @@ import errno
 import codecs
 from io import StringIO
 
-# PySide2 imports
-from PySide2.QtCore import (Qt, QTimer, QFileInfo, QModelIndex, qVersion, QPersistentModelIndex,
+# PySide6 imports
+from PySide6.QtCore import (Qt, QTimer, QFileInfo, QModelIndex, qVersion, QPersistentModelIndex,
                             QFile, QItemSelectionModel)
-from PySide2.QtGui import QTextCursor, QIcon, QClipboard
-from PySide2.QtWidgets import (QMainWindow, QFileDialog, QMessageBox, QHeaderView, QAction,
+from PySide6.QtGui import QTextCursor, QIcon, QClipboard, QAction
+from PySide6.QtWidgets import (QMainWindow, QFileDialog, QMessageBox, QHeaderView,
                                QAbstractItemView, QApplication)
 
 # Package imports
@@ -282,7 +282,7 @@ class IDFPlus(QMainWindow, main.UIMainWindow):
 
         wizard = setupwiz.SetupWizard(self, version, message)
         try:
-            if wizard.exec_():
+            if wizard.exec():
                 self.load_idf(file_path)
                 return True
         except (AttributeError, iddmodel.IDDError):
@@ -366,7 +366,7 @@ class IDFPlus(QMainWindow, main.UIMainWindow):
         """Called by the about action.
         """
 
-        from PySide2 import __version__ as pyside2_version
+        from PySide6 import __version__ as PySide6_version
 
         QMessageBox.about(self, "About IDF+",
                 """<b>IDF+</b> v{0}
@@ -388,7 +388,7 @@ class IDFPlus(QMainWindow, main.UIMainWindow):
                 http://www.gnu.org/licenses/</a> for more details.</p>
                 <p>Built with: Python {1}, Qt {2} and PySide {3} on {4}</p>""".format(
                 __version__, platform.python_version(),
-                qVersion(), pyside2_version,
+                qVersion(), PySide6_version,
                 platform.system()))
 
     def navForward(self):
@@ -646,7 +646,7 @@ class IDFPlus(QMainWindow, main.UIMainWindow):
                 <head>
                     <style>
                         h2 {
-                            background-color: silver;
+                            background-color: gray;
                         }
                     </style>
                 </head>
@@ -753,8 +753,13 @@ class IDFPlus(QMainWindow, main.UIMainWindow):
             pattern = None
         if not self.classTable.model():
             return
-        self.classTable.model().setFilterRegExp(pattern)
+        model = self.classTable.model()
+        model.setFilterWildcard(pattern)
         self.classTable.selectionModel().reset()
+        if model.obj_orientation == Qt.Vertical:
+            model.invalidateColumnsFilter()
+        else:
+            model.invalidateRowsFilter()
 
     def treeFilterRegExpChanged(self):
         """
@@ -768,13 +773,13 @@ class IDFPlus(QMainWindow, main.UIMainWindow):
         if not self.classTree.model():
             return
         current_class = QPersistentModelIndex(self.classTree.currentIndex())
-        self.classTree.model().setFilterRegExp(pattern)
+        self.classTree.model().setFilterWildcard(pattern)
         self.classTree.expandAll()
         self.classTree.scrollTo(current_class, QAbstractItemView.PositionAtCenter)
 
         # If the current class was hidden by the filter, clear the tableView
         if not current_class.isValid():
-            self.classTable.model().reset_model()
+            self.classTable.model().invalidateFilter()
 
     def clearFilterClicked(self):
         """Triggered when filter is cleared by button

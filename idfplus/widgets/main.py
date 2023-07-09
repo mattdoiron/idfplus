@@ -10,14 +10,15 @@
 import logging
 from collections import deque
 
-# PySide2 imports
-from PySide2.QtCore import Qt
-from PySide2.QtGui import QFont, QIcon, QKeySequence, QPalette
-from PySide2.QtWidgets import (QUndoStack, QApplication, QAbstractItemView, QFrame, QDockWidget,
+# PySide6 imports
+from PySide6.QtCore import Qt
+from PySide6.QtGui import (QFont, QIcon, QKeySequence, QPalette, QAction, QGuiApplication,
+                           QActionGroup, QUndoStack)
+from PySide6.QtWidgets import (QApplication, QAbstractItemView, QFrame, QDockWidget,
                                QTreeView, QLineEdit, QPushButton, QWidget, QTextEdit, QMenu,
                                QPlainTextEdit, QUndoView, QLabel, QProgressBar, QSystemTrayIcon,
-                               QAction, QActionGroup, QCheckBox, QHeaderView, QVBoxLayout,
-                               QHBoxLayout, QDesktopWidget)
+                               QCheckBox, QHeaderView, QVBoxLayout,
+                               QHBoxLayout)
 
 # Package imports
 from ..models import classtable
@@ -116,7 +117,7 @@ class UIMainWindow(object):
         classTree.setAlternatingRowColors(True)
         classTree.setHorizontalScrollMode(QAbstractItemView.ScrollPerPixel)
         palette = classTree.palette()
-        palette.setColor(QPalette.Highlight, Qt.darkCyan)
+        # palette.setColor(QPalette.Highlight, Qt.darkCyan)
         classTree.setPalette(palette)
 
         class_tree_window = QWidget(classTreeDockWidget)
@@ -687,7 +688,7 @@ class UIMainWindow(object):
         # filterLabel.setBuddy(self.filterBox)
         # self.filterToolBar.addWidget(filterLabel)
         self.filterBox.textChanged.connect(self.tableFilterRegExpChanged)
-        self.filterBox.textChanged.connect(self.treeFilterRegExpChanged)
+        # self.filterBox.textChanged.connect(self.treeFilterRegExpChanged)
         clearFilterButton = QPushButton('Clear')
         clearFilterButton.setMaximumWidth(45)
         clearFilterButton.clicked.connect(self.clearFilterClicked)
@@ -750,7 +751,7 @@ class UIMainWindow(object):
         """Called to center the window on the screen on startup.
         """
 
-        screen = QDesktopWidget().screenGeometry()
+        screen = QGuiApplication.primaryScreen().geometry()
         size = self.geometry()
         self.move((screen.width() - size.width()) / 2,
                   (screen.height() - size.height()) / 2)
@@ -760,7 +761,7 @@ class UIMainWindow(object):
         """
 
         dlg = PrefsDialog(self, self.prefs)
-        if dlg.exec_():
+        if dlg.exec():
             # Refresh the table view to take into account any new prefs
             self.load_table_view(self.current_obj_class)
 

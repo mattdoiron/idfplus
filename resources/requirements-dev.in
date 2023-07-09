@@ -4,5 +4,5 @@ pyinstaller==3.6
 pytest==7.4.0
 pytest-qt==4.2.0
 pywin32==226; sys_platform=="win32"
-sphinx==5.3.0
+sphinx==6.2.1
 sphinx_rtd_theme==1.2.2

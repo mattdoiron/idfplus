@@ -10,12 +10,12 @@
 import logging
 from itertools import groupby
 
-# PySide2 imports
-from PySide2.QtCore import (Qt, QAbstractTableModel, QItemSelection, QItemSelectionRange,
-                            QAbstractProxyModel, QRegExp, QItemSelectionModel, QModelIndex,
+# PySide6 imports
+from PySide6.QtCore import (Qt, QAbstractTableModel, QItemSelection, QItemSelectionRange,
+                            QAbstractProxyModel, QItemSelectionModel, QModelIndex,
                             QSortFilterProxyModel, QRect, QPoint)
-from PySide2.QtGui import QColor
-from PySide2.QtWidgets import QTableView, QAbstractItemView
+from PySide6.QtGui import QColor, QPalette
+from PySide6.QtWidgets import QTableView, QAbstractItemView, QApplication
 
 # Package imports
 from ..eplusio.idfmodel import IDFError
@@ -121,7 +121,7 @@ class IDFObjectTableModel(QAbstractTableModel):
             data = self.idf.units(field)
         elif role == Qt.TextAlignmentRole:
             data = Qt.AlignLeft | Qt.AlignVCenter
-        elif role == Qt.TextColorRole or role == Qt.ForegroundRole:
+        elif role == Qt.ForegroundRole:
             pass
         elif role == Qt.BackgroundRole:
             # Highlight the cell's background depending on various states
@@ -160,7 +160,9 @@ class IDFObjectTableModel(QAbstractTableModel):
                 except IndexError:
                     return None
         elif role == Qt.BackgroundRole:
-            return QColor(244, 244, 244)
+            app = QApplication.instance()
+            palette = app.palette()
+            return palette.color(QPalette.AlternateBase)
         elif role == Qt.FontRole:
             return self.parent.font()
         return None
@@ -607,11 +609,9 @@ class SortFilterProxyModel(QSortFilterProxyModel):
 
         self.idf = None
         self._obj_orientation = obj_orientation or Qt.Vertical
-        syntax = QRegExp.PatternSyntax(QRegExp.Wildcard)
         case_sensitivity = Qt.CaseInsensitive
-
-        self.setFilterRegExp(QRegExp('', case_sensitivity, syntax))
         self.setFilterCaseSensitivity(case_sensitivity)
+        self.setFilterRole(Qt.EditRole)
 
     @property
     def obj_orientation(self):
@@ -632,12 +632,12 @@ class SortFilterProxyModel(QSortFilterProxyModel):
         if self.obj_orientation == Qt.Horizontal:
             return True
 
-        reg_exp = self.filterRegExp()
         if not self.idf:
             return True
-        objects = self.idf.idf_objects(self.obj_class)
-        obj = objects[col]
-        if reg_exp.indexIn(str(obj)) != -1:
+        obj = self.idf.idf_objects(self.obj_class)[col]
+        display_class = obj.obj_class_display
+        match_str = str(obj).replace(display_class, "")
+        if self.filterRegularExpression().match(match_str).hasMatch():
             return True
 
         return False
@@ -646,12 +646,12 @@ class SortFilterProxyModel(QSortFilterProxyModel):
         if self.obj_orientation == Qt.Vertical:
             return True
 
-        reg_exp = self.filterRegExp()
         if not self.idf:
             return True
-        objects = self.idf.idf_objects(self.obj_class)
-        obj = objects[row]
-        if reg_exp.indexIn(str(obj)) != -1:
+        obj = self.idf.idf_objects(self.obj_class)[row]
+        display_class = obj.obj_class_display
+        match_str = str(obj).replace(display_class, "")
+        if self.filterRegularExpression().match(match_str).hasMatch():
             return True
 
         return False

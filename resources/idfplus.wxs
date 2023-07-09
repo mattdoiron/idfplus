@@ -122,7 +122,7 @@ along with IDF+. If not, see <http://www.gnu.org/licenses/>.
                         <File Id="fil3AD6AFC6D1379C6F3C31FACA059DE211" KeyPath="yes" Source="SourceDir\python37.dll" />
                     </Component>
                     <Component Id="cmpE1A1D99212A8F6F8DA60FD2DE60B708B" Guid="*">
-                        <File Id="fil863B77D8E1D77557CF7AB452EFB15180" KeyPath="yes" Source="SourceDir\pyside2.abi3.dll" />
+                        <File Id="fil863B77D8E1D77557CF7AB452EFB15180" KeyPath="yes" Source="SourceDir\PySide6.abi3.dll" />
                     </Component>
                     <Component Id="cmp9FCE5B0D26786FA199B777D9C83480CD" Guid="*">
                         <File Id="fil58BE6B39989808C1AC2347A42BF4B033" KeyPath="yes" Source="SourceDir\_multiprocessing.pyd" />
@@ -245,153 +245,153 @@ along with IDF+. If not, see <http://www.gnu.org/licenses/>.
                             </Component>
                         </Directory>
                     </Directory>
-                    <Directory Id="dirB7432D3C3695A34017AC5D89D7B98416" Name="PySide2">
+                    <Directory Id="dirB7432D3C3695A34017AC5D89D7B98416" Name="PySide6">
                         <Component Id="cmpCFFB1F1806279C51607A4B8991610A24" Guid="*">
-                            <File Id="fil040916A1875C614922231061297ED4CD" KeyPath="yes" Source="SourceDir\PySide2\qt.conf" />
+                            <File Id="fil040916A1875C614922231061297ED4CD" KeyPath="yes" Source="SourceDir\PySide6\qt.conf" />
                         </Component>
                         <Component Id="cmp547E055E33BD1E36FCF778623A21686C" Guid="*">
-                            <File Id="fil9A3DFFB4482A0D25A098AA67CF181AB0" KeyPath="yes" Source="SourceDir\PySide2\QtCore.pyd" />
+                            <File Id="fil9A3DFFB4482A0D25A098AA67CF181AB0" KeyPath="yes" Source="SourceDir\PySide6\QtCore.pyd" />
                         </Component>
                         <Component Id="cmp5594BDF15835D69BD9463B962EC1D639" Guid="*">
-                            <File Id="fil6E290D4E39EF3E10C4C2414B1DA2EE00" KeyPath="yes" Source="SourceDir\PySide2\QtNetwork.pyd" />
+                            <File Id="fil6E290D4E39EF3E10C4C2414B1DA2EE00" KeyPath="yes" Source="SourceDir\PySide6\QtNetwork.pyd" />
                         </Component>
                         <Component Id="cmp0FEB9736692495654908A085EB584A18" Guid="*">
-                            <File Id="fil2123896E1D155D71CD15D48D12616165" KeyPath="yes" Source="SourceDir\PySide2\QtGui.pyd" />
+                            <File Id="fil2123896E1D155D71CD15D48D12616165" KeyPath="yes" Source="SourceDir\PySide6\QtGui.pyd" />
                         </Component>
                         <Component Id="cmpFE453B2AA1386D22A77F2DA19BBABEE6" Guid="*">
-                            <File Id="filC37CEAAD91EF3D265E55329CB8506DE6" KeyPath="yes" Source="SourceDir\PySide2\QtWidgets.pyd" />
+                            <File Id="filC37CEAAD91EF3D265E55329CB8506DE6" KeyPath="yes" Source="SourceDir\PySide6\QtWidgets.pyd" />
                         </Component>
                         <Directory Id="dir9DCC172441E07B943AF06B34D17E3AD1" Name="plugins">
                             <Directory Id="dir396544C2A22639576A123EF8ED4C6292" Name="iconengines">
                                 <Component Id="cmp14AE3C544CB1A531360DAB4A5F2013F5" Guid="*">
-                                    <File Id="fil3C919BCA83DAA4A1F96AD3C70FFF779B" KeyPath="yes" Source="SourceDir\PySide2\plugins\iconengines\qsvgicon.dll" />
+                                    <File Id="fil3C919BCA83DAA4A1F96AD3C70FFF779B" KeyPath="yes" Source="SourceDir\PySide6\plugins\iconengines\qsvgicon.dll" />
                                 </Component>
                             </Directory>
                             <Directory Id="dir5EA0E02E8F8928789E7E979CD6C0BABE" Name="styles">
                                 <Component Id="cmpBBD346621B3DEEA992856888BE42E2CB" Guid="*">
-                                    <File Id="filA2DEEF06E34394C5B062BE0267127766" KeyPath="yes" Source="SourceDir\PySide2\plugins\styles\qwindowsvistastyle.dll" />
+                                    <File Id="filA2DEEF06E34394C5B062BE0267127766" KeyPath="yes" Source="SourceDir\PySide6\plugins\styles\qwindowsvistastyle.dll" />
                                 </Component>
                             </Directory>
                             <Directory Id="dir5C929E71D4BE765947FEABD60ABC85A3" Name="platforminputcontexts">
                                 <Component Id="cmp418A499F2F39551382DBE487FE4CB7A5" Guid="*">
-                                    <File Id="fil138A6AB7CC74C3C96676B443B1E7DC85" KeyPath="yes" Source="SourceDir\PySide2\plugins\platforminputcontexts\qtvirtualkeyboardplugin.dll" />
+                                    <File Id="fil138A6AB7CC74C3C96676B443B1E7DC85" KeyPath="yes" Source="SourceDir\PySide6\plugins\platforminputcontexts\qtvirtualkeyboardplugin.dll" />
                                 </Component>
                             </Directory>
                             <Directory Id="dir526CDC29BF65D198248A572B2C04C609" Name="imageformats">
                                 <Component Id="cmp5884BDC24A22CDE2E8A15E95EAF3A96D" Guid="*">
-                                    <File Id="fil30E7C1BCFA4ED5AB8CCE79E4E79E8C25" KeyPath="yes" Source="SourceDir\PySide2\plugins\imageformats\qsvg.dll" />
+                                    <File Id="fil30E7C1BCFA4ED5AB8CCE79E4E79E8C25" KeyPath="yes" Source="SourceDir\PySide6\plugins\imageformats\qsvg.dll" />
                                 </Component>
                                 <Component Id="cmp728EFF70511D79B3BFD0DE7F883EEDE0" Guid="*">
-                                    <File Id="filFC867A58222B90EF8B105128F33D3E21" KeyPath="yes" Source="SourceDir\PySide2\plugins\imageformats\qtiff.dll" />
+                                    <File Id="filFC867A58222B90EF8B105128F33D3E21" KeyPath="yes" Source="SourceDir\PySide6\plugins\imageformats\qtiff.dll" />
                                 </Component>
                                 <Component Id="cmp43116D74EC10AE1AA32EE4AFE67409CE" Guid="*">
-                                    <File Id="fil8D02ACA3E64D65453E6FAE4399DE3793" KeyPath="yes" Source="SourceDir\PySide2\plugins\imageformats\qjpeg.dll" />
+                                    <File Id="fil8D02ACA3E64D65453E6FAE4399DE3793" KeyPath="yes" Source="SourceDir\PySide6\plugins\imageformats\qjpeg.dll" />
                                 </Component>
                                 <Component Id="cmpCEB03A377F98B1D75440DE7234D33622" Guid="*">
-                                    <File Id="fil194658064E79366919E811EA86386724" KeyPath="yes" Source="SourceDir\PySide2\plugins\imageformats\qwebp.dll" />
+                                    <File Id="fil194658064E79366919E811EA86386724" KeyPath="yes" Source="SourceDir\PySide6\plugins\imageformats\qwebp.dll" />
                                 </Component>
                                 <Component Id="cmpAE746095CA6A39F687F24B8F0BEF776F" Guid="*">
-                                    <File Id="filC89895DBACE37E675D8F441036FE9272" KeyPath="yes" Source="SourceDir\PySide2\plugins\imageformats\qtga.dll" />
+                                    <File Id="filC89895DBACE37E675D8F441036FE9272" KeyPath="yes" Source="SourceDir\PySide6\plugins\imageformats\qtga.dll" />
                                 </Component>
                                 <Component Id="cmp720987E01B139F4B5B0A160DE3301D19" Guid="*">
-                                    <File Id="fil574B5E8827CCEABA6B0753BEA9958615" KeyPath="yes" Source="SourceDir\PySide2\plugins\imageformats\qgif.dll" />
+                                    <File Id="fil574B5E8827CCEABA6B0753BEA9958615" KeyPath="yes" Source="SourceDir\PySide6\plugins\imageformats\qgif.dll" />
                                 </Component>
                                 <Component Id="cmp54E7E093E44CC8845718816714EA4838" Guid="*">
-                                    <File Id="fil77F89321C114C9D419A041E09FDA1459" KeyPath="yes" Source="SourceDir\PySide2\plugins\imageformats\qwbmp.dll" />
+                                    <File Id="fil77F89321C114C9D419A041E09FDA1459" KeyPath="yes" Source="SourceDir\PySide6\plugins\imageformats\qwbmp.dll" />
                                 </Component>
                                 <Component Id="cmpADAD5CE453483E6774F5957F3EF37C36" Guid="*">
-                                    <File Id="filC93E4CFEA629B5BF7A10C22342C83417" KeyPath="yes" Source="SourceDir\PySide2\plugins\imageformats\qicns.dll" />
+                                    <File Id="filC93E4CFEA629B5BF7A10C22342C83417" KeyPath="yes" Source="SourceDir\PySide6\plugins\imageformats\qicns.dll" />
                                 </Component>
                                 <Component Id="cmp31D589233CFA5F4A6F92840933040F8F" Guid="*">
-                                    <File Id="fil920A30AB46010ED46CA63985690A055D" KeyPath="yes" Source="SourceDir\PySide2\plugins\imageformats\qico.dll" />
+                                    <File Id="fil920A30AB46010ED46CA63985690A055D" KeyPath="yes" Source="SourceDir\PySide6\plugins\imageformats\qico.dll" />
                                 </Component>
                             </Directory>
                             <Directory Id="dirBD89E4B59A5810730E4E4E6D5EC49652" Name="platformthemes">
                                 <Component Id="cmp65BE5256E81A86A3752E1F6F1524CA57" Guid="*">
-                                    <File Id="filBC70A644EF208EDA97553DFE5BC50991" KeyPath="yes" Source="SourceDir\PySide2\plugins\platformthemes\qxdgdesktopportal.dll" />
+                                    <File Id="filBC70A644EF208EDA97553DFE5BC50991" KeyPath="yes" Source="SourceDir\PySide6\plugins\platformthemes\qxdgdesktopportal.dll" />
                                 </Component>
                             </Directory>
                             <Directory Id="dir3974E55B8BDDABEA523B22FA6738F672" Name="platforms">
                                 <Component Id="cmpC69EC699AF7789CF722ED27087EA2BE8" Guid="*">
-                                    <File Id="fil82F31BF14B3B6FD46C56E94FD9268C67" KeyPath="yes" Source="SourceDir\PySide2\plugins\platforms\qwebgl.dll" />
+                                    <File Id="fil82F31BF14B3B6FD46C56E94FD9268C67" KeyPath="yes" Source="SourceDir\PySide6\plugins\platforms\qwebgl.dll" />
                                 </Component>
                                 <Component Id="cmp08DDFE3962DDA7B97F625CF37D2BEB3E" Guid="*">
-                                    <File Id="filBBC9AAADFC638E27E6B279E3497B80F6" KeyPath="yes" Source="SourceDir\PySide2\plugins\platforms\qminimal.dll" />
+                                    <File Id="filBBC9AAADFC638E27E6B279E3497B80F6" KeyPath="yes" Source="SourceDir\PySide6\plugins\platforms\qminimal.dll" />
                                 </Component>
                                 <Component Id="cmpBF6FD144A052D81B9E1FCD2229E698E2" Guid="*">
-                                    <File Id="fil4FAE88C17AD9EB95A1AEE7605F362782" KeyPath="yes" Source="SourceDir\PySide2\plugins\platforms\qwindows.dll" />
+                                    <File Id="fil4FAE88C17AD9EB95A1AEE7605F362782" KeyPath="yes" Source="SourceDir\PySide6\plugins\platforms\qwindows.dll" />
                                 </Component>
                                 <Component Id="cmp1E3753C29286A0F558530AF81E03A96C" Guid="*">
-                                    <File Id="fil4FA628B2FB7DBBE144FF9C8850098043" KeyPath="yes" Source="SourceDir\PySide2\plugins\platforms\qoffscreen.dll" />
+                                    <File Id="fil4FA628B2FB7DBBE144FF9C8850098043" KeyPath="yes" Source="SourceDir\PySide6\plugins\platforms\qoffscreen.dll" />
                                 </Component>
                             </Directory>
                         </Directory>
                         <Directory Id="dir5FF2D6F0CC38AD47CACFB687CF48343A" Name="translations">
                             <Component Id="cmp9669AD29AA3800EE7DD1340419767DF5" Guid="*">
-                                <File Id="fil035B2777801825D9AB59A6F3E0314E36" KeyPath="yes" Source="SourceDir\PySide2\translations\qtbase_ko.qm" />
+                                <File Id="fil035B2777801825D9AB59A6F3E0314E36" KeyPath="yes" Source="SourceDir\PySide6\translations\qtbase_ko.qm" />
                             </Component>
                             <Component Id="cmp26CF2EBF42F4F776A2D3BABDCC6D93D1" Guid="*">
-                                <File Id="filA340A8665D651726EA5E5FA2D2CD8D8F" KeyPath="yes" Source="SourceDir\PySide2\translations\qtbase_ja.qm" />
+                                <File Id="filA340A8665D651726EA5E5FA2D2CD8D8F" KeyPath="yes" Source="SourceDir\PySide6\translations\qtbase_ja.qm" />
                             </Component>
                             <Component Id="cmp94AE87E9921C4762ACA22F4EBD1E934F" Guid="*">
-                                <File Id="filA27D44FD05C4769CD4B42E1929B4D059" KeyPath="yes" Source="SourceDir\PySide2\translations\qtbase_fr.qm" />
+                                <File Id="filA27D44FD05C4769CD4B42E1929B4D059" KeyPath="yes" Source="SourceDir\PySide6\translations\qtbase_fr.qm" />
                             </Component>
                             <Component Id="cmp2BC4531723CF0A155CACA82856720D2C" Guid="*">
-                                <File Id="filAD81F9445DCAB546050F14BF80E9ED8F" KeyPath="yes" Source="SourceDir\PySide2\translations\qtbase_uk.qm" />
+                                <File Id="filAD81F9445DCAB546050F14BF80E9ED8F" KeyPath="yes" Source="SourceDir\PySide6\translations\qtbase_uk.qm" />
                             </Component>
                             <Component Id="cmp33F35FA016AD4C1CAFB3BD02BFC20302" Guid="*">
-                                <File Id="filF5F3E46AC21304A85184B58EF5DFEED5" KeyPath="yes" Source="SourceDir\PySide2\translations\qtbase_hu.qm" />
+                                <File Id="filF5F3E46AC21304A85184B58EF5DFEED5" KeyPath="yes" Source="SourceDir\PySide6\translations\qtbase_hu.qm" />
                             </Component>
                             <Component Id="cmpC39617EA22D49CC0A51AD05DCEF4F59F" Guid="*">
-                                <File Id="fil62862A6119FFE45B16113D352C9CE0BB" KeyPath="yes" Source="SourceDir\PySide2\translations\qtbase_es.qm" />
+                                <File Id="fil62862A6119FFE45B16113D352C9CE0BB" KeyPath="yes" Source="SourceDir\PySide6\translations\qtbase_es.qm" />
                             </Component>
                             <Component Id="cmp0D5E474050464B8CB945068F3EBEF2D7" Guid="*">
-                                <File Id="fil848C6D5E3DB8BF117108EDA53D6FD65F" KeyPath="yes" Source="SourceDir\PySide2\translations\qtbase_lv.qm" />
+                                <File Id="fil848C6D5E3DB8BF117108EDA53D6FD65F" KeyPath="yes" Source="SourceDir\PySide6\translations\qtbase_lv.qm" />
                             </Component>
                             <Component Id="cmpF38B26C75D9A64972A20D74FA5B4BCB4" Guid="*">
-                                <File Id="fil713BFDF6AF820E10762B99729BAB841E" KeyPath="yes" Source="SourceDir\PySide2\translations\qtbase_ar.qm" />
+                                <File Id="fil713BFDF6AF820E10762B99729BAB841E" KeyPath="yes" Source="SourceDir\PySide6\translations\qtbase_ar.qm" />
                             </Component>
                             <Component Id="cmp369A0835B09DCAD87C1EB3BBF6418464" Guid="*">
-                                <File Id="fil65A77CB01757B43D16D238160FF5237E" KeyPath="yes" Source="SourceDir\PySide2\translations\qtbase_de.qm" />
+                                <File Id="fil65A77CB01757B43D16D238160FF5237E" KeyPath="yes" Source="SourceDir\PySide6\translations\qtbase_de.qm" />
                             </Component>
                             <Component Id="cmpAE6910D9EB7185C0F55E602E5B89BB14" Guid="*">
-                                <File Id="filE408477E35B7621B2AE4C6B7BA8E6ADA" KeyPath="yes" Source="SourceDir\PySide2\translations\qtbase_he.qm" />
+                                <File Id="filE408477E35B7621B2AE4C6B7BA8E6ADA" KeyPath="yes" Source="SourceDir\PySide6\translations\qtbase_he.qm" />
                             </Component>
                             <Component Id="cmp3F3F7A005F4D617BEF27442150B53E68" Guid="*">
-                                <File Id="fil7917658E54E52011281CFFA197675C6C" KeyPath="yes" Source="SourceDir\PySide2\translations\qtbase_cs.qm" />
+                                <File Id="fil7917658E54E52011281CFFA197675C6C" KeyPath="yes" Source="SourceDir\PySide6\translations\qtbase_cs.qm" />
                             </Component>
                             <Component Id="cmp4609D006FA8E6506E950C7945ADF3E3A" Guid="*">
-                                <File Id="fil0D1E910374D90C87006958F7090207C6" KeyPath="yes" Source="SourceDir\PySide2\translations\qtbase_zh_TW.qm" />
+                                <File Id="fil0D1E910374D90C87006958F7090207C6" KeyPath="yes" Source="SourceDir\PySide6\translations\qtbase_zh_TW.qm" />
                             </Component>
                             <Component Id="cmpEBDE56FB152B7822C8C190905858368C" Guid="*">
-                                <File Id="fil196A4EC936ED9F73150F2CADE735DD32" KeyPath="yes" Source="SourceDir\PySide2\translations\qtbase_bg.qm" />
+                                <File Id="fil196A4EC936ED9F73150F2CADE735DD32" KeyPath="yes" Source="SourceDir\PySide6\translations\qtbase_bg.qm" />
                             </Component>
                             <Component Id="cmp569C75588EDE1B11B056053784C8AD08" Guid="*">
-                                <File Id="fil3C8C3B46C71C1959681E9420C5653250" KeyPath="yes" Source="SourceDir\PySide2\translations\qtbase_gd.qm" />
+                                <File Id="fil3C8C3B46C71C1959681E9420C5653250" KeyPath="yes" Source="SourceDir\PySide6\translations\qtbase_gd.qm" />
                             </Component>
                             <Component Id="cmp7E3BC864089F75B6F6DED6F0E3CB2D6A" Guid="*">
-                                <File Id="fil6AA05B39A8B875570E1B214F25800B2F" KeyPath="yes" Source="SourceDir\PySide2\translations\qtbase_it.qm" />
+                                <File Id="fil6AA05B39A8B875570E1B214F25800B2F" KeyPath="yes" Source="SourceDir\PySide6\translations\qtbase_it.qm" />
                             </Component>
                             <Component Id="cmp68880DA846B4A45996AD0B796CED27D6" Guid="*">
-                                <File Id="fil1B51CD5BFF5A57B2BA6555F04C000BD8" KeyPath="yes" Source="SourceDir\PySide2\translations\qtbase_sk.qm" />
+                                <File Id="fil1B51CD5BFF5A57B2BA6555F04C000BD8" KeyPath="yes" Source="SourceDir\PySide6\translations\qtbase_sk.qm" />
                             </Component>
                             <Component Id="cmp566546B9D8B3922B50A6597498A578BB" Guid="*">
-                                <File Id="fil08FC4909D5D43FCFD83257ED5A93D0E2" KeyPath="yes" Source="SourceDir\PySide2\translations\qtbase_pl.qm" />
+                                <File Id="fil08FC4909D5D43FCFD83257ED5A93D0E2" KeyPath="yes" Source="SourceDir\PySide6\translations\qtbase_pl.qm" />
                             </Component>
                             <Component Id="cmp01BBB3BE861E780D5F0C575C38723B4F" Guid="*">
-                                <File Id="filD5FBB16217E8F27FD0073AA4D3C4843A" KeyPath="yes" Source="SourceDir\PySide2\translations\qtbase_da.qm" />
+                                <File Id="filD5FBB16217E8F27FD0073AA4D3C4843A" KeyPath="yes" Source="SourceDir\PySide6\translations\qtbase_da.qm" />
                             </Component>
                             <Component Id="cmp7E3038E9F4B2931D3BADF2ED66D97183" Guid="*">
-                                <File Id="filAC3C7A3D19B617EF11D4363A00CFEBCA" KeyPath="yes" Source="SourceDir\PySide2\translations\qtbase_ca.qm" />
+                                <File Id="filAC3C7A3D19B617EF11D4363A00CFEBCA" KeyPath="yes" Source="SourceDir\PySide6\translations\qtbase_ca.qm" />
                             </Component>
                             <Component Id="cmpC82A33F2CD28FB0208BA8A2937400230" Guid="*">
-                                <File Id="filAD56CDB65AACD7B748D939829EFA7849" KeyPath="yes" Source="SourceDir\PySide2\translations\qtbase_ru.qm" />
+                                <File Id="filAD56CDB65AACD7B748D939829EFA7849" KeyPath="yes" Source="SourceDir\PySide6\translations\qtbase_ru.qm" />
                             </Component>
                             <Component Id="cmp2A874DA197A78E80B7A37805339DBD35" Guid="*">
-                                <File Id="fil747DC9A8F7EED2961BC56EF031CDCA7C" KeyPath="yes" Source="SourceDir\PySide2\translations\qtbase_fi.qm" />
+                                <File Id="fil747DC9A8F7EED2961BC56EF031CDCA7C" KeyPath="yes" Source="SourceDir\PySide6\translations\qtbase_fi.qm" />
                             </Component>
                             <Component Id="cmp5E61F7B13D7190B6246C086564F281F6" Guid="*">
-                                <File Id="fil2FDDEC6FE14CBC4E24C49328993FE5D2" KeyPath="yes" Source="SourceDir\PySide2\translations\qtbase_en.qm" />
+                                <File Id="fil2FDDEC6FE14CBC4E24C49328993FE5D2" KeyPath="yes" Source="SourceDir\PySide6\translations\qtbase_en.qm" />
                             </Component>
                         </Directory>
                     </Directory>
