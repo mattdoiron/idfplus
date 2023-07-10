@@ -423,8 +423,14 @@ class IDFPlus(QMainWindow, main.UIMainWindow):
         if target:
             if current_platform.startswith('linux'):
                 try:
-                    result = subprocess.check_call(["nautilus", "--select", target])
-                except (subprocess.CalledProcessError, OSError):
+                    result = subprocess.call(["dbus-send", "--session", "--print-reply",
+                                              "--dest=org.freedesktop.FileManager1",
+                                              "--type=method_call",
+                                              "/org/freedesktop/FileManager1",
+                                              "org.freedesktop.FileManager1.ShowItems",
+                                              "array:string:file://{}".format(target),
+                                              "string:''"])
+                except:
                     try:
                         result = subprocess.check_call(["xdg-open", dir_path])
                     except (subprocess.CalledProcessError, OSError):
