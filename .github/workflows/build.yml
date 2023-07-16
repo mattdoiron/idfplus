@@ -21,6 +21,7 @@ jobs:
         os: [ubuntu-20.04, windows-2019]
 
     steps:
+      - name: Checkout repository
       - uses: actions/checkout@v3
         with:
           ref: build-workflow-testing
@@ -30,23 +31,20 @@ jobs:
         with:
           python-version: 3.7
 
-#      - name: Enable caching for pip in Ubuntu
-#      - uses: actions/cache@v3
-#        if: startswith(matrix.os, 'ubuntu')
-#        with:
-#          path: ~/.cache/pip
-#          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
-#          restore-keys: |
-#            ${{ runner.os }}-pip-
-
-#      - name: Enable caching for pip in Windows
-#      - uses: actions/cache@v3
-#        if: startsWith(runner.os, 'Windows')
-#        with:
-#          path: ~\AppData\Local\pip\Cache
-#          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
-#          restore-keys: |
-#            ${{ runner.os }}-pip-
+      - name: Enable caching for pip
+      - uses: actions/cache@v3
+        if: startsWith(runner.os, 'Windows')
+        with:
+          path: ~\AppData\Local\pip\Cache
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+        if: startswith(matrix.os, 'ubuntu')
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
 
       - name: Install global dependencies
         run: |
@@ -54,10 +52,13 @@ jobs:
           pip install -r requirements.txt
           pip install -r requirements-dev.txt
 
-      - name: Install ubuntu-specific dependencies
-#        if: startswith(matrix.os, 'ubuntu')
+      - name: Install os-specific dependencies
+        if: startswith(matrix.os, 'ubuntu')
         run: |
           sudo apt install -y debhelper
+        if: startswith(matrix.os, 'windows')
+        run: |
+          echo "none"
 
       - name: Freeze the app
         run: |
