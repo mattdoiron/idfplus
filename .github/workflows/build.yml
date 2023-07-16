@@ -30,23 +30,23 @@ jobs:
         with:
           python-version: 3.7
 
-      - name: Enable caching for pip in Ubuntu
-      - uses: actions/cache@v3
-        if: startswith(matrix.os, 'ubuntu')
-        with:
-          path: ~/.cache/pip
-          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
-          restore-keys: |
-            ${{ runner.os }}-pip-
+#      - name: Enable caching for pip in Ubuntu
+#      - uses: actions/cache@v3
+#        if: startswith(matrix.os, 'ubuntu')
+#        with:
+#          path: ~/.cache/pip
+#          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+#          restore-keys: |
+#            ${{ runner.os }}-pip-
 
-      - name: Enable caching for pip in Windows
-      - uses: actions/cache@v3
-        if: startsWith(runner.os, 'Windows')
-        with:
-          path: ~\AppData\Local\pip\Cache
-          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
-          restore-keys: |
-            ${{ runner.os }}-pip-
+#      - name: Enable caching for pip in Windows
+#      - uses: actions/cache@v3
+#        if: startsWith(runner.os, 'Windows')
+#        with:
+#          path: ~\AppData\Local\pip\Cache
+#          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+#          restore-keys: |
+#            ${{ runner.os }}-pip-
 
       - name: Install global dependencies
         run: |
