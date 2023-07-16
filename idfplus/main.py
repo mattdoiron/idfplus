@@ -171,27 +171,28 @@ class IDFPlus(QMainWindow, main.UIMainWindow):
         """
 
         log.info('Trying to load file: {}'.format(file_path))
-        if not os.path.isfile(file_path):
-            raise OSError(errno.ENOENT, os.strerror(errno.ENOENT), file_path)
-        idf = idfmodel.IDFFile()
-        # self.files.update({0:idf})
+        if file_path:
+            if not os.path.isfile(file_path):
+                raise OSError(errno.ENOENT, os.strerror(errno.ENOENT), file_path)
 
-        # Open the specified file in a safe way
-        with codecs.open(file_path, 'r',
-                         encoding=config.FILE_ENCODING,
-                         errors='backslashreplace') as raw_idf:
-            if file_path:
+            # Open the specified file in a safe way
+            with codecs.open(file_path, 'r',
+                             encoding=config.FILE_ENCODING,
+                             errors='backslashreplace') as raw_idf:
+                idf = idfmodel.IDFFile()
                 idf_parser = parser.IDFParser(idf,
                                               default_version=self.prefs['default_idd_version'])
                 for progress in idf_parser.parse_idf(raw_idf, file_path):
                     self.progressBarIDF.setValue(progress)
-            else:
-                log.info('Loading blank IDF file...')
-                idf.init_blank()
+
+            self.file_time_last_modified = os.path.getmtime(file_path)
+        else:
+            log.info('Loading blank IDF file...')
+            idf = idfmodel.IDFFile()
+            idf.init_blank()
 
         self.idf = idf
         self.idd = idf._idd
-        self.file_time_last_modified = os.path.getmtime(file_path)
         self.check_file_changed = True
 
     def load_file(self, _file_path=None):
@@ -422,8 +423,14 @@ class IDFPlus(QMainWindow, main.UIMainWindow):
         if target:
             if current_platform.startswith('linux'):
                 try:
-                    result = subprocess.check_call(["nautilus", "--select", target])
-                except (subprocess.CalledProcessError, OSError):
+                    result = subprocess.call(["dbus-send", "--session", "--print-reply",
+                                              "--dest=org.freedesktop.FileManager1",
+                                              "--type=method_call",
+                                              "/org/freedesktop/FileManager1",
+                                              "org.freedesktop.FileManager1.ShowItems",
+                                              "array:string:file://{}".format(target),
+                                              "string:''"])
+                except:
                     try:
                         result = subprocess.check_call(["xdg-open", dir_path])
                     except (subprocess.CalledProcessError, OSError):
@@ -753,7 +760,6 @@ class IDFPlus(QMainWindow, main.UIMainWindow):
         if not self.classTable.model():
             return
         self.classTable.model().setFilterRegExp(pattern)
-        self.classTable.model().invalidateFilter()
         self.classTable.selectionModel().reset()
 
     def treeFilterRegExpChanged(self):
@@ -769,7 +775,6 @@ class IDFPlus(QMainWindow, main.UIMainWindow):
             return
         current_class = QPersistentModelIndex(self.classTree.currentIndex())
         self.classTree.model().setFilterRegExp(pattern)
-        self.classTree.model().invalidateFilter()
         self.classTree.expandAll()
         self.classTree.scrollTo(current_class, QAbstractItemView.PositionAtCenter)
 
@@ -1148,6 +1153,7 @@ class IDFPlus(QMainWindow, main.UIMainWindow):
             # self.classTable.setFocus()
 
         # Resize rows for text wrap
+        self.classTable.verticalHeader().setDefaultSectionSize(22)
         self.classTable.resize_visible_rows()
 
         # Now that there is a class selected, enable some actions and set some vars

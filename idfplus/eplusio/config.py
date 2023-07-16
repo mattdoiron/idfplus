@@ -16,7 +16,7 @@ IDD_FILE_NAME_ROOT = 'EnergyPlus_IDD_v{}.dat'
 COMPANY_NAME = 'mindfulmodeller'
 APP_NAME = "IDFPlus"
 DATA_DIR = appdirs.user_data_dir(APP_NAME, COMPANY_NAME)
-DEFAULT_IDD_VERSION = '8.2'
+DEFAULT_IDD_VERSION = '8.8'
 
 # Make sure necessary folders exist
 for directory in [DATA_DIR]:

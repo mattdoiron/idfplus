@@ -31,7 +31,7 @@ CONFIG_FILE_PATH = os.path.join(CONFIG_DIR, APP_NAME, "{}.{}".format(APP_NAME, "
 LOG_FILE_NAME = "idfplus.log"
 LOG_PATH = os.path.join(LOG_DIR, LOG_FILE_NAME)
 MAX_OBJ_HISTORY = 100
-DEFAULT_IDD_VERSION = "8.6"
+DEFAULT_IDD_VERSION = "8.8"
 
 # Make sure necessary folders exist
 for directory in [LOG_DIR]:

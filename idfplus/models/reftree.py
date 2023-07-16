@@ -46,8 +46,9 @@ class ReferenceTreeModel(CustomTreeModel):
     def setupModelData(self, data, parent):
         if data:
             for item in data:
-                tree_item = RefTreeItem((item.uuid, item))
-                parent.appendChild(tree_item)
+                if item:
+                    tree_item = RefTreeItem((item.uuid, item))
+                    parent.appendChild(tree_item)
 
     @staticmethod
     def field_uuid(index):

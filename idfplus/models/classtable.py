@@ -46,20 +46,13 @@ class IDFObjectTableModel(QAbstractTableModel):
         super(IDFObjectTableModel, self).__init__(parent)
 
     def setObjectClass(self, obj_class, idf):
-        self.modelAboutToBeReset.emit()
-        self.beginResetModel()
         self.obj_class = obj_class
         self.idf = idf
         self.idd = idf.idd
         self.idf_objects = idf.idf_objects(obj_class)
         self.idd_object = idf.idd.idd_object(obj_class)
         self._refresh_labels()
-        self.endResetModel()
 
-    def reset_model(self):
-        self.modelAboutToBeReset.emit()
-        self.beginResetModel()
-        self.endResetModel()
 
     def flags(self, index):
         """Override Qt flags method for custom editing behaviour
@@ -80,7 +73,7 @@ class IDFObjectTableModel(QAbstractTableModel):
         data.
 
         :param QModelIndex index: QModelIndex of the cell for which data is requested
-        :param int role: Role being requested (Qt.Role)
+        :param Qt.Role role: Role being requested
         """
 
         # Check for valid qt index
@@ -132,7 +125,7 @@ class IDFObjectTableModel(QAbstractTableModel):
             pass
         elif role == Qt.BackgroundRole:
             # Highlight the cell's background depending on various states
-            ref_node_count = 1  # self.idf.reference_count(field)
+            ref_node_count = self.idf.reference_count(field)
             if not field:
                 data = None
             elif field.value and ref_node_count == 0:
@@ -187,8 +180,8 @@ class IDFObjectTableModel(QAbstractTableModel):
         """
 
         if self.idf_objects:
-            idf_max_length = max([len(obj) for obj in self.idf_objects])
-            return max(idf_max_length, len(self.idd_object))
+            max_length_obj = max(self.idf_objects, key=len)
+            return max(len(max_length_obj), len(self.idd_object))
         else:
             return len(self.idd_object or [])
 
@@ -389,9 +382,9 @@ class TransposeProxyModel(QAbstractProxyModel):
     """Translates columns to rows or vice versa
     """
 
-    def __init__(self, parent, **kwargs):
+    def __init__(self, *args, **kwargs):
         self._obj_orientation = kwargs.pop('obj_orientation', Qt.Vertical)
-        super(TransposeProxyModel, self).__init__(parent, **kwargs)
+        super(TransposeProxyModel, self).__init__(*args, **kwargs)
 
     @property
     def obj_orientation(self):
@@ -402,17 +395,8 @@ class TransposeProxyModel(QAbstractProxyModel):
         self._obj_orientation = value
         self.sourceModel().obj_orientation = value
 
-    def setObjectClass(self, *args, **kwargs):
-        self.modelAboutToBeReset.emit()
-        self.beginResetModel()
-        self.sourceModel().setObjectClass(*args, **kwargs)
-        self.endResetModel()
-
-    def reset_model(self):
-        self.modelAboutToBeReset.emit()
-        self.beginResetModel()
-        self.sourceModel().reset_model()
-        self.endResetModel()
+    def setObjectClass(self, obj_class, idf):
+        self.sourceModel().setObjectClass(obj_class, idf)
 
     def setSourceModel(self, source):
         """Defines the source model to use and connects some signals.
@@ -610,14 +594,18 @@ class TransposeProxyModel(QAbstractProxyModel):
 
         return self.sourceModel().obj_class
 
+    @property
+    def idd_object(self):
+        return self.sourceModel().idd_object
 
 class SortFilterProxyModel(QSortFilterProxyModel):
     """Proxy layer to sort and filter
     """
 
-    def __init__(self, parent, obj_orientation=None):
-        super(SortFilterProxyModel, self).__init__(parent)
+    def __init__(self, *args, obj_orientation=None, **kwargs):
+        super(SortFilterProxyModel, self).__init__(*args, **kwargs)
 
+        self.idf = None
         self._obj_orientation = obj_orientation or Qt.Vertical
         syntax = QRegExp.PatternSyntax(QRegExp.Wildcard)
         case_sensitivity = Qt.CaseInsensitive
@@ -634,30 +622,23 @@ class SortFilterProxyModel(QSortFilterProxyModel):
         self._obj_orientation = value
         self.sourceModel().obj_orientation = value
 
-    def setObjectClass(self, *args, **kwargs):
-        self.modelAboutToBeReset.emit()
-        self.beginResetModel()
-        self.sourceModel().setObjectClass(*args, **kwargs)
-        self.endResetModel()
-
-    def reset_model(self):
-        self.modelAboutToBeReset.emit()
-        self.beginResetModel()
-        self.sourceModel().reset_model()
-        self.endResetModel()
+    def setObjectClass(self, obj_class, idf):
+        self.sourceModel().setObjectClass(obj_class, idf)
+        self.invalidate()
+        self.idf = idf
+        self.resized_rows = []
 
     def filterAcceptsColumn(self, col, parent):
         if self.obj_orientation == Qt.Horizontal:
             return True
 
-        model = self.sourceModel()
-        row_count = model.rowCount(col)
         reg_exp = self.filterRegExp()
-
-        for row in range(row_count):
-            data = model.index(row, col, parent).data()
-            if reg_exp.indexIn(data) != -1:
-                return True
+        if not self.idf:
+            return True
+        objects = self.idf.idf_objects(self.obj_class)
+        obj = objects[col]
+        if reg_exp.indexIn(str(obj)) != -1:
+            return True
 
         return False
 
@@ -665,14 +646,13 @@ class SortFilterProxyModel(QSortFilterProxyModel):
         if self.obj_orientation == Qt.Vertical:
             return True
 
-        model = self.sourceModel()
-        column_count = model.columnCount(row)
         reg_exp = self.filterRegExp()
-
-        for col in range(column_count):
-            data = model.index(row, col, parent).data()
-            if reg_exp.indexIn(data) != -1:
-                return True
+        if not self.idf:
+            return True
+        objects = self.idf.idf_objects(self.obj_class)
+        obj = objects[row]
+        if reg_exp.indexIn(str(obj)) != -1:
+            return True
 
         return False
 
@@ -710,6 +690,9 @@ class SortFilterProxyModel(QSortFilterProxyModel):
     def obj_class(self):
         return self.sourceModel().obj_class
 
+    @property
+    def idd_object(self):
+        return self.sourceModel().idd_object
 
 class TableView(QTableView):
     """Subclass of QTableView to allow custom editing behaviour.
@@ -804,9 +787,29 @@ class TableView(QTableView):
         self.setCurrentIndex(to_select)
 
     def resize_visible_rows(self):
+        """
+        Resize rows to fit text and current column width, but only if rows is both visible
+        and contains an alphanumeric value (not just numbers)
+        """
+        #TODO broken for transposed view?
+
         viewport_rect = QRect(QPoint(0, 0), self.viewport().size())
-        for row in range(self.model().rowCount()):
-            rect = self.visualRect(self.model().index(row, 0))
+        model = self.model()
+        resized_rows = model.resized_rows
+        field_types = list(model.idd_object.keys())
+        orientation = model.obj_orientation
+
+        if orientation == Qt.Vertical:
+            count = range(model.rowCount())
+        else:
+            count = range(model.columnCount())
+
+        for i in count:
+            if orientation == Qt.Vertical:
+                rect = self.visualRect(model.index(i, 0))
+            else:
+                rect = self.visualRect(model.index(0, i))
             is_visible = viewport_rect.contains(rect)
-            if is_visible:
-                self.resizeRowToContents(row)
+            if is_visible and field_types[i][0] == 'A' and i not in resized_rows:
+                self.resizeRowToContents(i)
+                resized_rows.append(i)

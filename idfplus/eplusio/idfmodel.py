@@ -75,12 +75,21 @@ class IDFFile(dict):
         cursor = self.db.cursor()
 
         # Create table with uuid as primary key and case-insensitive value
-        cursor.execute("CREATE TABLE idf_objects"
-                       "(uuid TEXT PRIMARY KEY,"
+        cursor.execute("CREATE TABLE idf_fields"
+                       "(uuid PRIMARY KEY,"
                        "obj_class TEXT,"
                        "obj_class_display TEXT,"
                        "ref_type TEXT,"
                        "value TEXT COLLATE NOCASE)")
+        # cursor.execute("CREATE TABLE reference_names"
+        #                "(id INTEGER PRIMARY KEY,"
+        #                "name TEXT COLLATE NOCASE)")
+        # cursor.execute("CREATE TABLE reference_links"
+        #                "(id INTEGER PRIMARY KEY,"
+        #                "reference_id INTEGER,"
+        #                "field_uuid TEXT,"
+        #                "FOREIGN KEY(reference_id) REFERENCES reference_names(id),"
+        #                "FOREIGN KEY(field_uuid) REFERENCES idf_fields(uuid) ON DELETE CASCADE)")
         self.db.commit()
 
     def init_blank(self):
@@ -166,8 +175,18 @@ class IDFFile(dict):
         # Continue only if a valid field is present and the right type
         if not field:
             return -1
-        if field.ref_type not in ['object-list', 'reference']:
+        if field.ref_type not in ['object-list', 'node']:
             return -1
+        if field.ref_type == 'object-list':
+            # Don't check object-lists that are made up of types of objects ie Boiler:HotWater
+            tags = field.tags['object-list']
+            if type(tags) is list:
+                for tag in tags:
+                    if tag.lower().endswith('types'):
+                        return -1
+            else:
+                if tags.lower().endswith('types'):
+                    return -1
 
         return len(self.references(field))
 
@@ -200,14 +219,22 @@ class IDFFile(dict):
         :rtype: list(IDFField)
         """
 
-        query = "value='{}' AND ref_type='{}'".format(field.value, ref_type)
-        query += " AND NOT obj_class ='{}'".format(field.obj_class)
+        if ref_type == 'node':
+            query = "value='{}' AND ref_type='{}'".format(field.value, ref_type)
+        else:
+            query = "value='{}'".format(field.value)
+
+        if field.obj_class in ['buildingsurface:detailed', 'fenestrationsurface:detailed']:
+            ignore_geometry = False
+        else:
+            # ignore references to itself:
+            query += " AND NOT obj_class='{}'".format(field.obj_class)
 
         if ignore_geometry:
             query += " AND NOT obj_class='buildingsurface:detailed'"
             query += " AND NOT obj_class='fenestrationsurface:detailed'"
 
-        query_records = "SELECT * from idf_objects WHERE {}".format(query)
+        query_records = "SELECT * from idf_fields WHERE {}".format(query)
 
         try:
             records = self.db.execute(query_records).fetchall()
@@ -215,7 +242,11 @@ class IDFFile(dict):
             records = []
             print("Invalid SQLite query! ('{}')".format(query_records))
 
-        results = [self.field_by_uuid(row['uuid']) for row in records]
+        results = []
+        for row in records:
+            # Add only rows that are not itself
+            if field.uuid != row['uuid']:
+                results.append(self.field_by_uuid(row['uuid']))
 
         return results
 
@@ -344,6 +375,51 @@ class IDFFile(dict):
             self._upsert_field_index(obj, commit=False)
         self.db.commit()
 
+    # def index_all_references(self):
+    #     """Adds references for all objects to the internal index
+    #     """
+    #
+    #     # Create list of all reference names and save them to the db
+    #     ref_names = list()
+    #     for obj_class in self:
+    #         objects = self[obj_class]
+    #         for obj in objects:
+    #             for field in obj:
+    #                 if field.ref_type:
+    #                     for ref_type in field.ref_type:
+    #                         ref = field.tags[ref_type]
+    #                         if isinstance(ref, list):
+    #                             ref_names.extend(ref)
+    #                         else:
+    #                             ref_names.append(ref)
+    #     insert_ref_names = "INSERT INTO reference_names (name) VALUES (?)"
+    #     self.db.executemany(insert_ref_names, zip(set(ref_names)))
+    #     self.db.commit()
+    #
+    #     # do it all again because we need to have the reference_names in there already?
+    #     field_references = []
+    #     refs_query = []
+    #     for obj_class in self:
+    #         objects = self[obj_class]
+    #         for obj in objects:
+    #             for field in obj:
+    #                 if field.ref_type:
+    #                     for ref_type in field.ref_type:
+    #                         ref = field.tags[ref_type]
+    #                         if isinstance(ref, list):
+    #                             field_references.extend(ref)
+    #                         else:
+    #                             field_references.append(ref)
+    #                 for ref in set(field_references):
+    #                     refs_query.append((ref, field.value))
+    #                 insert_refs= "INSERT INTO reference_links (reference_id, field_uuid)" \
+    #                              "VALUES ((SELECT id from reference_names WHERE name=?)," \
+    #                                      "(SELECT uuid from idf_fields WHERE uuid=?))"
+    #                 self.db.executemany(insert_refs, refs_query)
+    #                 self.db.commit()
+    #                 field_references = []
+    #                 refs_query = []
+
     def _deindex_objects(self, objects_to_delete):
         """Remove specified objects from the internal index
 
@@ -379,12 +455,8 @@ class IDFFile(dict):
                 append_new_field((field.uuid, field.obj_class, field.obj_class_display,
                                   field.ref_type, field.value))
 
-<<<<<<< Updated upstream
-        upsert_operation = "INSERT OR REPLACE INTO idf_objects VALUES (?, ?, ?, ?, ?)"
-=======
         upsert_operation = 'INSERT OR REPLACE INTO idf_fields (uuid, obj_class, obj_class_display, ref_type, value)' \
                            'VALUES (?,?,?,?,?)'
->>>>>>> Stashed changes
         self.db.executemany(upsert_operation, field_objects)
 
         if commit:
@@ -882,7 +954,7 @@ class IDFField(object):
 
     @property
     def obj_class(self):
-        """Returns this field's outer object's (:class:`IDFObject`) class
+        """Returns this field's outer object's (:class:`IDFObject`) class (all lower case)
 
         :rtype: str
         """
@@ -940,8 +1012,19 @@ class IDFField(object):
             if type_tag == 'node':
                 self._ref_type = 'node'
             else:
+                #TODO This picks the first type from the list! what if it has multiple types?
                 self._ref_type = str(list(ref_type_set)[0]) if ref_type_set else None
         return self._ref_type
+
+    @property
+    def ref_types(self):
+        """Read-only property containing list of reference types
+
+        :rtype: list
+        """
+        allowable_refs = {'reference', 'object-list', 'reference-class-name', 'node'}
+        ref_types = list(set(self.tags.keys()) & allowable_refs)
+        return ref_types
 
     @property
     def idd_object(self):
