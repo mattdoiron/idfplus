@@ -220,9 +220,6 @@ along with IDF+. If not, see <http://www.gnu.org/licenses/>.
                         </Directory>
                     </Directory>
                     <Directory Id="dir500A2327C71F40DBFF9D968BAC74DCC1" Name="persistent">
-                        <Component Id="cmpEF36974D410F3E3C5C24762B3C0B2781" Guid="*">
-                            <File Id="filBE9EC561300F88DE0BD8F994AD53E3AB" KeyPath="yes" Source="SourceDir\persistent\_ring.cp37-win_amd64.pyd" />
-                        </Component>
                         <Component Id="cmp7F0C9C5F3C9A03C54C2405682C84AA78" Guid="*">
                             <File Id="fil1BF0A5BFC0A27E1192D0D5809DD5522F" KeyPath="yes" Source="SourceDir\persistent\cPersistence.cp37-win_amd64.pyd" />
                         </Component>
@@ -500,7 +497,6 @@ along with IDF+. If not, see <http://www.gnu.org/licenses/>.
             <ComponentRef Id="cmpF187A5E9EAF7C96D73DF48E435017F2E" />
             <ComponentRef Id="cmpE7BA6B2A97D877801247392F9FD3F700" />
             <ComponentRef Id="cmp2F40728C605856D47357CF087C204C6C" />
-            <ComponentRef Id="cmpEF36974D410F3E3C5C24762B3C0B2781" />
             <ComponentRef Id="cmp7F0C9C5F3C9A03C54C2405682C84AA78" />
             <ComponentRef Id="cmpA43B3E82B84DA7B2688BDF4C78D0FEB4" />
             <ComponentRef Id="cmpC0BFE8D354F854E2A1C21E32F84DDCCB" />
