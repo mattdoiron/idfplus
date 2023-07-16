@@ -8,8 +8,6 @@ on:
 
 # This allows a subsequently queued workflow run to interrupt previous runs
 concurrency:
-
-concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
