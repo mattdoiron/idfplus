@@ -29,7 +29,7 @@ Python v3.7.x and the appropriate dependencies. See the Doc folder for more info
 Open Source and Cross Platform
 ------------------------------
 
-The tool is written in Python_ (v3.7.x) using PySide2_ 5.13.1 for a graphical library, and
+The tool is written in Python_ (v3.7.x) using PySide2_ 5.15.x for a graphical library, and
 the source code is available under the GPLv3 open source licence. It is currently
 working on both Ubuntu 18.04+ and Windows 10, but should work on Mac OSX as well.
 
