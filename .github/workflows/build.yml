@@ -33,7 +33,7 @@ jobs:
 
       - name: Enable caching for pip
       - uses: actions/cache@v3
-        if: startsWith(runner.os, 'Windows')
+        if: startsWith(runner.os, 'windows')
         with:
           path: ~\AppData\Local\pip\Cache
           key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
