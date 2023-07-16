@@ -55,7 +55,7 @@ jobs:
           pip install -r requirements-dev.txt
 
       - name: Install ubuntu-specific dependencies
-        if: startswith(matrix.os, 'ubuntu')
+#        if: startswith(matrix.os, 'ubuntu')
         run: |
           sudo apt install -y debhelper
 
