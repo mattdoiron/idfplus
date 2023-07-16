@@ -22,7 +22,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-      - uses: actions/checkout@v3
+        uses: actions/checkout@v3
         with:
           ref: build-workflow-testing
 
@@ -31,14 +31,17 @@ jobs:
         with:
           python-version: 3.7
 
-      - name: Enable caching for pip
-      - uses: actions/cache@v3
+      - name: Enable caching for pip on windows
+        uses: actions/cache@v3
         if: startsWith(runner.os, 'windows')
         with:
           path: ~\AppData\Local\pip\Cache
           key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
           restore-keys: |
             ${{ runner.os }}-pip-
+
+      - name: Enable caching for pip on ubuntu
+        uses: actions/cache@v3
         if: startswith(matrix.os, 'ubuntu')
         with:
           path: ~/.cache/pip
@@ -52,13 +55,10 @@ jobs:
           pip install -r requirements.txt
           pip install -r requirements-dev.txt
 
-      - name: Install os-specific dependencies
+      - name: Install debian-specific dependencies
         if: startswith(matrix.os, 'ubuntu')
         run: |
           sudo apt install -y debhelper
-        if: startswith(matrix.os, 'windows')
-        run: |
-          echo "none"
 
       - name: Freeze the app
         run: |
