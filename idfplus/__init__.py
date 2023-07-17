@@ -7,9 +7,10 @@
 """
 
 import subprocess
-def git_hash_short():
-    """Return short version"""
-    return subprocess.check_output(['git', 'rev-parse', '--short', 'HEAD']).decode('ascii').strip()
 
+git_hash = subprocess.check_output(['git', 'rev-parse', '--short', 'HEAD']).decode('ascii').strip()
+label = subprocess.check_output(["git", "describe"]).strip().decode('UTF-8')
+# print(git_hash)
+# print(label)
 
-__version__ = "0.2.0-{}".format(git_hash_short())
+__version__ = "{}-{}".format(label, git_hash)

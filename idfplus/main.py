@@ -369,7 +369,7 @@ class IDFPlus(QMainWindow, main.UIMainWindow):
         from PySide2 import __version__ as pyside2_version
 
         QMessageBox.about(self, "About IDF+",
-                """<b>IDF+</b> v{0}
+                """<b>IDF+</b> {0}
                 <p>This is an enhanced editor for EnergyPlus simulation input files.
                 For more information please see
                 <a href="https://github.com/mattdoiron/idfplus/">
