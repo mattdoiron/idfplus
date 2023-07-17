@@ -280,7 +280,7 @@ class IDFFile(dict):
             query += " AND NOT obj_class='buildingsurface:detailed'"
             query += " AND NOT obj_class='fenestrationsurface:detailed'"
 
-        query_records = "SELECT * from idf_objects WHERE {}".format(query)
+        query_records = "SELECT * from idf_fields WHERE {}".format(query)
 
         try:
             records = self.db.execute(query_records).fetchall()
@@ -435,7 +435,7 @@ class IDFFile(dict):
                 if field:
                     append_new_field((field.uuid,))
 
-        delete_operation = "DELETE FROM idf_objects WHERE uuid=(?)"
+        delete_operation = "DELETE FROM idf_fields WHERE uuid=(?)"
         self.db.executemany(delete_operation, field_objects)
         self.db.commit()
 
