@@ -375,7 +375,7 @@ class IDFPlus(QMainWindow, main.UIMainWindow):
                 <a href="https://github.com/mattdoiron/idfplus/">
                 https://github.com/mattdoiron/idfplus/
                 </a></p>
-                <p>Copyright &copy; 2014-2017 Matt Doiron (matt@mindfulmodeller.ca).
+                <p>Copyright &copy; 2014-2023 Matt Doiron (matt@mindfulmodeller.ca).
                 All rights reserved.</p>
                 <p>IDF+ is free software: you can redistribute it and/or modify
                 it under the terms of the GNU General Public License as published by
