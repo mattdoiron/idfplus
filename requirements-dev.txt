@@ -39,7 +39,7 @@ packaging==23.1
     #   build
     #   pytest
     #   sphinx
-pip-tools==7.0.0
+pip-tools==6.14.0
     # via -r resources/requirements-dev.in
 pluggy==1.2.0
     # via pytest
