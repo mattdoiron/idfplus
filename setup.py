@@ -59,7 +59,7 @@ requires_test = [
 requires_setup = ['wheel==0.40.0']
 
 # build_hash = subprocess.check_output(['git', 'rev-parse', '--short', 'HEAD']).decode().strip()
-version_full = subprocess.check_output(['git', 'describe']).decode().strip()
+version_full = subprocess.check_output(['git', 'describe', '--tags']).decode().strip()
 version = version_full.replace('v', '')
 
 with open(os.path.join(project, '__version__.py'), 'w') as f:

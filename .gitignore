@@ -71,5 +71,6 @@ resources/
 
 # Sphinx documentation
 docs/_build/
+
 /debian/changelog
-!/idfplus/__version__.py
+/idfplus/__version__.py
