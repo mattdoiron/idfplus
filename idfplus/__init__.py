@@ -6,11 +6,5 @@
 :license: GPL v3, see LICENSE for more details.
 """
 
-import subprocess
-
-git_hash = subprocess.check_output(['git', 'rev-parse', '--short', 'HEAD']).decode('ascii').strip()
-label = subprocess.check_output(["git", "describe"]).strip().decode('UTF-8')
-# print(git_hash)
-# print(label)
-
-__version__ = "{}-{}".format(label, git_hash)
+__version__ = 'v1.0.0'
+__build__ = '6de954d'

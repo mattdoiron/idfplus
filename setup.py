@@ -8,10 +8,8 @@
 
 # System imports
 import os
-import re
 from email.utils import formatdate
 import sys
-import platform
 import errno
 import subprocess
 from codecs import open
@@ -60,11 +58,22 @@ requires_test = [
 ]
 requires_setup = ['wheel==0.40.0']
 
-with open(os.path.join(project, '__init__.py'), 'r') as fd:
-    version = re.search(r'^__version__\s*=\s*[\'"]([^\'"]*)[\'"]',
-                        fd.read(), re.MULTILINE).group(1)
-    if not version:
-        raise RuntimeError('Cannot find version information')
+build_hash = subprocess.check_output(['git', 'rev-parse', '--short', 'HEAD']).decode().strip()
+version = subprocess.check_output(['git', 'describe', '--tags', '--always', 'HEAD']).strip().decode()
+
+with open(os.path.join(project, '__init__.py'), 'w') as f:
+    f.write('''\
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
+"""IDF+ is an enhanced editor for idf files—the text-based, simulation input files for EnergyPlus.
+
+:copyright: (c) 2019 by Matt Doiron.
+:license: GPL v3, see LICENSE for more details.
+"""
+
+__version__ = '{}'
+__build__ = '{}'
+'''.format(version, build_hash))
 with open('README.rst', 'r', 'utf-8') as f:
     readme = f.read()
 with open('CHANGELOG.rst', 'r', 'utf-8') as f:

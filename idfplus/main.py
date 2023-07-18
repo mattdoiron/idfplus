@@ -29,7 +29,7 @@ from . import delegates
 from . import commands
 from . import config
 from . import logger
-from . import __version__
+from . import __version__, __build__
 from . import icons_rc
 from .models import classtree
 from .models import reftree
@@ -369,7 +369,7 @@ class IDFPlus(QMainWindow, main.UIMainWindow):
         from PySide2 import __version__ as pyside2_version
 
         QMessageBox.about(self, "About IDF+",
-                """<b>IDF+</b> {0}
+                """<b>IDF+</b> {0}-{1}
                 <p>This is an enhanced editor for EnergyPlus simulation input files.
                 For more information please see
                 <a href="https://github.com/mattdoiron/idfplus/">
@@ -386,8 +386,8 @@ class IDFPlus(QMainWindow, main.UIMainWindow):
                 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
                 GNU General Public License at <a href="http://www.gnu.org/licenses/">
                 http://www.gnu.org/licenses/</a> for more details.</p>
-                <p>Built with: Python {1}, Qt {2} and PySide {3} on {4}</p>""".format(
-                __version__, platform.python_version(),
+                <p>Built with: Python {2}, Qt {3} and PySide {4} on {5}</p>""".format(
+                __version__, __build__, platform.python_version(),
                 qVersion(), pyside2_version,
                 platform.system()))
 
