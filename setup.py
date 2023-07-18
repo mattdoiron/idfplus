@@ -47,14 +47,14 @@ requires = [
 ]
 requires_dev = [
     "cffi==1.15.1",
-    "pip-tools==6.14.0",
-    "pyinstaller==3.6",
-    "sphinx==5.3",
+    "pip-tools==7.0.0",
+    "pyinstaller==5.13.0",
+    "sphinx==6.2.1",
     "pywin32==306 : sys.platform=='win32'"
 ]
 requires_test = [
-    'pytest==5.3.5',
-    'pytest-qt==3.3.0'
+    'pytest==7.4.0',
+    'pytest-qt==4.2.0'
 ]
 requires_setup = ['wheel==0.40.0']
 
@@ -229,11 +229,10 @@ class Freeze(Command):
         dist_dir = os.path.join(root_path, 'dist')
         build_dir = os.path.join(root_path, 'build')
         # upx_dir = os.path.join(root_path, 'resources', 'upx', self._upx_version())
-        self.pyi_run(['--clean', '--noconfirm', '--onedir',
+        self.pyi_run(['--clean', '--noconfirm',
                       '--log-level=' + self.log_level,
                       '--distpath=' + dist_dir,
                       '--workpath=' + build_dir,
-                      '--noupx',
                       # '--upx-dir=' + upx_dir,
                       spec_file])
 

@@ -455,7 +455,8 @@ class IDFFile(dict):
                 append_new_field((field.uuid, field.obj_class, field.obj_class_display,
                                   field.ref_type, field.value))
 
-        upsert_operation = "INSERT OR REPLACE INTO idf_fields VALUES (?, ?, ?, ?, ?)"
+        upsert_operation = 'INSERT OR REPLACE INTO idf_fields (uuid, obj_class, obj_class_display, ref_type, value)' \
+                           'VALUES (?,?,?,?,?)'
         self.db.executemany(upsert_operation, field_objects)
 
         if commit:
