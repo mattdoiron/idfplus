@@ -73,4 +73,3 @@ resources/
 docs/_build/
 
 /debian/changelog
-/idfplus/__version__.py
