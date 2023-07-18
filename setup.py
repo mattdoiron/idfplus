@@ -60,9 +60,9 @@ requires_setup = ['wheel==0.40.0']
 
 build_hash = subprocess.check_output(['git', 'rev-parse', '--short', 'HEAD']).decode().strip()
 version_full = subprocess.check_output(['git', 'describe', '--tags', '--always', 'HEAD']).strip().decode()
-version = version_full.split('-')[0]
+version = version_full.split('-')[0].replace('v', '')
 
-with open(os.path.join(project, '__init__.py'), 'w') as f:
+with open(os.path.join(project, '__version__.py'), 'w') as f:
     f.write('''\
 #!/usr/bin/python
 # -*- coding: utf-8 -*-

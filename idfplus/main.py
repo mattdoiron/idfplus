@@ -29,7 +29,7 @@ from . import delegates
 from . import commands
 from . import config
 from . import logger
-from . import __version_full__
+from __version__ import __version_full__
 from . import icons_rc
 from .models import classtree
 from .models import reftree
