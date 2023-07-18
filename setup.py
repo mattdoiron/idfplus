@@ -59,7 +59,7 @@ requires_test = [
 requires_setup = ['wheel==0.40.0']
 
 build_hash = subprocess.check_output(['git', 'rev-parse', '--short', 'HEAD']).decode().strip()
-version_full = subprocess.check_output(['git', 'describe', '--tags', '--always', 'HEAD']).strip().decode()
+version_full = subprocess.check_output(['git', 'describe', '--tags', '--always', 'HEAD']).decode().strip()
 version = version_full.split('-')[0].replace('v', '')
 
 with open(os.path.join(project, '__version__.py'), 'w') as f:
@@ -72,9 +72,9 @@ with open(os.path.join(project, '__version__.py'), 'w') as f:
 :license: GPL v3, see LICENSE for more details.
 """
 
-__version__ = '{}'
-__version_full__ = '{}'
-__build__ = '{}'
+__version__ = '{0}'
+__version_full__ = '{1}'
+__build__ = '{2}'
 '''.format(version, version_full, build_hash))
 with open('README.rst', 'r', 'utf-8') as f:
     readme = f.read()
