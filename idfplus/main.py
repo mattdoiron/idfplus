@@ -29,7 +29,7 @@ from . import delegates
 from . import commands
 from . import config
 from . import logger
-from . import __version__, __build__
+from . import __version_full__
 from . import icons_rc
 from .models import classtree
 from .models import reftree
@@ -387,7 +387,7 @@ class IDFPlus(QMainWindow, main.UIMainWindow):
                 GNU General Public License at <a href="http://www.gnu.org/licenses/">
                 http://www.gnu.org/licenses/</a> for more details.</p>
                 <p>Built with: Python {1}, Qt {2} and PySide {3} on {4}</p>""".format(
-                __version__, platform.python_version(),
+                __version_full__, platform.python_version(),
                 qVersion(), pyside2_version,
                 platform.system()))
 

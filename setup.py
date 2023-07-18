@@ -27,8 +27,8 @@ else:
     from setuptools import Command as _bdist_msi
     from distutils.command.bdist import bdist as _bdist
 
-if sys.version_info.major != 3 and sys.version_info.minor < 7:
-    print("Currently compatible with Python 3.7.x only!")
+if sys.version_info.major != 3 and sys.version_info.minor < 10:
+    print("Currently compatible with Python 3.10.x only!")
     sys.exit(1)
 
 
@@ -59,7 +59,8 @@ requires_test = [
 requires_setup = ['wheel==0.40.0']
 
 build_hash = subprocess.check_output(['git', 'rev-parse', '--short', 'HEAD']).decode().strip()
-version = subprocess.check_output(['git', 'describe', '--tags', '--always', 'HEAD']).strip().decode()
+version_full = subprocess.check_output(['git', 'describe', '--tags', '--always', 'HEAD']).strip().decode()
+version = version_full.split('-')[0]
 
 with open(os.path.join(project, '__init__.py'), 'w') as f:
     f.write('''\
@@ -72,8 +73,9 @@ with open(os.path.join(project, '__init__.py'), 'w') as f:
 """
 
 __version__ = '{}'
+__version_full__ = '{}'
 __build__ = '{}'
-'''.format(version, build_hash))
+'''.format(version, version_full, build_hash))
 with open('README.rst', 'r', 'utf-8') as f:
     readme = f.read()
 with open('CHANGELOG.rst', 'r', 'utf-8') as f:
@@ -97,7 +99,7 @@ class PyTest(_test):
 class bdist_msi(_bdist_msi):
     description = 'Used to build an msi installer. Windows only.'
     user_options = []
-    all_versions = ['3.7']
+    all_versions = ['3.10']
 
     def initialize_options(self):
         if not sys.platform.startswith('win'):
@@ -240,7 +242,7 @@ class Freeze(Command):
 class bdist_deb(_bdist):
     description = 'Used to build a deb installer. Debian/Ubuntu only.'
     user_options = []
-    all_versions = ['3.7']
+    all_versions = ['3.10']
 
     def initialize_options(self):
         if not sys.platform.startswith('linux'):
@@ -305,9 +307,9 @@ setup(
     install_requires=requires,
     setup_requires=requires_setup,
     tests_require=requires_test,
-    python_requires=">=3.7",
+    python_requires=">=3.10",
     classifiers=[
-        'Programming Language :: Python :: 3.7',
+        'Programming Language :: Python :: 3.10',
         'Development Status :: 4 - Beta',
         'Natural Language :: English',
         'Environment :: Win32 (MS Windows)',

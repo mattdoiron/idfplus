@@ -6,5 +6,6 @@
 :license: GPL v3, see LICENSE for more details.
 """
 
-__version__ = 'v1.0.0-16-g403bacc'
-__build__ = '403bacc'
+__version__ = 'v1.0.0'
+__version_full__ = 'v1.0.0-3-gd829d62'
+__build__ = 'd829d62'
