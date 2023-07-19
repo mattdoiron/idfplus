@@ -21,13 +21,6 @@ from setuptools.dist import DistutilsOptionError
 import fileinput
 from shutil import copyfile
 
-if sys.platform.startswith('win'):
-    from distutils.command.bdist_msi import bdist_msi as _bdist_msi
-    from setuptools import Command as _bdist
-else:
-    from setuptools import Command as _bdist_msi
-    from distutils.command.bdist import bdist as _bdist
-
 if sys.version_info.major != 3 and sys.version_info.minor < 10:
     print("Currently compatible with Python 3.10.x only!")
     sys.exit(1)
@@ -101,7 +94,7 @@ class PyTest(_test):
         sys.exit(error_no)
 
 
-class bdist_msi(_bdist_msi):
+class bdist_msi(Command):
     description = 'Used to build an msi installer. Windows only.'
     user_options = []
     all_versions = ['3.10']
@@ -244,7 +237,7 @@ class Freeze(Command):
                       spec_file])
 
 
-class bdist_deb(_bdist):
+class bdist_deb(Command):
     description = 'Used to build a deb installer. Debian/Ubuntu only.'
     user_options = []
     all_versions = ['3.10']
