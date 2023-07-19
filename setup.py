@@ -262,7 +262,7 @@ class bdist_deb(_bdist):
         changelog_template = os.path.join(root_path, 'resources', 'deb_changelog')
         changelog_deb = os.path.join(root_path, 'debian', 'changelog')
         deb = '{}_{}-0_all.deb'.format(project, version)
-        deb_file = os.path.join('..', root_path, deb)
+        deb_file = os.path.join(root_path, '..', deb)
         artifact_dir = os.path.join(root_path, 'artifacts')
 
         # Move debian changelog template to debian folder and populate it
@@ -274,7 +274,7 @@ class bdist_deb(_bdist):
             subprocess.call(['dpkg-buildpackage', '-b', '-tc'])
         except OSError as e:
             if e.errno == errno.ENOENT:
-                print('Cannot find "dpkg-buildpackage" command. Please be sure WiX is installed.')
+                print('Cannot find "dpkg-buildpackage" command.')
                 sys.exit(1)
 
         # Move resulting deb file to its own folder for easier export as an artifact
