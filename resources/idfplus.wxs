@@ -42,362 +42,985 @@ along with IDF+. If not, see <http://www.gnu.org/licenses/>.
 
         <Directory Id="TARGETDIR" Name="SourceDir">
             <Directory Id="ProgramFiles64Folder">
-                <Directory Id="INSTALLDIR" Name="IDFPlus">
-                    <Component Id="cmp04380DD60899B3B2E6C7C1126ED33A99" Guid="*">
-                        <File Id="filAE4442D63268B8E8D008E0A6CD4BEBE5" KeyPath="yes" Source="SourceDir\_queue.pyd" />
-                    </Component>
-                    <Component Id="cmp665B011215EE152C839B9E89FFFDEA84" Guid="*">
-                        <File Id="fil97A8BB7079FFE483DA421296C7897EB4" KeyPath="yes" Source="SourceDir\sqlite3.dll" />
-                    </Component>
-                    <Component Id="cmp47DDEFFA15FA9027732724FFB9AB575F" Guid="*">
-                        <File Id="fil8B1667BC550A17BFAA31C612987AAF3C" KeyPath="yes" Source="SourceDir\Qt5Quick.dll" />
-                    </Component>
-                    <Component Id="cmp44BAD151EA7CC6EE414D033F4F9F2759" Guid="*">
-                        <File Id="fil379E2AE73EF4E775A0F74626DB26B3E0" KeyPath="yes" Source="SourceDir\win32wnet.pyd" />
-                    </Component>
-                    <Component Id="cmp000279AAB437499A6DB2C3E7CDC37F23" Guid="*">
-                        <File Id="fil3E336929F1327A5BAF96FBB4EAA30C84" KeyPath="yes" Source="SourceDir\_bz2.pyd" />
-                    </Component>
-                    <Component Id="cmp58794494126F8D7062DB22910DC1C0DD" Guid="*">
-                        <File Id="filA2D3BC8597468082524936EF0F19D2BB" KeyPath="yes" Source="SourceDir\Qt5Core.dll" />
-                    </Component>
-                    <Component Id="cmp647DA6CA62F6403342EA4EBEE6C9DC78" Guid="*">
-                        <File Id="filBFE610BCA8F5F003EE92ACE0737CED2A" KeyPath="yes" Source="SourceDir\base_library.zip" />
-                    </Component>
-                    <Component Id="cmp20D32CF3D494CB0775B9BF120E2C342A" Guid="*">
-                        <File Id="fil44C7FB6C8C0D597F1029ED4E6ECBCC0D" KeyPath="yes" Source="SourceDir\pywintypes37.dll" />
-                    </Component>
-                    <Component Id="cmp579A8779827420B2574F657CEC316A17" Guid="*">
-                        <File Id="fil1B1DCB37E9D78D96AB13CA4BA181B9A1" KeyPath="yes" Source="SourceDir\shiboken2.abi3.dll" />
-                    </Component>
-                    <Component Id="cmp57B1107943DDB333EF41B19027A44F43" Guid="*">
-                        <File Id="filC653248933DAACBB1D4A8AF109FD16C9" KeyPath="yes" Source="SourceDir\win32evtlog.pyd" />
-                    </Component>
-                    <Component Id="cmpA880A3ACBF61BD790927E61A2CCDCADF" Guid="*">
-                        <File Id="fil4A4C5439B66BED4A4474FCACA558A232" KeyPath="yes" Source="SourceDir\Qt5Gui.dll" />
-                    </Component>
-                    <Component Id="cmpD2A1BF5D1891F4508EE9DF506EFC642E" Guid="*">
-                        <File Id="filBCB1850EECAF28A3A918A01C9E6D951B" KeyPath="yes" Source="SourceDir\win32api.pyd" />
-                    </Component>
-                    <Component Id="cmpBD33227FC5AD6BA1A293384B57B5C3E1" Guid="*">
-                        <File Id="filF7FA605CFD2E8074C565F825A465F67E" KeyPath="yes" Source="SourceDir\d3dcompiler_47.dll" />
-                    </Component>
-                    <Component Id="cmp11AE6C3F6A53A21A6717F67E1E0C6BFE" Guid="*">
-                        <File Id="fil24A9C764E60EF30BB942E97AC84F9B15" KeyPath="yes" Source="SourceDir\_cffi_backend.cp37-win_amd64.pyd" />
-                    </Component>
-                    <Component Id="cmp602551A065B8B655C3B0AC5D5BF3E3AB" Guid="*">
-                        <File Id="fil05A8ED2AA9AE7DB01860C9E003542D9C" KeyPath="yes" Source="SourceDir\idfplus.exe.manifest" />
-                    </Component>
-                    <Component Id="cmpEB70B096D47154C70DEA72B3F1431CCF" Guid="*">
-                        <File Id="fil289A3BAB23DBA8C2E6923AD1371E9CA3" KeyPath="yes" Source="SourceDir\mfc140u.dll" />
-                    </Component>
-                    <Component Id="cmp8E659A00591FCB2A541A42D607188D92" Guid="*">
-                        <File Id="fil1EB8D7B77A4D2C815B787969F7D3EFE1" KeyPath="yes" Source="SourceDir\_decimal.pyd" />
-                    </Component>
-                    <Component Id="cmpDA9BBAEE81E4DB8EF727BA092F52C87B" Guid="*">
-                        <File Id="filD71CCB3E5B44521FE7A06DECCF1964BA" KeyPath="yes" Source="SourceDir\win32trace.pyd" />
-                    </Component>
-                    <Component Id="cmpBF3B748F501D8F208BC89FEF2A274623" Guid="*">
-                        <File Id="fil9DA46AE40CF5DD9F10593A32ACB727FE" KeyPath="yes" Source="SourceDir\pyexpat.pyd" />
-                    </Component>
-                    <Component Id="cmp93CAA189E2B210693FF54F3BBDC0D724" Guid="*">
-                        <File Id="fil9D1B2C64109817E2DB2107A253BBED8D" KeyPath="yes" Source="SourceDir\_sqlite3.pyd" />
-                    </Component>
-                    <Component Id="cmpE046DB0C5B101AF2FD3B29FCA4AA91DA" Guid="*">
-                        <File Id="fil0F86FA6D4E6516B3DABF4B8BD1573723" KeyPath="yes" Source="SourceDir\pythoncom37.dll" />
-                    </Component>
-                    <Component Id="cmpF50AEB972CA406A07E1DDE34E607C8DE" Guid="*">
-                        <File Id="fil1CEB04708109E45A0B2F2F06564D4D42" KeyPath="yes" Source="SourceDir\_hashlib.pyd" />
-                    </Component>
-                    <Component Id="cmp21332C15704597CA03B113466012B06A" Guid="*">
-                        <File Id="fil73730178665B519D63EF0B623B9176E7" KeyPath="yes" Source="SourceDir\Qt5Svg.dll" />
-                    </Component>
-                    <Component Id="cmp4D0A00F389AB20625A393908837B4790" Guid="*">
-                        <File Id="fil671161342640D0D635C5C5B67D96184F" KeyPath="yes" Source="SourceDir\win32ui.pyd" />
-                    </Component>
-                    <Component Id="cmpBDC23040FF324EA2C89641ACAA4575C0" Guid="*">
-                        <File Id="fil25D8A25535529D7431062DB94C47788D" KeyPath="yes" Source="SourceDir\_socket.pyd" />
-                    </Component>
-                    <Component Id="cmpB25F6FDD99F6AB8E7451EF3C43FF0FBF" Guid="*">
-                        <File Id="fil3AD6AFC6D1379C6F3C31FACA059DE211" KeyPath="yes" Source="SourceDir\python37.dll" />
-                    </Component>
-                    <Component Id="cmpE1A1D99212A8F6F8DA60FD2DE60B708B" Guid="*">
-                        <File Id="fil863B77D8E1D77557CF7AB452EFB15180" KeyPath="yes" Source="SourceDir\pyside2.abi3.dll" />
-                    </Component>
-                    <Component Id="cmp9FCE5B0D26786FA199B777D9C83480CD" Guid="*">
-                        <File Id="fil58BE6B39989808C1AC2347A42BF4B033" KeyPath="yes" Source="SourceDir\_multiprocessing.pyd" />
-                    </Component>
-                    <Component Id="cmp6300E1C495C3A5EFE6C68EA598A1B23C" Guid="*">
-                        <File Id="fil401D818B22307E73FA15397443C5BAD8" KeyPath="yes" Source="SourceDir\Qt5Network.dll" />
-                    </Component>
-                    <Component Id="cmpDD0B55A217D8DEE25488E340DF11E2BC" Guid="*">
-                        <File Id="fil6703E40C247D0CAC295F71EE68565557" KeyPath="yes" Source="SourceDir\MSVCP140.dll" />
-                    </Component>
-                    <Component Id="cmpE50EE66DF901BFAD9D74E3BD47D470BD" Guid="*">
-                        <File Id="filD48371F64BE9F8B688E80D503FA48C15" KeyPath="yes" Source="SourceDir\Qt5VirtualKeyboard.dll" />
-                    </Component>
-                    <Component Id="cmpDC9DB6FCCB71D324225B136D6D685D57" Guid="*">
-                        <File Id="fil0B00D7CF23DF2E1AF00199E5AB894EA3" KeyPath="yes" Source="SourceDir\Qt5DBus.dll" />
-                    </Component>
-                    <Component Id="cmp9AA715A313635B27AD5328D9157BC2DA" Guid="*">
-                        <File Id="fil6BE9434CEF2F57F2AE193A46A6C389B1" KeyPath="yes" Source="SourceDir\Qt5WebSockets.dll" />
-                    </Component>
-                    <Component Id="cmp6BFD25BB43FC5DE5E887E36C84012DB1" Guid="*">
-                        <File Id="fil284EDF054D5107826A3F9EDA73E142E4" KeyPath="yes" Source="SourceDir\libcrypto-1_1.dll" />
-                    </Component>
-                    <Component Id="cmp25A795128D445F5A212151BC0AFB235E" Guid="*">
-                        <File Id="fil357A92C64BF1D342143EB8F70FC06C48" KeyPath="yes" Source="SourceDir\unicodedata.pyd" />
-                    </Component>
-                    <Component Id="cmp0099A4657D35F57A6BB27572CAEAE213" Guid="*">
-                        <File Id="fil6B240776FA60C009795038045338977E" KeyPath="yes" Source="SourceDir\idfplus.desktop" />
-                    </Component>
-                    <Component Id="cmpDF902F9C4EE0FE0B5BA9D87F67F0DE4D" Guid="*">
-                        <File Id="fil8B6000E215E22371EBA483B38ACB4B73" KeyPath="yes" Source="SourceDir\idfplus.png" />
-                    </Component>
-                    <Component Id="cmp6D569DEB836C51C0B13CD8C5BF9E7FD6" Guid="*">
-                        <File Id="fil0AC9AAF88333EAEC052396EEF77B4B17" KeyPath="yes" Source="SourceDir\_ssl.pyd" />
-                    </Component>
-                    <Component Id="cmp9CDF1C1D642A0A8B2DC9AAAD2B42B8B2" Guid="*">
-                        <File Id="fil1DB46908CD097496D8FF0D9AA0B363B5" KeyPath="yes" Source="SourceDir\Qt5Widgets.dll" />
-                    </Component>
-                    <Component Id="cmp869D11B1441B82FB7E82D3957856EF49" Guid="*">
-                        <File Id="filDE72C3399FA8B47463A4445DA140ABCB" KeyPath="yes" Source="SourceDir\_lzma.pyd" />
-                    </Component>
-                    <Component Id="cmpAEBB1F42F0FACEA4065EFAE8F2CDB637" Guid="*">
-                        <File Id="fil3742DBA1FA4026C4808ED096B89456CA" KeyPath="yes" Source="SourceDir\idfplus.exe" />
-                    </Component>
-                    <Component Id="cmpE3D4DB11A27E26D61B2EFB7A7D5AFFDA" Guid="*">
-                        <File Id="filEF68D7008D5104924A5E5DC53A1BCAC5" KeyPath="yes" Source="SourceDir\VCRUNTIME140.dll" />
-                    </Component>
-                    <Component Id="cmpB8EF6E52F198F331FC41E59FC3049B96" Guid="*">
-                        <File Id="fil2472E460F21FFBCE69783A495C9E8A15" KeyPath="yes" Source="SourceDir\Qt5Qml.dll" />
-                    </Component>
-                    <Component Id="cmp6140A6D328061E31C7D0764687486D9B" Guid="*">
-                        <File Id="filD7E133BA658C90B4B6AFB29A0CD41DF8" KeyPath="yes" Source="SourceDir\select.pyd" />
-                    </Component>
-                    <Component Id="cmp6E1A9E4DC0F4D139F8D5F93E3E0876BB" Guid="*">
-                        <File Id="fil829263B9E9C454640F4E7DDCBBDAB3A8" KeyPath="yes" Source="SourceDir\python3.dll" />
-                    </Component>
-                    <Component Id="cmpC060CA73CA0DA80FFA1A2530FD69D32E" Guid="*">
-                        <File Id="fil44BA20CAA03F9C9B0B76809FD2EE34FD" KeyPath="yes" Source="SourceDir\libGLESv2.dll" />
-                    </Component>
-                    <Component Id="cmpC2B5C938CDBD7BD0FAE06ACAABDB3B54" Guid="*">
-                        <File Id="fil025966B7C1FB522423ADF8E9CE443022" KeyPath="yes" Source="SourceDir\opengl32sw.dll" />
-                    </Component>
-                    <Component Id="cmpB2DE97470846F89999AC3BDD383C401C" Guid="*">
-                        <File Id="fil80CEB1EABC6BCA4A16DDF5D78DC709FB" KeyPath="yes" Source="SourceDir\libssl-1_1.dll" />
-                    </Component>
-                    <Component Id="cmpC4E2A9724274929A818E7F2E8F3B1E5B" Guid="*">
-                        <File Id="fil5EE66C8413BA2D559982D33EB0672004" KeyPath="yes" Source="SourceDir\_win32sysloader.pyd" />
-                    </Component>
-                    <Component Id="cmp997B896EF135E895E0328BAC28684A84" Guid="*">
-                        <File Id="fil98E23D593B3B4C4F6A527C1C1630F415" KeyPath="yes" Source="SourceDir\_ctypes.pyd" />
-                    </Component>
-                    <Component Id="cmp94A57D81696CA218C648E40A62E8B01E" Guid="*">
-                        <File Id="fil996FC05431A2B3F5A52561DEDB4263C0" KeyPath="yes" Source="SourceDir\Qt5QmlModels.dll" />
-                    </Component>
-                    <Component Id="cmp39843742AA799691811E9DC248DE1144" Guid="*">
-                        <File Id="filC800376F86F561DED9A4D88388A89DB6" KeyPath="yes" Source="SourceDir\libEGL.dll" />
-                    </Component>
-                    <Directory Id="dir6C3E06F8F939FD8989C35A9E6BA535DE" Name="shiboken2">
-                        <Component Id="cmpDF49AF3303DCE1F56C893A6683626C57" Guid="*">
-                            <File Id="fil9427EFC3589A4148EE3726539FE8F26F" KeyPath="yes" Source="SourceDir\shiboken2\shiboken2.pyd" />
-                        </Component>
-                    </Directory>
-                    <Directory Id="dir0FB23EFA2CF642E9C31A7A04DF1A76B2" Name="lib2to3">
-                        <Component Id="cmpF187A5E9EAF7C96D73DF48E435017F2E" Guid="*">
-                            <File Id="fil66B054209E31BD0E57BD610B2089BCFF" KeyPath="yes" Source="SourceDir\lib2to3\PatternGrammar.txt" />
-                        </Component>
-                        <Component Id="cmpE7BA6B2A97D877801247392F9FD3F700" Guid="*">
-                            <File Id="fil5342E681C509BC871ADD40CE673DB942" KeyPath="yes" Source="SourceDir\lib2to3\Grammar.txt" />
-                        </Component>
-                        <Directory Id="dirCDB290D33A5B237E1C98AD32E9011B88" Name="tests">
-                            <Directory Id="dirBCBE72C5753C6EEBB26113292542A847" Name="data">
-                                <Component Id="cmp2F40728C605856D47357CF087C204C6C" Guid="*">
-                                    <File Id="fil8F30AA3969389FC7F8558882657C9274" KeyPath="yes" Source="SourceDir\lib2to3\tests\data\README" />
+                <Component Id="cmp5AB0F2EA4098C8FA6623C36E7854822A" Guid="*">
+                    <File Id="fil7BB73CC487C41DE472E8CB4B38CC2D63" KeyPath="yes" Source="SourceDir\api-ms-win-core-console-l1-1-0.dll" />
+                </Component>
+                <Component Id="cmp77A900935E8FD331768A1DA87B51081F" Guid="*">
+                    <File Id="filB5173D82897A48EC898400BACF4B14C5" KeyPath="yes" Source="SourceDir\api-ms-win-core-datetime-l1-1-0.dll" />
+                </Component>
+                <Component Id="cmpB6102BF6000F790BA9C8E5A66F012CA9" Guid="*">
+                    <File Id="filD2CF00FC708BDCB27A801B67B9E757BF" KeyPath="yes" Source="SourceDir\api-ms-win-core-debug-l1-1-0.dll" />
+                </Component>
+                <Component Id="cmpF5132F3F270E855AEBEEC73128FC7B03" Guid="*">
+                    <File Id="filBE9819BA6471140B666908535A9C2BF2" KeyPath="yes" Source="SourceDir\api-ms-win-core-errorhandling-l1-1-0.dll" />
+                </Component>
+                <Component Id="cmp2BA74004DBD5AC697142F0878013F8F3" Guid="*">
+                    <File Id="fil0F6DBDB552ECD7DE84FDE21C59821120" KeyPath="yes" Source="SourceDir\api-ms-win-core-fibers-l1-1-0.dll" />
+                </Component>
+                <Component Id="cmpB4ED6C8EB7949C6759F69638040FC1D9" Guid="*">
+                    <File Id="fil5F4C3CB3E64E0D3A0B2EC66877B19189" KeyPath="yes" Source="SourceDir\api-ms-win-core-file-l1-1-0.dll" />
+                </Component>
+                <Component Id="cmp125D12B2DF8288259E0B725EAAA9BD0E" Guid="*">
+                    <File Id="filAD15A8D3C7E0A940CC4FD51730FC2305" KeyPath="yes" Source="SourceDir\api-ms-win-core-file-l1-2-0.dll" />
+                </Component>
+                <Component Id="cmpA4755C7A188C96FC71AF118385CD6FB3" Guid="*">
+                    <File Id="fil03E2ACA6A491526EA0E522206EE55094" KeyPath="yes" Source="SourceDir\api-ms-win-core-file-l2-1-0.dll" />
+                </Component>
+                <Component Id="cmp1EFBA872F7C6112B014C8C0B4A6C3813" Guid="*">
+                    <File Id="filC1B2D01710F65FF515215AB5C07140AE" KeyPath="yes" Source="SourceDir\api-ms-win-core-handle-l1-1-0.dll" />
+                </Component>
+                <Component Id="cmp3F78C06EEE4E97F082A76CA86E5076EB" Guid="*">
+                    <File Id="filB4992193F870BDACD1B41318F23B6800" KeyPath="yes" Source="SourceDir\api-ms-win-core-heap-l1-1-0.dll" />
+                </Component>
+                <Component Id="cmp18337863FCF5220B5A355269A2B3E853" Guid="*">
+                    <File Id="fil2752B1E0AD2DC366533B2E91A063FC97" KeyPath="yes" Source="SourceDir\api-ms-win-core-interlocked-l1-1-0.dll" />
+                </Component>
+                <Component Id="cmp1859CDA9CADB9BA267AD1EE469ECB604" Guid="*">
+                    <File Id="filEE9D6302F78E6B28F6F61CF98D1A7CA3" KeyPath="yes" Source="SourceDir\api-ms-win-core-libraryloader-l1-1-0.dll" />
+                </Component>
+                <Component Id="cmp99A35EB81BDB96A49E2D676EA94BAC1F" Guid="*">
+                    <File Id="filB0858F45121E715456755276939CC7F4" KeyPath="yes" Source="SourceDir\api-ms-win-core-localization-l1-2-0.dll" />
+                </Component>
+                <Component Id="cmpEB22A3CD57A9EB830C19E74F981ADE16" Guid="*">
+                    <File Id="filA855826C112F7D5B1486DCB548B6FE50" KeyPath="yes" Source="SourceDir\api-ms-win-core-memory-l1-1-0.dll" />
+                </Component>
+                <Component Id="cmp9B1C6B0012F958FCBA4A3E95C0FDE8F3" Guid="*">
+                    <File Id="fil5CD395BB1D212BDB65A1DA4C14EE81C5" KeyPath="yes" Source="SourceDir\api-ms-win-core-namedpipe-l1-1-0.dll" />
+                </Component>
+                <Component Id="cmp6A7359A44BAE524216C49C0B1F1D27B4" Guid="*">
+                    <File Id="fil40C31ED4BD3780590EA95DCF8C965163" KeyPath="yes" Source="SourceDir\api-ms-win-core-processenvironment-l1-1-0.dll" />
+                </Component>
+                <Component Id="cmpE0A9F7AA0FB92651DFE0A8C267A92D50" Guid="*">
+                    <File Id="fil56F9EA5AA10D5CBB086D9C017F721C81" KeyPath="yes" Source="SourceDir\api-ms-win-core-processthreads-l1-1-0.dll" />
+                </Component>
+                <Component Id="cmpDFCA9ACD11AE5F6FDB272BE054281E36" Guid="*">
+                    <File Id="fil8CC3A701DF0E93CEEE695C1507134FF2" KeyPath="yes" Source="SourceDir\api-ms-win-core-processthreads-l1-1-1.dll" />
+                </Component>
+                <Component Id="cmp4EBB1CF14C28A866418EA34176073708" Guid="*">
+                    <File Id="fil2D84C6C33BA167228043DA0DAB7BEF72" KeyPath="yes" Source="SourceDir\api-ms-win-core-profile-l1-1-0.dll" />
+                </Component>
+                <Component Id="cmp6D634BFC6FFED3AC0890BE9CC6DC3B31" Guid="*">
+                    <File Id="filB41CF17F6D57C50B97BB25EB5FC5673D" KeyPath="yes" Source="SourceDir\api-ms-win-core-rtlsupport-l1-1-0.dll" />
+                </Component>
+                <Component Id="cmp9E742DE9CC5E24ACCB4F104D72DFED39" Guid="*">
+                    <File Id="fil41C87D5C0D01A9073FF111DEB1033E82" KeyPath="yes" Source="SourceDir\api-ms-win-core-string-l1-1-0.dll" />
+                </Component>
+                <Component Id="cmpDAB4791F865CE8BE5FFD9F021CC52870" Guid="*">
+                    <File Id="filBCD8D74DE838535342A3F438E99B51EE" KeyPath="yes" Source="SourceDir\api-ms-win-core-synch-l1-1-0.dll" />
+                </Component>
+                <Component Id="cmp92D95FB7A95656B526E42DAD225A345F" Guid="*">
+                    <File Id="filE742F061FF9C02C5955DBF66D126F188" KeyPath="yes" Source="SourceDir\api-ms-win-core-synch-l1-2-0.dll" />
+                </Component>
+                <Component Id="cmpDB6CA90E55234EC386DFF4049F6F5887" Guid="*">
+                    <File Id="fil65C699B3ACB8BFC56C362F25D4B32A4A" KeyPath="yes" Source="SourceDir\api-ms-win-core-sysinfo-l1-1-0.dll" />
+                </Component>
+                <Component Id="cmp64DD83EC06A3FF7E1B330B75F1703D73" Guid="*">
+                    <File Id="fil2EFBEF99D46C847BC9299D2F5C7F5F08" KeyPath="yes" Source="SourceDir\api-ms-win-core-timezone-l1-1-0.dll" />
+                </Component>
+                <Component Id="cmpFCFAF20A6788C0522AFD42DD1BB6B9AD" Guid="*">
+                    <File Id="fil857A5FB68D5FA94F25AD7D41DD9B946C" KeyPath="yes" Source="SourceDir\api-ms-win-core-util-l1-1-0.dll" />
+                </Component>
+                <Component Id="cmp392C11BB04CB5E0F9EF5EE793B817BF9" Guid="*">
+                    <File Id="filAC952539475925277CDC0DA2DD4EF471" KeyPath="yes" Source="SourceDir\api-ms-win-crt-conio-l1-1-0.dll" />
+                </Component>
+                <Component Id="cmp08C87F3B2EBE85532A131222B39C6B5C" Guid="*">
+                    <File Id="fil9630F70C8F02928CB098D0C1E905464E" KeyPath="yes" Source="SourceDir\api-ms-win-crt-convert-l1-1-0.dll" />
+                </Component>
+                <Component Id="cmp11E317A573A771B5BEE42E9619BB90DB" Guid="*">
+                    <File Id="fil5CD04EF55E775B2F3B284370286847D0" KeyPath="yes" Source="SourceDir\api-ms-win-crt-environment-l1-1-0.dll" />
+                </Component>
+                <Component Id="cmp7C3F7CC527EA7F7EA417A8F41AF1C870" Guid="*">
+                    <File Id="fil749731E9D9242DA5039BFE913FDD6B73" KeyPath="yes" Source="SourceDir\api-ms-win-crt-filesystem-l1-1-0.dll" />
+                </Component>
+                <Component Id="cmp381CA3F72F39C69A330184BCA4760F80" Guid="*">
+                    <File Id="fil1AC75384C2A4B8C63B7ABE4EE0383330" KeyPath="yes" Source="SourceDir\api-ms-win-crt-heap-l1-1-0.dll" />
+                </Component>
+                <Component Id="cmp1D856585847E0007643717B7BAF9FE0F" Guid="*">
+                    <File Id="filCA5079D98207C308173F8B2C7C754220" KeyPath="yes" Source="SourceDir\api-ms-win-crt-locale-l1-1-0.dll" />
+                </Component>
+                <Component Id="cmp0C37D6E4DBA2A7EE45630E93BBD4C9C6" Guid="*">
+                    <File Id="fil6CDE0341AF77ED857694DBA736D1CAC4" KeyPath="yes" Source="SourceDir\api-ms-win-crt-math-l1-1-0.dll" />
+                </Component>
+                <Component Id="cmp883AAAAB791C10E70070B67CB331DFB4" Guid="*">
+                    <File Id="filFE34EC78E999B7FD023B7E2126DB0B08" KeyPath="yes" Source="SourceDir\api-ms-win-crt-multibyte-l1-1-0.dll" />
+                </Component>
+                <Component Id="cmp85EA7A7B02ACC56FCD1CED4AB64F7111" Guid="*">
+                    <File Id="fil2DED72A2F32055787274D7E8557DB77D" KeyPath="yes" Source="SourceDir\api-ms-win-crt-process-l1-1-0.dll" />
+                </Component>
+                <Component Id="cmp618CEC0EE90C149B43B071B426F6583F" Guid="*">
+                    <File Id="fil998DB4044C0FFC28B134366BF0F4382E" KeyPath="yes" Source="SourceDir\api-ms-win-crt-runtime-l1-1-0.dll" />
+                </Component>
+                <Component Id="cmpB893D6AEF45AD0187444C270460566E9" Guid="*">
+                    <File Id="filD6C85FAC000462C2708DD47D0D70797F" KeyPath="yes" Source="SourceDir\api-ms-win-crt-stdio-l1-1-0.dll" />
+                </Component>
+                <Component Id="cmp39F50ED12AE4B4826486C06AB2C9EB31" Guid="*">
+                    <File Id="filFF2E4BF2CAEF44EF20A417668D43BD34" KeyPath="yes" Source="SourceDir\api-ms-win-crt-string-l1-1-0.dll" />
+                </Component>
+                <Component Id="cmpC894A03FEB631AF078490B64FDE289D6" Guid="*">
+                    <File Id="fil82CE3CAE9FE664D97F3CDBDFF99965DC" KeyPath="yes" Source="SourceDir\api-ms-win-crt-time-l1-1-0.dll" />
+                </Component>
+                <Component Id="cmp2C50AEC1B6D710EE9794C4F7EBC8B12B" Guid="*">
+                    <File Id="fil91C6B294EC7B98463D0CFDFE873D7EDB" KeyPath="yes" Source="SourceDir\api-ms-win-crt-utility-l1-1-0.dll" />
+                </Component>
+                <Component Id="cmp647DA6CA62F6403342EA4EBEE6C9DC78" Guid="*">
+                    <File Id="filBFE610BCA8F5F003EE92ACE0737CED2A" KeyPath="yes" Source="SourceDir\base_library.zip" />
+                </Component>
+                <Component Id="cmp0099A4657D35F57A6BB27572CAEAE213" Guid="*">
+                    <File Id="fil6B240776FA60C009795038045338977E" KeyPath="yes" Source="SourceDir\idfplus.desktop" />
+                </Component>
+                <Component Id="cmpAEBB1F42F0FACEA4065EFAE8F2CDB637" Guid="*">
+                    <File Id="fil3742DBA1FA4026C4808ED096B89456CA" KeyPath="yes" Source="SourceDir\idfplus.exe" />
+                </Component>
+                <Component Id="cmpDF902F9C4EE0FE0B5BA9D87F67F0DE4D" Guid="*">
+                    <File Id="fil8B6000E215E22371EBA483B38ACB4B73" KeyPath="yes" Source="SourceDir\idfplus.png" />
+                </Component>
+                <Component Id="cmp6BFD25BB43FC5DE5E887E36C84012DB1" Guid="*">
+                    <File Id="fil284EDF054D5107826A3F9EDA73E142E4" KeyPath="yes" Source="SourceDir\libcrypto-1_1.dll" />
+                </Component>
+                <Component Id="cmp1FD92E9C422F4629F2F69615F92B70A5" Guid="*">
+                    <File Id="fil0DFCCAC651FE24BCC5D1A5226FDE8437" KeyPath="yes" Source="SourceDir\libffi-7.dll" />
+                </Component>
+                <Component Id="cmpB2DE97470846F89999AC3BDD383C401C" Guid="*">
+                    <File Id="fil80CEB1EABC6BCA4A16DDF5D78DC709FB" KeyPath="yes" Source="SourceDir\libssl-1_1.dll" />
+                </Component>
+                <Component Id="cmpBF3B748F501D8F208BC89FEF2A274623" Guid="*">
+                    <File Id="fil9DA46AE40CF5DD9F10593A32ACB727FE" KeyPath="yes" Source="SourceDir\pyexpat.pyd" />
+                </Component>
+                <Component Id="cmp6E1A9E4DC0F4D139F8D5F93E3E0876BB" Guid="*">
+                    <File Id="fil829263B9E9C454640F4E7DDCBBDAB3A8" KeyPath="yes" Source="SourceDir\python3.dll" />
+                </Component>
+                <Component Id="cmp53706D711F9D593D71BEE5B0C0A02866" Guid="*">
+                    <File Id="fil4870F07D90397EA5648D3A649D9B7FE2" KeyPath="yes" Source="SourceDir\python310.dll" />
+                </Component>
+                <Component Id="cmp6140A6D328061E31C7D0764687486D9B" Guid="*">
+                    <File Id="filD7E133BA658C90B4B6AFB29A0CD41DF8" KeyPath="yes" Source="SourceDir\select.pyd" />
+                </Component>
+                <Component Id="cmp665B011215EE152C839B9E89FFFDEA84" Guid="*">
+                    <File Id="fil97A8BB7079FFE483DA421296C7897EB4" KeyPath="yes" Source="SourceDir\sqlite3.dll" />
+                </Component>
+                <Component Id="cmpF82F512698CC77010A08EE6180AE27FE" Guid="*">
+                    <File Id="fil0CF553CD1739AF41D4D65D11EF511B57" KeyPath="yes" Source="SourceDir\ucrtbase.dll" />
+                </Component>
+                <Component Id="cmp25A795128D445F5A212151BC0AFB235E" Guid="*">
+                    <File Id="fil357A92C64BF1D342143EB8F70FC06C48" KeyPath="yes" Source="SourceDir\unicodedata.pyd" />
+                </Component>
+                <Component Id="cmpE3D4DB11A27E26D61B2EFB7A7D5AFFDA" Guid="*">
+                    <File Id="filEF68D7008D5104924A5E5DC53A1BCAC5" KeyPath="yes" Source="SourceDir\VCRUNTIME140.dll" />
+                </Component>
+                <Component Id="cmpBFE1D9F25264A5A5736E2AAE123C3A73" Guid="*">
+                    <File Id="filDAE1CB8EA64D1A489B495272092BD75B" KeyPath="yes" Source="SourceDir\VCRUNTIME140_1.dll" />
+                </Component>
+                <Component Id="cmpBCA06B085D562844576462A3620CE85E" Guid="*">
+                    <File Id="fil3804D4B15481CF2C5ED64B113DB2252C" KeyPath="yes" Source="SourceDir\_asyncio.pyd" />
+                </Component>
+                <Component Id="cmp000279AAB437499A6DB2C3E7CDC37F23" Guid="*">
+                    <File Id="fil3E336929F1327A5BAF96FBB4EAA30C84" KeyPath="yes" Source="SourceDir\_bz2.pyd" />
+                </Component>
+                <Component Id="cmpB56FF9091C9823A03106C659ADFC3EE1" Guid="*">
+                    <File Id="filB75DD927015B28CCF18FF632F10FA52B" KeyPath="yes" Source="SourceDir\_cffi_backend.cp310-win_amd64.pyd" />
+                </Component>
+                <Component Id="cmp997B896EF135E895E0328BAC28684A84" Guid="*">
+                    <File Id="fil98E23D593B3B4C4F6A527C1C1630F415" KeyPath="yes" Source="SourceDir\_ctypes.pyd" />
+                </Component>
+                <Component Id="cmp8E659A00591FCB2A541A42D607188D92" Guid="*">
+                    <File Id="fil1EB8D7B77A4D2C815B787969F7D3EFE1" KeyPath="yes" Source="SourceDir\_decimal.pyd" />
+                </Component>
+                <Component Id="cmp9CCD81120E89D04B5A4426F2BF10BBB2" Guid="*">
+                    <File Id="fil3D3B2DAADD03C3CF36F4FA61843725EF" KeyPath="yes" Source="SourceDir\_elementtree.pyd" />
+                </Component>
+                <Component Id="cmpF50AEB972CA406A07E1DDE34E607C8DE" Guid="*">
+                    <File Id="fil1CEB04708109E45A0B2F2F06564D4D42" KeyPath="yes" Source="SourceDir\_hashlib.pyd" />
+                </Component>
+                <Component Id="cmp869D11B1441B82FB7E82D3957856EF49" Guid="*">
+                    <File Id="filDE72C3399FA8B47463A4445DA140ABCB" KeyPath="yes" Source="SourceDir\_lzma.pyd" />
+                </Component>
+                <Component Id="cmp9FCE5B0D26786FA199B777D9C83480CD" Guid="*">
+                    <File Id="fil58BE6B39989808C1AC2347A42BF4B033" KeyPath="yes" Source="SourceDir\_multiprocessing.pyd" />
+                </Component>
+                <Component Id="cmpEB5FA2AACB21BFE032862BC749094ED8" Guid="*">
+                    <File Id="filA23BCCDB0CB92635D9BBD83D1D4BD19D" KeyPath="yes" Source="SourceDir\_overlapped.pyd" />
+                </Component>
+                <Component Id="cmp04380DD60899B3B2E6C7C1126ED33A99" Guid="*">
+                    <File Id="filAE4442D63268B8E8D008E0A6CD4BEBE5" KeyPath="yes" Source="SourceDir\_queue.pyd" />
+                </Component>
+                <Component Id="cmpBDC23040FF324EA2C89641ACAA4575C0" Guid="*">
+                    <File Id="fil25D8A25535529D7431062DB94C47788D" KeyPath="yes" Source="SourceDir\_socket.pyd" />
+                </Component>
+                <Component Id="cmp93CAA189E2B210693FF54F3BBDC0D724" Guid="*">
+                    <File Id="fil9D1B2C64109817E2DB2107A253BBED8D" KeyPath="yes" Source="SourceDir\_sqlite3.pyd" />
+                </Component>
+                <Component Id="cmp6D569DEB836C51C0B13CD8C5BF9E7FD6" Guid="*">
+                    <File Id="fil0AC9AAF88333EAEC052396EEF77B4B17" KeyPath="yes" Source="SourceDir\_ssl.pyd" />
+                </Component>
+                <Component Id="cmpDD3CA74BB49F310E3F95FB070F3FD0A9" Guid="*">
+                    <File Id="fil4AE368CF08720BC9637413DFA2DF7FD0" KeyPath="yes" Source="SourceDir\_uuid.pyd" />
+                </Component>
+                <Directory Id="dir0C099FC42516D453DEA262856DC11904" Name="docutils">
+                    <Directory Id="dirE8CD9D2FE6961817EDB2AD8EB5FF4D73" Name="parsers">
+                        <Directory Id="dir3C4816E038AD47E37E1B9D5C63424605" Name="rst">
+                            <Directory Id="dirEB3FDF028260771EAE6DF46287A4B26C" Name="include">
+                                <Component Id="cmp20F16519949D43399BE6CFC1663302F6" Guid="*">
+                                    <File Id="fil0AABB34DE02B8E4AECEF7B32513E68F1" KeyPath="yes" Source="SourceDir\docutils\parsers\rst\include\isoamsa.txt" />
+                                </Component>
+                                <Component Id="cmp3CD576A5444CF69C202D3369A427388B" Guid="*">
+                                    <File Id="filA668D698143EDA960ABAED2AC4B414A2" KeyPath="yes" Source="SourceDir\docutils\parsers\rst\include\isoamsb.txt" />
+                                </Component>
+                                <Component Id="cmpC68258C9C6176EB080D8E3E79F23CE39" Guid="*">
+                                    <File Id="filFDAAABB2ED22F63F327D7A43EE152584" KeyPath="yes" Source="SourceDir\docutils\parsers\rst\include\isoamsc.txt" />
+                                </Component>
+                                <Component Id="cmp2B3CCFE4F4A047D6C4713BB2CBD7B141" Guid="*">
+                                    <File Id="filE7A39AC20D315F27D8A25C8CD4F3B0A3" KeyPath="yes" Source="SourceDir\docutils\parsers\rst\include\isoamsn.txt" />
+                                </Component>
+                                <Component Id="cmpC950DEBF5A1159A14AA62101D3604DE1" Guid="*">
+                                    <File Id="fil6AAF999DEEA1AF384F0602B5681B4BB3" KeyPath="yes" Source="SourceDir\docutils\parsers\rst\include\isoamso.txt" />
+                                </Component>
+                                <Component Id="cmpBF38A6BAACB2598E9991ACD49C794728" Guid="*">
+                                    <File Id="fil16C1D56D1BE5AB0B5239DBA8D9DE7DCC" KeyPath="yes" Source="SourceDir\docutils\parsers\rst\include\isoamsr.txt" />
+                                </Component>
+                                <Component Id="cmpBB19521594940BD67020A118110F5FDE" Guid="*">
+                                    <File Id="fil28074FD983628A4B7D4EE709873A9BB8" KeyPath="yes" Source="SourceDir\docutils\parsers\rst\include\isobox.txt" />
+                                </Component>
+                                <Component Id="cmp2CB80A45CB2144F595866C392AF3BE11" Guid="*">
+                                    <File Id="fil34B4A6BA02FF012F315FFDB5142130E2" KeyPath="yes" Source="SourceDir\docutils\parsers\rst\include\isocyr1.txt" />
+                                </Component>
+                                <Component Id="cmp887771A05726CB298B657C7A18F8FA9B" Guid="*">
+                                    <File Id="fil5C3A5C14E350A2C26A0DCAC5F7691EC2" KeyPath="yes" Source="SourceDir\docutils\parsers\rst\include\isocyr2.txt" />
+                                </Component>
+                                <Component Id="cmp64A66682105465532B84853AF3AF648F" Guid="*">
+                                    <File Id="filB72AFE4C773FC48EB378AE0E59302656" KeyPath="yes" Source="SourceDir\docutils\parsers\rst\include\isodia.txt" />
+                                </Component>
+                                <Component Id="cmpC518F1CBBE89DF1DEC73100737EE2857" Guid="*">
+                                    <File Id="filC04CACED8074FE8CE181DCF5170E451B" KeyPath="yes" Source="SourceDir\docutils\parsers\rst\include\isogrk1.txt" />
+                                </Component>
+                                <Component Id="cmpD3C081C2833959E1449815907D198994" Guid="*">
+                                    <File Id="fil45D1657A2D8B1913293C6B52C76F0221" KeyPath="yes" Source="SourceDir\docutils\parsers\rst\include\isogrk2.txt" />
+                                </Component>
+                                <Component Id="cmp0D6B8EF211D3FFB454E853574CD81C18" Guid="*">
+                                    <File Id="filFCEA75366BB41DB4D6C0D1F2BCA857E6" KeyPath="yes" Source="SourceDir\docutils\parsers\rst\include\isogrk3.txt" />
+                                </Component>
+                                <Component Id="cmp05A85E67FBCD60D5C9873641AF72A668" Guid="*">
+                                    <File Id="fil576924E06D63583B5D2AA87503B6CDBE" KeyPath="yes" Source="SourceDir\docutils\parsers\rst\include\isogrk4-wide.txt" />
+                                </Component>
+                                <Component Id="cmp6D55F11D1FEEF2C3EE9119141A3FE1B9" Guid="*">
+                                    <File Id="filF5BDF8947C8F233CAF6C8D0EFA79973F" KeyPath="yes" Source="SourceDir\docutils\parsers\rst\include\isogrk4.txt" />
+                                </Component>
+                                <Component Id="cmp32B9A7DFA4B8EA15EA003C756A1A1DF4" Guid="*">
+                                    <File Id="fil8214FADF470F4ECCB6E7FBA09911B3AD" KeyPath="yes" Source="SourceDir\docutils\parsers\rst\include\isolat1.txt" />
+                                </Component>
+                                <Component Id="cmp32FF837CB7EA1AF231388D834E680D18" Guid="*">
+                                    <File Id="fil1335340850F5519EB23E560938506B47" KeyPath="yes" Source="SourceDir\docutils\parsers\rst\include\isolat2.txt" />
+                                </Component>
+                                <Component Id="cmp1461171DBB909DD8EA8AAC2187F0064B" Guid="*">
+                                    <File Id="fil92BB098C374A1837D84B0A3AD5774F4F" KeyPath="yes" Source="SourceDir\docutils\parsers\rst\include\isomfrk-wide.txt" />
+                                </Component>
+                                <Component Id="cmp1813B295FA4C667944D9203901DA47F1" Guid="*">
+                                    <File Id="fil200029416FEF833C8F93216D379868A2" KeyPath="yes" Source="SourceDir\docutils\parsers\rst\include\isomfrk.txt" />
+                                </Component>
+                                <Component Id="cmp478A0795B2527FBBA933E7F2EFB24FDF" Guid="*">
+                                    <File Id="fil2BDE3FB48C5070E0B3DA5BBE9CA7BA7D" KeyPath="yes" Source="SourceDir\docutils\parsers\rst\include\isomopf-wide.txt" />
+                                </Component>
+                                <Component Id="cmpFD474BA00B4BDAFDAA9F49485B4C97B7" Guid="*">
+                                    <File Id="filF39B4E2EC2F8EDB7BB4604F631F1C4CD" KeyPath="yes" Source="SourceDir\docutils\parsers\rst\include\isomopf.txt" />
+                                </Component>
+                                <Component Id="cmpF2851834091EAAFEA7F756E0771D597F" Guid="*">
+                                    <File Id="filD75544DCD8161A951D11A91853941447" KeyPath="yes" Source="SourceDir\docutils\parsers\rst\include\isomscr-wide.txt" />
+                                </Component>
+                                <Component Id="cmp162153AC8440574C881CCC148FDF356A" Guid="*">
+                                    <File Id="filBFB1A07D00B1E745160B46DBA0ED8D79" KeyPath="yes" Source="SourceDir\docutils\parsers\rst\include\isomscr.txt" />
+                                </Component>
+                                <Component Id="cmp458C64581314BA0B07A7264E34C7F04B" Guid="*">
+                                    <File Id="fil246CF988840B37D85937C78205C6C0A1" KeyPath="yes" Source="SourceDir\docutils\parsers\rst\include\isonum.txt" />
+                                </Component>
+                                <Component Id="cmp8BB46F585246149DD40BE0766762430E" Guid="*">
+                                    <File Id="fil44C36B9442AAAE353041AD7941DAF911" KeyPath="yes" Source="SourceDir\docutils\parsers\rst\include\isopub.txt" />
+                                </Component>
+                                <Component Id="cmp9C423B8DE75874233F152CC44E742807" Guid="*">
+                                    <File Id="fil2E391AE6FB8E6083212EBDEDE53D6645" KeyPath="yes" Source="SourceDir\docutils\parsers\rst\include\isotech.txt" />
+                                </Component>
+                                <Component Id="cmp117C2D734B3B9CEB39C20DF0AB98FDE0" Guid="*">
+                                    <File Id="fil6CE08CA343659F5CC027451E411A24FC" KeyPath="yes" Source="SourceDir\docutils\parsers\rst\include\mmlalias.txt" />
+                                </Component>
+                                <Component Id="cmp0CD674F070FEBC317005455F54718BE5" Guid="*">
+                                    <File Id="fil5EC6F831E6FD92A7704386A94732C3BA" KeyPath="yes" Source="SourceDir\docutils\parsers\rst\include\mmlextra-wide.txt" />
+                                </Component>
+                                <Component Id="cmp54BE10EB997FCD869FC82EDFBB9BFA72" Guid="*">
+                                    <File Id="fil923DA738EC1F7023431411F172B653EB" KeyPath="yes" Source="SourceDir\docutils\parsers\rst\include\mmlextra.txt" />
+                                </Component>
+                                <Component Id="cmpB6437CC52B8A502CEC7232ADAF909875" Guid="*">
+                                    <File Id="fil6B9D5DE64091A54876A3EFB493147870" KeyPath="yes" Source="SourceDir\docutils\parsers\rst\include\README.txt" />
+                                </Component>
+                                <Component Id="cmpEA733BC6C5BE424F4385C18BF101C228" Guid="*">
+                                    <File Id="filAF0D48100C6AD3044C9BCA06ABAC9175" KeyPath="yes" Source="SourceDir\docutils\parsers\rst\include\s5defs.txt" />
+                                </Component>
+                                <Component Id="cmpD022839791BABE5EC60533BE029714E0" Guid="*">
+                                    <File Id="filB9947FBE3C46340405C52CB89F2BA713" KeyPath="yes" Source="SourceDir\docutils\parsers\rst\include\xhtml1-lat1.txt" />
+                                </Component>
+                                <Component Id="cmpC31B4F06AF0232DE229AB09C33520BBB" Guid="*">
+                                    <File Id="fil90754279FAEB0A53C17465E33C07093A" KeyPath="yes" Source="SourceDir\docutils\parsers\rst\include\xhtml1-special.txt" />
+                                </Component>
+                                <Component Id="cmp30BE77F60A966C71373902B276E6820F" Guid="*">
+                                    <File Id="filA79C959AC3A89918AAC68F6F2318F947" KeyPath="yes" Source="SourceDir\docutils\parsers\rst\include\xhtml1-symbol.txt" />
                                 </Component>
                             </Directory>
                         </Directory>
                     </Directory>
-                    <Directory Id="dir500A2327C71F40DBFF9D968BAC74DCC1" Name="persistent">
-                        <Component Id="cmp7F0C9C5F3C9A03C54C2405682C84AA78" Guid="*">
-                            <File Id="fil1BF0A5BFC0A27E1192D0D5809DD5522F" KeyPath="yes" Source="SourceDir\persistent\cPersistence.cp37-win_amd64.pyd" />
-                        </Component>
-                        <Component Id="cmpA43B3E82B84DA7B2688BDF4C78D0FEB4" Guid="*">
-                            <File Id="filA7C42AB5D3FA797595DC808A267DE694" KeyPath="yes" Source="SourceDir\persistent\cPickleCache.cp37-win_amd64.pyd" />
-                        </Component>
-                        <Component Id="cmpC0BFE8D354F854E2A1C21E32F84DDCCB" Guid="*">
-                            <File Id="filF95E4403EFA6D407896C236371152E14" KeyPath="yes" Source="SourceDir\persistent\_timestamp.cp37-win_amd64.pyd" />
-                        </Component>
+                    <Directory Id="dir01826A66C938694168073BF3FE95727E" Name="writers">
+                        <Directory Id="dir2B647F62AE7D52FF02F23967C7A25DCB" Name="html4css1">
+                            <Component Id="cmp50BB76D74A1698DABFA78AEA66D5664B" Guid="*">
+                                <File Id="filD562C098CBBF45B1F7AF859B23EE613A" KeyPath="yes" Source="SourceDir\docutils\writers\html4css1\html4css1.css" />
+                            </Component>
+                            <Component Id="cmp3DCB0D0BC966937B87A3B179FAFC810B" Guid="*">
+                                <File Id="filA38C6C8808324051450B8FFF0F6F5E1B" KeyPath="yes" Source="SourceDir\docutils\writers\html4css1\template.txt" />
+                            </Component>
+                        </Directory>
+                        <Directory Id="dir0209B7A70001649ADE5B598F8BEB9CFF" Name="html5_polyglot">
+                            <Component Id="cmpDB0554898B525D5A397FB81F2BBBAA31" Guid="*">
+                                <File Id="fil477F9D1A4CE58646E380EB5922902C77" KeyPath="yes" Source="SourceDir\docutils\writers\html5_polyglot\math.css" />
+                            </Component>
+                            <Component Id="cmp57C10C310650E5DEB28D4A711247F794" Guid="*">
+                                <File Id="fil061C52C8C8821E6F1CC08841AA4A8BA8" KeyPath="yes" Source="SourceDir\docutils\writers\html5_polyglot\minimal.css" />
+                            </Component>
+                            <Component Id="cmp898B1F767D1D3CE1FEC59F50A634C59C" Guid="*">
+                                <File Id="fil64C7DAF885B515FD01DD316391C5ACAA" KeyPath="yes" Source="SourceDir\docutils\writers\html5_polyglot\plain.css" />
+                            </Component>
+                            <Component Id="cmpFF57BEA46FD5DC42635750D2F9338BF5" Guid="*">
+                                <File Id="fil5F8C2C0DCA7EC2EF423F7D36AF8AAF33" KeyPath="yes" Source="SourceDir\docutils\writers\html5_polyglot\responsive.css" />
+                            </Component>
+                            <Component Id="cmp8E8922B8665820365CC662880178EE7D" Guid="*">
+                                <File Id="fil03E734E5B5E4F2E9B0490550391CA373" KeyPath="yes" Source="SourceDir\docutils\writers\html5_polyglot\template.txt" />
+                            </Component>
+                            <Component Id="cmpFAC8B7F787969E158CAF8A1AD549D204" Guid="*">
+                                <File Id="fil332301C2190658799C1E75063DDA20DE" KeyPath="yes" Source="SourceDir\docutils\writers\html5_polyglot\tuftig.css" />
+                            </Component>
+                        </Directory>
+                        <Directory Id="dir8A4BACE5265ADEF1D9E2E8D948427F8B" Name="latex2e">
+                            <Component Id="cmp6031B5D0E9C6E29B0E69F6F0310602B7" Guid="*">
+                                <File Id="fil57202BD52B7D81FD1D57CF2834C5325F" KeyPath="yes" Source="SourceDir\docutils\writers\latex2e\default.tex" />
+                            </Component>
+                            <Component Id="cmpB07ADE6CEA86B9F09FC69E0A30C4862B" Guid="*">
+                                <File Id="fil4212A6F4F93E1B54E65561055EBC8A33" KeyPath="yes" Source="SourceDir\docutils\writers\latex2e\docutils.sty" />
+                            </Component>
+                            <Component Id="cmp5666B423848DA7E4F692862D3A6902A3" Guid="*">
+                                <File Id="fil14B7F0F14A8041DC28F64C055B0314EF" KeyPath="yes" Source="SourceDir\docutils\writers\latex2e\titlepage.tex" />
+                            </Component>
+                            <Component Id="cmp25377C105AB2392413B97B7995D0475F" Guid="*">
+                                <File Id="fil90EFFE0BECB6389E103AA889667041BA" KeyPath="yes" Source="SourceDir\docutils\writers\latex2e\titlingpage.tex" />
+                            </Component>
+                            <Component Id="cmp45E1EF29B1B6095256C995D2FCE1C366" Guid="*">
+                                <File Id="filAFE3A070E0100478C07D2879FE1AABEB" KeyPath="yes" Source="SourceDir\docutils\writers\latex2e\xelatex.tex" />
+                            </Component>
+                        </Directory>
+                        <Directory Id="dirF9203DF47E3BE74162B239DCE505364C" Name="odf_odt">
+                            <Component Id="cmpA16AA25E274EBC0FC7BCE8C954331A42" Guid="*">
+                                <File Id="fil50F978789111D47B1154AA70A8B65B67" KeyPath="yes" Source="SourceDir\docutils\writers\odf_odt\styles.odt" />
+                            </Component>
+                        </Directory>
+                        <Directory Id="dirF9F11272A58CF67EE835DE954F6181F7" Name="pep_html">
+                            <Component Id="cmp8F5648F1B71D628FC91C5EFF70CCA92F" Guid="*">
+                                <File Id="fil7952DCECE1DF822E4E6677259CA1EB40" KeyPath="yes" Source="SourceDir\docutils\writers\pep_html\pep.css" />
+                            </Component>
+                            <Component Id="cmp812D5353EE03814EE2049C4A83B2BB20" Guid="*">
+                                <File Id="filCC3C6C47E16F0587F3CA79B583E27FBD" KeyPath="yes" Source="SourceDir\docutils\writers\pep_html\template.txt" />
+                            </Component>
+                        </Directory>
+                        <Directory Id="dirFBB8D5BADE311A79954D1C9624B40D30" Name="s5_html">
+                            <Directory Id="dirCF39648F08A4CF76B1938B94096B1188" Name="themes">
+                                <Component Id="cmpAAA638C8AE1DD9B4FA626DF4B4261A21" Guid="*">
+                                    <File Id="fil8627DAFFDF62B1C567DA0D32AAA81797" KeyPath="yes" Source="SourceDir\docutils\writers\s5_html\themes\README.txt" />
+                                </Component>
+                                <Directory Id="dir315C5B5E521FAD242393CD4911063B8C" Name="big-black">
+                                    <Component Id="cmpE0136FD01B73B1D75DBA8AA88CF6397A" Guid="*">
+                                        <File Id="fil85BA40C35DA10CE3A631723824F520AA" KeyPath="yes" Source="SourceDir\docutils\writers\s5_html\themes\big-black\framing.css" />
+                                    </Component>
+                                    <Component Id="cmp83E828F01199623D797E057348348F04" Guid="*">
+                                        <File Id="filE99E3AA9D40E4655A411E4C8FB795855" KeyPath="yes" Source="SourceDir\docutils\writers\s5_html\themes\big-black\pretty.css" />
+                                    </Component>
+                                    <Component Id="cmp8138537B59BB0D3B8FA1CD9399F2E7A8" Guid="*">
+                                        <File Id="fil93A8FDBFB883EFC76A17AAA8DD1AFE67" KeyPath="yes" Source="SourceDir\docutils\writers\s5_html\themes\big-black\__base__" />
+                                    </Component>
+                                </Directory>
+                                <Directory Id="dir15B11CEAC76E60DA917CC9BB1189F7BE" Name="big-white">
+                                    <Component Id="cmp6B4486C7C8004AE02F58B0EDADED57EE" Guid="*">
+                                        <File Id="filA9AACA46294D51AB059347CF4380DDFE" KeyPath="yes" Source="SourceDir\docutils\writers\s5_html\themes\big-white\framing.css" />
+                                    </Component>
+                                    <Component Id="cmp24A86E347DE09FCE46B67CD6CDD609C5" Guid="*">
+                                        <File Id="filD854F28DAAF6A7DF3CBEDD875A141131" KeyPath="yes" Source="SourceDir\docutils\writers\s5_html\themes\big-white\pretty.css" />
+                                    </Component>
+                                </Directory>
+                                <Directory Id="dir871CCD791DDECDF272DD85A20326748D" Name="default">
+                                    <Component Id="cmp1FD6ED148088DC3F8A7ACEFECB6980C3" Guid="*">
+                                        <File Id="fil6A218EC565C9DBC1DF5616AAECBE322A" KeyPath="yes" Source="SourceDir\docutils\writers\s5_html\themes\default\blank.gif" />
+                                    </Component>
+                                    <Component Id="cmp9FB2EF5B6C73D9A4EF1C47B11A0F774D" Guid="*">
+                                        <File Id="filD3B3AA3A1EB7B10F07FFC673967D015A" KeyPath="yes" Source="SourceDir\docutils\writers\s5_html\themes\default\framing.css" />
+                                    </Component>
+                                    <Component Id="cmp628C04D307BBAED534052929921E8376" Guid="*">
+                                        <File Id="fil568F8322B68D6DC43C4EFC7E9F114AA5" KeyPath="yes" Source="SourceDir\docutils\writers\s5_html\themes\default\iepngfix.htc" />
+                                    </Component>
+                                    <Component Id="cmp68B5531B9F04183E7CCFD8B92C72199B" Guid="*">
+                                        <File Id="fil9EFBF54C0E1788BE0FC4B70B579DE56D" KeyPath="yes" Source="SourceDir\docutils\writers\s5_html\themes\default\opera.css" />
+                                    </Component>
+                                    <Component Id="cmpBF1EC7C6D83A1A1DBA5AA9B0A58B8098" Guid="*">
+                                        <File Id="fil43B25B322F600F3FCBC2991CC5D34CDD" KeyPath="yes" Source="SourceDir\docutils\writers\s5_html\themes\default\outline.css" />
+                                    </Component>
+                                    <Component Id="cmp332DECB4B3C427786B27540EC4DA6503" Guid="*">
+                                        <File Id="filF31CFA51BAAA29A219A3732CFDAC79B7" KeyPath="yes" Source="SourceDir\docutils\writers\s5_html\themes\default\pretty.css" />
+                                    </Component>
+                                    <Component Id="cmp0193227397C69A7658B96483E615C063" Guid="*">
+                                        <File Id="fil992BF44670C786AB00E0954754623329" KeyPath="yes" Source="SourceDir\docutils\writers\s5_html\themes\default\print.css" />
+                                    </Component>
+                                    <Component Id="cmp43F9BBFBB40BC9072F09923F53C8BA32" Guid="*">
+                                        <File Id="fil49D176380C38BAAEC6A3B7970A5E1704" KeyPath="yes" Source="SourceDir\docutils\writers\s5_html\themes\default\s5-core.css" />
+                                    </Component>
+                                    <Component Id="cmp21DF5A4E54AB54CC36D0A27D4AB045A1" Guid="*">
+                                        <File Id="fil4F030749965475372C4E4E46D17A4A6B" KeyPath="yes" Source="SourceDir\docutils\writers\s5_html\themes\default\slides.css" />
+                                    </Component>
+                                    <Component Id="cmp08459FFAD849CB204D07EFC288F2486B" Guid="*">
+                                        <File Id="filF563289A49BD54075A8A62EA915FCA20" KeyPath="yes" Source="SourceDir\docutils\writers\s5_html\themes\default\slides.js" />
+                                    </Component>
+                                </Directory>
+                                <Directory Id="dir94A731642AABC4BE803A525D4E174145" Name="medium-black">
+                                    <Component Id="cmpA76FCC01DB686F7D10BA0AC913954A85" Guid="*">
+                                        <File Id="fil4F59865BF02FC466D7B29224DB6EF0CD" KeyPath="yes" Source="SourceDir\docutils\writers\s5_html\themes\medium-black\pretty.css" />
+                                    </Component>
+                                    <Component Id="cmpB9A39E76AC13C6221D789A831673159E" Guid="*">
+                                        <File Id="fil2A4E82A16B414500ADB531713DDE48B4" KeyPath="yes" Source="SourceDir\docutils\writers\s5_html\themes\medium-black\__base__" />
+                                    </Component>
+                                </Directory>
+                                <Directory Id="dir281A73FDEF1F7DC3ADECF8308D0E335A" Name="medium-white">
+                                    <Component Id="cmp518842C6F26B893BA956BA0137B429A3" Guid="*">
+                                        <File Id="fil8C63DCEB1EEC9761A21768490F5BD87D" KeyPath="yes" Source="SourceDir\docutils\writers\s5_html\themes\medium-white\framing.css" />
+                                    </Component>
+                                    <Component Id="cmpC880D8369139FF058128C14DC621A0FB" Guid="*">
+                                        <File Id="fil90D47838B7679D9395458F25FE3AE8C2" KeyPath="yes" Source="SourceDir\docutils\writers\s5_html\themes\medium-white\pretty.css" />
+                                    </Component>
+                                </Directory>
+                                <Directory Id="dirEFC931B9A30DE412E21AC88B284BCF77" Name="small-black">
+                                    <Component Id="cmp2095C07B7F12F22EE8D8CCAA6446693F" Guid="*">
+                                        <File Id="fil3A15B985F4069EA2DDB7E09F98237FD9" KeyPath="yes" Source="SourceDir\docutils\writers\s5_html\themes\small-black\pretty.css" />
+                                    </Component>
+                                    <Component Id="cmpCFA4C63D213EDB053528842AD0BDFDB4" Guid="*">
+                                        <File Id="filADB8284492FAC8FFE80B4854069E105B" KeyPath="yes" Source="SourceDir\docutils\writers\s5_html\themes\small-black\__base__" />
+                                    </Component>
+                                </Directory>
+                                <Directory Id="dir8891A350D69CBCC504983DEA5F101783" Name="small-white">
+                                    <Component Id="cmpCAA46F12B5E280E5173BBD4E384773B4" Guid="*">
+                                        <File Id="fil1BBCA33FCBA7BA4A0DAAE67E8DE7CD86" KeyPath="yes" Source="SourceDir\docutils\writers\s5_html\themes\small-white\framing.css" />
+                                    </Component>
+                                    <Component Id="cmp6FDC83F4F2973FA7959EFA7D82A9FF4B" Guid="*">
+                                        <File Id="filACD7C4081FF9D2FBDE1C7019F338815D" KeyPath="yes" Source="SourceDir\docutils\writers\s5_html\themes\small-white\pretty.css" />
+                                    </Component>
+                                </Directory>
+                            </Directory>
+                        </Directory>
                     </Directory>
-                    <Directory Id="dir9171930C8B0E3FDE44CE9D88357022FB" Name="Include">
-                        <Component Id="cmp1D3B897E64D6FB2E4CF7164DCE615087" Guid="*">
-                            <File Id="filB50FCC48A15B54F7F7EFA7E7C8DB7D94" KeyPath="yes" Source="SourceDir\Include\pyconfig.h" />
-                        </Component>
-                    </Directory>
-                    <Directory Id="dir2F83CDF5965C8D16B901840EFD4FB146" Name="win32com">
-                        <Directory Id="dir65BFA9FA2E6A4042E8DFAEDFFB48AA93" Name="shell">
-                            <Component Id="cmp6F5D1909745F8069326A80B399A8881A" Guid="*">
-                                <File Id="fil3A037CF5BB21B57D2985FC6CBC21361A" KeyPath="yes" Source="SourceDir\win32com\shell\shell.pyd" />
+                </Directory>
+                <Directory Id="dir2AD43A8382F8E4683BC49892F4EB0098" Name="markupsafe">
+                    <Component Id="cmpF8F8DDE2C2EAB693C2AB7891AD13B844" Guid="*">
+                        <File Id="fil0C4B2DB2602CBD7406BB78A39A934F9E" KeyPath="yes" Source="SourceDir\markupsafe\_speedups.cp310-win_amd64.pyd" />
+                    </Component>
+                </Directory>
+                <Directory Id="dir500A2327C71F40DBFF9D968BAC74DCC1" Name="persistent">
+                    <Component Id="cmp920DCDD3E0DC19E283AE3ECCAB2A5017" Guid="*">
+                        <File Id="filBB9987BD11D64B6E38FE16B0E17E9684" KeyPath="yes" Source="SourceDir\persistent\cPersistence.cp310-win_amd64.pyd" />
+                    </Component>
+                    <Component Id="cmpFAEAB8888D803D6632AD94F3AE08D226" Guid="*">
+                        <File Id="fil495314C48F72C891118E35E81483744A" KeyPath="yes" Source="SourceDir\persistent\cPickleCache.cp310-win_amd64.pyd" />
+                    </Component>
+                    <Component Id="cmp37BAEE5FBFD3B8ADC727A44D196E1049" Guid="*">
+                        <File Id="fil4D12499CFAE8F96FE5181FB2552D590D" KeyPath="yes" Source="SourceDir\persistent\_ring.pyd" />
+                    </Component>
+                    <Component Id="cmp10361155F81185FD0F5B1F8DDCB746A7" Guid="*">
+                        <File Id="fil39D74AA2FBCEE04758D388740C0C9BB2" KeyPath="yes" Source="SourceDir\persistent\_timestamp.cp310-win_amd64.pyd" />
+                    </Component>
+                </Directory>
+                <Directory Id="dirB7432D3C3695A34017AC5D89D7B98416" Name="PySide2">
+                    <Component Id="cmp4367AAB309B79A590F26551739CEC0E5" Guid="*">
+                        <File Id="filE33E4F60400EB82B3F654064951865F9" KeyPath="yes" Source="SourceDir\PySide2\d3dcompiler_47.dll" />
+                    </Component>
+                    <Component Id="cmpE3917639DC1541F3EDC8205076723235" Guid="*">
+                        <File Id="filA005E5557F59F3CE19E790B7FB10C388" KeyPath="yes" Source="SourceDir\PySide2\libEGL.dll" />
+                    </Component>
+                    <Component Id="cmp7CD196C563CBF187248C44681996C209" Guid="*">
+                        <File Id="filF35921629EA220C3EB8CA82187D3BA48" KeyPath="yes" Source="SourceDir\PySide2\libGLESv2.dll" />
+                    </Component>
+                    <Component Id="cmpB9E2CA456176B600C8F161E3F9A05D92" Guid="*">
+                        <File Id="filDABAA8DB0291BCCCC8ABFAA5ADDF1798" KeyPath="yes" Source="SourceDir\PySide2\MSVCP140.dll" />
+                    </Component>
+                    <Component Id="cmpE8527F5CE9B9CA12850890865B4FEB92" Guid="*">
+                        <File Id="fil763096172DAFB55EB0131DEE7402CCC8" KeyPath="yes" Source="SourceDir\PySide2\MSVCP140_1.dll" />
+                    </Component>
+                    <Component Id="cmp1A8A0C5BD630C0BCA2B04CA440F93322" Guid="*">
+                        <File Id="filE2353CBC0175B45F19A38619438FD8D9" KeyPath="yes" Source="SourceDir\PySide2\opengl32sw.dll" />
+                    </Component>
+                    <Component Id="cmp4B7D4E6E119C8D456E1C25D296BEB62A" Guid="*">
+                        <File Id="fil1A65C7030CAD1ACF537C48B56109C93D" KeyPath="yes" Source="SourceDir\PySide2\pyside2.abi3.dll" />
+                    </Component>
+                    <Component Id="cmp83C354801E741F0C7F87A3E2C7C38D09" Guid="*">
+                        <File Id="fil5EA26B13327D9F5EB1E86655791910F8" KeyPath="yes" Source="SourceDir\PySide2\Qt5Core.dll" />
+                    </Component>
+                    <Component Id="cmp9C400313EC96222CEF58C54525B68233" Guid="*">
+                        <File Id="filA2AC7F736FFDA7C765DBD72964396C1E" KeyPath="yes" Source="SourceDir\PySide2\Qt5DBus.dll" />
+                    </Component>
+                    <Component Id="cmpA1F3156EBB85767CD64FC2C99241F7A3" Guid="*">
+                        <File Id="fil976C1D2FCD1780B5FDDE2D452C6893D5" KeyPath="yes" Source="SourceDir\PySide2\Qt5Gui.dll" />
+                    </Component>
+                    <Component Id="cmp070A48235790417F87B2206F975B2110" Guid="*">
+                        <File Id="fil9EBA2B41EE171ED2F6987D227708FD31" KeyPath="yes" Source="SourceDir\PySide2\Qt5Network.dll" />
+                    </Component>
+                    <Component Id="cmp1B51D96BA41BCBDF625D293DD693E1C5" Guid="*">
+                        <File Id="filD3742C9BC1B5A0DA574E9165A312F5F7" KeyPath="yes" Source="SourceDir\PySide2\Qt5Pdf.dll" />
+                    </Component>
+                    <Component Id="cmp36627CFAA9FC3666ED24B0C1A04C617F" Guid="*">
+                        <File Id="fil2C615741C6CAE3790499987E21127EF7" KeyPath="yes" Source="SourceDir\PySide2\Qt5Qml.dll" />
+                    </Component>
+                    <Component Id="cmp7A838D55B50C689AFB8A641C7AA02B8B" Guid="*">
+                        <File Id="fil5B2B86617C7D788A0E311DC2784A2CE7" KeyPath="yes" Source="SourceDir\PySide2\Qt5QmlModels.dll" />
+                    </Component>
+                    <Component Id="cmp4EB220B84ADC61B6B512DC27CB41678A" Guid="*">
+                        <File Id="fil24B561B27B740B3B542B2FC1946A113C" KeyPath="yes" Source="SourceDir\PySide2\Qt5Quick.dll" />
+                    </Component>
+                    <Component Id="cmp51223E163F8C670B50250EC55FAAED83" Guid="*">
+                        <File Id="fil8B72FF06475BDF67306030F135489D98" KeyPath="yes" Source="SourceDir\PySide2\Qt5Svg.dll" />
+                    </Component>
+                    <Component Id="cmp22174E647D5AB3A150FEBE0D8659542C" Guid="*">
+                        <File Id="fil86A5D6670BED1491B13AB88DA48DD75E" KeyPath="yes" Source="SourceDir\PySide2\Qt5VirtualKeyboard.dll" />
+                    </Component>
+                    <Component Id="cmp0CE00FDE14F89B0929107B1977DB4A0F" Guid="*">
+                        <File Id="fil8B6419CCE10587B68D385D90329870B6" KeyPath="yes" Source="SourceDir\PySide2\Qt5WebSockets.dll" />
+                    </Component>
+                    <Component Id="cmp99A765D326DA972C25152C63367F640E" Guid="*">
+                        <File Id="fil76EFE2C5FD4A4FE447DAC0980B34B6CF" KeyPath="yes" Source="SourceDir\PySide2\Qt5Widgets.dll" />
+                    </Component>
+                    <Component Id="cmp547E055E33BD1E36FCF778623A21686C" Guid="*">
+                        <File Id="fil9A3DFFB4482A0D25A098AA67CF181AB0" KeyPath="yes" Source="SourceDir\PySide2\QtCore.pyd" />
+                    </Component>
+                    <Component Id="cmp0FEB9736692495654908A085EB584A18" Guid="*">
+                        <File Id="fil2123896E1D155D71CD15D48D12616165" KeyPath="yes" Source="SourceDir\PySide2\QtGui.pyd" />
+                    </Component>
+                    <Component Id="cmp5594BDF15835D69BD9463B962EC1D639" Guid="*">
+                        <File Id="fil6E290D4E39EF3E10C4C2414B1DA2EE00" KeyPath="yes" Source="SourceDir\PySide2\QtNetwork.pyd" />
+                    </Component>
+                    <Component Id="cmpFE453B2AA1386D22A77F2DA19BBABEE6" Guid="*">
+                        <File Id="filC37CEAAD91EF3D265E55329CB8506DE6" KeyPath="yes" Source="SourceDir\PySide2\QtWidgets.pyd" />
+                    </Component>
+                    <Component Id="cmpF6024F0C624CB7369D7A5BF5A2632F20" Guid="*">
+                        <File Id="fil4B6BB6AC2BA27315A80CA0797A000CBD" KeyPath="yes" Source="SourceDir\PySide2\VCRUNTIME140_1.dll" />
+                    </Component>
+                    <Directory Id="dir9DCC172441E07B943AF06B34D17E3AD1" Name="plugins">
+                        <Directory Id="dir1CC4D88A581441D1BE5CDCB36F77533C" Name="bearer">
+                            <Component Id="cmpA3B244931E5E7367D60063E1EABF5302" Guid="*">
+                                <File Id="fil22697664E8FB69595F6C645D10E45C82" KeyPath="yes" Source="SourceDir\PySide2\plugins\bearer\qgenericbearer.dll" />
+                            </Component>
+                        </Directory>
+                        <Directory Id="dir5C96D796B42F62B65DCAE4D7D91FA045" Name="generic">
+                            <Component Id="cmp7E92B632F0B92FED0B18CEFD8D942AD4" Guid="*">
+                                <File Id="fil2046B66187FA6A477A41B7B287524219" KeyPath="yes" Source="SourceDir\PySide2\plugins\generic\qtuiotouchplugin.dll" />
+                            </Component>
+                        </Directory>
+                        <Directory Id="dir396544C2A22639576A123EF8ED4C6292" Name="iconengines">
+                            <Component Id="cmp14AE3C544CB1A531360DAB4A5F2013F5" Guid="*">
+                                <File Id="fil3C919BCA83DAA4A1F96AD3C70FFF779B" KeyPath="yes" Source="SourceDir\PySide2\plugins\iconengines\qsvgicon.dll" />
+                            </Component>
+                        </Directory>
+                        <Directory Id="dir526CDC29BF65D198248A572B2C04C609" Name="imageformats">
+                            <Component Id="cmp720987E01B139F4B5B0A160DE3301D19" Guid="*">
+                                <File Id="fil574B5E8827CCEABA6B0753BEA9958615" KeyPath="yes" Source="SourceDir\PySide2\plugins\imageformats\qgif.dll" />
+                            </Component>
+                            <Component Id="cmpADAD5CE453483E6774F5957F3EF37C36" Guid="*">
+                                <File Id="filC93E4CFEA629B5BF7A10C22342C83417" KeyPath="yes" Source="SourceDir\PySide2\plugins\imageformats\qicns.dll" />
+                            </Component>
+                            <Component Id="cmp31D589233CFA5F4A6F92840933040F8F" Guid="*">
+                                <File Id="fil920A30AB46010ED46CA63985690A055D" KeyPath="yes" Source="SourceDir\PySide2\plugins\imageformats\qico.dll" />
+                            </Component>
+                            <Component Id="cmp43116D74EC10AE1AA32EE4AFE67409CE" Guid="*">
+                                <File Id="fil8D02ACA3E64D65453E6FAE4399DE3793" KeyPath="yes" Source="SourceDir\PySide2\plugins\imageformats\qjpeg.dll" />
+                            </Component>
+                            <Component Id="cmp099786285646FF9F779E20752BD5B319" Guid="*">
+                                <File Id="fil568CBA5789D1F4360FD11765BB1C57E0" KeyPath="yes" Source="SourceDir\PySide2\plugins\imageformats\qpdf.dll" />
+                            </Component>
+                            <Component Id="cmp5884BDC24A22CDE2E8A15E95EAF3A96D" Guid="*">
+                                <File Id="fil30E7C1BCFA4ED5AB8CCE79E4E79E8C25" KeyPath="yes" Source="SourceDir\PySide2\plugins\imageformats\qsvg.dll" />
+                            </Component>
+                            <Component Id="cmpAE746095CA6A39F687F24B8F0BEF776F" Guid="*">
+                                <File Id="filC89895DBACE37E675D8F441036FE9272" KeyPath="yes" Source="SourceDir\PySide2\plugins\imageformats\qtga.dll" />
+                            </Component>
+                            <Component Id="cmp728EFF70511D79B3BFD0DE7F883EEDE0" Guid="*">
+                                <File Id="filFC867A58222B90EF8B105128F33D3E21" KeyPath="yes" Source="SourceDir\PySide2\plugins\imageformats\qtiff.dll" />
+                            </Component>
+                            <Component Id="cmp54E7E093E44CC8845718816714EA4838" Guid="*">
+                                <File Id="fil77F89321C114C9D419A041E09FDA1459" KeyPath="yes" Source="SourceDir\PySide2\plugins\imageformats\qwbmp.dll" />
+                            </Component>
+                            <Component Id="cmpCEB03A377F98B1D75440DE7234D33622" Guid="*">
+                                <File Id="fil194658064E79366919E811EA86386724" KeyPath="yes" Source="SourceDir\PySide2\plugins\imageformats\qwebp.dll" />
+                            </Component>
+                        </Directory>
+                        <Directory Id="dir5C929E71D4BE765947FEABD60ABC85A3" Name="platforminputcontexts">
+                            <Component Id="cmp418A499F2F39551382DBE487FE4CB7A5" Guid="*">
+                                <File Id="fil138A6AB7CC74C3C96676B443B1E7DC85" KeyPath="yes" Source="SourceDir\PySide2\plugins\platforminputcontexts\qtvirtualkeyboardplugin.dll" />
+                            </Component>
+                        </Directory>
+                        <Directory Id="dir3974E55B8BDDABEA523B22FA6738F672" Name="platforms">
+                            <Component Id="cmpB35E876CFFE8CDAF16C6DA4CE2C4FF47" Guid="*">
+                                <File Id="fil25ADB20325D968490105BAD39961D17C" KeyPath="yes" Source="SourceDir\PySide2\plugins\platforms\qdirect2d.dll" />
+                            </Component>
+                            <Component Id="cmp08DDFE3962DDA7B97F625CF37D2BEB3E" Guid="*">
+                                <File Id="filBBC9AAADFC638E27E6B279E3497B80F6" KeyPath="yes" Source="SourceDir\PySide2\plugins\platforms\qminimal.dll" />
+                            </Component>
+                            <Component Id="cmp1E3753C29286A0F558530AF81E03A96C" Guid="*">
+                                <File Id="fil4FA628B2FB7DBBE144FF9C8850098043" KeyPath="yes" Source="SourceDir\PySide2\plugins\platforms\qoffscreen.dll" />
+                            </Component>
+                            <Component Id="cmpC69EC699AF7789CF722ED27087EA2BE8" Guid="*">
+                                <File Id="fil82F31BF14B3B6FD46C56E94FD9268C67" KeyPath="yes" Source="SourceDir\PySide2\plugins\platforms\qwebgl.dll" />
+                            </Component>
+                            <Component Id="cmpBF6FD144A052D81B9E1FCD2229E698E2" Guid="*">
+                                <File Id="fil4FAE88C17AD9EB95A1AEE7605F362782" KeyPath="yes" Source="SourceDir\PySide2\plugins\platforms\qwindows.dll" />
+                            </Component>
+                        </Directory>
+                        <Directory Id="dirBD89E4B59A5810730E4E4E6D5EC49652" Name="platformthemes">
+                            <Component Id="cmp65BE5256E81A86A3752E1F6F1524CA57" Guid="*">
+                                <File Id="filBC70A644EF208EDA97553DFE5BC50991" KeyPath="yes" Source="SourceDir\PySide2\plugins\platformthemes\qxdgdesktopportal.dll" />
+                            </Component>
+                        </Directory>
+                        <Directory Id="dir5EA0E02E8F8928789E7E979CD6C0BABE" Name="styles">
+                            <Component Id="cmpBBD346621B3DEEA992856888BE42E2CB" Guid="*">
+                                <File Id="filA2DEEF06E34394C5B062BE0267127766" KeyPath="yes" Source="SourceDir\PySide2\plugins\styles\qwindowsvistastyle.dll" />
                             </Component>
                         </Directory>
                     </Directory>
-                    <Directory Id="dirB7432D3C3695A34017AC5D89D7B98416" Name="PySide2">
-                        <Component Id="cmpCFFB1F1806279C51607A4B8991610A24" Guid="*">
-                            <File Id="fil040916A1875C614922231061297ED4CD" KeyPath="yes" Source="SourceDir\PySide2\qt.conf" />
+                    <Directory Id="dir5FF2D6F0CC38AD47CACFB687CF48343A" Name="translations">
+                        <Component Id="cmpF38B26C75D9A64972A20D74FA5B4BCB4" Guid="*">
+                            <File Id="fil713BFDF6AF820E10762B99729BAB841E" KeyPath="yes" Source="SourceDir\PySide2\translations\qtbase_ar.qm" />
                         </Component>
-                        <Component Id="cmp547E055E33BD1E36FCF778623A21686C" Guid="*">
-                            <File Id="fil9A3DFFB4482A0D25A098AA67CF181AB0" KeyPath="yes" Source="SourceDir\PySide2\QtCore.pyd" />
+                        <Component Id="cmpEBDE56FB152B7822C8C190905858368C" Guid="*">
+                            <File Id="fil196A4EC936ED9F73150F2CADE735DD32" KeyPath="yes" Source="SourceDir\PySide2\translations\qtbase_bg.qm" />
                         </Component>
-                        <Component Id="cmp5594BDF15835D69BD9463B962EC1D639" Guid="*">
-                            <File Id="fil6E290D4E39EF3E10C4C2414B1DA2EE00" KeyPath="yes" Source="SourceDir\PySide2\QtNetwork.pyd" />
+                        <Component Id="cmp7E3038E9F4B2931D3BADF2ED66D97183" Guid="*">
+                            <File Id="filAC3C7A3D19B617EF11D4363A00CFEBCA" KeyPath="yes" Source="SourceDir\PySide2\translations\qtbase_ca.qm" />
                         </Component>
-                        <Component Id="cmp0FEB9736692495654908A085EB584A18" Guid="*">
-                            <File Id="fil2123896E1D155D71CD15D48D12616165" KeyPath="yes" Source="SourceDir\PySide2\QtGui.pyd" />
+                        <Component Id="cmp3F3F7A005F4D617BEF27442150B53E68" Guid="*">
+                            <File Id="fil7917658E54E52011281CFFA197675C6C" KeyPath="yes" Source="SourceDir\PySide2\translations\qtbase_cs.qm" />
                         </Component>
-                        <Component Id="cmpFE453B2AA1386D22A77F2DA19BBABEE6" Guid="*">
-                            <File Id="filC37CEAAD91EF3D265E55329CB8506DE6" KeyPath="yes" Source="SourceDir\PySide2\QtWidgets.pyd" />
+                        <Component Id="cmp01BBB3BE861E780D5F0C575C38723B4F" Guid="*">
+                            <File Id="filD5FBB16217E8F27FD0073AA4D3C4843A" KeyPath="yes" Source="SourceDir\PySide2\translations\qtbase_da.qm" />
                         </Component>
-                        <Directory Id="dir9DCC172441E07B943AF06B34D17E3AD1" Name="plugins">
-                            <Directory Id="dir396544C2A22639576A123EF8ED4C6292" Name="iconengines">
-                                <Component Id="cmp14AE3C544CB1A531360DAB4A5F2013F5" Guid="*">
-                                    <File Id="fil3C919BCA83DAA4A1F96AD3C70FFF779B" KeyPath="yes" Source="SourceDir\PySide2\plugins\iconengines\qsvgicon.dll" />
-                                </Component>
-                            </Directory>
-                            <Directory Id="dir5EA0E02E8F8928789E7E979CD6C0BABE" Name="styles">
-                                <Component Id="cmpBBD346621B3DEEA992856888BE42E2CB" Guid="*">
-                                    <File Id="filA2DEEF06E34394C5B062BE0267127766" KeyPath="yes" Source="SourceDir\PySide2\plugins\styles\qwindowsvistastyle.dll" />
-                                </Component>
-                            </Directory>
-                            <Directory Id="dir5C929E71D4BE765947FEABD60ABC85A3" Name="platforminputcontexts">
-                                <Component Id="cmp418A499F2F39551382DBE487FE4CB7A5" Guid="*">
-                                    <File Id="fil138A6AB7CC74C3C96676B443B1E7DC85" KeyPath="yes" Source="SourceDir\PySide2\plugins\platforminputcontexts\qtvirtualkeyboardplugin.dll" />
-                                </Component>
-                            </Directory>
-                            <Directory Id="dir526CDC29BF65D198248A572B2C04C609" Name="imageformats">
-                                <Component Id="cmp5884BDC24A22CDE2E8A15E95EAF3A96D" Guid="*">
-                                    <File Id="fil30E7C1BCFA4ED5AB8CCE79E4E79E8C25" KeyPath="yes" Source="SourceDir\PySide2\plugins\imageformats\qsvg.dll" />
-                                </Component>
-                                <Component Id="cmp728EFF70511D79B3BFD0DE7F883EEDE0" Guid="*">
-                                    <File Id="filFC867A58222B90EF8B105128F33D3E21" KeyPath="yes" Source="SourceDir\PySide2\plugins\imageformats\qtiff.dll" />
-                                </Component>
-                                <Component Id="cmp43116D74EC10AE1AA32EE4AFE67409CE" Guid="*">
-                                    <File Id="fil8D02ACA3E64D65453E6FAE4399DE3793" KeyPath="yes" Source="SourceDir\PySide2\plugins\imageformats\qjpeg.dll" />
-                                </Component>
-                                <Component Id="cmpCEB03A377F98B1D75440DE7234D33622" Guid="*">
-                                    <File Id="fil194658064E79366919E811EA86386724" KeyPath="yes" Source="SourceDir\PySide2\plugins\imageformats\qwebp.dll" />
-                                </Component>
-                                <Component Id="cmpAE746095CA6A39F687F24B8F0BEF776F" Guid="*">
-                                    <File Id="filC89895DBACE37E675D8F441036FE9272" KeyPath="yes" Source="SourceDir\PySide2\plugins\imageformats\qtga.dll" />
-                                </Component>
-                                <Component Id="cmp720987E01B139F4B5B0A160DE3301D19" Guid="*">
-                                    <File Id="fil574B5E8827CCEABA6B0753BEA9958615" KeyPath="yes" Source="SourceDir\PySide2\plugins\imageformats\qgif.dll" />
-                                </Component>
-                                <Component Id="cmp54E7E093E44CC8845718816714EA4838" Guid="*">
-                                    <File Id="fil77F89321C114C9D419A041E09FDA1459" KeyPath="yes" Source="SourceDir\PySide2\plugins\imageformats\qwbmp.dll" />
-                                </Component>
-                                <Component Id="cmpADAD5CE453483E6774F5957F3EF37C36" Guid="*">
-                                    <File Id="filC93E4CFEA629B5BF7A10C22342C83417" KeyPath="yes" Source="SourceDir\PySide2\plugins\imageformats\qicns.dll" />
-                                </Component>
-                                <Component Id="cmp31D589233CFA5F4A6F92840933040F8F" Guid="*">
-                                    <File Id="fil920A30AB46010ED46CA63985690A055D" KeyPath="yes" Source="SourceDir\PySide2\plugins\imageformats\qico.dll" />
-                                </Component>
-                            </Directory>
-                            <Directory Id="dirBD89E4B59A5810730E4E4E6D5EC49652" Name="platformthemes">
-                                <Component Id="cmp65BE5256E81A86A3752E1F6F1524CA57" Guid="*">
-                                    <File Id="filBC70A644EF208EDA97553DFE5BC50991" KeyPath="yes" Source="SourceDir\PySide2\plugins\platformthemes\qxdgdesktopportal.dll" />
-                                </Component>
-                            </Directory>
-                            <Directory Id="dir3974E55B8BDDABEA523B22FA6738F672" Name="platforms">
-                                <Component Id="cmpC69EC699AF7789CF722ED27087EA2BE8" Guid="*">
-                                    <File Id="fil82F31BF14B3B6FD46C56E94FD9268C67" KeyPath="yes" Source="SourceDir\PySide2\plugins\platforms\qwebgl.dll" />
-                                </Component>
-                                <Component Id="cmp08DDFE3962DDA7B97F625CF37D2BEB3E" Guid="*">
-                                    <File Id="filBBC9AAADFC638E27E6B279E3497B80F6" KeyPath="yes" Source="SourceDir\PySide2\plugins\platforms\qminimal.dll" />
-                                </Component>
-                                <Component Id="cmpBF6FD144A052D81B9E1FCD2229E698E2" Guid="*">
-                                    <File Id="fil4FAE88C17AD9EB95A1AEE7605F362782" KeyPath="yes" Source="SourceDir\PySide2\plugins\platforms\qwindows.dll" />
-                                </Component>
-                                <Component Id="cmp1E3753C29286A0F558530AF81E03A96C" Guid="*">
-                                    <File Id="fil4FA628B2FB7DBBE144FF9C8850098043" KeyPath="yes" Source="SourceDir\PySide2\plugins\platforms\qoffscreen.dll" />
-                                </Component>
-                            </Directory>
-                        </Directory>
-                        <Directory Id="dir5FF2D6F0CC38AD47CACFB687CF48343A" Name="translations">
-                            <Component Id="cmp9669AD29AA3800EE7DD1340419767DF5" Guid="*">
-                                <File Id="fil035B2777801825D9AB59A6F3E0314E36" KeyPath="yes" Source="SourceDir\PySide2\translations\qtbase_ko.qm" />
-                            </Component>
-                            <Component Id="cmp26CF2EBF42F4F776A2D3BABDCC6D93D1" Guid="*">
-                                <File Id="filA340A8665D651726EA5E5FA2D2CD8D8F" KeyPath="yes" Source="SourceDir\PySide2\translations\qtbase_ja.qm" />
-                            </Component>
-                            <Component Id="cmp94AE87E9921C4762ACA22F4EBD1E934F" Guid="*">
-                                <File Id="filA27D44FD05C4769CD4B42E1929B4D059" KeyPath="yes" Source="SourceDir\PySide2\translations\qtbase_fr.qm" />
-                            </Component>
-                            <Component Id="cmp2BC4531723CF0A155CACA82856720D2C" Guid="*">
-                                <File Id="filAD81F9445DCAB546050F14BF80E9ED8F" KeyPath="yes" Source="SourceDir\PySide2\translations\qtbase_uk.qm" />
-                            </Component>
-                            <Component Id="cmp33F35FA016AD4C1CAFB3BD02BFC20302" Guid="*">
-                                <File Id="filF5F3E46AC21304A85184B58EF5DFEED5" KeyPath="yes" Source="SourceDir\PySide2\translations\qtbase_hu.qm" />
-                            </Component>
-                            <Component Id="cmpC39617EA22D49CC0A51AD05DCEF4F59F" Guid="*">
-                                <File Id="fil62862A6119FFE45B16113D352C9CE0BB" KeyPath="yes" Source="SourceDir\PySide2\translations\qtbase_es.qm" />
-                            </Component>
-                            <Component Id="cmp0D5E474050464B8CB945068F3EBEF2D7" Guid="*">
-                                <File Id="fil848C6D5E3DB8BF117108EDA53D6FD65F" KeyPath="yes" Source="SourceDir\PySide2\translations\qtbase_lv.qm" />
-                            </Component>
-                            <Component Id="cmpF38B26C75D9A64972A20D74FA5B4BCB4" Guid="*">
-                                <File Id="fil713BFDF6AF820E10762B99729BAB841E" KeyPath="yes" Source="SourceDir\PySide2\translations\qtbase_ar.qm" />
-                            </Component>
-                            <Component Id="cmp369A0835B09DCAD87C1EB3BBF6418464" Guid="*">
-                                <File Id="fil65A77CB01757B43D16D238160FF5237E" KeyPath="yes" Source="SourceDir\PySide2\translations\qtbase_de.qm" />
-                            </Component>
-                            <Component Id="cmpAE6910D9EB7185C0F55E602E5B89BB14" Guid="*">
-                                <File Id="filE408477E35B7621B2AE4C6B7BA8E6ADA" KeyPath="yes" Source="SourceDir\PySide2\translations\qtbase_he.qm" />
-                            </Component>
-                            <Component Id="cmp3F3F7A005F4D617BEF27442150B53E68" Guid="*">
-                                <File Id="fil7917658E54E52011281CFFA197675C6C" KeyPath="yes" Source="SourceDir\PySide2\translations\qtbase_cs.qm" />
-                            </Component>
-                            <Component Id="cmp4609D006FA8E6506E950C7945ADF3E3A" Guid="*">
-                                <File Id="fil0D1E910374D90C87006958F7090207C6" KeyPath="yes" Source="SourceDir\PySide2\translations\qtbase_zh_TW.qm" />
-                            </Component>
-                            <Component Id="cmpEBDE56FB152B7822C8C190905858368C" Guid="*">
-                                <File Id="fil196A4EC936ED9F73150F2CADE735DD32" KeyPath="yes" Source="SourceDir\PySide2\translations\qtbase_bg.qm" />
-                            </Component>
-                            <Component Id="cmp569C75588EDE1B11B056053784C8AD08" Guid="*">
-                                <File Id="fil3C8C3B46C71C1959681E9420C5653250" KeyPath="yes" Source="SourceDir\PySide2\translations\qtbase_gd.qm" />
-                            </Component>
-                            <Component Id="cmp7E3BC864089F75B6F6DED6F0E3CB2D6A" Guid="*">
-                                <File Id="fil6AA05B39A8B875570E1B214F25800B2F" KeyPath="yes" Source="SourceDir\PySide2\translations\qtbase_it.qm" />
-                            </Component>
-                            <Component Id="cmp68880DA846B4A45996AD0B796CED27D6" Guid="*">
-                                <File Id="fil1B51CD5BFF5A57B2BA6555F04C000BD8" KeyPath="yes" Source="SourceDir\PySide2\translations\qtbase_sk.qm" />
-                            </Component>
-                            <Component Id="cmp566546B9D8B3922B50A6597498A578BB" Guid="*">
-                                <File Id="fil08FC4909D5D43FCFD83257ED5A93D0E2" KeyPath="yes" Source="SourceDir\PySide2\translations\qtbase_pl.qm" />
-                            </Component>
-                            <Component Id="cmp01BBB3BE861E780D5F0C575C38723B4F" Guid="*">
-                                <File Id="filD5FBB16217E8F27FD0073AA4D3C4843A" KeyPath="yes" Source="SourceDir\PySide2\translations\qtbase_da.qm" />
-                            </Component>
-                            <Component Id="cmp7E3038E9F4B2931D3BADF2ED66D97183" Guid="*">
-                                <File Id="filAC3C7A3D19B617EF11D4363A00CFEBCA" KeyPath="yes" Source="SourceDir\PySide2\translations\qtbase_ca.qm" />
-                            </Component>
-                            <Component Id="cmpC82A33F2CD28FB0208BA8A2937400230" Guid="*">
-                                <File Id="filAD56CDB65AACD7B748D939829EFA7849" KeyPath="yes" Source="SourceDir\PySide2\translations\qtbase_ru.qm" />
-                            </Component>
-                            <Component Id="cmp2A874DA197A78E80B7A37805339DBD35" Guid="*">
-                                <File Id="fil747DC9A8F7EED2961BC56EF031CDCA7C" KeyPath="yes" Source="SourceDir\PySide2\translations\qtbase_fi.qm" />
-                            </Component>
-                            <Component Id="cmp5E61F7B13D7190B6246C086564F281F6" Guid="*">
-                                <File Id="fil2FDDEC6FE14CBC4E24C49328993FE5D2" KeyPath="yes" Source="SourceDir\PySide2\translations\qtbase_en.qm" />
-                            </Component>
-                        </Directory>
+                        <Component Id="cmp369A0835B09DCAD87C1EB3BBF6418464" Guid="*">
+                            <File Id="fil65A77CB01757B43D16D238160FF5237E" KeyPath="yes" Source="SourceDir\PySide2\translations\qtbase_de.qm" />
+                        </Component>
+                        <Component Id="cmp5E61F7B13D7190B6246C086564F281F6" Guid="*">
+                            <File Id="fil2FDDEC6FE14CBC4E24C49328993FE5D2" KeyPath="yes" Source="SourceDir\PySide2\translations\qtbase_en.qm" />
+                        </Component>
+                        <Component Id="cmpC39617EA22D49CC0A51AD05DCEF4F59F" Guid="*">
+                            <File Id="fil62862A6119FFE45B16113D352C9CE0BB" KeyPath="yes" Source="SourceDir\PySide2\translations\qtbase_es.qm" />
+                        </Component>
+                        <Component Id="cmp2A874DA197A78E80B7A37805339DBD35" Guid="*">
+                            <File Id="fil747DC9A8F7EED2961BC56EF031CDCA7C" KeyPath="yes" Source="SourceDir\PySide2\translations\qtbase_fi.qm" />
+                        </Component>
+                        <Component Id="cmp94AE87E9921C4762ACA22F4EBD1E934F" Guid="*">
+                            <File Id="filA27D44FD05C4769CD4B42E1929B4D059" KeyPath="yes" Source="SourceDir\PySide2\translations\qtbase_fr.qm" />
+                        </Component>
+                        <Component Id="cmp569C75588EDE1B11B056053784C8AD08" Guid="*">
+                            <File Id="fil3C8C3B46C71C1959681E9420C5653250" KeyPath="yes" Source="SourceDir\PySide2\translations\qtbase_gd.qm" />
+                        </Component>
+                        <Component Id="cmpAE6910D9EB7185C0F55E602E5B89BB14" Guid="*">
+                            <File Id="filE408477E35B7621B2AE4C6B7BA8E6ADA" KeyPath="yes" Source="SourceDir\PySide2\translations\qtbase_he.qm" />
+                        </Component>
+                        <Component Id="cmp33F35FA016AD4C1CAFB3BD02BFC20302" Guid="*">
+                            <File Id="filF5F3E46AC21304A85184B58EF5DFEED5" KeyPath="yes" Source="SourceDir\PySide2\translations\qtbase_hu.qm" />
+                        </Component>
+                        <Component Id="cmp7E3BC864089F75B6F6DED6F0E3CB2D6A" Guid="*">
+                            <File Id="fil6AA05B39A8B875570E1B214F25800B2F" KeyPath="yes" Source="SourceDir\PySide2\translations\qtbase_it.qm" />
+                        </Component>
+                        <Component Id="cmp26CF2EBF42F4F776A2D3BABDCC6D93D1" Guid="*">
+                            <File Id="filA340A8665D651726EA5E5FA2D2CD8D8F" KeyPath="yes" Source="SourceDir\PySide2\translations\qtbase_ja.qm" />
+                        </Component>
+                        <Component Id="cmp9669AD29AA3800EE7DD1340419767DF5" Guid="*">
+                            <File Id="fil035B2777801825D9AB59A6F3E0314E36" KeyPath="yes" Source="SourceDir\PySide2\translations\qtbase_ko.qm" />
+                        </Component>
+                        <Component Id="cmp0D5E474050464B8CB945068F3EBEF2D7" Guid="*">
+                            <File Id="fil848C6D5E3DB8BF117108EDA53D6FD65F" KeyPath="yes" Source="SourceDir\PySide2\translations\qtbase_lv.qm" />
+                        </Component>
+                        <Component Id="cmp566546B9D8B3922B50A6597498A578BB" Guid="*">
+                            <File Id="fil08FC4909D5D43FCFD83257ED5A93D0E2" KeyPath="yes" Source="SourceDir\PySide2\translations\qtbase_pl.qm" />
+                        </Component>
+                        <Component Id="cmpC82A33F2CD28FB0208BA8A2937400230" Guid="*">
+                            <File Id="filAD56CDB65AACD7B748D939829EFA7849" KeyPath="yes" Source="SourceDir\PySide2\translations\qtbase_ru.qm" />
+                        </Component>
+                        <Component Id="cmp68880DA846B4A45996AD0B796CED27D6" Guid="*">
+                            <File Id="fil1B51CD5BFF5A57B2BA6555F04C000BD8" KeyPath="yes" Source="SourceDir\PySide2\translations\qtbase_sk.qm" />
+                        </Component>
+                        <Component Id="cmp4CAFEA6AB634FF08E1C10A990D97C8E8" Guid="*">
+                            <File Id="fil728EFED54A48F431E29DE810BA9ED479" KeyPath="yes" Source="SourceDir\PySide2\translations\qtbase_tr.qm" />
+                        </Component>
+                        <Component Id="cmp2BC4531723CF0A155CACA82856720D2C" Guid="*">
+                            <File Id="filAD81F9445DCAB546050F14BF80E9ED8F" KeyPath="yes" Source="SourceDir\PySide2\translations\qtbase_uk.qm" />
+                        </Component>
+                        <Component Id="cmp4609D006FA8E6506E950C7945ADF3E3A" Guid="*">
+                            <File Id="fil0D1E910374D90C87006958F7090207C6" KeyPath="yes" Source="SourceDir\PySide2\translations\qtbase_zh_TW.qm" />
+                        </Component>
+                        <Component Id="cmpEB4127C9CF99F747A9CDC586528421AC" Guid="*">
+                            <File Id="fil30BE1F01B35E58212F0B3FCB8C814D7F" KeyPath="yes" Source="SourceDir\PySide2\translations\qt_ar.qm" />
+                        </Component>
+                        <Component Id="cmp867C5C83345F74FC6E8E19C418CD9C2C" Guid="*">
+                            <File Id="filE9971252D35451C54DCAF0E722082159" KeyPath="yes" Source="SourceDir\PySide2\translations\qt_bg.qm" />
+                        </Component>
+                        <Component Id="cmp5AB33BEE6BF223B45E776262FDE7405A" Guid="*">
+                            <File Id="fil0F666E1936CF1483CC514AEC47A7FBBF" KeyPath="yes" Source="SourceDir\PySide2\translations\qt_ca.qm" />
+                        </Component>
+                        <Component Id="cmpDC39DB0E5BD1BEE20C28A5181CBDBDC5" Guid="*">
+                            <File Id="fil27342C8E50EF3FECE6A4D152185326D6" KeyPath="yes" Source="SourceDir\PySide2\translations\qt_cs.qm" />
+                        </Component>
+                        <Component Id="cmp20B52A3F81962DD5F2C594B9E94F4970" Guid="*">
+                            <File Id="filEE2ECBC5F01F3C3E2572534C3E71911E" KeyPath="yes" Source="SourceDir\PySide2\translations\qt_da.qm" />
+                        </Component>
+                        <Component Id="cmp9B4FAF6DA417960986FA1C3D54E6D7B5" Guid="*">
+                            <File Id="fil103AE88B5B0F652DB4BBDDD8B939AAAD" KeyPath="yes" Source="SourceDir\PySide2\translations\qt_de.qm" />
+                        </Component>
+                        <Component Id="cmpE1B2CCCCFD5428B14798FBAAB0659570" Guid="*">
+                            <File Id="fil87A9B13DF99E7EA8E35B76803554F6A3" KeyPath="yes" Source="SourceDir\PySide2\translations\qt_en.qm" />
+                        </Component>
+                        <Component Id="cmpD314E7DB900E92252F535FFFAE712DB9" Guid="*">
+                            <File Id="fil370E39ADD1023AA89BCE2F12596C8A01" KeyPath="yes" Source="SourceDir\PySide2\translations\qt_es.qm" />
+                        </Component>
+                        <Component Id="cmp51D4AB94766E7D5B48EAFB6E032342EA" Guid="*">
+                            <File Id="fil5432595424787597010A15F5C831C25C" KeyPath="yes" Source="SourceDir\PySide2\translations\qt_fa.qm" />
+                        </Component>
+                        <Component Id="cmpEA6502FBB2586785523A5C951635B706" Guid="*">
+                            <File Id="fil29657D83CC9C67D1E388A1A7896E4AD4" KeyPath="yes" Source="SourceDir\PySide2\translations\qt_fi.qm" />
+                        </Component>
+                        <Component Id="cmp27CBC3D368C782BF8EB9F24D573D469A" Guid="*">
+                            <File Id="fil946D2020E94BCD40B3997BD499313066" KeyPath="yes" Source="SourceDir\PySide2\translations\qt_fr.qm" />
+                        </Component>
+                        <Component Id="cmpD236D48EA73849F3FDBDBEDCC5B8E7B1" Guid="*">
+                            <File Id="fil1811C3262BC38A37FEB5A075BB49CEAC" KeyPath="yes" Source="SourceDir\PySide2\translations\qt_gd.qm" />
+                        </Component>
+                        <Component Id="cmp85D8928657EEDF2CBF87B14105AF99FE" Guid="*">
+                            <File Id="filD46CE29FF5E80E2A854D2E85905ED53F" KeyPath="yes" Source="SourceDir\PySide2\translations\qt_gl.qm" />
+                        </Component>
+                        <Component Id="cmp686F27996B2B3A32AE2C50FF08159478" Guid="*">
+                            <File Id="fil09231ACAED52FCCF89B7619F86DD9F82" KeyPath="yes" Source="SourceDir\PySide2\translations\qt_he.qm" />
+                        </Component>
+                        <Component Id="cmpABCB86D912193327EAE64435509E966D" Guid="*">
+                            <File Id="fil49EC58206C35B54B0E3BCA9BCD2AB770" KeyPath="yes" Source="SourceDir\PySide2\translations\qt_help_ar.qm" />
+                        </Component>
+                        <Component Id="cmpB3642C98E866C8B15C886AA87FABA2BB" Guid="*">
+                            <File Id="filBB694EACA8CDF129DDC36D5FF2400C65" KeyPath="yes" Source="SourceDir\PySide2\translations\qt_help_bg.qm" />
+                        </Component>
+                        <Component Id="cmp13D0D30BC369C11328FB0550645C9728" Guid="*">
+                            <File Id="fil35984354FF82704F28F1E86681F1B2A7" KeyPath="yes" Source="SourceDir\PySide2\translations\qt_help_ca.qm" />
+                        </Component>
+                        <Component Id="cmpF34FCBA4B948A221149F73A6E5D5266B" Guid="*">
+                            <File Id="filEDDD1C96DAD3CB3D2FCDD8C5B74AD537" KeyPath="yes" Source="SourceDir\PySide2\translations\qt_help_cs.qm" />
+                        </Component>
+                        <Component Id="cmpF853C9C7C8A4E8861CA2FA814A1A2C25" Guid="*">
+                            <File Id="fil310F930CB9698171752F49D0ABD5652A" KeyPath="yes" Source="SourceDir\PySide2\translations\qt_help_da.qm" />
+                        </Component>
+                        <Component Id="cmp77AC21D070E4632EFB7ECA23D13FCF94" Guid="*">
+                            <File Id="filB897FEE0E89CB3AA96B8570501021CA9" KeyPath="yes" Source="SourceDir\PySide2\translations\qt_help_de.qm" />
+                        </Component>
+                        <Component Id="cmpA44E7BD4A7CD5726F14F6C604FC7FD2C" Guid="*">
+                            <File Id="filC42D1D5A0877675B18AA03DDA7C01359" KeyPath="yes" Source="SourceDir\PySide2\translations\qt_help_en.qm" />
+                        </Component>
+                        <Component Id="cmpCAB9C675E4D577CC2197F5F2D50D960D" Guid="*">
+                            <File Id="filC5D101F5E7B3E690B210DC619A11B6AD" KeyPath="yes" Source="SourceDir\PySide2\translations\qt_help_es.qm" />
+                        </Component>
+                        <Component Id="cmp3D34D873ED293B7158B3600AF581F890" Guid="*">
+                            <File Id="fil9C7654C8A8A89A6B369C86CAE6C9758B" KeyPath="yes" Source="SourceDir\PySide2\translations\qt_help_fr.qm" />
+                        </Component>
+                        <Component Id="cmpEC13261F4253899D2057EDE6A000B035" Guid="*">
+                            <File Id="filB1690613E5137759223A0E435D7E2174" KeyPath="yes" Source="SourceDir\PySide2\translations\qt_help_gl.qm" />
+                        </Component>
+                        <Component Id="cmp587CB5AE001B44BAA9E660D4C960D29A" Guid="*">
+                            <File Id="filA5C699F339144294C2DA649D102F4CCE" KeyPath="yes" Source="SourceDir\PySide2\translations\qt_help_hu.qm" />
+                        </Component>
+                        <Component Id="cmpBD621F15B4DF23A30055D882479F59D2" Guid="*">
+                            <File Id="fil9A8E60A4252489F879140DAE1DBE32CB" KeyPath="yes" Source="SourceDir\PySide2\translations\qt_help_it.qm" />
+                        </Component>
+                        <Component Id="cmpBCEBC91C51148CAFEBB0208BF5045EED" Guid="*">
+                            <File Id="filAE78A320615489B8291807275036D5DE" KeyPath="yes" Source="SourceDir\PySide2\translations\qt_help_ja.qm" />
+                        </Component>
+                        <Component Id="cmp2647CA95CE58F308B5A7A49537E233B5" Guid="*">
+                            <File Id="fil2197F95CE5A9313CDA4CBC3174F835EC" KeyPath="yes" Source="SourceDir\PySide2\translations\qt_help_ko.qm" />
+                        </Component>
+                        <Component Id="cmp4A342E0DA76DA373255B3A0B4AAF19E4" Guid="*">
+                            <File Id="fil06C8B06EADD0CF97CC98D0AB2BBA6439" KeyPath="yes" Source="SourceDir\PySide2\translations\qt_help_pl.qm" />
+                        </Component>
+                        <Component Id="cmp57EB62FAB4E3DA6FA74D7807916F2EE4" Guid="*">
+                            <File Id="fil4CC177661C23B7A356052EDF0F6229DC" KeyPath="yes" Source="SourceDir\PySide2\translations\qt_help_ru.qm" />
+                        </Component>
+                        <Component Id="cmpEBB23DDDEB41F5915C02F566FA859A9F" Guid="*">
+                            <File Id="fil98A13F86D91BC6F07DA3C1108CD64C0B" KeyPath="yes" Source="SourceDir\PySide2\translations\qt_help_sk.qm" />
+                        </Component>
+                        <Component Id="cmp710B5F78D46EADD6EF1B8958C7DB954A" Guid="*">
+                            <File Id="fil680C8F7D1BA468B18E86321A8F6C58D0" KeyPath="yes" Source="SourceDir\PySide2\translations\qt_help_sl.qm" />
+                        </Component>
+                        <Component Id="cmp252240C19FA859FFE9307FD40A49A034" Guid="*">
+                            <File Id="fil2FCAAA2BF80F415875A70FA5B3290D3E" KeyPath="yes" Source="SourceDir\PySide2\translations\qt_help_tr.qm" />
+                        </Component>
+                        <Component Id="cmp21F6B4CFAB3EFF6A171F4214B6883922" Guid="*">
+                            <File Id="filD50044595500FA5DA89C282FDD1FB29A" KeyPath="yes" Source="SourceDir\PySide2\translations\qt_help_uk.qm" />
+                        </Component>
+                        <Component Id="cmp82E3042F5406ADD6EC44AEB2DF523BE1" Guid="*">
+                            <File Id="filA01324FFBF45AFB0931C070D696CE075" KeyPath="yes" Source="SourceDir\PySide2\translations\qt_help_zh_CN.qm" />
+                        </Component>
+                        <Component Id="cmp1BE02E1148357C85B834DDA89B496B11" Guid="*">
+                            <File Id="filE38541C7990925D4F9D36C3E7E623021" KeyPath="yes" Source="SourceDir\PySide2\translations\qt_help_zh_TW.qm" />
+                        </Component>
+                        <Component Id="cmpFA953C5D75E98D6D0DD6C2D587FECDE5" Guid="*">
+                            <File Id="fil362129599B7767F0E969EE5DE6D12E5D" KeyPath="yes" Source="SourceDir\PySide2\translations\qt_hu.qm" />
+                        </Component>
+                        <Component Id="cmp97F341056D4281D01E3ADDBD43AC7900" Guid="*">
+                            <File Id="fil1235EE6D88B4CCB9A7FA6AAF59D1829C" KeyPath="yes" Source="SourceDir\PySide2\translations\qt_it.qm" />
+                        </Component>
+                        <Component Id="cmpC4BC2BEF350077AF6FD9A9895F12EB70" Guid="*">
+                            <File Id="fil3A34C58251EB7A26793C9E5AEB4AADB7" KeyPath="yes" Source="SourceDir\PySide2\translations\qt_ja.qm" />
+                        </Component>
+                        <Component Id="cmp69A1A33A1B49DCC278A428E66237B49B" Guid="*">
+                            <File Id="fil6B7B1A57FD8D48BA04CAE33CAE91C237" KeyPath="yes" Source="SourceDir\PySide2\translations\qt_ko.qm" />
+                        </Component>
+                        <Component Id="cmp83EFAD33801C387F0E220C4FB740367F" Guid="*">
+                            <File Id="filFB4A1A4F8E962C2BC02A423D4264A671" KeyPath="yes" Source="SourceDir\PySide2\translations\qt_lt.qm" />
+                        </Component>
+                        <Component Id="cmpC3E48B4E051F00A336D5AD02F7D73AEE" Guid="*">
+                            <File Id="fil16571E9A13B77CF8A65742237E8FC32F" KeyPath="yes" Source="SourceDir\PySide2\translations\qt_lv.qm" />
+                        </Component>
+                        <Component Id="cmpD37067545E5AB1FCF99BF43569A398E2" Guid="*">
+                            <File Id="filBAE0CBDAF73B3F9F15777BCF2BDBCA46" KeyPath="yes" Source="SourceDir\PySide2\translations\qt_pl.qm" />
+                        </Component>
+                        <Component Id="cmp4D51923AC7FBCC00CFAF2EB7E7141DAA" Guid="*">
+                            <File Id="filAB70797CA4F612D5776D79E14DBA9794" KeyPath="yes" Source="SourceDir\PySide2\translations\qt_pt.qm" />
+                        </Component>
+                        <Component Id="cmpCC8C4CD86BDEC1930840F64A7E33AA4F" Guid="*">
+                            <File Id="filAB67B56AF837FDDDC3D62BA078A74681" KeyPath="yes" Source="SourceDir\PySide2\translations\qt_ru.qm" />
+                        </Component>
+                        <Component Id="cmpDD5020CB8E63A69F0DACAFE01878395C" Guid="*">
+                            <File Id="fil80C7E384D4C67AB1C70866D98FEAF24D" KeyPath="yes" Source="SourceDir\PySide2\translations\qt_sk.qm" />
+                        </Component>
+                        <Component Id="cmp1C12DC61D37D45A206840CBD478D464E" Guid="*">
+                            <File Id="fil6B2E285CF9230540A4F182CF0C969A9E" KeyPath="yes" Source="SourceDir\PySide2\translations\qt_sl.qm" />
+                        </Component>
+                        <Component Id="cmpDC1F77032A76598775A419E7D2B6E97A" Guid="*">
+                            <File Id="fil39902583308908FE99B58A1CA20337CA" KeyPath="yes" Source="SourceDir\PySide2\translations\qt_sv.qm" />
+                        </Component>
+                        <Component Id="cmpD829812F8863B74A48421E4D7DFB94DF" Guid="*">
+                            <File Id="filB9F9B0EBB6A64E70F5A22D35BC647CA5" KeyPath="yes" Source="SourceDir\PySide2\translations\qt_tr.qm" />
+                        </Component>
+                        <Component Id="cmp8E202361E00A8F892E29252DFE8D4C2F" Guid="*">
+                            <File Id="fil0514487C822ED1523EE2DDEDEFFFD1B4" KeyPath="yes" Source="SourceDir\PySide2\translations\qt_uk.qm" />
+                        </Component>
+                        <Component Id="cmp6A30758129AFDF577E932E0E3FE2F0BF" Guid="*">
+                            <File Id="filCCECCAD41BDA0ABE2224652B89C80AC1" KeyPath="yes" Source="SourceDir\PySide2\translations\qt_zh_CN.qm" />
+                        </Component>
+                        <Component Id="cmp4BBA8D67738A523E03A506F67BD024A9" Guid="*">
+                            <File Id="fil1D715AECC0FCBE9E8A60D218724E1B55" KeyPath="yes" Source="SourceDir\PySide2\translations\qt_zh_TW.qm" />
+                        </Component>
                     </Directory>
-                    <Directory Id="dirAE060DEAB3199E428E14B3546D458D53" Name="zope">
-                        <Directory Id="dir0764BA6B60FC19DF1711EEB262D26009" Name="interface">
-                            <Component Id="cmpD04441F916C8051DB0A322CFB7CBC39D" Guid="*">
-                                <File Id="filAB4FC7F780FF40C615CA0F559B080085" KeyPath="yes" Source="SourceDir\zope\interface\_zope_interface_coptimizations.cp37-win_amd64.pyd" />
-                            </Component>
-                        </Directory>
+                </Directory>
+                <Directory Id="dir1B6E41A77D1465CB106F41247BA5050C" Name="Pythonwin">
+                    <Component Id="cmp66BA67B050CA8E5EAF48B0D092EBB560" Guid="*">
+                        <File Id="fil119102DE59E380CC99EC071570DB4409" KeyPath="yes" Source="SourceDir\Pythonwin\mfc140u.dll" />
+                    </Component>
+                    <Component Id="cmp740E40C46D3CE2C9E67E3E6542BCEC97" Guid="*">
+                        <File Id="filFB96E2FE5BC954A78C489D8E5ABE0D75" KeyPath="yes" Source="SourceDir\Pythonwin\win32ui.pyd" />
+                    </Component>
+                </Directory>
+                <Directory Id="dir8AD90A83BF640A9ECE1B9C31CAAC6A7C" Name="pywin32_system32">
+                    <Component Id="cmpE3803D361A3E5E506AB9499E3F52D29F" Guid="*">
+                        <File Id="fil57D8E3BBFB5BAE2358A0496FB606CDFA" KeyPath="yes" Source="SourceDir\pywin32_system32\pythoncom310.dll" />
+                    </Component>
+                    <Component Id="cmp011820AB5A742AB0EF77416C337A47F9" Guid="*">
+                        <File Id="fil85BF3FC50316CEAF4CEF74DC2C0EBFE6" KeyPath="yes" Source="SourceDir\pywin32_system32\pywintypes310.dll" />
+                    </Component>
+                </Directory>
+                <Directory Id="dirBD92A6342AB266898F7F331161DC3E5B" Name="setuptools-65.5.0.dist-info">
+                    <Component Id="cmp355A991A818D3A54988DD21CDF4F4635" Guid="*">
+                        <File Id="filD527166BB347754631C8DA99F68677DD" KeyPath="yes" Source="SourceDir\setuptools-65.5.0.dist-info\entry_points.txt" />
+                    </Component>
+                    <Component Id="cmp707C742AC4E38D500328718FF360FA79" Guid="*">
+                        <File Id="filF2DED904A48FF29FA0776FA97850E696" KeyPath="yes" Source="SourceDir\setuptools-65.5.0.dist-info\INSTALLER" />
+                    </Component>
+                    <Component Id="cmpF6D233ECDFC492EC0A879581CFE56135" Guid="*">
+                        <File Id="fil14636A2850BC9E6367B59382E01DD4DA" KeyPath="yes" Source="SourceDir\setuptools-65.5.0.dist-info\LICENSE" />
+                    </Component>
+                    <Component Id="cmp1A940B14F17693AEDAAEC3CD76076AA3" Guid="*">
+                        <File Id="fil400706E85A0C8D459CC1640D3B8E1DC1" KeyPath="yes" Source="SourceDir\setuptools-65.5.0.dist-info\METADATA" />
+                    </Component>
+                    <Component Id="cmpCC1C713133AA7E770E5554B55C85D6EF" Guid="*">
+                        <File Id="fil8EA54D4A59552EE1995DC7811288662D" KeyPath="yes" Source="SourceDir\setuptools-65.5.0.dist-info\RECORD" />
+                    </Component>
+                    <Component Id="cmp49B2E961153965FB1CF9684B28CBD527" Guid="*">
+                        <File Id="fil00F17FD249D426F5E7E205CC573484FE" KeyPath="yes" Source="SourceDir\setuptools-65.5.0.dist-info\REQUESTED" />
+                    </Component>
+                    <Component Id="cmp756CF0BC8C814230BF43B4AE5190574B" Guid="*">
+                        <File Id="filD0612F10374C53257B8E064C76A23B05" KeyPath="yes" Source="SourceDir\setuptools-65.5.0.dist-info\top_level.txt" />
+                    </Component>
+                    <Component Id="cmp6B50C46B86ABDC3696F73E9676CEAE47" Guid="*">
+                        <File Id="fil0CD4979AA0134860D48F685AF065591A" KeyPath="yes" Source="SourceDir\setuptools-65.5.0.dist-info\WHEEL" />
+                    </Component>
+                </Directory>
+                <Directory Id="dir6C3E06F8F939FD8989C35A9E6BA535DE" Name="shiboken2">
+                    <Component Id="cmp745F620B1B7415C88F63EFD013754DD6" Guid="*">
+                        <File Id="filEE78844F0494E53E89163190FA15A680" KeyPath="yes" Source="SourceDir\shiboken2\MSVCP140.dll" />
+                    </Component>
+                    <Component Id="cmp329D5CFF7133185F1CB54EF41C8A59BE" Guid="*">
+                        <File Id="fil0792642234715FBFDE4143619004B0E9" KeyPath="yes" Source="SourceDir\shiboken2\shiboken2.abi3.dll" />
+                    </Component>
+                    <Component Id="cmpDF49AF3303DCE1F56C893A6683626C57" Guid="*">
+                        <File Id="fil9427EFC3589A4148EE3726539FE8F26F" KeyPath="yes" Source="SourceDir\shiboken2\shiboken2.pyd" />
+                    </Component>
+                    <Component Id="cmpAAA286C1276BA588175D1EBFB1B1D445" Guid="*">
+                        <File Id="filE2493266A95C9CA8B0FD7C6A9375E062" KeyPath="yes" Source="SourceDir\shiboken2\VCRUNTIME140_1.dll" />
+                    </Component>
+                </Directory>
+                <Directory Id="dir779063F7B9EF6D85202484595A499971" Name="wheel-0.40.0.dist-info">
+                    <Component Id="cmpC8165CBA5C0D90F179CE2D7C0CADAE13" Guid="*">
+                        <File Id="fil62143270E8C0A1467C44521C5D62C3DC" KeyPath="yes" Source="SourceDir\wheel-0.40.0.dist-info\entry_points.txt" />
+                    </Component>
+                    <Component Id="cmp6AEFFB644A645F67976984119664E671" Guid="*">
+                        <File Id="fil84A4140BB2E46280233C2EC2A22CE81F" KeyPath="yes" Source="SourceDir\wheel-0.40.0.dist-info\INSTALLER" />
+                    </Component>
+                    <Component Id="cmp8D4DB4937BB2EE8D19B40737F58F485F" Guid="*">
+                        <File Id="filC21E4601067B474A99D48020BCD07B12" KeyPath="yes" Source="SourceDir\wheel-0.40.0.dist-info\LICENSE.txt" />
+                    </Component>
+                    <Component Id="cmp7D424CFFD981461503F90B18C250A018" Guid="*">
+                        <File Id="fil04EB88E02E3F2EBF52C8F14DD20EE6F1" KeyPath="yes" Source="SourceDir\wheel-0.40.0.dist-info\METADATA" />
+                    </Component>
+                    <Component Id="cmpB1F5D4C076A5D43B29FEAB2F6EBB5DCA" Guid="*">
+                        <File Id="fil57D83123B6C38B3DBE7024DCE5399AE8" KeyPath="yes" Source="SourceDir\wheel-0.40.0.dist-info\RECORD" />
+                    </Component>
+                    <Component Id="cmpFEE04A4284FF4D8CF5699F8618FA4FAE" Guid="*">
+                        <File Id="filCDD19D6C1E4016649666BC1C9CA90E81" KeyPath="yes" Source="SourceDir\wheel-0.40.0.dist-info\REQUESTED" />
+                    </Component>
+                    <Component Id="cmp77EF889EDB7D4C41694772E08B413631" Guid="*">
+                        <File Id="fil4E1653D13CF783582EE2D441A81D0018" KeyPath="yes" Source="SourceDir\wheel-0.40.0.dist-info\WHEEL" />
+                    </Component>
+                </Directory>
+                <Directory Id="dir96C22F0AD7A82DCC9E958E6ECC60DA41" Name="win32">
+                    <Component Id="cmp8A35D4781988A5B65F33F402556D8B57" Guid="*">
+                        <File Id="fil2AD0F0D30AC7D666CCDC16230794067A" KeyPath="yes" Source="SourceDir\win32\win32api.pyd" />
+                    </Component>
+                    <Component Id="cmpDEC22956BC837E1A2D208647ADA2F190" Guid="*">
+                        <File Id="fil5F61D5F750AFE11D41A66EFE1E7E3231" KeyPath="yes" Source="SourceDir\win32\win32evtlog.pyd" />
+                    </Component>
+                    <Component Id="cmp84384118F8A58F1379E7A3FBF85813B8" Guid="*">
+                        <File Id="fil949CCBA76FEB9D02E51D0819B62F9D0E" KeyPath="yes" Source="SourceDir\win32\win32trace.pyd" />
+                    </Component>
+                    <Component Id="cmp14691C20D6F324256CF8986F2661F7EA" Guid="*">
+                        <File Id="fil657FA83D0E43083EBA7CE1CBCD5D4877" KeyPath="yes" Source="SourceDir\win32\_win32sysloader.pyd" />
+                    </Component>
+                </Directory>
+                <Directory Id="dir2F83CDF5965C8D16B901840EFD4FB146" Name="win32com">
+                    <Directory Id="dir65BFA9FA2E6A4042E8DFAEDFFB48AA93" Name="shell">
+                        <Component Id="cmp6F5D1909745F8069326A80B399A8881A" Guid="*">
+                            <File Id="fil3A037CF5BB21B57D2985FC6CBC21361A" KeyPath="yes" Source="SourceDir\win32com\shell\shell.pyd" />
+                        </Component>
+                    </Directory>
+                </Directory>
+                <Directory Id="dirAE060DEAB3199E428E14B3546D458D53" Name="zope">
+                    <Directory Id="dir0764BA6B60FC19DF1711EEB262D26009" Name="interface">
+                        <Component Id="cmp576BC153DCA7C517E191D011D412215C" Guid="*">
+                            <File Id="filE3B52F9EB6AEA3FE16C746264FFA3F98" KeyPath="yes" Source="SourceDir\zope\interface\_zope_interface_coptimizations.cp310-win_amd64.pyd" />
+                        </Component>
                     </Directory>
                 </Directory>
             </Directory>
@@ -441,112 +1064,305 @@ along with IDF+. If not, see <http://www.gnu.org/licenses/>.
 
     <Fragment>
         <ComponentGroup Id="IDFPlusComponents">
-            <ComponentRef Id="cmp04380DD60899B3B2E6C7C1126ED33A99" />
-            <ComponentRef Id="cmp665B011215EE152C839B9E89FFFDEA84" />
-            <ComponentRef Id="cmp47DDEFFA15FA9027732724FFB9AB575F" />
-            <ComponentRef Id="cmp44BAD151EA7CC6EE414D033F4F9F2759" />
-            <ComponentRef Id="cmp000279AAB437499A6DB2C3E7CDC37F23" />
-            <ComponentRef Id="cmp58794494126F8D7062DB22910DC1C0DD" />
+            <ComponentRef Id="cmp5AB0F2EA4098C8FA6623C36E7854822A" />
+            <ComponentRef Id="cmp77A900935E8FD331768A1DA87B51081F" />
+            <ComponentRef Id="cmpB6102BF6000F790BA9C8E5A66F012CA9" />
+            <ComponentRef Id="cmpF5132F3F270E855AEBEEC73128FC7B03" />
+            <ComponentRef Id="cmp2BA74004DBD5AC697142F0878013F8F3" />
+            <ComponentRef Id="cmpB4ED6C8EB7949C6759F69638040FC1D9" />
+            <ComponentRef Id="cmp125D12B2DF8288259E0B725EAAA9BD0E" />
+            <ComponentRef Id="cmpA4755C7A188C96FC71AF118385CD6FB3" />
+            <ComponentRef Id="cmp1EFBA872F7C6112B014C8C0B4A6C3813" />
+            <ComponentRef Id="cmp3F78C06EEE4E97F082A76CA86E5076EB" />
+            <ComponentRef Id="cmp18337863FCF5220B5A355269A2B3E853" />
+            <ComponentRef Id="cmp1859CDA9CADB9BA267AD1EE469ECB604" />
+            <ComponentRef Id="cmp99A35EB81BDB96A49E2D676EA94BAC1F" />
+            <ComponentRef Id="cmpEB22A3CD57A9EB830C19E74F981ADE16" />
+            <ComponentRef Id="cmp9B1C6B0012F958FCBA4A3E95C0FDE8F3" />
+            <ComponentRef Id="cmp6A7359A44BAE524216C49C0B1F1D27B4" />
+            <ComponentRef Id="cmpE0A9F7AA0FB92651DFE0A8C267A92D50" />
+            <ComponentRef Id="cmpDFCA9ACD11AE5F6FDB272BE054281E36" />
+            <ComponentRef Id="cmp4EBB1CF14C28A866418EA34176073708" />
+            <ComponentRef Id="cmp6D634BFC6FFED3AC0890BE9CC6DC3B31" />
+            <ComponentRef Id="cmp9E742DE9CC5E24ACCB4F104D72DFED39" />
+            <ComponentRef Id="cmpDAB4791F865CE8BE5FFD9F021CC52870" />
+            <ComponentRef Id="cmp92D95FB7A95656B526E42DAD225A345F" />
+            <ComponentRef Id="cmpDB6CA90E55234EC386DFF4049F6F5887" />
+            <ComponentRef Id="cmp64DD83EC06A3FF7E1B330B75F1703D73" />
+            <ComponentRef Id="cmpFCFAF20A6788C0522AFD42DD1BB6B9AD" />
+            <ComponentRef Id="cmp392C11BB04CB5E0F9EF5EE793B817BF9" />
+            <ComponentRef Id="cmp08C87F3B2EBE85532A131222B39C6B5C" />
+            <ComponentRef Id="cmp11E317A573A771B5BEE42E9619BB90DB" />
+            <ComponentRef Id="cmp7C3F7CC527EA7F7EA417A8F41AF1C870" />
+            <ComponentRef Id="cmp381CA3F72F39C69A330184BCA4760F80" />
+            <ComponentRef Id="cmp1D856585847E0007643717B7BAF9FE0F" />
+            <ComponentRef Id="cmp0C37D6E4DBA2A7EE45630E93BBD4C9C6" />
+            <ComponentRef Id="cmp883AAAAB791C10E70070B67CB331DFB4" />
+            <ComponentRef Id="cmp85EA7A7B02ACC56FCD1CED4AB64F7111" />
+            <ComponentRef Id="cmp618CEC0EE90C149B43B071B426F6583F" />
+            <ComponentRef Id="cmpB893D6AEF45AD0187444C270460566E9" />
+            <ComponentRef Id="cmp39F50ED12AE4B4826486C06AB2C9EB31" />
+            <ComponentRef Id="cmpC894A03FEB631AF078490B64FDE289D6" />
+            <ComponentRef Id="cmp2C50AEC1B6D710EE9794C4F7EBC8B12B" />
             <ComponentRef Id="cmp647DA6CA62F6403342EA4EBEE6C9DC78" />
-            <ComponentRef Id="cmp20D32CF3D494CB0775B9BF120E2C342A" />
-            <ComponentRef Id="cmp579A8779827420B2574F657CEC316A17" />
-            <ComponentRef Id="cmp57B1107943DDB333EF41B19027A44F43" />
-            <ComponentRef Id="cmpA880A3ACBF61BD790927E61A2CCDCADF" />
-            <ComponentRef Id="cmpD2A1BF5D1891F4508EE9DF506EFC642E" />
-            <ComponentRef Id="cmpBD33227FC5AD6BA1A293384B57B5C3E1" />
-            <ComponentRef Id="cmp11AE6C3F6A53A21A6717F67E1E0C6BFE" />
-            <ComponentRef Id="cmp602551A065B8B655C3B0AC5D5BF3E3AB" />
-            <ComponentRef Id="cmpEB70B096D47154C70DEA72B3F1431CCF" />
-            <ComponentRef Id="cmp8E659A00591FCB2A541A42D607188D92" />
-            <ComponentRef Id="cmpDA9BBAEE81E4DB8EF727BA092F52C87B" />
-            <ComponentRef Id="cmpBF3B748F501D8F208BC89FEF2A274623" />
-            <ComponentRef Id="cmp93CAA189E2B210693FF54F3BBDC0D724" />
-            <ComponentRef Id="cmpE046DB0C5B101AF2FD3B29FCA4AA91DA" />
-            <ComponentRef Id="cmpF50AEB972CA406A07E1DDE34E607C8DE" />
-            <ComponentRef Id="cmp21332C15704597CA03B113466012B06A" />
-            <ComponentRef Id="cmp4D0A00F389AB20625A393908837B4790" />
-            <ComponentRef Id="cmpBDC23040FF324EA2C89641ACAA4575C0" />
-            <ComponentRef Id="cmpB25F6FDD99F6AB8E7451EF3C43FF0FBF" />
-            <ComponentRef Id="cmpE1A1D99212A8F6F8DA60FD2DE60B708B" />
-            <ComponentRef Id="cmp9FCE5B0D26786FA199B777D9C83480CD" />
-            <ComponentRef Id="cmp6300E1C495C3A5EFE6C68EA598A1B23C" />
-            <ComponentRef Id="cmpDD0B55A217D8DEE25488E340DF11E2BC" />
-            <ComponentRef Id="cmpE50EE66DF901BFAD9D74E3BD47D470BD" />
-            <ComponentRef Id="cmpDC9DB6FCCB71D324225B136D6D685D57" />
-            <ComponentRef Id="cmp9AA715A313635B27AD5328D9157BC2DA" />
-            <ComponentRef Id="cmp6BFD25BB43FC5DE5E887E36C84012DB1" />
-            <ComponentRef Id="cmp25A795128D445F5A212151BC0AFB235E" />
             <ComponentRef Id="cmp0099A4657D35F57A6BB27572CAEAE213" />
-            <ComponentRef Id="cmpDF902F9C4EE0FE0B5BA9D87F67F0DE4D" />
-            <ComponentRef Id="cmp6D569DEB836C51C0B13CD8C5BF9E7FD6" />
-            <ComponentRef Id="cmp9CDF1C1D642A0A8B2DC9AAAD2B42B8B2" />
-            <ComponentRef Id="cmp869D11B1441B82FB7E82D3957856EF49" />
             <ComponentRef Id="cmpAEBB1F42F0FACEA4065EFAE8F2CDB637" />
-            <ComponentRef Id="cmpE3D4DB11A27E26D61B2EFB7A7D5AFFDA" />
-            <ComponentRef Id="cmpB8EF6E52F198F331FC41E59FC3049B96" />
-            <ComponentRef Id="cmp6140A6D328061E31C7D0764687486D9B" />
-            <ComponentRef Id="cmp6E1A9E4DC0F4D139F8D5F93E3E0876BB" />
-            <ComponentRef Id="cmpC060CA73CA0DA80FFA1A2530FD69D32E" />
-            <ComponentRef Id="cmpC2B5C938CDBD7BD0FAE06ACAABDB3B54" />
+            <ComponentRef Id="cmpDF902F9C4EE0FE0B5BA9D87F67F0DE4D" />
+            <ComponentRef Id="cmp6BFD25BB43FC5DE5E887E36C84012DB1" />
+            <ComponentRef Id="cmp1FD92E9C422F4629F2F69615F92B70A5" />
             <ComponentRef Id="cmpB2DE97470846F89999AC3BDD383C401C" />
-            <ComponentRef Id="cmpC4E2A9724274929A818E7F2E8F3B1E5B" />
+            <ComponentRef Id="cmpBF3B748F501D8F208BC89FEF2A274623" />
+            <ComponentRef Id="cmp6E1A9E4DC0F4D139F8D5F93E3E0876BB" />
+            <ComponentRef Id="cmp53706D711F9D593D71BEE5B0C0A02866" />
+            <ComponentRef Id="cmp6140A6D328061E31C7D0764687486D9B" />
+            <ComponentRef Id="cmp665B011215EE152C839B9E89FFFDEA84" />
+            <ComponentRef Id="cmpF82F512698CC77010A08EE6180AE27FE" />
+            <ComponentRef Id="cmp25A795128D445F5A212151BC0AFB235E" />
+            <ComponentRef Id="cmpE3D4DB11A27E26D61B2EFB7A7D5AFFDA" />
+            <ComponentRef Id="cmpBFE1D9F25264A5A5736E2AAE123C3A73" />
+            <ComponentRef Id="cmpBCA06B085D562844576462A3620CE85E" />
+            <ComponentRef Id="cmp000279AAB437499A6DB2C3E7CDC37F23" />
+            <ComponentRef Id="cmpB56FF9091C9823A03106C659ADFC3EE1" />
             <ComponentRef Id="cmp997B896EF135E895E0328BAC28684A84" />
-            <ComponentRef Id="cmp94A57D81696CA218C648E40A62E8B01E" />
-            <ComponentRef Id="cmp39843742AA799691811E9DC248DE1144" />
-            <ComponentRef Id="cmpDF49AF3303DCE1F56C893A6683626C57" />
-            <ComponentRef Id="cmpF187A5E9EAF7C96D73DF48E435017F2E" />
-            <ComponentRef Id="cmpE7BA6B2A97D877801247392F9FD3F700" />
-            <ComponentRef Id="cmp2F40728C605856D47357CF087C204C6C" />
-            <ComponentRef Id="cmp7F0C9C5F3C9A03C54C2405682C84AA78" />
-            <ComponentRef Id="cmpA43B3E82B84DA7B2688BDF4C78D0FEB4" />
-            <ComponentRef Id="cmpC0BFE8D354F854E2A1C21E32F84DDCCB" />
-            <ComponentRef Id="cmp1D3B897E64D6FB2E4CF7164DCE615087" />
-            <ComponentRef Id="cmp6F5D1909745F8069326A80B399A8881A" />
-            <ComponentRef Id="cmpCFFB1F1806279C51607A4B8991610A24" />
+            <ComponentRef Id="cmp8E659A00591FCB2A541A42D607188D92" />
+            <ComponentRef Id="cmp9CCD81120E89D04B5A4426F2BF10BBB2" />
+            <ComponentRef Id="cmpF50AEB972CA406A07E1DDE34E607C8DE" />
+            <ComponentRef Id="cmp869D11B1441B82FB7E82D3957856EF49" />
+            <ComponentRef Id="cmp9FCE5B0D26786FA199B777D9C83480CD" />
+            <ComponentRef Id="cmpEB5FA2AACB21BFE032862BC749094ED8" />
+            <ComponentRef Id="cmp04380DD60899B3B2E6C7C1126ED33A99" />
+            <ComponentRef Id="cmpBDC23040FF324EA2C89641ACAA4575C0" />
+            <ComponentRef Id="cmp93CAA189E2B210693FF54F3BBDC0D724" />
+            <ComponentRef Id="cmp6D569DEB836C51C0B13CD8C5BF9E7FD6" />
+            <ComponentRef Id="cmpDD3CA74BB49F310E3F95FB070F3FD0A9" />
+            <ComponentRef Id="cmp20F16519949D43399BE6CFC1663302F6" />
+            <ComponentRef Id="cmp3CD576A5444CF69C202D3369A427388B" />
+            <ComponentRef Id="cmpC68258C9C6176EB080D8E3E79F23CE39" />
+            <ComponentRef Id="cmp2B3CCFE4F4A047D6C4713BB2CBD7B141" />
+            <ComponentRef Id="cmpC950DEBF5A1159A14AA62101D3604DE1" />
+            <ComponentRef Id="cmpBF38A6BAACB2598E9991ACD49C794728" />
+            <ComponentRef Id="cmpBB19521594940BD67020A118110F5FDE" />
+            <ComponentRef Id="cmp2CB80A45CB2144F595866C392AF3BE11" />
+            <ComponentRef Id="cmp887771A05726CB298B657C7A18F8FA9B" />
+            <ComponentRef Id="cmp64A66682105465532B84853AF3AF648F" />
+            <ComponentRef Id="cmpC518F1CBBE89DF1DEC73100737EE2857" />
+            <ComponentRef Id="cmpD3C081C2833959E1449815907D198994" />
+            <ComponentRef Id="cmp0D6B8EF211D3FFB454E853574CD81C18" />
+            <ComponentRef Id="cmp05A85E67FBCD60D5C9873641AF72A668" />
+            <ComponentRef Id="cmp6D55F11D1FEEF2C3EE9119141A3FE1B9" />
+            <ComponentRef Id="cmp32B9A7DFA4B8EA15EA003C756A1A1DF4" />
+            <ComponentRef Id="cmp32FF837CB7EA1AF231388D834E680D18" />
+            <ComponentRef Id="cmp1461171DBB909DD8EA8AAC2187F0064B" />
+            <ComponentRef Id="cmp1813B295FA4C667944D9203901DA47F1" />
+            <ComponentRef Id="cmp478A0795B2527FBBA933E7F2EFB24FDF" />
+            <ComponentRef Id="cmpFD474BA00B4BDAFDAA9F49485B4C97B7" />
+            <ComponentRef Id="cmpF2851834091EAAFEA7F756E0771D597F" />
+            <ComponentRef Id="cmp162153AC8440574C881CCC148FDF356A" />
+            <ComponentRef Id="cmp458C64581314BA0B07A7264E34C7F04B" />
+            <ComponentRef Id="cmp8BB46F585246149DD40BE0766762430E" />
+            <ComponentRef Id="cmp9C423B8DE75874233F152CC44E742807" />
+            <ComponentRef Id="cmp117C2D734B3B9CEB39C20DF0AB98FDE0" />
+            <ComponentRef Id="cmp0CD674F070FEBC317005455F54718BE5" />
+            <ComponentRef Id="cmp54BE10EB997FCD869FC82EDFBB9BFA72" />
+            <ComponentRef Id="cmpB6437CC52B8A502CEC7232ADAF909875" />
+            <ComponentRef Id="cmpEA733BC6C5BE424F4385C18BF101C228" />
+            <ComponentRef Id="cmpD022839791BABE5EC60533BE029714E0" />
+            <ComponentRef Id="cmpC31B4F06AF0232DE229AB09C33520BBB" />
+            <ComponentRef Id="cmp30BE77F60A966C71373902B276E6820F" />
+            <ComponentRef Id="cmp50BB76D74A1698DABFA78AEA66D5664B" />
+            <ComponentRef Id="cmp3DCB0D0BC966937B87A3B179FAFC810B" />
+            <ComponentRef Id="cmpDB0554898B525D5A397FB81F2BBBAA31" />
+            <ComponentRef Id="cmp57C10C310650E5DEB28D4A711247F794" />
+            <ComponentRef Id="cmp898B1F767D1D3CE1FEC59F50A634C59C" />
+            <ComponentRef Id="cmpFF57BEA46FD5DC42635750D2F9338BF5" />
+            <ComponentRef Id="cmp8E8922B8665820365CC662880178EE7D" />
+            <ComponentRef Id="cmpFAC8B7F787969E158CAF8A1AD549D204" />
+            <ComponentRef Id="cmp6031B5D0E9C6E29B0E69F6F0310602B7" />
+            <ComponentRef Id="cmpB07ADE6CEA86B9F09FC69E0A30C4862B" />
+            <ComponentRef Id="cmp5666B423848DA7E4F692862D3A6902A3" />
+            <ComponentRef Id="cmp25377C105AB2392413B97B7995D0475F" />
+            <ComponentRef Id="cmp45E1EF29B1B6095256C995D2FCE1C366" />
+            <ComponentRef Id="cmpA16AA25E274EBC0FC7BCE8C954331A42" />
+            <ComponentRef Id="cmp8F5648F1B71D628FC91C5EFF70CCA92F" />
+            <ComponentRef Id="cmp812D5353EE03814EE2049C4A83B2BB20" />
+            <ComponentRef Id="cmpAAA638C8AE1DD9B4FA626DF4B4261A21" />
+            <ComponentRef Id="cmpE0136FD01B73B1D75DBA8AA88CF6397A" />
+            <ComponentRef Id="cmp83E828F01199623D797E057348348F04" />
+            <ComponentRef Id="cmp8138537B59BB0D3B8FA1CD9399F2E7A8" />
+            <ComponentRef Id="cmp6B4486C7C8004AE02F58B0EDADED57EE" />
+            <ComponentRef Id="cmp24A86E347DE09FCE46B67CD6CDD609C5" />
+            <ComponentRef Id="cmp1FD6ED148088DC3F8A7ACEFECB6980C3" />
+            <ComponentRef Id="cmp9FB2EF5B6C73D9A4EF1C47B11A0F774D" />
+            <ComponentRef Id="cmp628C04D307BBAED534052929921E8376" />
+            <ComponentRef Id="cmp68B5531B9F04183E7CCFD8B92C72199B" />
+            <ComponentRef Id="cmpBF1EC7C6D83A1A1DBA5AA9B0A58B8098" />
+            <ComponentRef Id="cmp332DECB4B3C427786B27540EC4DA6503" />
+            <ComponentRef Id="cmp0193227397C69A7658B96483E615C063" />
+            <ComponentRef Id="cmp43F9BBFBB40BC9072F09923F53C8BA32" />
+            <ComponentRef Id="cmp21DF5A4E54AB54CC36D0A27D4AB045A1" />
+            <ComponentRef Id="cmp08459FFAD849CB204D07EFC288F2486B" />
+            <ComponentRef Id="cmpA76FCC01DB686F7D10BA0AC913954A85" />
+            <ComponentRef Id="cmpB9A39E76AC13C6221D789A831673159E" />
+            <ComponentRef Id="cmp518842C6F26B893BA956BA0137B429A3" />
+            <ComponentRef Id="cmpC880D8369139FF058128C14DC621A0FB" />
+            <ComponentRef Id="cmp2095C07B7F12F22EE8D8CCAA6446693F" />
+            <ComponentRef Id="cmpCFA4C63D213EDB053528842AD0BDFDB4" />
+            <ComponentRef Id="cmpCAA46F12B5E280E5173BBD4E384773B4" />
+            <ComponentRef Id="cmp6FDC83F4F2973FA7959EFA7D82A9FF4B" />
+            <ComponentRef Id="cmpF8F8DDE2C2EAB693C2AB7891AD13B844" />
+            <ComponentRef Id="cmp920DCDD3E0DC19E283AE3ECCAB2A5017" />
+            <ComponentRef Id="cmpFAEAB8888D803D6632AD94F3AE08D226" />
+            <ComponentRef Id="cmp37BAEE5FBFD3B8ADC727A44D196E1049" />
+            <ComponentRef Id="cmp10361155F81185FD0F5B1F8DDCB746A7" />
+            <ComponentRef Id="cmp4367AAB309B79A590F26551739CEC0E5" />
+            <ComponentRef Id="cmpE3917639DC1541F3EDC8205076723235" />
+            <ComponentRef Id="cmp7CD196C563CBF187248C44681996C209" />
+            <ComponentRef Id="cmpB9E2CA456176B600C8F161E3F9A05D92" />
+            <ComponentRef Id="cmpE8527F5CE9B9CA12850890865B4FEB92" />
+            <ComponentRef Id="cmp1A8A0C5BD630C0BCA2B04CA440F93322" />
+            <ComponentRef Id="cmp4B7D4E6E119C8D456E1C25D296BEB62A" />
+            <ComponentRef Id="cmp83C354801E741F0C7F87A3E2C7C38D09" />
+            <ComponentRef Id="cmp9C400313EC96222CEF58C54525B68233" />
+            <ComponentRef Id="cmpA1F3156EBB85767CD64FC2C99241F7A3" />
+            <ComponentRef Id="cmp070A48235790417F87B2206F975B2110" />
+            <ComponentRef Id="cmp1B51D96BA41BCBDF625D293DD693E1C5" />
+            <ComponentRef Id="cmp36627CFAA9FC3666ED24B0C1A04C617F" />
+            <ComponentRef Id="cmp7A838D55B50C689AFB8A641C7AA02B8B" />
+            <ComponentRef Id="cmp4EB220B84ADC61B6B512DC27CB41678A" />
+            <ComponentRef Id="cmp51223E163F8C670B50250EC55FAAED83" />
+            <ComponentRef Id="cmp22174E647D5AB3A150FEBE0D8659542C" />
+            <ComponentRef Id="cmp0CE00FDE14F89B0929107B1977DB4A0F" />
+            <ComponentRef Id="cmp99A765D326DA972C25152C63367F640E" />
             <ComponentRef Id="cmp547E055E33BD1E36FCF778623A21686C" />
-            <ComponentRef Id="cmp5594BDF15835D69BD9463B962EC1D639" />
             <ComponentRef Id="cmp0FEB9736692495654908A085EB584A18" />
+            <ComponentRef Id="cmp5594BDF15835D69BD9463B962EC1D639" />
             <ComponentRef Id="cmpFE453B2AA1386D22A77F2DA19BBABEE6" />
+            <ComponentRef Id="cmpF6024F0C624CB7369D7A5BF5A2632F20" />
+            <ComponentRef Id="cmpA3B244931E5E7367D60063E1EABF5302" />
+            <ComponentRef Id="cmp7E92B632F0B92FED0B18CEFD8D942AD4" />
             <ComponentRef Id="cmp14AE3C544CB1A531360DAB4A5F2013F5" />
-            <ComponentRef Id="cmpBBD346621B3DEEA992856888BE42E2CB" />
-            <ComponentRef Id="cmp418A499F2F39551382DBE487FE4CB7A5" />
-            <ComponentRef Id="cmp5884BDC24A22CDE2E8A15E95EAF3A96D" />
-            <ComponentRef Id="cmp728EFF70511D79B3BFD0DE7F883EEDE0" />
-            <ComponentRef Id="cmp43116D74EC10AE1AA32EE4AFE67409CE" />
-            <ComponentRef Id="cmpCEB03A377F98B1D75440DE7234D33622" />
-            <ComponentRef Id="cmpAE746095CA6A39F687F24B8F0BEF776F" />
             <ComponentRef Id="cmp720987E01B139F4B5B0A160DE3301D19" />
-            <ComponentRef Id="cmp54E7E093E44CC8845718816714EA4838" />
             <ComponentRef Id="cmpADAD5CE453483E6774F5957F3EF37C36" />
             <ComponentRef Id="cmp31D589233CFA5F4A6F92840933040F8F" />
-            <ComponentRef Id="cmp65BE5256E81A86A3752E1F6F1524CA57" />
-            <ComponentRef Id="cmpC69EC699AF7789CF722ED27087EA2BE8" />
+            <ComponentRef Id="cmp43116D74EC10AE1AA32EE4AFE67409CE" />
+            <ComponentRef Id="cmp099786285646FF9F779E20752BD5B319" />
+            <ComponentRef Id="cmp5884BDC24A22CDE2E8A15E95EAF3A96D" />
+            <ComponentRef Id="cmpAE746095CA6A39F687F24B8F0BEF776F" />
+            <ComponentRef Id="cmp728EFF70511D79B3BFD0DE7F883EEDE0" />
+            <ComponentRef Id="cmp54E7E093E44CC8845718816714EA4838" />
+            <ComponentRef Id="cmpCEB03A377F98B1D75440DE7234D33622" />
+            <ComponentRef Id="cmp418A499F2F39551382DBE487FE4CB7A5" />
+            <ComponentRef Id="cmpB35E876CFFE8CDAF16C6DA4CE2C4FF47" />
             <ComponentRef Id="cmp08DDFE3962DDA7B97F625CF37D2BEB3E" />
-            <ComponentRef Id="cmpBF6FD144A052D81B9E1FCD2229E698E2" />
             <ComponentRef Id="cmp1E3753C29286A0F558530AF81E03A96C" />
-            <ComponentRef Id="cmp9669AD29AA3800EE7DD1340419767DF5" />
-            <ComponentRef Id="cmp26CF2EBF42F4F776A2D3BABDCC6D93D1" />
-            <ComponentRef Id="cmp94AE87E9921C4762ACA22F4EBD1E934F" />
-            <ComponentRef Id="cmp2BC4531723CF0A155CACA82856720D2C" />
-            <ComponentRef Id="cmp33F35FA016AD4C1CAFB3BD02BFC20302" />
-            <ComponentRef Id="cmpC39617EA22D49CC0A51AD05DCEF4F59F" />
-            <ComponentRef Id="cmp0D5E474050464B8CB945068F3EBEF2D7" />
+            <ComponentRef Id="cmpC69EC699AF7789CF722ED27087EA2BE8" />
+            <ComponentRef Id="cmpBF6FD144A052D81B9E1FCD2229E698E2" />
+            <ComponentRef Id="cmp65BE5256E81A86A3752E1F6F1524CA57" />
+            <ComponentRef Id="cmpBBD346621B3DEEA992856888BE42E2CB" />
             <ComponentRef Id="cmpF38B26C75D9A64972A20D74FA5B4BCB4" />
-            <ComponentRef Id="cmp369A0835B09DCAD87C1EB3BBF6418464" />
-            <ComponentRef Id="cmpAE6910D9EB7185C0F55E602E5B89BB14" />
-            <ComponentRef Id="cmp3F3F7A005F4D617BEF27442150B53E68" />
-            <ComponentRef Id="cmp4609D006FA8E6506E950C7945ADF3E3A" />
             <ComponentRef Id="cmpEBDE56FB152B7822C8C190905858368C" />
-            <ComponentRef Id="cmp569C75588EDE1B11B056053784C8AD08" />
-            <ComponentRef Id="cmp7E3BC864089F75B6F6DED6F0E3CB2D6A" />
-            <ComponentRef Id="cmp68880DA846B4A45996AD0B796CED27D6" />
-            <ComponentRef Id="cmp566546B9D8B3922B50A6597498A578BB" />
-            <ComponentRef Id="cmp01BBB3BE861E780D5F0C575C38723B4F" />
             <ComponentRef Id="cmp7E3038E9F4B2931D3BADF2ED66D97183" />
-            <ComponentRef Id="cmpC82A33F2CD28FB0208BA8A2937400230" />
-            <ComponentRef Id="cmp2A874DA197A78E80B7A37805339DBD35" />
+            <ComponentRef Id="cmp3F3F7A005F4D617BEF27442150B53E68" />
+            <ComponentRef Id="cmp01BBB3BE861E780D5F0C575C38723B4F" />
+            <ComponentRef Id="cmp369A0835B09DCAD87C1EB3BBF6418464" />
             <ComponentRef Id="cmp5E61F7B13D7190B6246C086564F281F6" />
-            <ComponentRef Id="cmpD04441F916C8051DB0A322CFB7CBC39D" />
+            <ComponentRef Id="cmpC39617EA22D49CC0A51AD05DCEF4F59F" />
+            <ComponentRef Id="cmp2A874DA197A78E80B7A37805339DBD35" />
+            <ComponentRef Id="cmp94AE87E9921C4762ACA22F4EBD1E934F" />
+            <ComponentRef Id="cmp569C75588EDE1B11B056053784C8AD08" />
+            <ComponentRef Id="cmpAE6910D9EB7185C0F55E602E5B89BB14" />
+            <ComponentRef Id="cmp33F35FA016AD4C1CAFB3BD02BFC20302" />
+            <ComponentRef Id="cmp7E3BC864089F75B6F6DED6F0E3CB2D6A" />
+            <ComponentRef Id="cmp26CF2EBF42F4F776A2D3BABDCC6D93D1" />
+            <ComponentRef Id="cmp9669AD29AA3800EE7DD1340419767DF5" />
+            <ComponentRef Id="cmp0D5E474050464B8CB945068F3EBEF2D7" />
+            <ComponentRef Id="cmp566546B9D8B3922B50A6597498A578BB" />
+            <ComponentRef Id="cmpC82A33F2CD28FB0208BA8A2937400230" />
+            <ComponentRef Id="cmp68880DA846B4A45996AD0B796CED27D6" />
+            <ComponentRef Id="cmp4CAFEA6AB634FF08E1C10A990D97C8E8" />
+            <ComponentRef Id="cmp2BC4531723CF0A155CACA82856720D2C" />
+            <ComponentRef Id="cmp4609D006FA8E6506E950C7945ADF3E3A" />
+            <ComponentRef Id="cmpEB4127C9CF99F747A9CDC586528421AC" />
+            <ComponentRef Id="cmp867C5C83345F74FC6E8E19C418CD9C2C" />
+            <ComponentRef Id="cmp5AB33BEE6BF223B45E776262FDE7405A" />
+            <ComponentRef Id="cmpDC39DB0E5BD1BEE20C28A5181CBDBDC5" />
+            <ComponentRef Id="cmp20B52A3F81962DD5F2C594B9E94F4970" />
+            <ComponentRef Id="cmp9B4FAF6DA417960986FA1C3D54E6D7B5" />
+            <ComponentRef Id="cmpE1B2CCCCFD5428B14798FBAAB0659570" />
+            <ComponentRef Id="cmpD314E7DB900E92252F535FFFAE712DB9" />
+            <ComponentRef Id="cmp51D4AB94766E7D5B48EAFB6E032342EA" />
+            <ComponentRef Id="cmpEA6502FBB2586785523A5C951635B706" />
+            <ComponentRef Id="cmp27CBC3D368C782BF8EB9F24D573D469A" />
+            <ComponentRef Id="cmpD236D48EA73849F3FDBDBEDCC5B8E7B1" />
+            <ComponentRef Id="cmp85D8928657EEDF2CBF87B14105AF99FE" />
+            <ComponentRef Id="cmp686F27996B2B3A32AE2C50FF08159478" />
+            <ComponentRef Id="cmpABCB86D912193327EAE64435509E966D" />
+            <ComponentRef Id="cmpB3642C98E866C8B15C886AA87FABA2BB" />
+            <ComponentRef Id="cmp13D0D30BC369C11328FB0550645C9728" />
+            <ComponentRef Id="cmpF34FCBA4B948A221149F73A6E5D5266B" />
+            <ComponentRef Id="cmpF853C9C7C8A4E8861CA2FA814A1A2C25" />
+            <ComponentRef Id="cmp77AC21D070E4632EFB7ECA23D13FCF94" />
+            <ComponentRef Id="cmpA44E7BD4A7CD5726F14F6C604FC7FD2C" />
+            <ComponentRef Id="cmpCAB9C675E4D577CC2197F5F2D50D960D" />
+            <ComponentRef Id="cmp3D34D873ED293B7158B3600AF581F890" />
+            <ComponentRef Id="cmpEC13261F4253899D2057EDE6A000B035" />
+            <ComponentRef Id="cmp587CB5AE001B44BAA9E660D4C960D29A" />
+            <ComponentRef Id="cmpBD621F15B4DF23A30055D882479F59D2" />
+            <ComponentRef Id="cmpBCEBC91C51148CAFEBB0208BF5045EED" />
+            <ComponentRef Id="cmp2647CA95CE58F308B5A7A49537E233B5" />
+            <ComponentRef Id="cmp4A342E0DA76DA373255B3A0B4AAF19E4" />
+            <ComponentRef Id="cmp57EB62FAB4E3DA6FA74D7807916F2EE4" />
+            <ComponentRef Id="cmpEBB23DDDEB41F5915C02F566FA859A9F" />
+            <ComponentRef Id="cmp710B5F78D46EADD6EF1B8958C7DB954A" />
+            <ComponentRef Id="cmp252240C19FA859FFE9307FD40A49A034" />
+            <ComponentRef Id="cmp21F6B4CFAB3EFF6A171F4214B6883922" />
+            <ComponentRef Id="cmp82E3042F5406ADD6EC44AEB2DF523BE1" />
+            <ComponentRef Id="cmp1BE02E1148357C85B834DDA89B496B11" />
+            <ComponentRef Id="cmpFA953C5D75E98D6D0DD6C2D587FECDE5" />
+            <ComponentRef Id="cmp97F341056D4281D01E3ADDBD43AC7900" />
+            <ComponentRef Id="cmpC4BC2BEF350077AF6FD9A9895F12EB70" />
+            <ComponentRef Id="cmp69A1A33A1B49DCC278A428E66237B49B" />
+            <ComponentRef Id="cmp83EFAD33801C387F0E220C4FB740367F" />
+            <ComponentRef Id="cmpC3E48B4E051F00A336D5AD02F7D73AEE" />
+            <ComponentRef Id="cmpD37067545E5AB1FCF99BF43569A398E2" />
+            <ComponentRef Id="cmp4D51923AC7FBCC00CFAF2EB7E7141DAA" />
+            <ComponentRef Id="cmpCC8C4CD86BDEC1930840F64A7E33AA4F" />
+            <ComponentRef Id="cmpDD5020CB8E63A69F0DACAFE01878395C" />
+            <ComponentRef Id="cmp1C12DC61D37D45A206840CBD478D464E" />
+            <ComponentRef Id="cmpDC1F77032A76598775A419E7D2B6E97A" />
+            <ComponentRef Id="cmpD829812F8863B74A48421E4D7DFB94DF" />
+            <ComponentRef Id="cmp8E202361E00A8F892E29252DFE8D4C2F" />
+            <ComponentRef Id="cmp6A30758129AFDF577E932E0E3FE2F0BF" />
+            <ComponentRef Id="cmp4BBA8D67738A523E03A506F67BD024A9" />
+            <ComponentRef Id="cmp66BA67B050CA8E5EAF48B0D092EBB560" />
+            <ComponentRef Id="cmp740E40C46D3CE2C9E67E3E6542BCEC97" />
+            <ComponentRef Id="cmpE3803D361A3E5E506AB9499E3F52D29F" />
+            <ComponentRef Id="cmp011820AB5A742AB0EF77416C337A47F9" />
+            <ComponentRef Id="cmp355A991A818D3A54988DD21CDF4F4635" />
+            <ComponentRef Id="cmp707C742AC4E38D500328718FF360FA79" />
+            <ComponentRef Id="cmpF6D233ECDFC492EC0A879581CFE56135" />
+            <ComponentRef Id="cmp1A940B14F17693AEDAAEC3CD76076AA3" />
+            <ComponentRef Id="cmpCC1C713133AA7E770E5554B55C85D6EF" />
+            <ComponentRef Id="cmp49B2E961153965FB1CF9684B28CBD527" />
+            <ComponentRef Id="cmp756CF0BC8C814230BF43B4AE5190574B" />
+            <ComponentRef Id="cmp6B50C46B86ABDC3696F73E9676CEAE47" />
+            <ComponentRef Id="cmp745F620B1B7415C88F63EFD013754DD6" />
+            <ComponentRef Id="cmp329D5CFF7133185F1CB54EF41C8A59BE" />
+            <ComponentRef Id="cmpDF49AF3303DCE1F56C893A6683626C57" />
+            <ComponentRef Id="cmpAAA286C1276BA588175D1EBFB1B1D445" />
+            <ComponentRef Id="cmpC8165CBA5C0D90F179CE2D7C0CADAE13" />
+            <ComponentRef Id="cmp6AEFFB644A645F67976984119664E671" />
+            <ComponentRef Id="cmp8D4DB4937BB2EE8D19B40737F58F485F" />
+            <ComponentRef Id="cmp7D424CFFD981461503F90B18C250A018" />
+            <ComponentRef Id="cmpB1F5D4C076A5D43B29FEAB2F6EBB5DCA" />
+            <ComponentRef Id="cmpFEE04A4284FF4D8CF5699F8618FA4FAE" />
+            <ComponentRef Id="cmp77EF889EDB7D4C41694772E08B413631" />
+            <ComponentRef Id="cmp8A35D4781988A5B65F33F402556D8B57" />
+            <ComponentRef Id="cmpDEC22956BC837E1A2D208647ADA2F190" />
+            <ComponentRef Id="cmp84384118F8A58F1379E7A3FBF85813B8" />
+            <ComponentRef Id="cmp14691C20D6F324256CF8986F2661F7EA" />
+            <ComponentRef Id="cmp6F5D1909745F8069326A80B399A8881A" />
+            <ComponentRef Id="cmp576BC153DCA7C517E191D011D412215C" />
         </ComponentGroup>
     </Fragment>
 </Wix>
