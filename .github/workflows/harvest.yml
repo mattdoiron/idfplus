@@ -15,8 +15,6 @@ jobs:
   harvest:
 
   runs-on: windows-2019
-    strategy:
-      fail-fast: false
 
     steps:
       - name: Checkout repository
