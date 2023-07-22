@@ -48,6 +48,18 @@ jobs:
         run: |
           python setup.py freeze
 
+      - name: Harvest file names for wix
+        if: startswith(matrix.os, 'win')
+        run: |
+          python setup.py harvest
+
+      - name: Upload harvested file names
+        if: startswith(matrix.os, 'win')
+        uses: actions/upload-artifact@v3
+        with:
+          name: idfplus_harvest
+          path: build/idfplus_harvest.wxs
+
       - name: Package the app
         run: |
           python setup.py make_installer
