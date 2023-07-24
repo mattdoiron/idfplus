@@ -110,11 +110,13 @@ class bdist_msi(Command):
     def run(self):
         root_path = os.path.dirname(__file__)
         dist_dir = os.path.join(root_path, 'dist')
-        build_dir = os.path.join(root_path, 'build')
+        build_dir = os.path.join(root_path, 'build', '')  # Blank ensures trailing slash
         resources_dir = os.path.join(root_path, 'resources')
         bind_dir = os.path.join(dist_dir, project)
         wix_obj = os.path.join(build_dir, '{}.wixobj'.format(project))
+        wix_obj_harvested = os.path.join(build_dir, '{}_harvest.wixobj'.format(project))
         wxs_file = os.path.join(resources_dir, '{}.wxs'.format(project))
+        wsx_harvested_file = os.path.join(build_dir, '{}_harvest.wxs'.format(project))
         msi = '{}_{}.msi'.format(project, version)
         msi_file = os.path.join(dist_dir, msi)
         artifact_dir = os.path.join(root_path, 'artifacts')
@@ -128,7 +130,12 @@ class bdist_msi(Command):
 
         print('Running candle...')
         try:
-            subprocess.call([os.path.join(wix_bin_dir, 'candle'), '-nologo', '-out', wix_obj, wxs_file])
+            subprocess.call([os.path.join(wix_bin_dir, 'candle'),
+                             '-nologo',  # Suppress logo
+                             '-arch', 'x64',  # Specify 64 bit architecture
+                             '-out', build_dir,  # Specify output directory
+                             wxs_file,  # Main wxs project file
+                             wsx_harvested_file])  # Secondary wxs file (harvested)
         except OSError as e:
             if e.errno == errno.ENOENT:
                 print('Cannot find "candle" command. Please be sure WiX is installed.')
@@ -136,8 +143,16 @@ class bdist_msi(Command):
 
         print('Running light...')
         try:
-            subprocess.call([os.path.join(wix_bin_dir, 'light'), '-nologo', '-sacl', '-sval', '-spdb', '-b', bind_dir,
-                             '-ext', 'WixUIExtension', '-out', msi_file, wix_obj])
+            subprocess.call([os.path.join(wix_bin_dir, 'light'),
+                             '-nologo',  # Suppress logo
+                             '-sacl',
+                             '-sval',
+                             '-spdb',
+                             '-b', bind_dir,
+                             '-ext', 'WixUIExtension',
+                             '-out', msi_file,  # Specify output file
+                             wix_obj,  # Main object file
+                             wix_obj_harvested])  # secondary object file (harvested)
         except OSError as e:
             if e.errno == errno.ENOENT:
                 print('Cannot find "light" command. Please be sure WiX is installed.')
@@ -181,9 +196,22 @@ class Harvest(Command):
         print("Wix dir: {}".format(wix_bin_dir))
 
         try:
-            subprocess.call([os.path.join(wix_bin_dir, 'heat'), 'dir', source_dir, '-nologo',
-                             '-g1', '-gg', '-sfrag', '-ag', '-srd', '-cg', 'IDFPlusComponents',
-                             '-template', 'product', '-sw5150', '-sw5151', '-out', harvest_file])
+            subprocess.call([os.path.join(wix_bin_dir, 'heat'),
+                             'dir', source_dir,  # target directory
+                             '-nologo',  # suppress logo
+                             #'-g1',  # Generate component guids without curly braces
+                             #'-gg',  # Generate guids now
+                             '-sreg',  # Suppress registry harvesting
+                             '-scom',  # Suppress com harvesting
+                             '-sfrag',  # Suppress generation of fragments for dirs and components
+                             '-ag',  # Auto generate component guids at compile time
+                             '-srd',  # Suppress harvesting the root directory as an element.
+                             '-cg', 'IDFPlusComponents',  # Component group name
+                             '-template', 'fragment',  # Output template type
+                             '-sw5150',  # Suppress specific warnings
+                             '-dr', 'INSTALLDIR',  # Specify directory reference
+                             # '-sw5151', # Suppress specific warnings
+                             '-out', harvest_file])  # Name of output file
         except OSError as e:
             if e.errno == errno.ENOENT:
                 print('Cannot find "heat" command. Please be sure WiX is installed.')
